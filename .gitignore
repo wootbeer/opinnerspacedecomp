@@ -36,3 +36,6 @@ theworks/
 *.shp
 *.DED
 *.ded
+
+# Python
+__pycache__/
