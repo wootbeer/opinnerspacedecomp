@@ -9,6 +9,10 @@ Python 3. Run from the repo root; game files live in `data/` (git-ignored).
 | `optl_emu.py` | Runs that original routine under Unicorn (`pip install unicorn`); the reference `optl_lz.py` is checked against. |
 | `optl_unpack.py IN OUT` | Rebuilds a packed NE file as a plain NE: unpacked segments, OPTLOADER relocation tails turned into NE relocation records, self-loading flag cleared. Original bytes are kept; new segments are appended. |
 | `ne_relocs.py FILE [--list]` | Lists NE relocations and checks every chain. |
+| `omf_match.py NE LIB... [--list]` | Finds OMF library modules (C runtime) in an NE file's code, fixup bytes masked. |
+| `fat12_extract.py IMG DIR` | Extracts a FAT12 floppy image (install disks). |
+| `msexpand.c` | Expands Microsoft COMPRESS files (KWAJ or SZDD) with libmspack: `cc -std=c99 -Wall -Wextra -pedantic -O2 -o msexpand tools/msexpand.c -lmspack` (`apt-get install libmspack-dev`). |
+| `szdd_expand.py SRC DST` | Pure-Python SZDD expander (SZDD only; the C7 disks are KWAJ, use `msexpand`). |
 
 Unpack everything into the git-ignored `unpacked/`:
 

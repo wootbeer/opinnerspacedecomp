@@ -24,14 +24,30 @@ buffer gives plausible but wrong bytes.
 
 ## Toolchain (step 3): what the binaries say
 
+C runtime matches use the medium-model Windows libraries (`MLIBCW`, `MDLLCW`):
+more modules match than with large model. Memory model: `/AM` `[inferred]`.
+
 - **Linker: SLR OPTLINK** (OPTLOADER is its packer/self-loader). Confirmed.
 - **Compiler: Microsoft C.** Confirmed: `<<NMSG>>` message table and
   `_C_FILE_INFO=` are MS C runtime; the startup is MS C's Windows crt0
   (INITTASK, GetVersion, `mov ah,30h` through DOS3CALL).
-- **Version: MS C/C++ 7.0 or Visual C++ 1.x (C8)** `[inferred]`: the runtime
-  messages include R6020 "unexpected QuickWin error" and R6021 "no main
-  procedure"; QuickWin arrived in C7. Telling C7 / VC 1.0 / VC 1.5 apart needs
-  the real CRT objects to compare against.
+- **Version: Visual C++ 1.0 or 1.5x (C8), not C7.** Evidence:
+  - MS C/C++ 7.0 (all 9 disks checked, `/home/user/toolchain/c700`) has only
+    `/G0`-`/G2`; INSPACE.EXE has ~1400 instructions with 32-bit registers.
+  - The startup module (`windows\crt0.asm`) of every file (INSPACE, ISPACE,
+    FACTORY, BACKUP) differs from C7's: the game's has extra code, e.g.
+    `xchg al,ah; mov [..],ax` after the GetVersion and DOS version calls.
+  - 15 smaller C7 runtime modules (strcpy, strlen, getenv.c, rand.c, growseg,
+    ...) match INSPACE.EXE segment 5 byte for byte, so those did not change
+    between C7 and the version used; C7 `crt0dat.asm` matches except for
+    prologues (next point).
+  - Still to settle: VC++ 1.0 vs 1.5x, by the same library comparison
+    (`tools/omf_match.py`) once their libraries are available.
+- **Prologue rewrite at link time** `[inferred]`: C7 library code has
+  `mov ax,ds; nop` (8C D8 90), the same code in the EXEs has `mov ax,ss; nop`
+  (8C D0 90). All EXE far prologues read `mov ax,ss`, the DLL's `mov ax,ds`.
+  Most likely an OPTLINK option rewriting prologues for EXEs (SS == DS);
+  option name not confirmed.
 - **Flags** `[inferred]`, from code patterns, to confirm by compiling:
   - INSPACE.EXE, FACTORY.EXE, BACKUP.EXE: far functions start
     `mov ax,ss; nop; inc bp; push bp; mov bp,sp; push ds; mov ds,ax` = `/GA`
