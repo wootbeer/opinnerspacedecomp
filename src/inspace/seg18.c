@@ -18,7 +18,10 @@ extern int g_9660;
 extern int g_9130;                  /* subgame_active */
 #pragma pack(1)
 typedef struct {                /* far pointer at DS:6da4 */
-    char p00[0x08];
+    int f00;
+    int f02;                    /* width [inferred] */
+    int f04;                    /* height [inferred] */
+    char p06[0x08 - 0x06];
     char f08[0x1c - 0x08];      /* name, "Inner Demon" [inferred] */
     int f1c;
 } REC_6DA4;
@@ -207,8 +210,32 @@ extern signed char g_a198;
 extern int g_9676;
 extern HDC g_966a;
 extern int g_9678;
-extern POINT g_88f4[4];
+extern POINT g_88f4[];
+extern POINT g_8904[];
+extern POINT g_8914[];
+extern int g_a16a[];
+extern HDC g_9656;
 extern int g_3a36;
+extern int g_a187[];
+extern int g_a17f[];
+extern POINT g_a199[];
+extern POINT g_a1a9[];
+extern POINT g_a1b9[];
+extern HGDIOBJ g_3b44[3];
+extern int g_a1c9;
+extern int g_a1cb;
+typedef struct {                /* 0x94 bytes at DS:6098 (seen as DS:610e) */
+    int x[2][6];
+    int y[2][6];
+    char p30[0x74 - 0x30];
+    int f74;
+    int f76;
+    int f78;
+    char p7a[0x94 - 0x7a];
+} REC_6098;
+extern REC_6098 g_6098[];
+int far fn_09_955c(UINT id, LPSTR buf);
+void far fn_09_9580(UINT id, LPSTR dst);
 
 /* @addr 18:034c */
 void far fn_18_034c(void)
@@ -364,7 +391,7 @@ int far fn_18_1dd0(void)
 }
 
 /* Not yet decompiled: stub so calls to it compile as near calls. */
-void far fn_18_1934(int a, int b, int c)
+void far pascal fn_18_1934(int a, int b, int c)
 {
 }
 
@@ -392,7 +419,7 @@ void far fn_18_17f6(void)
     }
     g_1e34->f10 = (g_1e34->f22 + g_1e34->f24) * g_1e34->f28 + g_1e34->f24;
     g_1e34->f12 = g_1e34->f24;
-    fn_18_1934(g_3a36, 1, 0xf00);
+    fn_18_1934(0xf00, 1, g_3a36);
 }
 
 /* Draws the two score lines when they changed [inferred]. */
@@ -714,4 +741,123 @@ void far fn_18_50ac(void)
         if (g_1e40->f24 > 40 && g_1df8[g_9324][g_9646].f22 > d)
             fn_18_5220(g_1e40->f28);
     }
+}
+
+/* @addr 18:5350 */
+void far fn_18_5350(int x, int y)
+{
+    int k;
+    int sy;
+    int sx;
+
+    if (g_1318 <= 6) {
+        k = 5;
+        if (y == -1 && x < 0 && x > -5)
+            k = -x;
+        else if (x < g_88c0 / 3) {
+            if (y < g_88c2 / 2) {
+                k = 3;
+                sy = sx = 0;
+            } else {
+                sx = k = 0;
+                sy = g_9678;
+            }
+        } else if (x > g_88c0 * 2 / 3) {
+            if (y < g_88c2 / 2) {
+                k = 2;
+                sx = g_9678;
+                sy = 0;
+            } else {
+                k = 1;
+                sy = sx = g_9678;
+            }
+        }
+        if (k < 5) {
+            PatBlt(g_966a, (-7 << g_9156 * 2) + g_9678, (-7 << g_9156 * 2) + g_9678,
+                   7 << g_9156 * 2, 7 << g_9156 * 2, BLACKNESS);
+            BitBlt(g_13dc, g_88f4[k].x, g_88f4[k].y, g_9678, g_9678,
+                   g_966a, sx, sy, SRCCOPY);
+            BitBlt(g_966a, (-7 << g_9156 * 2) + g_9678, (-7 << g_9156 * 2) + g_9678,
+                   7 << g_9156 * 2, 7 << g_9156 * 2,
+                   g_966a, g_8914[k].x, g_8914[k].y, SRCCOPY);
+            if (g_a18f[k])
+                BitBlt(g_966a, (-7 << g_9156 * 2) + g_9678, (-7 << g_9156 * 2) + g_9678,
+                       7 << g_9156 * 2, 7 << g_9156 * 2,
+                       g_9656, g_a16a[k] / 40 * 7 << g_9156 * 2, 0, SRCPAINT);
+            BitBlt(g_13dc, g_8904[k].x, g_8904[k].y, 7 << g_9156 * 2, 7 << g_9156 * 2,
+                   g_966a, (-7 << g_9156 * 2) + g_9678, (-7 << g_9156 * 2) + g_9678, SRCCOPY);
+        } else
+            fn_18_1934(0xf00, 1, g_3a36);
+    }
+}
+
+/* Draws the end-of-level score screen [inferred]. */
+/* @addr 18:6046 */
+void far fn_18_6046(void)
+{
+    char buf[100];
+
+    PatBlt(g_13dc, 0, 0, g_6da4->f02, g_6da4->f04, BLACKNESS);
+    fn_10_744c(0x6e);
+    fn_10_744c(0x66);
+    fn_09_955c(0x7f1, buf);
+    fn_06_0f1a(g_a1cf, g_a1d5);
+    lstrcat(buf, g_a1d5);
+    fn_09_9580(0x7f3, buf);
+    fn_10_94c4(2, 6, PALETTERGB(255, 255, 0), g_6da4->f02 / 2, g_6da4->f04 / 2 - 46, buf);
+    LoadString(g_9212, 0x7f2, buf, 100);
+    fn_06_0f1a(g_a1cd - g_a1d1, g_a1d5);
+    lstrcat(buf, g_a1d5);
+    fn_10_94c4(2, 6, PALETTERGB(245, 61, 0), g_6da4->f02 / 2, g_6da4->f04 / 2 - 18, buf);
+    LoadString(g_9212, 0x7f4, buf, 100);
+    fn_06_0f1a(g_a1d3, g_a1d5);
+    lstrcat(buf, g_a1d5);
+    fn_10_94c4(2, 6, PALETTERGB(245, 61, 0), g_6da4->f02 / 2, g_6da4->f04 / 2, buf);
+    LoadString(g_9212, 0x7f5, buf, 100);
+    fn_06_0f1a(g_a1cd, g_a1d5);
+    lstrcat(buf, g_a1d5);
+    fn_10_94c4(2, 6, PALETTERGB(245, 61, 0), g_6da4->f02 / 2, g_6da4->f04 / 2 + 18, buf);
+}
+
+/* @addr 18:4dc4 */
+int far pascal fn_18_4dc4(int n)
+{
+    int unused1;
+    int unused2;
+    int unused3;
+    int unused4;
+    int w;
+    int k;
+    int j;
+    int unused5;
+    int unused6;
+    HGDIOBJ old;
+
+    w = 2 << g_9156;
+    if (g_a17f[n] >= 0 && g_a17f[n] < g_a187[n]) {
+        MoveTo(g_13dc, g_a1b9[n].x, g_a1b9[n].y);
+        g_a1b9[n].x = (int)(g_a199[n].x * (long)g_88c0 / g_88cc);
+        g_a1b9[n].y = (int)(g_a199[n].y * (long)g_88c0 / g_88cc);
+        old = SelectObject(g_13dc, g_3b44[rand() % 3]);
+        if (g_a17f[n] > 0)
+            LineTo(g_13dc, g_a1b9[n].x, g_a1b9[n].y);
+        SelectObject(g_13dc, old);
+        g_a199[n].x += g_a1a9[n].x;
+        g_a199[n].y += g_a1a9[n].y;
+        g_a17f[n]++;
+    }
+    if (g_a17f[n] >= g_a187[n]) {
+        g_6098[n].f76 = g_6098[n].f74;
+        g_a17f[n] = -1;
+        for (k = 5; k > -1; k--)
+            for (j = 0; j < g_6098[n].f78; j++)
+                PatBlt(g_13dc, g_6098[n].x[j][k], g_6098[n].y[j][k], w, w, BLACKNESS);
+        old = SelectObject(g_13dc, CreatePen(PS_SOLID, 3, RGB(0, 0, 0)));
+        MoveTo(g_13dc, g_a1c9, g_a1cb);
+        LineTo(g_13dc, g_a1b9[n].x, g_a1b9[n].y);
+        SelectObject(g_13dc, old);
+        fn_10_744c(0x16);
+        g_a17f[n] = -1;
+    }
+    return 0;
 }

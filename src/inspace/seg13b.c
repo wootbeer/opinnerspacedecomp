@@ -28,7 +28,9 @@ typedef struct {
     int f_03a;    /* DS:70cc */
     int f_03c;    /* DS:70ce */
     int f_03e;    /* DS:70d0 */
-    char pad_040[0xc];
+    char pad_040[0x2];
+    int f_042;    /* DS:70d4 */
+    char pad_044[0x8];
     int f_04c;    /* DS:70de */
     char pad_04e[0x2];
     int f_050;    /* DS:70e2 */
@@ -72,7 +74,7 @@ typedef struct {
 
 /* 0x70-byte records reached through far pointers (DS:1e30, DS:1df8[]). */
 typedef struct {
-    char pad_000[0x4];
+    POINT f_000;
     POINT f_004;
     char pad_008[0x4];
     int f_00c;
@@ -82,11 +84,15 @@ typedef struct {
     int f_01a;
     char pad_01c[0x2];
     int f_01e;
-    char pad_020[0x6];
+    int f_020;
+    char pad_022[0x4];
     int f_026;
-    char pad_028[0x1e];
+    int f_028;
+    char pad_02a[0x1c];
     int f_046;
-    char pad_048[0x1e];
+    char pad_048[0x9];
+    char f_051;
+    char pad_052[0x14];
     FNPTR f_066;
     char pad_06a[0x6];
 } REC70;
@@ -184,6 +190,12 @@ void far fn_13_2714(int, int, int, int, int, int);
 int far fn_13_2688(int i, int j);
 void far fn_03_00f4(int a, int s, int k);  /* seg03.c: (int, long) */
 extern int g_91fa;
+extern int g_9320;
+extern int g_964a;
+extern int g_9648;
+extern int g_104a;
+extern int g_9220;
+extern unsigned long g_1e68;
 extern int g_941c;
 extern REC70 far *g_1e24;
 
@@ -687,5 +699,147 @@ set:
         g_7092[g_9646].f_096 = g_1e50 + 25000;
         g_7092[g_9646].f_0eb = 1;
         fn_13_a5c2();
+    }
+}
+
+/* Pick the music section for the danger level [inferred]. */
+/* @addr 13:ba04 */
+void far fn_13_ba04(void)
+{
+    int i, m;
+    long t;
+    int found;
+
+    m = 1;
+    t = 5000;
+    if (g_9220 == 9 || g_9220 == 10)
+        return;
+    for (i = 0; i <= g_9316; i++) {
+        found = 0;
+        t = 3000;
+        if (g_7092[i].f_0ea && g_1e30[i].f_018 == 0) {
+            if (g_7092[i].f_036 == 1 && g_7092[i].f_030 == 14
+                && g_7092[i].f_032 == g_9646)
+                found = 1;
+            if ((g_7092[i].f_050 == 0x16 || g_7092[i].f_050 == 0x17)
+                && g_7092[i].f_052 == 14 && g_7092[i].f_054 == g_9646)
+                found = 1;
+        }
+        if (found) {
+            m = 2;
+            t = 6000;
+            break;
+        }
+    }
+    if (g_7092[g_9646].f_036 == 1 && g_9220 == 2
+        && g_7092[g_9646].f_030 == 14) {
+        t = 6000;
+        m = 2;
+    } else if (g_9220 == 2) {
+        for (i = 0; i <= g_9316; i++) {
+            if (i != g_9646 && g_1e68 / 10 - g_7092[i].f_042 < 20
+                && g_7092[i].f_042 != 0 && g_1e30[i].f_018 == 0) {
+                m = 2;
+                t = 6000;
+            }
+        }
+    }
+    if (m != g_9220) {
+        fn_10_7480(m, 0);
+    } else {
+        if (g_9220 == 2)
+            t = 6000;
+        else
+            t = 3000;
+    }
+    g_2384 = g_1e50 + t;
+}
+
+/* Report a crime of kind t by object a to a nearby police ship
+ * [inferred: HANDOFF report_crime; calls adbe]. flag is never read. */
+/* @addr 13:b6f2 */
+void far fn_13_b6f2(int a, int t)
+{
+    int i, y, x, d, msg, flag;
+
+    flag = 1;
+    if (g_9320 == 7)
+        return;
+    switch (t) {
+    case 1:
+        msg = 0x45;
+        break;
+    case 2:
+        msg = 0x46;
+        break;
+    case 3:
+        msg = 0x5d;
+        break;
+    case 4:
+        msg = 0x65;
+        break;
+    case 5:
+        if (g_a163 == 5)
+            return;
+        msg = 0x72;
+        break;
+    case 6:
+        msg = 0x86;
+        break;
+    case 8:
+        msg = 0xb9;
+        break;
+    case 9:
+        msg = 0xc0;
+        break;
+    }
+    if (a == g_9646 && t != 9) {
+        g_964a++;
+        g_9648++;
+    }
+    if (t != 6) {
+        g_964a += 3;
+        g_9648 += 3;
+    } else {
+        g_964a++;
+        g_9648++;
+    }
+    if (t == 2) {
+        g_964a += 4;
+        g_9648 += 4;
+    }
+    if (t == 8 || g_104a) {
+        g_964a += 2;
+        g_9648 += 2;
+        g_a163 = (char)t;
+        fn_13_adbe(a, 0x15, -1);
+        fn_03_06ec(a, 14, g_9316, msg);
+        if (a == g_9646)
+            g_a14d[t]++;
+        g_104a = 0;
+        return;
+    }
+    for (i = 0; i <= g_9316; i++) {
+        if (g_970a[g_7092[i].f_04c].f_000 == 7 && g_1e30[i].f_018 == 0
+            && g_7092[i].f_050 != 0x16 && g_7092[i].f_050 != 0x17
+            && (d = fn_08_285a(&y, &x, g_1e30[i].f_004, g_1e30[a].f_004))
+               < 2400
+            && (t != 6 || g_a14d[t] <= g_a157[t])) {
+            if (!fn_13_adbe(a, 0x15, -1)) {
+                fn_03_06ec(a, 14, i, 0x44);
+                return;
+            }
+            fn_03_06ec(a, 14, i, msg);
+            g_a163 = (char)t;
+            if (a == g_9646)
+                g_a14d[t]++;
+            return;
+        } else if (g_970a[g_7092[i].f_04c].f_000 == 7
+                   && g_1e30[i].f_018 == 0)
+            flag = 0;
+    }
+    if (g_9648 > 4 && g_9648 < 1000) {
+        fn_03_06ec(g_9646, 7, 0, 0x6e);
+        g_9648 = 1001;
     }
 }

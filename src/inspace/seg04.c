@@ -27,7 +27,9 @@ typedef struct {
     char p30[0x32 - 0x30];
     int f32;                    /* +32 */
     int f34;                    /* +34 */
-    char p36[0x51 - 0x36];
+    char p36[0x44 - 0x36];
+    int f44;                    /* +44 */
+    char p46[0x51 - 0x46];
     char f51;                   /* +51 */
     char p52;
     char f53;                   /* +53 */
@@ -68,7 +70,9 @@ typedef struct {
     char f5f;                   /* +5f */
     char p060[0x94 - 0x60];
     long f94;                   /* +94 */
-    char p098[0xae - 0x98];
+    char p098[0xac - 0x98];
+    char fac;                   /* +ac */
+    char p0ad;
     char fae[10];               /* +ae, indexed by slot [inferred] */
     char fb8[10];               /* +b8, indexed by slot [inferred] */
     char fc2[8];                /* +c2, indexed by object [inferred] */
@@ -85,9 +89,11 @@ typedef struct {
     long fdc;                   /* +dc */
     char p0e0[0xe2 - 0xe0];
     char fe2;                   /* +e2 */
-    char p0e3[0xe8 - 0xe3];
+    char p0e3[0xe7 - 0xe3];
+    char fe7;                   /* +e7 */
     char fe8;                   /* +e8 */
-    char p0e9[0xec - 0xe9];
+    char fe9;                   /* +e9 */
+    char p0ea[0xec - 0xea];
     char fec;                   /* +ec */
     char p0ed;
     char fee[8];                /* +ee, indexed by object [inferred] */
@@ -136,7 +142,7 @@ typedef struct {                /* 0x50 bytes, DGROUP array at DS:2f58 */
     int f06;                    /* +06 */
     char p08[0x24 - 0x08];
     int f24;                    /* +24 */
-    char p26[0x28 - 0x26];
+    int f26;                    /* +26 */
     int f28;                    /* +28 */
     int f2a;                    /* +2a */
     char p2c[0x3e - 0x2c];
@@ -235,6 +241,9 @@ extern int g_4eec[][3];
 extern int g_4fd0[][3];
 extern int g_6b10[][3];
 extern int g_4ed8[];
+extern int g_940c;
+extern int g_9416;
+int far fn_09_88ba(int v);
 
 /* @addr 4:0000 */
 void far pascal fn_04_0000(int n)
@@ -415,10 +424,132 @@ void far pascal fn_04_584c(int s, int n, int t)
     g_7090[n].f18 = s;
 }
 
-/* Not yet decompiled. */
-int far fn_04_6a78(int n, int i)
+/* Scores how useful weapon slot s of racer n is against its current
+ * target (-2000 / -100 / 0 = not usable) [inferred]. */
+/* @addr 4:6a78 */
+int far fn_04_6a78(int n, int s)
 {
-    return 0;
+    int w;
+    int type;
+    int idx;
+    int unused;
+    int a;
+    int b;
+    int rel;
+    int ratio;
+    int v;
+    int score;
+    int i;
+    int count;
+
+    w = g_7090[n].fb8[s];
+    type = g_7090[n].f32;
+    idx = g_7090[n].f34;
+    if (g_2f58[w].f26 == 0)
+        return -2000;
+    if (type != 14
+        && ((g_7090[n].fae[s] < 14 && g_2f58[g_7090[n].fb8[s]].f06)
+            || g_2f58[g_7090[n].fb8[s]].f28 > 3))
+        return -2000;
+    score = 0;
+    if (type == 14) {
+        rel = fn_13_2688(n, idx);
+        ratio = fn_04_5d9c(n, idx);
+    } else {
+        rel = -100;
+        ratio = 100;
+    }
+    v = 7;
+    if (rel < 0)
+        v = 8;
+    else
+        v--;
+    if (rel < -60)
+        v++;
+    if (rel > 60)
+        v--;
+    if (rel < -270)
+        v++;
+    if (rel > 250)
+        v--;
+    v -= g_7090[n].f5e;
+    if (ratio < 60)
+        v++;
+    if (ratio < 25)
+        v++;
+    if (g_96f0[g_7090[n].f4e].f1a == 3 || g_96f0[g_7090[n].f4e].f1a == 1
+        || g_96f0[g_7090[n].f4e].f1a == 4)
+        v += 2;
+    v -= g_7090[n].f13e[g_7090[n].f34] / 2;
+    if (g_7090[n].f52 == 3 || g_7090[n].f52 == 4)
+        v += 2;
+    if (g_2f58[w].f26 < v)
+        v += -(v - g_2f58[w].f26) * 3 / 4;
+    if (type == 14 && g_7090[idx].fe2 && g_2f58[w].f3e == 0)
+        score += 7;
+    if (g_2f58[w].f3e && type != 14)
+        return 0;
+    if (g_2f58[w].f26 < 3)
+        return 0;
+    if (g_2f58[w].f26 - 3 > v)
+        return 0;
+    score += rand() % 3 - fn_09_88ba(v - g_2f58[w].f26) + 12;
+    if (w == 2) {
+        count = 0;
+        for (i = 0; i < g_940c; i++) {
+            if (g_1df8[3][i].f18 == 0 && g_1df8[3][i].f44 > 500
+                && fn_08_285a(&a, &b, g_1df8[3][i].f04, g_1df8[14][n].f04) < 320) {
+                count++;
+                if (count > 1)
+                    break;
+            }
+        }
+        for (i = 0; i < g_9416; i++) {
+            if (g_1df8[8][i].f18 == 0 && g_1df8[8][i].f44 > 500
+                && fn_08_285a(&a, &b, g_1df8[8][i].f04, g_1df8[14][n].f04) < 320) {
+                count++;
+                if (count > 1)
+                    break;
+            }
+        }
+        if (count == 0)
+            return 0;
+        if (count > 1)
+            score += 2;
+    }
+    if (g_7090[n].f38 == 4) {
+        if (g_2f58[w].f00 == 2)
+            score += 12;
+        if (g_2f58[w].f00 == 3)
+            score += 7;
+    }
+    if (g_7090[n].f1e < 250 && g_2f58[w].f2a != 0) {
+        score -= 2;
+        if (g_7090[n].f1e < 75)
+            score -= 2;
+        if (g_2f58[w].f2a > 50)
+            score -= 2;
+        if (g_2f58[w].f2a * 2 > g_7090[n].f1e)
+            return 0;
+    }
+    if (g_2f58[w].f28 != 0 && (g_2f58[w].f28 + 5) * 5 > g_7090[n].f26) {
+        score -= g_2f58[w].f28;
+        if (g_2f58[w].f28 * 3 + 13 > g_7090[n].f26 || g_7090[n].f32 != 14)
+            return -100;
+    }
+    if (score > 0 && g_2f58[w].f3e && g_7090[n].f32 == 14) {
+        if (g_7090[n].fd4 > 0)
+            return 0;
+        if (g_7090[n].f38 == 4)
+            score += 3;
+        if (ratio > 250)
+            return 0;
+        if (type != 14)
+            return 0;
+        if (g_7090[n].f13e[g_7090[n].f34] < 0)
+            score += -(g_7090[n].f13e[g_7090[n].f34] * 2 - 3);
+    }
+    return score;
 }
 
 /* near-match 18%: 4:6e70 (control flow and layout right; the original indexes
@@ -1026,4 +1157,100 @@ void far fn_04_7636(int n, int type, int idx, int quiet)
         g_7090[n].f08 = idx;
         fn_03_06ec(g_9646, 14, n, 0x62);
     }
+}
+
+/* Racer n may shout a taunt/warning message (0x406-0x415) [inferred]. */
+/* @addr 4:79ae */
+void far fn_04_79ae(int n)
+{
+    int i;
+    int sel;
+    int a;
+    int b;
+    int msg;
+    int msg2;
+    int flag;
+
+    if (g_7090[n].fe7 == 0 && g_7090[n].fe9 == 0)
+        return;
+    msg = 0;
+    if (g_7090[n].fe9 && (g_7090[n].fac == 0 || g_7090[n].fac == 0))  /* sic: same test twice */
+        return;
+    if (g_7090[n].fe7 && g_7090[n].f1e < 100)
+        return;
+    if (g_7090[n].f10 != 0 || g_7090[n].fe8 != 0)
+        flag = 0;
+    else
+        flag = 1;
+    sel = -1;
+    for (i = 0; i <= g_9316; i++) {
+        if (g_1df8[14][i].f18 == 0 && i != n && g_7090[i].f32 == 14 && g_7090[i].f34 == n
+            && g_7090[i].f38 == 1
+            && fn_08_285a(&a, &b, g_1df8[14][i].f04, g_1df8[14][n].f04) < 500)
+            sel = i;
+    }
+    if (!flag && g_7090[n].f38 == 2
+        && fn_08_285a(&a, &b, g_1df8[14][n].f04,
+                      g_1df8[g_7090[n].f32][g_7090[n].f34].f04) < 150) {
+        if (g_7090[n].fe9) {
+            if (fn_11_4b00(n))
+                msg = 0x408;
+        } else {
+            if (fn_11_4c72(n))
+                msg = 0x409;
+        }
+        msg2 = 0x410;
+    }
+    if (flag && sel == -1 && g_96f0[g_7090[n].f4e].f1a != 3)
+        return;
+    if (!flag && sel == -1 && rand() % 3 == 0 && g_96f0[g_7090[n].f4e].f1a != 3) {
+        if (g_7090[n].fe9) {
+            if (fn_11_4b00(n))
+                msg = 0x408;
+        } else {
+            if (fn_11_4c72(n))
+                msg = 0x409;
+        }
+        msg2 = 0x411;
+    } else if (flag && sel != -1 && (rand() % 5 == 0 || g_7090[n].f13e[sel] < -1)
+               && g_7090[n].f13e[sel] < 2) {
+        if (g_7090[n].fe9) {
+            if (fn_11_4b00(n))
+                msg = 0x406;
+        } else {
+            if (fn_11_4c72(n))
+                msg = 0x407;
+        }
+        msg2 = 0x412;
+    } else if (flag && g_96f0[g_7090[n].f4e].f1a == 3 && sel == -1 && g_7090[n].f38 == 1
+               && g_7090[n].f32 == 14 && rand() % 4 <= 2 && g_7090[n].f13e[sel] < 2) {
+        if (g_7090[n].fe9) {
+            if (fn_11_4b00(n))
+                msg = 0x406;
+        } else {
+            if (fn_11_4c72(n))
+                msg = 0x407;
+        }
+        msg2 = 0x413;
+    } else if (!flag && sel == -1 && g_7090[n].f38 != 1) {
+        if (g_7090[n].fe9) {
+            if (fn_11_4b00(n))
+                msg = 0x408;
+        } else {
+            if (fn_11_4c72(n))
+                msg = 0x409;
+        }
+        msg2 = 0x414;
+    } else if (!flag && g_7090[n].f13e[sel] > 2) {
+        if (g_7090[n].fe9) {
+            if (fn_11_4b00(n))
+                msg = 0x408;
+        } else {
+            if (fn_11_4c72(n))
+                msg = 0x409;
+        }
+        msg2 = 0x415;
+    }
+    if (n == g_9646 && msg)
+        fn_03_332e(msg, msg2);
 }

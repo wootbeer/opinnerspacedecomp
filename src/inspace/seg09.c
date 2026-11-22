@@ -5,13 +5,22 @@
 /* Records reached through far pointers or DGROUP arrays; only the fields
  * this file uses are named (offset in the name). */
 typedef struct {                /* 0x70 bytes, far array at DS:1df8 / 1e18 */
-    char p00[0x18];
+    char p00[0x12];
+    int f12;                    /* +12 */
+    char p14[0x18 - 0x14];
     int f18;
     char p1a[0x1e - 0x1a];
     int f1e;
-    char p20[0x2f - 0x20];
+    char p20[0x24 - 0x20];
+    int f24;                    /* +24 */
+    char p26[0x2e - 0x26];
+    char f2e;                   /* +2e */
     char f2f;
-    char p30[0x51 - 0x30];
+    char p30[0x32 - 0x30];
+    int f32;                    /* +32 */
+    char p34[0x36 - 0x34];
+    int f36;                    /* +36 */
+    char p38[0x51 - 0x38];
     char f51;
     char p52[0x70 - 0x52];
 } REC_70;
@@ -78,13 +87,14 @@ typedef struct {                /* 0x23 bytes, DGROUP array at DS:57a8 */
 
 extern int g_0010;
 extern int g_13de;
+extern long g_1e70;
 extern long g_1e50;
 extern long g_1e78;
 extern long g_1e88;
 extern long g_1e74;
-extern long g_1e70;
 extern int g_5000;
 extern int g_5002;
+extern int g_90ea;
 extern RECT g_607c;
 extern RECT g_6084;
 extern char g_38c8[];
@@ -105,7 +115,6 @@ extern LPSTR g_6078;
 extern REC_297 far *g_69f4;
 extern REC_15A g_7090[];
 extern long g_09bc[12];
-extern int g_90ea;
 extern int g_9200;
 extern int g_9206;
 extern int g_92e6;
@@ -139,6 +148,60 @@ extern HGDIOBJ g_93ae;
 extern HGLOBAL g_93b4;
 extern REC_AD g_96f0[];
 
+/* Records only seen being reset by fn_09_6624; first fields only. */
+typedef struct { int f00; char p02[0x08 - 0x02]; int f08; char p0a[0x1c - 0x0a]; } REC_1C;  /* DS:66e4 */
+typedef struct { int f00; int f02; int f04; char p06[0x20 - 0x06]; } REC_20;  /* DS:65cc */
+typedef struct { int f00; char p02[0x5a - 0x02]; } REC_5A;     /* DS:226c */
+typedef struct { int f00; int f02; char p04[0x94 - 0x04]; } REC_94;  /* DS:610c */
+typedef struct { int f00; char p02[0x14 - 0x02]; } REC_14;     /* DS:1e90, 58cc, 5a4c */
+typedef struct { int f00; int f02; char p04[0x08 - 0x04]; int f08; char p0a[0x16 - 0x0a]; } REC_16;  /* DS:5b2c */
+extern int g_93b0;
+extern HWND g_934c;
+extern int g_8f64;
+extern long g_1e68;
+extern long g_5014;
+extern int g_9510;
+extern int g_92f8;
+extern REC_1C g_66e4[];
+extern int g_9300;
+extern REC_20 g_65cc[];
+extern REC_5A g_226c[];
+extern int g_9456;
+extern int g_9430;
+extern REC_94 g_610c[];
+extern REC_14 g_1e90[];
+extern REC_14 g_58cc[];
+extern REC_14 g_5a4c[];
+extern int g_9328;
+extern REC_16 g_5b2c[];
+extern int g_9e49;
+extern int g_9494;
+extern int g_9492;
+extern int g_940c;
+extern int g_9418;
+extern int g_9600;
+extern int g_940e;
+extern int g_9e5b;
+extern int g_9e4b;
+extern int g_9e45;
+extern int g_9414;
+extern int g_9140;
+extern long g_1e6c;
+extern long g_6da8;
+extern long g_8e2c;
+extern int g_9378;
+extern int g_103a;
+void far fn_10_0864(int n);
+void far fn_10_0a26(int n);
+void far fn_09_0df6(int n);
+void far fn_09_10d4(void);
+int far fn_14_3eda(void);
+void far fn_14_0000(int a);
+void far fn_14_4074(void);
+void far fn_10_754a(int a, int b, int c, int d);
+void far fn_11_ae94(void);
+void far fn_11_2f8c(void);
+BOOL far pascal fn_09_90fe(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam);
 void far fn_10_6d52(int a, int b, int c, int d, int e, int f);
 void far fn_17_306e(void);
 void far fn_11_1774(int c, int l, int t, int r, int b);
@@ -307,7 +370,7 @@ void far fn_09_6dec(int force)
     int clip;
 
     clip = 0;
-    if (flow_interactive == 0 || g_1e50 == g_1e70)
+    if (flow_interactive == 0 || g_1e70 == g_1e50)
         return;
     if (force || g_6078 == 0) {
         SetRect(&g_6084, g_90ea / 2 - 290, g_0010 / 2 - 173, g_90ea / 2 + 290, g_0010 / 2 + 173);
@@ -562,4 +625,103 @@ void far fn_09_961a(UINT id)
 
     LoadString(g_9212, id, buf, 90);
     lstrcat(ambulance_line, buf);
+}
+
+/* Resets the race/session state and builds the level objects [inferred]. */
+/* @addr 9:6624 */
+void far fn_09_6624(void)
+{
+    int i;
+    int j;
+    char unused[40];
+
+    if (g_93b0)
+        return;
+    g_93b0 = 1;
+    if (g_934c) {
+        g_8f64 = 0;
+        DestroyWindow(g_934c);
+        g_934c = 0;
+    }
+    if (g_90f4 != 3 && g_934c == 0)
+        g_934c = CreateDialog(g_9212, MAKEINTRESOURCE(0x65), (HWND)g_0016, fn_09_90fe);
+    g_5014 = g_1e68 = 0;
+    g_9510 = 0x65;
+    for (i = 0; i < g_92f8; i++) {
+        g_66e4[i].f08 = 0x191;
+        g_1df8[6][i].f18 = 1;
+    }
+    for (i = 0; i < g_9300; i++) {
+        g_1df8[10][i].f18 = 1;
+        g_65cc[i].f04 = g_65cc[i].f00 = -1;
+    }
+    for (i = 0; i < 4; i++)
+        g_226c[i].f00 = -1;
+    g_9430 = g_9456 = 0;
+    for (i = 0; i < 9; i++) {
+        g_610c[i].f02 = -1;
+        g_610c[i].f00 = 50;
+    }
+    for (i = 0; i < 45; i++)
+        g_1e90[i].f00 = -1;
+    for (i = 0; i < 20; i++)
+        g_58cc[i].f00 = -1;
+    for (i = 0; i < g_92f8; i++)
+        g_66e4[i].f00 = -1;
+    for (i = 0; i < g_92ec[g_9328]; i++) {
+        g_5a4c[i].f00 = -1;
+        g_1df8[g_9328][i].f18 = 1;
+    }
+    for (i = 0; i < 10; i++)
+        for (j = 0; j < 4; j++) {
+            g_5b2c[i * 4 + j].f08 = 0;
+            g_5b2c[i * 4 + j].f02 = -100;
+            g_5b2c[i * 4 + j].f00 = -100;
+        }
+    g_9e49 = 10;
+    g_9492 = g_9494 = 1;
+    for (i = 0; i < g_940c; i++)
+        fn_10_0864(i);
+    for (i = 0; i < g_9418; i++)
+        fn_10_0a26(i);
+    g_9600 = 1;
+    for (i = 0; i < g_940e; i++)
+        fn_09_0df6(i);
+    fn_09_10d4();
+    g_1e50 = GetCurrentTime();
+    g_9e45 = g_9e4b = g_9e5b = 0;
+    g_9e49 = 10;
+    g_1df8[7][0].f18 = 1;
+    g_9414 = 0;
+    fn_14_3eda();
+    fn_14_0000(-1);
+    fn_14_4074();
+    g_9140 = 1;
+    for (i = 0; i <= 14; i++)
+        for (j = 0; j < g_92ec[i]; j++) {
+            g_1df8[i][j].f12 = g_1df8[i][j].f24;
+            g_1df8[i][j].f2e = 0;
+            g_1df8[i][j].f32 = -1;
+            g_1df8[i][j].f36 = -1;
+        }
+    if (g_9320 == 6) {
+        fn_09_6db0();
+        fn_10_754a(0x4f, 0, 0, 5);
+        fn_10_754a(0x28, 0, 0, 5);
+        fn_10_754a(0x42, 0, 0, 5);
+    }
+    g_1e6c = g_1e50 + 10000;
+    g_6da8 = 0;
+    if (g_91f8 == 1 || g_92e4 != 0) {
+        fn_11_ae94();
+        fn_11_2f8c();
+    }
+    g_8e2c = 0;
+    if (g_934c) {
+        g_8f64 = 0;
+        DestroyWindow(g_934c);
+        g_934c = 0;
+    }
+    g_9378 = g_9134;
+    g_103a = g_92e4 = 0;
 }

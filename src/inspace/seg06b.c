@@ -76,6 +76,23 @@ extern int g_94c4;
 extern int g_0010;
 extern int g_9130;                  /* subgame_active */
 void far fn_10_754a(int a, int b, int c, int d);
+void far fn_06_72d8(int n, int m);
+int far fn_06_84fc(int a, int x, int y, int dx, int dy, int w, int h,
+                   int c, int d, int e);
+void far fn_10_744c(int a);
+void far fn_10_7d58(int x, int y);
+void far fn_13_65f2(int a);
+void far fn_11_02f0(void);
+void far fn_10_7480(int a, int b);
+extern int g_90f4;
+extern int g_94cc;
+extern int g_90ea;
+extern int g_90ec;
+extern DWORD g_1e50;
+extern DWORD g_1e7c;
+extern long g_1e58;
+extern int g_93a2;
+extern DWORD fireworks_end_ms;      /* DS:6b00 */
 extern unsigned char g_0f00[];
 extern int g_9646;
 extern int flow_interactive;        /* DS:95bc */
@@ -493,32 +510,101 @@ int far fn_06_84fc(int a, int x, int y, int dx, int dy, int w, int h,
     c = c < 28 ? 28 : c;
     c = c > 29 ? 29 : c;
     for (i = 0; i < g_94ce; i++) {
-        if (!g_6b08[i].f02) {
-            if (rand() % 3)
-                snd = 0x4e;
-            else
-                snd = 0x1b;
-            if (g_9330 && !g_9130)
-                fn_10_754a(snd, 6, e, 1);
-            else
-                fn_10_754a(snd, 0, 0, 0);
-            g_6b08[i].f00 = 0;
-            g_6b08[i].f27 = 0;
-            g_6b08[i].f29 = 0;
-            g_6b08[i].f02 = a;
-            g_6b08[i].f05 = d;
-            g_6b08[i].f07 = 0;
-            g_6b08[i].f13 = (long)x << 8;
-            g_6b08[i].f17 = (long)y << 8;
-            g_6b08[i].f1b = dx;
-            g_6b08[i].f1f = dy;
-            g_6b08[i].f0b = w;
-            g_6b08[i].f0d = h;
-            g_6b08[i].f11 = 0;
-            g_6b08[i].f0f = c;
-            g_6b08[i].f01 = e;
-            return 1;
-        }
+        if (g_6b08[i].f02)
+            continue;
+        if (rand() % 3)
+            snd = 0x4e;
+        else
+            snd = 0x1b;
+        if (g_9330 && !g_9130)
+            fn_10_754a(snd, 6, e, 1);
+        else
+            fn_10_754a(snd, 0, 0, 0);
+        g_6b08[i].f00 = 0;
+        g_6b08[i].f27 = 0;
+        g_6b08[i].f29 = 0;
+        g_6b08[i].f02 = a;
+        g_6b08[i].f05 = d;
+        g_6b08[i].f07 = 0;
+        g_6b08[i].f13 = (long)x << 8;
+        g_6b08[i].f17 = (long)y << 8;
+        g_6b08[i].f1b = dx;
+        g_6b08[i].f1f = dy;
+        g_6b08[i].f0b = w;
+        g_6b08[i].f0d = h;
+        g_6b08[i].f11 = 0;
+        g_6b08[i].f0f = c;
+        g_6b08[i].f01 = e;
+        return 1;
     }
     return 0;
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_06_6576(void)
+{
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_06_885c(int a, int b)
+{
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_06_5f7a(int a)
+{
+}
+
+/* Starts the champions/fireworks screen (state 5) [inferred]. */
+/* @addr 6:5d58 */
+void far fn_06_5d58(void)
+{
+    DWORD t;
+    POINT p;
+
+    if (g_90f4 == 9)
+        g_94cc = 1;
+    else {
+        g_94cc = 0;
+        fn_10_744c(0x6e);
+    }
+    fn_10_7d58(g_90ea / 2, g_90ec / 2);
+    fn_13_65f2(1);
+    fn_11_02f0();
+    g_1e7c = g_1e50 + 30000;
+    g_90f4 = 5;
+    PatBlt(g_13dc, 0, 0, g_90ea, g_0010, BLACKNESS);
+    g_94d8 = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, 0x1ccL);
+    g_6b04 = GlobalLock(g_94d8);
+    fn_06_6576();
+    if (!g_94cc && (g_1e58 < 200000L || g_93a2 > 3))
+        fn_10_7480(5, 1);
+    else
+        fn_10_7480(0xb, 1);
+    if (!g_94cc)
+        fn_06_885c(1, 1);
+    if (g_94cc) {
+        fireworks_end_ms = g_1e50 + 11000;
+        fn_06_72d8(5, 5);
+        p.y = 0;
+        p.x = rand() % g_90ea + g_90ea;
+        fn_06_84fc((rand() % 2 + 1) * 10, p.y * g_90ea, g_90ec + 100, p.x, -2500,
+                   32, 32, 25, 0x26, 0);
+        fn_06_84fc((rand() % 2 + 1) * 10, g_90ea, g_90ec + 100, -p.x, -2500,
+                   32, 32, 25, 0x15, 0);
+    } else {
+        if (g_93a2 > 10)
+            fireworks_end_ms = g_1e50;
+        else {
+            if (g_93a2 == 1)
+                t = 8800;
+            else
+                t = (12 - (long)g_93a2) * 600UL;
+            fireworks_end_ms = g_1e50 + t + 1000;
+        }
+        fn_06_72d8(3, 5);
+    }
+    g_94c4 = 0;
+    fn_06_5f7a(1);
+    g_1e7c = g_1e50 + 34000;
 }

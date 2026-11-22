@@ -31,7 +31,9 @@ typedef struct {
     int f_03a;    /* DS:70cc */
     int f_03c;    /* DS:70ce */
     int f_03e;    /* DS:70d0 */
-    char pad_040[0xc];
+    char pad_040[0x2];
+    int f_042;    /* DS:70d4 */
+    char pad_044[0x8];
     int f_04c;    /* DS:70de */
     char pad_04e[0x2];
     int f_050;    /* DS:70e2 */
@@ -75,7 +77,7 @@ typedef struct {
 
 /* 0x70-byte records reached through far pointers (DS:1e30, DS:1df8[]). */
 typedef struct {
-    char pad_000[0x4];
+    POINT f_000;
     POINT f_004;
     char pad_008[0x4];
     int f_00c;
@@ -85,11 +87,15 @@ typedef struct {
     int f_01a;
     char pad_01c[0x2];
     int f_01e;
-    char pad_020[0x6];
+    int f_020;
+    char pad_022[0x4];
     int f_026;
-    char pad_028[0x1e];
+    int f_028;
+    char pad_02a[0x1c];
     int f_046;
-    char pad_048[0x1e];
+    char pad_048[0x9];
+    char f_051;
+    char pad_052[0x14];
     FNPTR f_066;
     char pad_06a[0x6];
 } REC70;
@@ -130,22 +136,23 @@ typedef struct {
 /* END STRUCTS */
 extern OBJ15A g_7092[];
 
-/* 0x1e-byte records at DS:6e3e [inferred base], three of them (one per
- * child window [inferred], see fn_13_59e8). */
+/* 0x1e-byte records at DS:6e38 (base as in seg11.c), one per child
+ * window [inferred], see fn_13_59e8. */
 typedef struct {
-    int f_00;                       /* DS:6e3e */
-    long f_02;                      /* DS:6e40: colour */
-    char pad_06[0x0a - 0x06];
-    int f_0a;                       /* DS:6e48 */
-    int f_0c;                       /* DS:6e4a */
-    char pad_0e[0x10 - 0x0e];
-    int f_10;                       /* DS:6e4e */
-    int f_12;                       /* DS:6e50 */
-    int f_14;                       /* DS:6e52 */
-    int f_16;                       /* DS:6e54 */
-    char pad_18[0x1e - 0x18];
+    int f_00;                       /* DS:6e38 */
+    char pad_02[0x06 - 0x02];
+    int f_06;                       /* DS:6e3e */
+    long f_08;                      /* DS:6e40: colour */
+    long f_0c;                      /* DS:6e44: colour */
+    int f_10;                       /* DS:6e48 */
+    int f_12;                       /* DS:6e4a */
+    int f_14;                       /* DS:6e4c */
+    int f_16;                       /* DS:6e4e */
+    int f_18;                       /* DS:6e50 */
+    int f_1a;                       /* DS:6e52 */
+    int f_1c;                       /* DS:6e54 */
 } REC1E;
-extern REC1E g_6e3e[];
+extern REC1E g_6e38[];
 
 extern RECAD g_970a[];
 
@@ -205,6 +212,48 @@ extern int g_238c;
 extern int g_951a;
 extern int g_9646;
 extern int g_8f68;
+extern HMENU g_9606;
+extern int g_8ff0;
+extern int g_094e;
+extern int g_0594;
+extern int g_90ec;
+extern int g_90ea;
+extern POINT g_1050[];
+
+/* 0x94-byte shot records at DS:6098 (REC_94 in seg08c.c) [inferred]. */
+typedef struct {
+    char pad_00[0x30];
+    int x1[12];                     /* +30 */
+    int y1[12];                     /* +48 */
+    char pad_60[0x70 - 0x60];
+    int f_70;
+    int f_72;
+    int f_74;
+    int f_76;
+    int f_78;
+    int f_7a;
+    int f_7c;
+    int f_7e;
+    int f_80;
+    int f_82;
+    int f_84;
+    char pad_86[0x94 - 0x86];
+} REC94;
+extern REC94 g_6098[];
+extern int g_9208;
+
+/* 0x23-byte records at DS:57a8 (REC_23 in seg07.c). */
+#pragma pack(1)
+typedef struct {
+    int f_00;
+    char pad_02[0x23 - 0x02];
+} REC23;
+#pragma pack()
+extern REC23 g_57a8[];
+extern POINT g_88c8;
+extern int g_913a;
+extern int g_913c;
+extern int g_95f8;
 extern int g_940a;
 extern int g_6e8a;
 extern int g_6e8c;
@@ -243,9 +292,26 @@ void far fn_13_5850(void);
 void far fn_13_58dc(HDC hdc, int b);
 void far fn_13_5a6a(HDC hdc, int x, int y, int s, int k, int w, int b, int c);
 void far fn_13_6362(void);
-void far fn_13_6450(int a, int b, int c);
+void far fn_13_5460(HDC hdc, int a, int k, int j, int i, int shift);
+void far fn_13_54da(HDC hdc, int a, int k, int j, int i, int shift);
+void far fn_13_5c22(HDC hdc, int x, int y, int s, int k, int w, int c);
+void far fn_13_6450(HDC hdc, int b, int c);
 void far fn_13_6890(int i);
 
+void far pascal draw_scaled_object(int s, int k, int a, int b, int c,
+                                   int d);
+void far pascal fn_08_1b54(WORD r, int n);
+void far fn_12_26a4(int type, int idx);
+void far pascal fn_08_0764(int a, int b);
+void far fn_11_5626(int i);
+void far fn_10_754a(int a, int b, int c, int d);
+POINT far pascal fn_08_29ea(POINT pt);
+long far pascal fn_08_1290(long n, long g);
+int far fn_09_88ba(int x);
+void far fn_11_3ed8(int w);
+void far fn_03_00f4(int a, int s, int k);  /* seg03.c: (int, long) */
+int far fn_13_2206(void);
+void far fn_07_63b6(HMENU menu, LPCSTR text, int checked, UINT id);
 void far fn_07_1208(void);
 void far fn_03_045a(int a);
 void far fn_07_63f2(void);
@@ -362,11 +428,11 @@ void far fn_13_5460(HDC hdc, int a, int k, int j, int i, int shift)
     if (a == 0 && g_238c == 0 && g_1df8[j][i].f_00c == 0
         && g_1df8[j][i].f_00e == 0)
         return;
-    if (g_6e3e[k].f_00) {
-        x = (g_6e3e[k].f_0a + g_6e3e[k].f_10) >> shift;
-        y = (g_6e3e[k].f_0c + g_6e3e[k].f_12) >> shift;
+    if (g_6e38[k].f_06) {
+        x = (g_6e38[k].f_10 + g_6e38[k].f_16) >> shift;
+        y = (g_6e38[k].f_12 + g_6e38[k].f_18) >> shift;
         SetPixel(hdc, x, y, 0L);
-        g_6e3e[k].f_00 = 0;
+        g_6e38[k].f_06 = 0;
     }
 }
 
@@ -396,7 +462,7 @@ int far fn_13_59e8(int k, int i)
     for (w = 0; w < 3; w++) {
         if ((w == 0 && g_0a76 == 2) || (w == 1 && g_0a76 == 3)
             || (w == 2 && g_95fc)) {
-            if (g_6e3e[w].f_16 == k && g_6e3e[w].f_14 == i)
+            if (g_6e38[w].f_1c == k && g_6e38[w].f_1a == i)
                 return 1;
         }
     }
@@ -444,9 +510,57 @@ void far fn_13_2dcc(void)
     }
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
-void far fn_13_6450(int a, int b, int c)
+/* Refresh the smart window (one row per visible object) [inferred]. */
+/* @addr 13:6450 */
+void far fn_13_6450(HDC hdc, int b, int c)
 {
+    int i, u1, u2, n, got;
+    HPALETTE pal;
+    RECT r;
+
+    if (!g_95fe)
+        return;
+    got = 0;
+    if (hdc == 0) {
+        got = 1;
+        hdc = GetDC(g_95fe);
+    }
+    if (g_920e)
+        pal = SelectPalette(hdc, g_920e, 0);
+    n = i = 0;
+    for (; i <= g_9316; i++) {
+        if (i != g_9646 && fn_03_0000(g_9324, i)) {
+            g_6f98[n].f_04 = i;
+            g_6f98[n].f_00 = 2;
+            g_6f98[n].f_02 = n * 0x2e + 2;
+            n++;
+        }
+    }
+    if (n != g_95fa) {
+        g_95fa = n;
+        if (!g_95fa) {
+            fn_13_6362();
+        } else {
+            GetWindowRect(g_95fe, &r);
+            MoveWindow(g_95fe, r.left, r.top, r.right - r.left,
+                       r.bottom - r.top, TRUE);
+        }
+    } else if (c == -1) {
+        for (i = 0; i < g_95fa; i++)
+            fn_13_5a6a(hdc, 0, i * 0x2e + 4, g_9324, g_6f98[i].f_04,
+                       i + 11, b, g_95f8);
+    } else {
+        for (i = 0; i < g_95fa; i++)
+            if (g_6f98[i].f_04 == c)
+                break;
+        fn_13_5a6a(hdc, 0, i * 0x2e + 4, g_9324, c, i + 11, b, g_95f8);
+    }
+    if (pal)
+        SelectPalette(hdc, pal, 0);
+    if (got) {
+        ReleaseDC(g_95fe, hdc);
+        hdc = 0;
+    }
 }
 
 /* @addr 13:675e */
@@ -464,7 +578,7 @@ void far fn_13_675e(void)
         }
     }
     fn_13_50b0(0, 0);
-    if (g_6e3e[g_0a76 - 2].f_16 != g_9324)
+    if (g_6e38[g_0a76 - 2].f_1c != g_9324)
         fn_13_58dc(0, 0);
     fn_07_64ac(0, 0, -1);
     if (!g_95fe && g_9316 && g_8f74) {
@@ -594,14 +708,134 @@ skip:
     return 1;
 }
 
+/* Window procedure of the smart window, class "IS_SMART" [inferred]
+ * (same shape as fn_07_6184). */
+/* @addr 13:613a */
+LRESULT far pascal fn_13_613a(HWND hwnd, UINT msg, WPARAM wParam,
+                              LPARAM lParam)
+{
+    RECT r;
+    RECT rc;
+    PAINTSTRUCT ps;
+    HDC hdc;
+    MINMAXINFO far *mm;
+    UINT cmd;
+
+    switch (msg) {
+    case WM_CREATE:
+        g_95fe = hwnd;
+        g_9606 = GetSystemMenu(hwnd, FALSE);
+        AppendMenu(g_9606, MF_SEPARATOR, 0, NULL);
+        AppendMenu(g_9606, 0, 0xf0, "1/2x Scale");
+        fn_07_63b6(g_9606, "1/2x Scale", g_95f8, 0xf0);
+        DrawMenuBar(g_95fe);
+        break;
+    case WM_SYSCOMMAND:
+        switch (cmd = wParam & 0xfff0) {
+        case 0xf0:
+            fn_07_63b6(g_9606, "1/2x Scale", g_95f8 = !g_95f8, 0xf0);
+            GetWindowRect(g_95fe, &r);
+            MoveWindow(g_95fe, r.left, r.top, r.right - r.left,
+                       r.bottom - r.top, TRUE);
+            SetActiveWindow(g_0016);
+            break;
+        case SC_CLOSE:
+            g_8f74 = 0;
+        default:
+            return DefWindowProc(hwnd, msg, wParam, lParam);
+        }
+        break;
+    default:
+        return DefWindowProc(hwnd, msg, wParam, lParam);
+    case WM_SETFOCUS:
+        g_8f68 = 1;
+        break;
+    case WM_MOVE:
+        GetWindowRect(g_95fe, &r);
+        if (r.left != g_1dec || r.top != g_1dee) {
+            CopyRect((LPRECT)&g_1dec, &r);
+            g_8ff0 = 1;
+        }
+        SetActiveWindow(g_0016);
+        break;
+    case WM_GETMINMAXINFO:
+        mm = (MINMAXINFO far *)lParam;
+        mm->ptMinTrackSize.x = mm->ptMaxTrackSize.x = 50 >> g_95f8;
+        if (g_95f8)
+            mm->ptMinTrackSize.y = mm->ptMaxTrackSize.y
+                = GetSystemMetrics(SM_CYCAPTION) + g_95fa * 23 + 3;
+        else
+            mm->ptMinTrackSize.y = mm->ptMaxTrackSize.y
+                = GetSystemMetrics(SM_CYCAPTION) + g_95fa * 46 + 6;
+        break;
+    case WM_PAINT:
+        InvalidateRect(hwnd, NULL, TRUE);
+        GetClientRect(hwnd, &rc);
+        hdc = BeginPaint(hwnd, &ps);
+        PatBlt(hdc, 0, 0, rc.right, rc.bottom, BLACKNESS);
+        fn_13_6450(hdc, 1, -1);
+        EndPaint(hwnd, &ps);
+        break;
+    case WM_CLOSE:
+        if (g_95fe) {
+            DestroyWindow(g_95fe);
+            g_95fe = 0;
+        }
+        break;
+    }
+    return 0L;
+}
+
 /* Not yet decompiled: stub so calls to it compile as near calls. */
 void far fn_13_50b0(HDC hdc, int b)
 {
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Draw one object cell of a child window [inferred]. */
+/* @addr 13:5a6a */
 void far fn_13_5a6a(HDC hdc, int x, int y, int s, int k, int w, int b, int c)
 {
+    int draw, stars;
+
+    if (b)
+        g_6e38[w].f_14 = 0;
+    else {
+        g_6e38[w].f_14++;
+        if (g_6e38[w].f_14 > 2)
+            g_6e38[w].f_14 = 0;
+    }
+    if (g_6e38[w].f_14 == 0)
+        stars = 1;
+    else
+        stars = 0;
+    if (b == 1)
+        PatBlt(hdc, x >> c, y >> c, 45 >> c, 45 >> c, BLACKNESS);
+    if (g_1df8[s][k].f_018 != 0 || s == 2 || b != 0 || g_9208 < 2)
+        stars = 0;
+    if (s == g_9324 && !g_131c)
+        stars = 0;
+    if (stars)
+        fn_13_5460(hdc, 0, w, s, k, c);
+    draw = 1;
+    if (b == 0) {
+        if (s == 7 && g_1df8[s][k].f_018 != 0)
+            draw = 0;
+        if (s == 1)
+            draw = 0;
+        if (fn_13_371c(s, k))
+            draw = 0;
+        if (s == 0 && g_57a8[k].f_00 == 0 && g_1df8[0][k].f_051 == 0)
+            draw = 0;
+        if ((s == 0 || s == 11) && g_1df8[s][k].f_018 != 0
+            && g_1df8[s][k].f_051 == 0)
+            draw = 0;
+        if (s == g_9324)
+            draw = 0;
+    }
+    if (draw)
+        fn_13_5c22(hdc, x, y, s, k, w, c);
+    if (stars)
+        fn_13_54da(hdc, 0, w, s, k, c);
 }
 
 /* Redraw the map child window [inferred: g_0a7c, modes 2/3 in g_0a76]. */
@@ -618,8 +852,8 @@ void far fn_13_58dc(HDC hdc, int b)
     if (g_9320 == 6 && g_0a76 == 2)
         return;
     w = g_0a76 - 2;
-    s = g_6e3e[w].f_16;
-    k = g_6e3e[w].f_14;
+    s = g_6e38[w].f_1c;
+    k = g_6e38[w].f_1a;
     if (s != 7 && s != 12 && !fn_03_0000(s, k)) {
         if (g_0a76 == 3) {
             g_0a76 = 2;
@@ -634,7 +868,7 @@ void far fn_13_58dc(HDC hdc, int b)
     }
     if (g_920e)
         pal = SelectPalette(hdc, g_920e, 0);
-    fn_13_5a6a(hdc, g_6e3e[w].f_10, g_6e3e[w].f_12, s, k, w, b, 0);
+    fn_13_5a6a(hdc, g_6e38[w].f_16, g_6e38[w].f_18, s, k, w, b, 0);
     if (pal)
         SelectPalette(hdc, pal, 0);
     if (got) {
@@ -650,7 +884,7 @@ void far fn_13_6890(int i)
         fn_13_6450(0, 2, i);
     if (g_95fc && g_6e90 == g_9324 && g_6e8e == i)
         fn_13_50b0(0, 2);
-    if (g_6e3e[g_0a76 - 2].f_16 == g_9324 && g_6e3e[g_0a76 - 2].f_14 == i)
+    if (g_6e38[g_0a76 - 2].f_1c == g_9324 && g_6e38[g_0a76 - 2].f_1a == i)
         fn_13_58dc(0, 2);
 }
 
@@ -923,37 +1157,193 @@ void far fn_13_54da(HDC hdc, int a, int k, int j, int i, int shift)
         && g_1df8[j][i].f_00e == 0)
         return;
     if (a == 0) {
-        g_6e3e[k].f_0a -= g_1df8[j][i].f_00c >> 2;
-        g_6e3e[k].f_0c -= g_1df8[j][i].f_00e >> 2;
+        g_6e38[k].f_10 -= g_1df8[j][i].f_00c >> 2;
+        g_6e38[k].f_12 -= g_1df8[j][i].f_00e >> 2;
         if (g_238c) {
-            g_6e3e[k].f_0a += g_2390 >> 2;
-            g_6e3e[k].f_0c += g_2392 >> 2;
+            g_6e38[k].f_10 += g_2390 >> 2;
+            g_6e38[k].f_12 += g_2392 >> 2;
         }
-        if (g_6e3e[k].f_0a < 0) {
-            g_6e3e[k].f_0a = 43;
-            g_6e3e[k].f_0c = rand() % 43;
-            g_6e3e[k].f_02 = 0xffff00L;
-        } else if (g_6e3e[k].f_0a > 43) {
-            g_6e3e[k].f_0a = 0;
-            g_6e3e[k].f_0c = rand() % 43;
-            g_6e3e[k].f_02 = 0xffff00L;
+        if (g_6e38[k].f_10 < 0) {
+            g_6e38[k].f_10 = 43;
+            g_6e38[k].f_12 = rand() % 43;
+            g_6e38[k].f_08 = 0xffff00L;
+        } else if (g_6e38[k].f_10 > 43) {
+            g_6e38[k].f_10 = 0;
+            g_6e38[k].f_12 = rand() % 43;
+            g_6e38[k].f_08 = 0xffff00L;
         }
-        if (g_6e3e[k].f_0c < 0) {
-            g_6e3e[k].f_0c = 43;
-            g_6e3e[k].f_0a = rand() % 43;
-            g_6e3e[k].f_02 = 0xffff00L;
-        } else if (g_6e3e[k].f_0c > 43) {
-            g_6e3e[k].f_0c = 0;
-            g_6e3e[k].f_0a = rand() % 43;
-            g_6e3e[k].f_02 = 0xffff00L;
+        if (g_6e38[k].f_12 < 0) {
+            g_6e38[k].f_12 = 43;
+            g_6e38[k].f_10 = rand() % 43;
+            g_6e38[k].f_08 = 0xffff00L;
+        } else if (g_6e38[k].f_12 > 43) {
+            g_6e38[k].f_12 = 0;
+            g_6e38[k].f_10 = rand() % 43;
+            g_6e38[k].f_08 = 0xffff00L;
         }
     }
-    x = (g_6e3e[k].f_0a + g_6e3e[k].f_10) >> shift;
-    y = (g_6e3e[k].f_0c + g_6e3e[k].f_12) >> shift;
+    x = (g_6e38[k].f_10 + g_6e38[k].f_16) >> shift;
+    y = (g_6e38[k].f_12 + g_6e38[k].f_18) >> shift;
     if (GetPixel(hdc, x, y) == 0) {
-        SetPixel(hdc, x, y, g_6e3e[k].f_02);
-        g_6e3e[k].f_00 = 1;
+        SetPixel(hdc, x, y, g_6e38[k].f_08);
+        g_6e38[k].f_06 = 1;
     } else {
-        g_6e3e[k].f_00 = 0;
+        g_6e38[k].f_06 = 0;
     }
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far pascal draw_scaled_object(int s, int k, int a, int b, int c,
+                                   int d)
+{
+}
+
+/* Steer the player's ship toward the point at DS:88c8 [inferred]. */
+/* @addr 13:3b88 */
+void far fn_13_3b88(void)
+{
+    int d, a, b, u1, w, u2, u3, u4;
+    POINT p;
+
+    p = g_1df8[g_9324][g_9646].f_004;
+    w = g_1df8[g_9324][g_9646].f_020;
+    p.x += w >> 1;
+    p.y += w >> 1;
+    d = fn_08_285a(&a, &b, p, g_88c8);
+    if (g_913a == 2) {
+        g_1df8[g_9324][g_9646].f_028 = (g_1df8[g_9324][g_9646].f_028 + 1) & 15;
+        if (d < 5) {
+            g_1df8[g_9324][g_9646].f_00c = 0;
+            g_1df8[g_9324][g_9646].f_00e = 0;
+            fn_12_26a4(14, g_9646);
+            g_913a = 0;
+            return;
+        }
+        draw_scaled_object(g_9324, g_9646, 15, 0, d + 50, 200);
+        g_1df8[g_9324][g_9646].f_00c = a * 70 / d;
+        g_1df8[g_9324][g_9646].f_00e = b * 70 / d;
+    } else {
+        g_1df8[g_9324][g_9646].f_028 = (g_1df8[g_9324][g_9646].f_028 - 1) & 15;
+        if (d > 150) {
+            fn_12_26a4(14, g_9646);
+            g_913c = 1;
+            return;
+        }
+        draw_scaled_object(g_9324, g_9646, 15, 0, d + 50, 200);
+        g_1df8[g_9324][g_9646].f_00c = 70;
+        g_1df8[g_9324][g_9646].f_00e = 0;
+    }
+    fn_08_1b54((char)g_9646 | (g_9324 << 8), 1);
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_13_5c22(HDC hdc, int x, int y, int s, int k, int w, int c)
+{
+}
+
+/* @addr 13:1fc2 */
+void far pascal spawn_gun_shot(int s, int k)
+{
+    int i, j, u1, w, cnt;
+    int u[8];
+    int found;
+
+    w = g_1df8[s][k].f_020;
+    if (g_9208 > 0) {
+        i = cnt = found = 0;
+        for (; i < g_0594; i++) {
+            if (g_6098[i].f_7a == g_9324 && g_6098[i].f_7c == g_9646)
+                found = 1;
+            if (g_6098[i].f_76 == -1)
+                cnt++;
+        }
+        if (!found && cnt < 2)
+            return;
+    }
+    for (i = 0; i < g_0594; i++) {
+        if (g_6098[i].f_76 == -1) {
+            j = g_6098[i].f_80 = g_6098[i].f_7e = g_6098[i].f_76 = 0;
+            for (; j < 2; j++) {
+                g_6098[i].y1[j] = g_6098[i].x1[j] = -100;
+                fn_08_0764(i, j);
+            }
+            g_6098[i].x1[0] = w / 2 + (g_1050[g_1df8[s][k].f_028].x * 8
+                                       + g_1df8[s][k].f_004.x);
+            g_6098[i].y1[0] = w / 2 + (g_1050[g_1df8[s][k].f_028].y * 8
+                                       + g_1df8[s][k].f_004.y);
+            g_6098[i].f_7a = s;
+            g_6098[i].f_7c = k;
+            g_6098[i].f_84 = g_6098[i].f_78 = 1;
+            g_6098[i].f_82 = 0;
+            g_6098[i].f_70 = g_1050[g_1df8[s][k].f_028].x * 3;
+            g_6098[i].f_72 = g_1050[g_1df8[s][k].f_028].y * 3;
+            g_6098[i].f_74 = 20;
+            if (g_9320 == 6) {
+                g_6098[i].f_74 = 0x24;
+                fn_11_5626(i);
+            }
+            g_6098[i].f_74 = (long)g_6098[i].f_74 * max(g_90ec, g_90ea)
+                             / 1000;
+            fn_10_754a(3, 0x1e, i, 2);
+            return;
+        }
+    }
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Returns (type << 8) | index of the nearest object [inferred]. */
+int far fn_13_2206(void)
+{
+    return 0;
+}
+
+/* Aim child window w's compass at its target and colour it by distance
+ * [inferred]. s and k stay unset for w > 2 (as in the game). */
+/* @addr 13:24aa */
+void far fn_13_24aa(int w)
+{
+    int u1, dx, dy, s, k, d, r, u2, u3;
+    POINT pt;
+
+    if (w == 0) {
+        if (g_094e)
+            return;
+        if (g_7092[g_9646].f_03c == -1)
+            return;
+        if (!fn_03_0000(g_7092[g_9646].f_03c, g_7092[g_9646].f_03e)
+            && fn_13_371c(g_7092[g_9646].f_03c, g_7092[g_9646].f_03e) != 1) {
+            r = fn_13_2206();
+            fn_03_00f4(g_9646, HIBYTE(r), LOBYTE(r));
+        }
+        s = g_7092[g_9646].f_03c;
+        k = g_7092[g_9646].f_03e;
+    } else if (w == 1) {
+        if (g_6e38[1].f_1c == -1)
+            return;
+        s = g_6e38[1].f_1c;
+        k = g_6e38[1].f_1a;
+    } else if (w == 2) {
+        s = g_6e90;
+        k = g_6e8e;
+    }
+    if (s < 0)
+        return;
+    if (g_1df8[s][k].f_01a)
+        pt = g_1df8[s][k].f_000;
+    else
+        pt = fn_08_29ea(g_1df8[s][k].f_004);
+    dx = pt.x - g_1df8[g_9324][g_9646].f_000.x;
+    dy = pt.y - g_1df8[g_9324][g_9646].f_000.y;
+    g_6e38[w].f_00 = fn_08_19b0(dx, dy) / 2;
+    d = (int)fn_08_1290((long)dy * dy + (long)dx * dx,
+                        (long)(fn_09_88ba(dy) + fn_09_88ba(dx)));
+    if (d < 300)
+        g_6e38[w].f_0c = PALETTERGB(255, 255, 255);
+    else if (d < 480)
+        g_6e38[w].f_0c = PALETTERGB(255, 255, 0);
+    else if (d < 740)
+        g_6e38[w].f_0c = PALETTERGB(0, 255, 0);
+    else
+        g_6e38[w].f_0c = PALETTERGB(0, 0x72, 0);
+    fn_11_3ed8(w);
 }

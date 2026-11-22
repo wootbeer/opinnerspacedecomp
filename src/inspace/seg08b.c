@@ -31,11 +31,42 @@ extern int g_52e2;
 typedef struct {
     char p00[0xba];
     int fba;                    /* +ba */
-    char pbc[0x15a - 0xbc];
+    char pbc[0xc5 - 0xbc];
+    char fc5;                   /* +c5 */
+    char pc6[0x15a - 0xc6];
 } REC_15A;
 extern REC_15A g_70ae[];
 
 extern int g_9324;
+/* 0x14-byte records at DS:1e90 (as in seg12.c) [inferred]. */
+typedef struct {
+    int f00;                    /* +00 */
+    int f02;                    /* +02 */
+    int f04;                    /* +04 */
+    int f06;                    /* +06 */
+    int f08;                    /* +08 */
+    int f0a;                    /* +0a */
+    int f0c;                    /* +0c */
+    int f0e;                    /* +0e */
+    long f10;                   /* +10 */
+} REC_14B;
+extern REC_14B g_1e90[];
+extern POINT g_5170[];
+extern POINT g_5224[];
+extern int g_9430;
+extern int g_9434;
+/* 0x94-byte records at DS:6098 (as in seg08c.c) [inferred]. */
+typedef struct {
+    int x0[2][6];   /* +0 */
+    int y0[2][6];   /* +18 */
+    int x1[2][6];   /* +30 */
+    int y1[2][6];   /* +48 */
+    char p60[0x7a - 0x60];
+    int f7a;        /* +7a */
+    int f7c;        /* +7c */
+    char p7e[0x94 - 0x7e];
+} REC_94;
+extern REC_94 g_6098[];
 extern int g_9646;
 extern int g_0b0e[];
 extern int g_0b38[];
@@ -75,8 +106,9 @@ void far pascal fn_08_6a44(int a)
     }
 }
 
-/* near-match 73%: 8:698a (the original loads the record's word at +4 into ax
- * just before testing f54, and never uses it) */
+/* The original reads the record's word at +4 and drops it; a volatile
+ * read reproduces that. */
+/* @addr 8:698a */
 void far pascal fn_08_698a(int a)
 {
     int type;
@@ -86,6 +118,7 @@ void far pascal fn_08_698a(int a)
     g_1df8[g_944a][g_944e].f0c = g_52e0;
     g_1df8[g_944a][g_944e].f0e = g_52e2;
     if (a) {
+        *(volatile int far *)&g_1df8[g_944a][g_944e].f04.x;
         if (g_1df8[g_944a][g_944e].f54) {
             g_1df8[g_944a][g_944e].f0e = 0;
             g_1df8[g_944a][g_944e].f0c = g_1df8[g_944a][g_944e].f0e;
@@ -196,4 +229,54 @@ void far fn_08_7ce0(int a, int b, int c, int d)
     }
     if (n > 6)
         fn_08_7be8(a, b, c, d);
+}
+
+/* @addr 8:804a */
+void far fn_08_804a(int a, int b, int c)
+{
+    int k;
+    int j;
+
+    for (k = 0; k < 4; k++) {
+        if (g_1e90[k].f00 == -1 || g_1e90[k].f0a <= 5) {
+            if (g_1e90[k].f00 > -1) {
+                for (j = 4; j < 45; j++) {
+                    if (g_1e90[j].f00 == -1) {
+                        g_1e90[j].f00 = g_1e90[k].f00;
+                        g_1e90[j].f02 = g_1e90[k].f02;
+                        g_1e90[j].f06 = g_1e90[k].f06;
+                        g_1e90[j].f08 = g_1e90[k].f08;
+                        g_1e90[j].f10 = g_1e90[k].f10;
+                        g_1e90[j].f0a = g_1e90[k].f0a;
+                        g_5170[j] = g_5170[k];
+                        g_5224[j] = g_5224[k];
+                        if (j > g_9434)
+                            g_9434 = j;
+                        g_1e90[j].f0c = g_1e90[k].f0c;
+                        g_1e90[j].f0e = g_1e90[k].f0e;
+                        break;
+                    }
+                }
+            }
+            g_1e90[k].f00 = 1;
+            g_1e90[k].f02 = min(b / 630 + 2, 14);
+            g_1e90[k].f0a = 7;
+            g_1e90[k].f0c = 2;
+            if (k > g_9434)
+                g_9434 = k;
+            if (g_6098[a].f7a == g_9324 && g_70ae[g_6098[a].f7c].fc5)
+                g_1e90[k].f0e = 10;
+            else
+                g_1e90[k].f0e = 15;
+            g_9430++;
+            g_1e90[k].f04 = 2;
+            g_1e90[k].f06 = 0x1e;
+            g_1e90[k].f08 = a;
+            g_5224[k].x = g_6098[a].x1[c][0];
+            g_5224[k].y = g_6098[a].y1[c][0];
+            g_5170[k].x = g_6098[a].x0[c][0];
+            g_5170[k].y = g_6098[a].y0[c][0];
+            return;
+        }
+    }
 }

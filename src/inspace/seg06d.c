@@ -13,6 +13,7 @@ void far fn_06_1e68(int start);
 int far fn_06_4f46(void);
 int far fn_06_5260(char far *s);
 void far fn_06_5318(void);
+void far fn_06_5524(void);
 
 extern HWND g_0d1e;
 extern int g_0010;
@@ -45,6 +46,23 @@ void far fn_11_1774(int c, int l, int t, int r, int b);
 void far fn_11_3fd4(LPSTR s, int mode);
 void far fn_09_8bec(HDC hdc, int x, int y, int size, int width, UINT align, LPSTR s);
 extern char g_6a24[];
+extern int g_920c;
+extern int g_94a4;
+int far fn_16_5f0e(char far *a, char far *b);
+#pragma pack(1)
+typedef struct {                /* 0x297 bytes, far array at DS:69f4 */
+    char p000[0x152];
+    char f152[0x1d0 - 0x152];
+    char f1d0;
+    char p1d1[0x297 - 0x1d1];
+} REC_297;
+#pragma pack()
+extern REC_297 far *g_69f4;
+extern char g_6990[];
+extern HGDIOBJ g_6aee;
+extern HGDIOBJ g_90fe;
+int far fn_06_5cbc(int i, char far *s);
+extern struct find_t g_69f8;
 void far fn_06_0f1a(int v, char far *buf);
 
 /* @addr 6:2dba */
@@ -201,7 +219,7 @@ int far fn_06_301a(void)
 }
 
 /* @addr 6:4118 */
-void far fn_06_4118(char far *s, char a, char b, char c)
+void far fn_06_4118(char far *s, int a, int b, int c)
 {
     int unused1;
     int unused2;
@@ -264,6 +282,58 @@ int far fn_06_420a(char far *dir, char far *mask)
         SendMessage(GetDlgItem(g_0d1e, 0x6b), LB_ADDSTRING, 0, (LONG)(LPSTR)line);
     }
     return n;
+}
+
+/* Classifies the directory dir: 3 = a game directory, 2/1 = in the list
+ * of known directories, 0 = other [inferred]. */
+/* @addr 6:3f4c */
+int far fn_06_3f4c(char far *path)
+{
+    int i;
+    int r;
+    char dir[110];
+    char s1[60];
+    char s2[40];
+
+    lstrcpy(dir, path);
+    if (dir[lstrlen(dir) - 1] != '\\')
+        lstrcat(dir, "\\");
+    r = 0;
+    if (!g_920c && flow_interactive) {
+        LoadString(g_9212, 0x2e4, s1, 40);
+        LoadString(g_9212, 0x2e3, s2, 40);
+        lstrcat(s2, "\\");
+        lstrcat(s1, s2);
+        if (fn_16_5f0e(dir, s2)) {
+            r = 3;
+            if (fn_16_5f0e(dir, s1))
+                r = 0;
+        }
+        LoadString(g_9212, 0x2e0, s2, 40);
+        lstrcat(s2, "\\");
+        if (fn_16_5f0e(dir, s2))
+            r = 3;
+        if (r == 3)
+            return 3;
+    }
+    if (g_920c != -1 && g_920c != 2) {
+        LoadString(g_9212, 0x2f8, s2, 40);
+        lstrcat(s2, "\\");
+        if (fn_16_5f0e(dir, s2))
+            r = 3;
+        if (r == 3)
+            return 3;
+    }
+    for (i = 0; i < g_94a4; i++) {
+        if (!lstrcmp(g_69f4[i].f152, dir)) {
+            if (g_69f4[i].f1d0 == 2)
+                r = 2;
+            else
+                r = 1;
+            break;
+        }
+    }
+    return r;
 }
 
 /* @addr 6:4190 */
@@ -418,9 +488,62 @@ int far fn_06_5cbc(int i, char far *s)
 }
 
 /* Not yet decompiled: stub so calls to it compile as near calls. */
-void far pascal fn_06_47e8(DRAWITEMSTRUCT far *dis)
+void far pascal fn_06_49c0(DRAWITEMSTRUCT far *dis)
 {
     dis->CtlID = 0;
+}
+
+/* Owner-draw list item paint [inferred]. */
+/* @addr 6:47e8 */
+void far pascal fn_06_47e8(DRAWITEMSTRUCT far *dis)
+{
+    RECT rc;
+    HBRUSH brush;
+    HGDIOBJ oldfont;
+    HDC memdc;
+    HGDIOBJ oldbmp;
+    char buf[80];
+    int unused;
+    int kind;
+    COLORREF oldcolor;
+
+    if (dis->CtlID == 0x65) {
+        fn_06_49c0(dis);
+        return;
+    }
+    oldcolor = GetTextColor(dis->hDC);
+    memdc = CreateCompatibleDC(dis->hDC);
+    oldbmp = SelectObject(memdc, g_6aee);
+    CopyRect(&rc, &dis->rcItem);
+    if (dis->itemState & ODS_SELECTED)
+        brush = CreateSolidBrush(GetSysColor(COLOR_HIGHLIGHT));
+    else
+        brush = CreateSolidBrush(GetSysColor(COLOR_WINDOW));
+    kind = fn_06_5cbc(dis->itemID, buf);
+    FillRect(dis->hDC, &rc, brush);
+    oldfont = SelectObject(dis->hDC, g_90fe);
+    BitBlt(dis->hDC, rc.left + 1, rc.top + 1, 11, 12, memdc, 22, 0, SRCAND);
+    switch (kind) {
+    case 1:
+        SetTextColor(dis->hDC, RGB(0, 0, 255));
+        break;
+    case 2:
+        SetTextColor(dis->hDC, RGB(255, 0, 0));
+        break;
+    }
+    BitBlt(dis->hDC, rc.left + 1, rc.top + 1, 11, 12, memdc, 0, 0, SRCPAINT);
+    if (dis->itemState & ODS_SELECTED)
+        SetTextColor(dis->hDC, GetSysColor(COLOR_HIGHLIGHTTEXT));
+    else
+        SetTextColor(dis->hDC, GetSysColor(COLOR_WINDOWTEXT));
+    SetBkMode(dis->hDC, TRANSPARENT);
+    fn_11_3fd4(buf, 0);
+    TextOut(dis->hDC, rc.left + 15, rc.top, buf, lstrlen(buf));
+    SelectObject(dis->hDC, oldfont);
+    DeleteObject(brush);
+    SelectObject(memdc, oldbmp);
+    DeleteDC(memdc);
+    SetTextColor(dis->hDC, oldcolor);
 }
 
 /* Owner-draw list item focus [inferred]. */
@@ -508,10 +631,54 @@ void far fn_06_511c(void)
     SendMessage(hwnd, WM_SETREDRAW, 1, 0L);
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Expands the selected tree entry: marks it with '2' and inserts its
+ * subdirectories below it; returns 1 if any were added [inferred]. */
+/* @addr 6:4f46 */
 int far fn_06_4f46(void)
 {
-    return g_0d26;
+    int sel;
+    int depth;
+    int r;
+    int a;
+    int b;
+    int old;
+    char buf[110];
+    HWND hwnd;
+
+    old = g_94b6;
+    hwnd = GetDlgItem(g_0d1e, 0x65);
+    SendMessage(hwnd, WM_SETREDRAW, 0, 0L);
+    sel = (int)SendMessage(hwnd, LB_GETCURSEL, 0, 0L);
+    SendMessage(hwnd, LB_GETTEXT, sel, (LONG)(LPSTR)buf);
+    buf[lstrlen(buf) - 2] = '2';
+    SendMessage(hwnd, LB_DELETESTRING, sel, 0L);
+    SendMessage(hwnd, LB_INSERTSTRING, sel, (LONG)(LPSTR)buf);
+    SendMessage(hwnd, LB_SETCURSEL, sel, 0L);
+    depth = buf[lstrlen(buf) - 3] - '0';
+    sel++;
+    lstrcpy(buf, g_6990);
+    lstrcat(buf, "*.*");
+    r = _dos_findfirst(buf, _A_RDONLY | _A_SYSTEM | _A_SUBDIR, &g_69f8);
+    do {
+        if ((g_69f8.attrib & _A_SUBDIR) && g_69f8.name[0] != '.') {
+            lstrcpy(buf, g_6990);
+            lstrcat(buf, g_69f8.name);
+            if (fn_06_45be(buf)) {
+                a = 0;
+                if (fn_06_4748(buf) && fn_06_4650(buf))
+                    a = 1;
+                b = fn_06_3f4c(buf);
+                lstrcpy(buf, g_69f8.name);
+                fn_06_4118(buf, depth + 1, a, b);
+                SendMessage(hwnd, LB_INSERTSTRING, sel, (LONG)(LPSTR)buf);
+                g_94b6++;
+            }
+        }
+    } while (_dos_findnext(&g_69f8) == 0);
+    SendMessage(hwnd, WM_SETREDRAW, 1, 0L);
+    if (old < g_94b6)
+        return 1;
+    return 0;
 }
 
 /* @addr 6:5260 */
@@ -534,8 +701,64 @@ int far fn_06_5260(char far *s)
     return d;
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Builds the path of the selected tree entry into g_6990 and refills
+ * the file list [inferred]. */
+/* @addr 6:5318 */
 void far fn_06_5318(void)
 {
-    g_0d26 = 0;
+    char buf[100];
+    char tmp[100];
+    char path[100];
+    int lvl;
+    int d;
+    int i;
+    int k;
+    int sel;
+    int depth;
+    int dd;
+    int r;
+    int found;
+
+    SendMessage(GetDlgItem(g_0d1e, 0x6b), WM_SETREDRAW, 0, 0L);
+    SendMessage(GetDlgItem(g_0d1e, 0x6b), LB_RESETCONTENT, 0, (LONG)(LPSTR)"");
+    r = fn_06_5260(path);
+    sel = (int)SendMessage(GetDlgItem(g_0d1e, 0x65), LB_GETCURSEL, 0, 0L);
+    SendMessage(GetDlgItem(g_0d1e, 0x65), LB_GETTEXT, sel, (LONG)(LPSTR)buf);
+    depth = buf[lstrlen(buf) - 3] - '0';
+    if (depth > 1 && sel != 0) {
+        d = depth;
+        i = sel - 1;
+        for (lvl = 1; lvl < d; lvl++) {
+            found = 0;
+            do {
+                SendMessage(GetDlgItem(g_0d1e, 0x65), LB_GETTEXT, i, (LONG)(LPSTR)buf);
+                dd = buf[lstrlen(buf) - 3] - '0';
+                if (depth - dd == lvl) {
+                    for (k = 0; k < 3; k++)
+                        buf[lstrlen(buf) - 1] = 0;
+                    lstrcat(buf, "\\");
+                    lstrcpy(tmp, buf);
+                    lstrcat(tmp, path);
+                    lstrcpy(path, tmp);
+                    found = 1;
+                }
+                i--;
+            } while (!found);
+        }
+    }
+    if (!sel)
+        lstrcpy(g_6990, path);
+    else {
+        lstrcpy(g_6990, g_0d18);
+        lstrcat(g_6990, path);
+        lstrcat(g_6990, "\\");
+    }
+    fn_06_5524();
+    SendMessage(GetDlgItem(g_0d1e, 0x6b), WM_SETREDRAW, 1, 0L);
+    SetFocus(GetDlgItem(g_0d1e, 0x65));
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_06_5524(void)
+{
 }

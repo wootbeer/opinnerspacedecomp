@@ -61,7 +61,7 @@ extern REC_16 g_5b28[][4];
 /* 0x70-byte records; DS:1df8 holds one far array per object type
  * [inferred, as in seg07.c]. */
 typedef struct {
-    char p00[4];
+    POINT f00;                  /* +00 */
     POINT f04;                  /* +04 */
     char p08[4];
     int f0c;                    /* +0c */
@@ -72,7 +72,8 @@ typedef struct {
     char p1c[2];
     int f1e;                    /* +1e */
     int f20;                    /* +20 */
-    char p22[0x28 - 0x22];
+    int f22;                    /* +22 */
+    char p24[0x28 - 0x24];
     int f28;                    /* +28 */
     char p2a[0x2e - 0x2a];
     char f2e;                   /* +2e */
@@ -157,6 +158,25 @@ extern int g_9320;
 extern char g_9eb5;
 extern int g_9e49;
 extern int g_91f8;
+/* 0x14-byte records at DS:1e90 (as in seg12.c) [inferred]. */
+typedef struct {
+    int f00;                    /* +00 */
+    int f02;                    /* +02 */
+    int f04;                    /* +04 */
+    int f06;                    /* +06 */
+    int f08;                    /* +08 */
+    int f0a;                    /* +0a */
+    int f0c;                    /* +0c */
+    int f0e;                    /* +0e */
+    long f10;                   /* +10 */
+} REC_14B;
+extern REC_14B g_1e90[];
+extern POINT g_5170[];
+extern POINT g_5224[];
+extern int g_9430;
+extern int g_9434;
+extern int g_9208;
+extern long g_1e58;
 extern int g_0594;
 extern int g_0598;
 extern POINT g_1050[];
@@ -253,10 +273,57 @@ void far pascal fn_08_90fa(int i)
     }
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* @addr 8:92a0 */
 void far fn_08_92a0(int type, int idx)
 {
-    g_914e = type + idx;
+    int k;
+    int j;
+
+    g_1df8[2][idx].f18 = 1;
+    fn_10_754a(0x16, 2, idx, 1);
+    g_1e58 += 400;
+    PatBlt(g_13dc, g_1df8[2][idx].f00.x - 1, g_1df8[2][idx].f00.y - 1,
+           g_1df8[2][idx].f22 + 2, g_1df8[2][idx].f22 + 2, BLACKNESS);
+    for (k = 0; k < 4; k++) {
+        if (g_1e90[k].f00 == -1 || g_1e90[k].f0a <= 5) {
+            if (g_1e90[k].f00 > -1) {
+                for (j = 4; j < 45; j++) {
+                    if (g_1e90[j].f00 == -1) {
+                        g_1e90[j].f00 = g_1e90[k].f00;
+                        g_1e90[j].f02 = g_1e90[k].f02;
+                        g_1e90[j].f06 = g_1e90[k].f06;
+                        g_1e90[j].f08 = g_1e90[k].f08;
+                        g_1e90[j].f10 = g_1e90[k].f10;
+                        g_1e90[j].f0a = g_1e90[k].f0a;
+                        g_5170[j] = g_5170[k];
+                        g_5224[j] = g_5224[k];
+                        if (j > g_9434)
+                            g_9434 = j;
+                        g_1e90[j].f0c = g_1e90[k].f0c;
+                        g_1e90[j].f0e = g_1e90[k].f0e;
+                        break;
+                    }
+                }
+            }
+            g_1e90[k].f00 = 1;
+            g_1e90[k].f02 = 0xe;
+            g_1e90[k].f0a = 7;
+            g_1e90[k].f0c = 2;
+            if (k > g_9434)
+                g_9434 = k;
+            g_1e90[k].f0e = g_52ec[idx].f12;
+            g_9430++;
+            if (k > g_9208)
+                g_1e90[k].f04 = 2;
+            else
+                g_1e90[k].f04 = 1;
+            g_1e90[k].f06 = 2;
+            g_1e90[k].f08 = idx;
+            g_5224[k] = g_1df8[2][idx].f04;
+            g_5170[k] = g_1df8[2][idx].f00;
+            return;
+        }
+    }
 }
 
 /* @addr 8:95f2 */

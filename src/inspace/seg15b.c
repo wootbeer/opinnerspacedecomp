@@ -2,6 +2,7 @@
 /* INSPACE.EXE segment 15 (selector 1070), first source file: 15:0000-15:52e4
  * (files.tsv group 29), compiled with /G2 (no 386 long jumps). */
 #include "inspace.h"
+#include <mmsystem.h>
 #include <stdlib.h>
 
 extern int g_9214;
@@ -113,16 +114,273 @@ typedef struct {                /* 0x15a bytes, DGROUP array at DS:7090 */
 } REC_15A;
 extern REC_15A g_7090[];
 extern int g_9646;
-extern POINT g_3d08[2];
-extern int g_3ce8[2];
+extern POINT g_3d08[16];
+extern int g_3ce8[16];
+extern char g_9563;
+extern int g_92da;
+int far fn_15_2a08(void);
 
 extern POINT g_3c8c[4];         /* polygon; [3] also used as offset/size [inferred] */
 extern int g_3ce6;
 
+extern int g_92d4;
+extern DWORD g_3cc4;
+extern int g_3ca4;
+extern int g_3ca6;
+extern RECT g_3ca8;
+extern RECT g_3cb8;
+extern RECT far *g_3cc0;          /* GlobalLock of g_92a6 */
+extern HGLOBAL g_92a6;
+extern int g_9298;
+extern int g_92de;
+extern int g_92d6;
+extern int g_3cea;
+extern int g_92ba;
+extern int g_92d8;
+extern DWORD g_6e28;
+void far fn_15_8604(void);
+void far fn_15_8ae6(void);
+/* seg10 declares it void, with (long a, ..., long j, int k) */
+HBITMAP far fn_10_9526(RECT far *a, HGLOBAL b, int c, long d, int e, long f, int g,
+                       int h, int i, int jx, int jy, int k);
+extern int g_92d2;
+extern int g_3d48;
+extern int g_3d4a;
+extern int g_95b8;
+extern int g_92e4;
+extern int g_91f8;
+void far fn_10_7480(int a, int b);
+void far fn_10_740c(void);
+void far fn_06_1d9a(void);
+void far fn_06_1c72(int a);
+int far fn_15_0000(int a);
+void far fn_15_09e6(void);
+void far fn_15_4c76(int a, int b);
+void far fn_15_1584(int a);
+void far fn_15_52e4(void);
+void far fn_15_14be(void);
+void far fn_15_0f2e(void);
+
 void far fn_15_152e(void);
 
 
 void far fn_15_152e(void);
+
+/* near-match 45%: 15:0760 (the game does not keep size in cx after
+ * computing it, so it pushes [bp-8] and evaluates py between the pushes) */
+void far fn_15_0760(void)
+{
+    int y;
+    int x;
+    int size;
+    int py;
+    int px;
+
+    y = x = 0;
+    if (g_929a) {
+        if ((g_929c >= 2 || g_92a2 >= 1) && g_92d6 != -1) {
+            BitBlt(g_13dc, 0, 0, g_90ea, g_0010, g_929a, 0, 0, SRCCOPY);
+            if ((g_92a2 != 1 || g_92d8 == -1) && g_929c <= 6) {
+                size = (g_6e24[g_7090[g_9646].fd6].f7a
+                        + (g_6e24[g_7090[g_9646].fd6].f7b - 6) / 2) * 4;
+                px = g_90ea / 2 - size / 2;
+                BitBlt(g_13dc, px, py = g_92d6 + 5, size, size, g_3cdc[1], 0, g_3cea, SRCAND);
+                BitBlt(g_13dc, px, py, size, size, g_3cdc[0], 0, g_3cea, SRCPAINT);
+            }
+            return;
+        }
+        SelectObject(g_929a, g_9296);
+        if (g_92a0)
+            SelectPalette(g_929a, g_92a0, 0);
+        DeleteDC(g_929a);
+        DeleteObject(g_9294);
+        g_929a = g_9294 = 0;
+    } else if (g_929c >= 6)
+        return;
+    if (!g_92a6) {
+        g_92a6 = GlobalAlloc(GHND, 8L);
+        if (!g_92a6)
+            return;
+        g_3cc0 = (RECT far *)GlobalLock(g_92a6);
+        if (!g_3cc0) {
+            GlobalFree(g_92a6);
+            return;
+        }
+    }
+    g_9294 = fn_10_9526(g_3cc0, g_92a6, 0x73, 0L, 0, 0L, 0, g_90ea, g_0010, x, y, 0);
+    g_929a = CreateCompatibleDC(g_13dc);
+    g_9296 = SelectObject(g_929a, g_9294);
+    if (g_920e)
+        g_92a0 = SelectPalette(g_929a, g_920e, 0);
+    SetRect(&g_3ca8, g_3cc0[0].left, g_3cc0[0].top, g_3cc0[0].right, g_3cc0[0].bottom);
+    g_3d48 = g_3ca4 = g_3cc0[0].left;
+    g_3d4a = g_3ca6 = g_3cc0[0].top;
+    g_92ba = g_3cc0[1].top;
+    g_92de = g_0010;
+    fn_15_8604();
+    BitBlt(g_13dc, 0, 0, g_90ea, g_0010, g_929a, 0, 0, SRCCOPY);
+    if (g_3cc0) {
+        GlobalUnlock(g_92a6);
+        g_3cc0 = 0;
+        GlobalFree(g_92a6);
+        g_92a6 = 0;
+    }
+}
+
+/* Builds the 16-row perspective strip in g_3ccc[] from bitmap g_92b0[1]
+ * [inferred]. */
+/* @addr 15:09e6 */
+void far fn_15_09e6(void)
+{
+    HGDIOBJ oldbmp;
+    HDC dc;
+    HPALETTE pal;
+    int i;
+    int size;
+    int dy;
+    int pct;
+    int scale;
+    int unit;
+    int y;
+    int unit2;
+    int u;
+    int j;
+    BITMAP bm;
+
+    if (g_90ee < 8)
+        scale = 4;
+    else
+        scale = 2;
+    if (g_90f4 == 0 || g_9563 == 0)
+        unit = fn_15_2a08();
+    else {
+        GetObject(g_92b0[0], sizeof(BITMAP), &bm);
+        unit = bm.bmHeight / scale;
+    }
+    g_92da = unit;
+    size = unit * scale;
+    unit2 = unit * 2;
+    g_3d08[0].y = g_3d08[0].x = unit * 4;
+    dy = (unit2 * -27 / 100 + unit * 4) / 15;
+    y = unit * 4;
+    g_3ce8[0] = 0;
+    pct = 95;
+    for (i = 1; i < 10; i++, pct -= 6) {
+        g_3ce8[i] = y;
+        g_3d08[i].x = g_3d08[i - 1].x - dy;
+        g_3d08[i].y = g_3d08[i].x * pct / 100;
+        y += g_3d08[i].y;
+    }
+    for (; i < 16; i++, pct += 13) {
+        g_3ce8[i] = y;
+        g_3d08[i].x = g_3d08[i - 1].x - dy;
+        g_3d08[i].y = g_3d08[i].x * pct / 100;
+        y += g_3d08[i].y;
+    }
+    dc = CreateCompatibleDC(g_13dc);
+    oldbmp = SelectObject(dc, g_92b0[1]);
+    if (g_920e)
+        pal = SelectPalette(dc, g_920e, 0);
+    for (j = 0; j < 2; j++)
+        if (g_3ccc[j]) {
+            SelectObject(g_3cdc[j], g_3cd0[j]);
+            if (j == 0)
+                SelectPalette(g_3cdc[j], g_3ce0[j], 0);
+            DeleteDC(g_3cdc[j]);
+            g_3cdc[j] = 0;
+            DeleteObject(g_3ccc[j]);
+            g_3ccc[j] = 0;
+        }
+    g_3ccc[0] = CreateCompatibleBitmap(dc, g_3d08[0].x, y);
+    g_3cdc[0] = CreateCompatibleDC(dc);
+    g_3cd0[0] = SelectObject(g_3cdc[0], g_3ccc[0]);
+    if (g_920e)
+        g_3ce0[0] = SelectPalette(g_3cdc[0], g_920e, 0);
+    PatBlt(g_3cdc[0], 0, 0, g_3d08[0].x, y, BLACKNESS);
+    SetStretchBltMode(g_3cdc[0], COLORONCOLOR);
+    for (i = 0; i < 16; i++) {
+        fn_10_740c();
+        fn_10_9962(0, g_3cdc[0], 0, g_3ce8[i], g_3d08[i].x, g_3d08[i].y, dc, 0, 0,
+                   size, size, SRCCOPY);
+    }
+    SelectObject(g_3cdc[0], g_3cd0[0]);
+    g_3ccc[1] = fn_10_6ec6(g_3ccc[0]);
+    g_3cdc[1] = CreateCompatibleDC(g_13dc);
+    g_3cd0[1] = SelectObject(g_3cdc[1], g_3ccc[1]);
+    g_3cd0[0] = SelectObject(g_3cdc[0], g_3ccc[0]);
+    SelectObject(dc, oldbmp);
+    if (pal)
+        SelectPalette(dc, pal, 0);
+    DeleteDC(dc);
+}
+
+/* @addr 15:0cb0 */
+void far fn_15_0cb0(void)
+{
+    DWORD u;
+    int y;
+    int x;
+    DWORD t;
+
+    y = x = 0;
+    fn_10_744c(0x6e);
+    g_6e28 = g_1e50 + 90000L;
+    if (g_90f4 == 0)
+        PatBlt(g_13dc, 0, 0, g_90ea, g_0010, BLACKNESS);
+    if (g_90f4 == 0 && g_95b8 == 6) {
+        if (!g_9298)
+            g_92d4 = 9;
+        else {
+            fn_10_6da6(0, 1);
+            fn_10_6e76(0x6d, 2);
+            if (!g_92a6) {
+                g_92a6 = GlobalAlloc(GHND, 8L);
+                if (!g_92a6)
+                    return;
+                g_3cc0 = (RECT far *)GlobalLock(g_92a6);
+                if (!g_3cc0) {
+                    GlobalFree(g_92a6);
+                    return;
+                }
+            }
+            timeGetTime();
+            g_9294 = fn_10_9526(g_3cc0, g_92a6, 100, 0L, 0, 0L, 0, g_90ea, g_0010, x, y, 0);
+            g_929a = CreateCompatibleDC(g_13dc);
+            g_9296 = SelectObject(g_929a, g_9294);
+            if (g_920e)
+                g_92a0 = SelectPalette(g_929a, g_920e, 0);
+            timeGetTime();
+            SetRect(&g_3ca8, g_3cc0[0].left, g_3cc0[0].top, g_3cc0[0].right, g_3cc0[0].bottom);
+            SetRect(&g_3cb8, g_3cc0[1].left, g_3cc0[1].top, g_3cc0[1].right, g_3cc0[1].bottom);
+            SetRect(&g_3cd4, g_3cc0[4].left, g_3cc0[4].top, g_3cc0[4].right, g_3cc0[4].bottom);
+            g_3d48 = g_3ca4 = g_3cc0[0].left;
+            g_3d4a = g_3ca6 = g_3cc0[0].top;
+            g_92de = max(g_3cc0[2].bottom, g_3cc0[3].bottom);
+            fn_15_8604();
+            fn_15_8ae6();
+            fn_15_0f2e();
+            BitBlt(g_13dc, 0, 0, g_90ea, g_0010, g_929a, 0, 0, SRCCOPY);
+            if (g_3cc0) {
+                GlobalUnlock(g_92a6);
+                g_3cc0 = 0;
+                GlobalFree(g_92a6);
+                g_92a6 = 0;
+            }
+            g_92d4 = 0;
+            g_3cc4 = g_1e50 + 1100;
+        }
+    } else
+        g_92d4 = 5;
+    if (g_90f4) {
+        fn_10_744c(0x4b);
+        t = GetCurrentTime() + 1550;
+        do
+            fn_10_740c();
+        while (GetCurrentTime() < t);
+        g_92d8 = g_92d6;
+        g_92d6 = 10;
+    }
+}
 
 /* @addr 15:0f2e */
 void far fn_15_0f2e(void)
@@ -224,6 +482,101 @@ void far fn_15_1328(int full)
         DeleteDC(g_929a);
         DeleteObject(g_9294);
         g_929a = g_9294 = 0;
+    }
+}
+
+/* Step of a timed screen sequence, state g_92d4 [inferred]. */
+/* @addr 15:10be */
+void far fn_15_10be(void)
+{
+    DWORD u;
+    DWORD t;
+    DWORD t2;
+
+    switch (g_92d4) {
+    case 0:
+        if (g_90f4 != 9)
+            fn_10_7480(-1, 1);
+        if (GetCurrentTime() > g_3cc4) {
+            fn_15_52e4();
+            g_92d4++;
+        }
+        break;
+    case 2:
+        fn_10_744c(0x4b);
+        t = GetCurrentTime() + 1460;
+        do
+            fn_10_740c();
+        while (GetCurrentTime() < t - 400);
+        fn_15_482e();
+        fn_10_740c();
+        fn_15_09e6();
+        do
+            fn_10_740c();
+        while (GetCurrentTime() < t);
+        fn_15_4c76(1, 0);
+        g_92d4++;
+        break;
+    case 3:
+        fn_15_4c76(0, 0);
+        break;
+    case 4:
+        if (g_90f4) {
+            g_92d4++;
+            break;
+        }
+    case 1:
+        fn_15_1584(0);
+        break;
+    case 5:
+        if (g_90f4 == 0) {
+            BitBlt(g_929a, g_3ca4 + 29, g_3ca6 + 29, g_3ca8.right - g_3ca8.left - 58, g_92d2 - 58,
+                   g_13dc, g_3d48 + 29, g_3d4a + 29, SRCCOPY);
+            t = GetCurrentTime() + 800;
+            do
+                ;
+            while (GetCurrentTime() < t);
+        } else
+            fn_15_09e6();
+        fn_15_0000(2);
+        g_3cc4 = GetCurrentTime() + 950;
+        g_92d4++;
+        break;
+    case 6:
+        if (GetCurrentTime() > g_3cc4) {
+            g_92d4++;
+            fn_15_0000(1);
+        }
+        break;
+    case 7:
+        if (!fn_15_0000(0))
+            break;
+    case 8:
+        fn_10_740c();
+        g_92d4++;
+        break;
+    case 9:
+        fn_10_740c();
+        fn_15_1328(1);
+        fn_15_14be();
+        if (g_90f4 == 0) {
+            PatBlt(g_13dc, 0, 0, g_90ea, g_0010, BLACKNESS);
+            t2 = GetCurrentTime();
+            do
+                fn_10_740c();
+            while (GetCurrentTime() - t2 < 450);
+            fn_10_6e76(8, 0);
+            fn_10_6dd4(0);
+            g_95b8 = 7;
+            if (!g_92e4)
+                g_91f8 = 0;
+            fn_06_1d9a();
+            fn_06_1c72(1);
+        } else if (g_90f4 == 6)
+            g_914a++;
+        else if (g_90f4 == 8)
+            g_929c++;
+        break;
     }
 }
 
@@ -486,4 +839,34 @@ int far fn_15_3caa(int a)
 void far fn_15_482e(void)
 {
     g_92a2 = 1;
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+int far fn_15_0000(int a)
+{
+    return a;
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+int far fn_15_2a08(void)
+{
+    return g_92a2;
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_15_4c76(int a, int b)
+{
+    g_92a2 = a + b;
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_15_1584(int a)
+{
+    g_92a2 = a;
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_15_52e4(void)
+{
+    g_92a2 = 3;
 }

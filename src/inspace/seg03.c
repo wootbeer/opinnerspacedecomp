@@ -31,7 +31,9 @@ extern REC_15A g_7090[];
 /* 0x70-byte records; DS:1df8 holds one far array of them per object
  * type [inferred]. */
 typedef struct {
-    char p00[0x18];
+    char p00[4];
+    POINT f04;                  /* +04: position [inferred] */
+    char p08[0x18 - 8];
     int f18;                    /* +18 */
     char p1a[0x70 - 0x1a];
 } REC_70;
@@ -79,6 +81,11 @@ extern int g_9316;
 extern int g_6e70;
 extern int g_6e72;
 int far fn_13_2688(int a, int b);
+extern int g_6e52;
+extern int g_6e54;
+extern int g_9406[];
+extern int g_9422;
+int far pascal fn_08_285a(int far *p, int far *q, POINT a, POINT b);
 extern char g_8d38[];               /* run-time buffer (BSS) */
 extern int g_9498;
 void far describe_defender_order_message(int n, int k, int mode);
@@ -403,4 +410,85 @@ void far describe_defender_order_message(int n, int k, int mode)
     if (lstrlen(line1) > 40 || lstrlen(line2) > 40)
         g_9498++;
     fn_03_31d0(mode, line1, line2);
+}
+
+/* Select the next target for the player [inferred]: the nearest one after
+ * the current, else the next one in list order, else the first. */
+/* @addr 3:045a */
+void far fn_03_045a(int mode)
+{
+    int type;
+    int n;
+    int start;
+    int oa;
+    int ob;
+    int d;
+    int best;
+    int btype;
+    int bn;
+    int ctype;
+    int cn;
+    int flag;
+
+    flag = 0;
+    if (mode == 6) {
+        cn = g_6e8e;
+        ctype = g_6e90;
+        if (ctype == 0xe)
+            mode = 1;
+        else
+            mode = 5;
+        flag = 1;
+    } else {
+        ctype = g_6e54;
+        cn = g_6e52;
+    }
+    if (!fn_03_065e(ctype, cn, mode)) {
+        best = 20000;
+        for (type = 0; type <= 0xe; type++) {
+            for (n = 0; n < g_9406[type]; n++) {
+                if (ctype == type && cn >= n)
+                    continue;
+                if (!fn_03_065e(type, n, mode))
+                    continue;
+                d = fn_08_285a(&oa, &ob, g_1df8[0xe][g_9646].f04,
+                               g_1df8[type][n].f04);
+                if (d < best) {
+                    best = d;
+                    btype = type;
+                    bn = n;
+                }
+            }
+        }
+        if (best < 20000) {
+            fn_03_062e(flag, g_9646, btype, bn);
+            return;
+        }
+    }
+    if (mode == 1)
+        start = 0xe;
+    else
+        start = ctype;
+    if (ctype <= 0xe || cn < g_9422) {
+        for (type = start; type <= 0xe; type++) {
+            for (n = 0; n < g_9406[type]; n++) {
+                if (ctype == type && cn >= n)
+                    continue;
+                if (fn_03_065e(type, n, mode))
+                    goto found;
+            }
+        }
+    }
+    if (mode != 1)
+        start = 0;
+    for (type = start; type <= 0xe; type++) {
+        for (n = 0; n < g_9406[type]; n++) {
+            if (fn_03_065e(type, n, mode)) {
+            found:
+                fn_03_062e(flag, g_9646, type, n);
+                return;
+            }
+        }
+    }
+    fn_03_062e(flag, g_9646, 0xc, 1);
 }

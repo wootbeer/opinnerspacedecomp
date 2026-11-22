@@ -35,7 +35,7 @@ typedef struct {
     char p0e3[0xe7 - 0xe3];
     char fe7;                   /* +e7 */
     char fe8;                   /* +e8 */
-    char p0e9;
+    char fe9;                   /* +e9 */
     char fea;                   /* +ea */
     char feb;                   /* +eb */
     char p0ec[0x147 - 0xec];
@@ -92,13 +92,11 @@ extern HWND g_0a7e;
 extern int g_13de;
 extern int g_1034;
 extern int g_1040;
-extern unsigned long g_5028;
 extern HBITMAP g_5036;
 extern int g_8e5a;
 extern int g_93c0;
 extern int g_93d8;
 extern int g_93da;
-extern int g_952e;
 extern int g_9e49;
 extern int g_1dcc[];
 extern int g_6b54[];
@@ -117,6 +115,7 @@ extern int g_9462;
 extern char g_94e4[22];
 extern char g_94fa[22];
 extern int g_9646;
+extern int g_952e;
 extern int g_968e;
 
 extern int g_0a62;
@@ -127,6 +126,7 @@ extern int g_1042;
 extern int g_1044;
 extern int g_1046;
 extern unsigned long g_1e50;
+extern unsigned long g_5028;
 extern int g_1852;
 extern HBITMAP g_5040;
 extern int g_6e52;
@@ -205,11 +205,15 @@ extern int g_094e;
 extern unsigned long g_5014;
 extern int g_1858[];
 extern int g_9320;
+extern int g_951a;
+extern int g_8f64;
+int far fn_13_65f2(int a);
 extern HBITMAP g_5038;
 extern char g_9eb4;
 extern int g_238e;
 extern int g_9138;
 void far fn_07_1208(void);
+void far fn_06_0ef8(unsigned long v, char far *buf);
 extern int g_93d4;
 extern int g_93bc;
 extern HBITMAP g_503a;
@@ -284,6 +288,7 @@ void far fn_11_7902(int msg, int wparam, long lparam) { }
 void far pascal fn_11_6b64(int msg, int wparam, long lparam) { }
 void far pascal fn_11_7c12(int k, int type, int n) { }
 void far pascal fn_11_b09c(int n, int a) { }
+void far fn_11_0afe(void) { }
 void far fn_11_8a42(int type, int n) { }
 void far fn_11_947a(int type, int n, int k) { }
 void far fn_11_9fdc(int type, int n) { }
@@ -884,32 +889,33 @@ void far pascal fn_11_3914(int type, int n, HDC dc)
         SetPixel(dc, pt.x, pt.y, g_1df8[type][n].f4c);
 }
 
-/* near-match 41%: 11:0894 (original keeps g_1e50 in eax+dx across the compare) */
+/* @addr 11:0894 */
 void far fn_11_0894(void)
 {
     HDC dc;
     HBITMAP oldbmp;
     HPALETTE oldpal;
 
-    if (g_1e50 < g_5028)
-        return;
-    g_5028 = g_1e50 + 300;
-    if (g_9e49 == 0 && g_952e == g_9646)
-        g_93d8 = g_93d8 == 0;
-    else
-        g_93d8 = 1;
-    if (g_93da == g_93d8)
-        return;
-    dc = CreateCompatibleDC(g_13dc);
-    oldbmp = SelectObject(dc, g_5036);
-    if (g_920e)
-        oldpal = SelectPalette(dc, g_920e, 0);
-    BitBlt(g_13dc, g_93c0, g_8e5a + 2, 20, 20, dc, g_93d8 * 20, 0, SRCCOPY);
-    if (oldpal)
-        SelectPalette(dc, oldpal, 0);
-    SelectObject(dc, oldbmp);
-    DeleteDC(dc);
-    g_93da = g_93d8;
+    if (g_1e50 >= g_5028) {
+        g_5028 = g_1e50 + 300;
+        if (g_9e49 == 0 && g_9646 == g_952e)
+            g_93d8 = g_93d8 == 0;
+        else
+            g_93d8 = 1;
+        if (g_93da != g_93d8) {
+            dc = CreateCompatibleDC(g_13dc);
+            oldbmp = SelectObject(dc, g_5036);
+            if (g_920e)
+                oldpal = SelectPalette(dc, g_920e, 0);
+            BitBlt(g_13dc, g_93c0, g_8e5a + 2, 20, 20, dc, g_93d8 * 20, 0,
+                   SRCCOPY);
+            if (oldpal)
+                SelectPalette(dc, oldpal, 0);
+            SelectObject(dc, oldbmp);
+            DeleteDC(dc);
+            g_93da = g_93d8;
+        }
+    }
 }
 
 /* @addr 11:39d8 */
@@ -1365,7 +1371,9 @@ void far fn_11_592a(void)
     }
 }
 
-/* Draw a string with the digit/letter bitmap font [inferred]. */
+/* Draw a string with the digit/letter bitmap font [inferred].
+ * Callers see a char first parameter (they push the literal), the body
+ * reads it as int: old-style definition (warning C4028 expected). */
 /* @addr 11:2154 */
 void far fn_11_2154(align, color, x, y, s)
 int align;
@@ -1436,4 +1444,114 @@ LPSTR s;
     DeleteObject(SelectObject(g_13dc, oldbrush));
     SelectObject(dc, oldbmp);
     DeleteDC(dc);
+}
+
+/* Redraw the weapon panel of ship n [inferred]. */
+/* @addr 11:3cc2 */
+void far fn_11_3cc2(int n)
+{
+    HDC dc1;
+    HDC dc2;
+    HBITMAP old1;
+    HBITMAP old2;
+    HBRUSH oldbrush;
+    int i;
+    int k;
+    HDC dc3;
+    HBITMAP old3;
+
+    dc1 = CreateCompatibleDC(g_13dc);
+    old1 = SelectObject(dc1, g_5030[0]);
+    dc2 = CreateCompatibleDC(dc1);
+    old2 = SelectObject(dc2, g_503c);
+    for (i = 0; i < 4; i++) {
+        if (i == 3) {
+            if (g_7090[n].fe9)
+                k = 5;
+            else if (g_7090[n].fe7)
+                k = 4;
+            else
+                k = g_96ea[g_7090[n].f4e].f0a[i];
+        } else
+            k = g_96ea[g_7090[n].f4e].f0a[i];
+        if (k == -1) {
+            oldbrush = SelectObject(dc2, GetStockObject(LTGRAY_BRUSH));
+            PatBlt(dc2, 0x29, i * 14 + 5, 0x20, 0xb, PATCOPY);
+            SelectObject(dc2, oldbrush);
+        } else
+            BitBlt(dc2, 0x29, i * 14 + 5, 0x20, 0xb, dc1, 0, (k + 1) * 11,
+                   SRCCOPY);
+    }
+    SelectObject(dc2, old2);
+    DeleteDC(dc2);
+    SelectObject(dc1, old1);
+    DeleteDC(dc1);
+    if (g_951a) {
+        dc3 = CreateCompatibleDC(g_13dc);
+        old3 = SelectObject(dc3, g_503c);
+        BitBlt(g_13dc, g_93c0, g_8e5a + 0x18, 0x54, 0x3d, dc3, 0, 0, SRCCOPY);
+        SelectObject(dc3, old3);
+        DeleteDC(dc3);
+        fn_11_05fe(1);
+    } else {
+        fn_11_0afe();
+        if (fn_13_65f2(0))
+            g_8f64 = 1;
+        else
+            g_8f64 = 0;
+    }
+}
+
+/* Format a race time (t in ticks [inferred]) as m:ss:cc or s.cc. */
+/* @addr 11:4928 */
+void far fn_11_4928(int mode, DWORD t, LPSTR out)
+{
+    DWORD mins;
+    DWORD secs;
+    DWORD t2;
+    DWORD m;
+    char buf[40];
+
+    if (t == 0) {
+        if (mode)
+            lstrcpy(out, "---.---  ");
+        else
+            lstrcpy(out, "---:---:---  ");
+        return;
+    }
+    t *= 278;
+    t /= 10;
+    lstrcpy(out, "");
+    if (mode == 0) {
+        mins = t / 60000;
+        m = mins * 60000;
+        t -= m;
+        fn_06_0ef8(mins, buf);
+        if (mins < 10)
+            lstrcat(out, "0");
+        lstrcat(out, buf);
+        lstrcat(out, ":");
+    }
+    secs = t / 1000;
+    m = secs * 1000;
+    t -= m;
+    fn_06_0ef8(secs, buf);
+    if (secs < 10 && mode == 0)
+        lstrcat(out, "0");
+    lstrcat(out, buf);
+    if (mode)
+        lstrcat(out, ".");
+    else
+        lstrcat(out, ":");
+    t2 = t;
+    fn_06_0ef8(t2 / 10, buf);
+    if (t < 100)
+        lstrcat(out, "0");
+    lstrcat(out, buf);
+    if (mode == 1) {
+        LoadString(g_9212, 0x30df, buf, 40);
+        lstrcat(out, " ");
+        lstrcat(out, buf);
+    } else if (mode == 0)
+        lstrcat(out, "  ");
 }

@@ -9,14 +9,18 @@ typedef struct {
     int f_00a;    /* DS:709c */
     char pad_00c[0x6];
     int f_012;    /* DS:70a4 */
-    char pad_014[0x8];
+    char pad_014[0x2];
+    int f_016;    /* DS:70a8 */
+    char pad_018[0x4];
     int f_01c;    /* DS:70ae */
     char pad_01e[0x4];
     int f_022;    /* DS:70b4 */
     int f_024;    /* DS:70b6 */
     char pad_026[0x26];
     int f_04c;    /* DS:70de */
-    char pad_04e[0xe];
+    char pad_04e[0xb];
+    char f_059;    /* DS:70eb */
+    char pad_05a[0x2];
     char f_05c;    /* DS:70ee */
     char pad_05d[0x4d];
     char f_0aa;    /* DS:713c */
@@ -53,9 +57,12 @@ typedef struct {                /* 0x70-byte records */
     char p1c[0x20 - 0x1c];
     int f20;
     int f22;
-    char p24[0x2e - 0x24];
+    int f24;
+    char p26[0x2e - 0x26];
     signed char f2e;
-    char p2f[0x44 - 0x2f];
+    char p2f[0x3a - 0x2f];
+    int f3a;
+    char p3c[0x44 - 0x3c];
     int f44;
     char p46[0x70 - 0x46];
 } REC_70;
@@ -80,7 +87,12 @@ typedef struct {                /* 0xad bytes, DGROUP array at DS:96f0 */
     int f02;
     char p04[0x0a - 0x04];
     int f0a;
-    char p0c[0xad - 0x0c];
+    int f0c;
+    char p0e[0x8f - 0x0e];
+    int f8f;    /* seen only as [n - 1].f8f: the true base is lower [inferred] */
+    int f91;
+    int f93;
+    char p95[0xad - 0x95];
 } REC_AD;
 #pragma pack()
 
@@ -116,8 +128,13 @@ extern long g_9e57;
 extern int g_9e5d;
 extern int g_9406[];
 typedef struct {                /* 0x7c-byte records, far pointer at DS:6e24 */
-    char p00[0x32];
-    signed char f32[0x7c - 0x32];
+    int f00;
+    char p02[0x1c - 0x02];
+    unsigned char f1c;
+    char p1d[0x32 - 0x1d];
+    signed char f32[0x7a - 0x32];
+    signed char f7a;
+    signed char f7b;
 } REC_7C;
 extern REC_7C far *g_6e24;
 extern REC_6DA4 far *g_6da4;
@@ -212,6 +229,28 @@ extern HBITMAP g_953c;
 extern REC_70 far *g_1e30;
 void far fn_16_27ea(void);
 void far fn_16_2144(void);
+extern int g_9156;
+extern HBITMAP g_39c4[];
+extern HDC g_3a38[];
+extern HBITMAP g_3b20[];
+void far fn_10_0552(int i, int a);
+void far fn_14_1b84(int i, int n, int k, int t);
+void far fn_14_11a8(int i);
+void far fn_10_5d3c(int i);
+void far fn_10_1460(int i);
+void far fn_10_1620(int i);
+void far fn_10_1502(int i);
+extern int g_0928;
+extern int g_929c;
+extern int g_92a2;
+extern int g_8f70;
+extern DWORD g_1c64;
+extern int g_93a4;
+void far fn_09_6cc4(int flag);
+void far fn_15_0760(void);
+void far fn_15_0cb0(void);
+void far fn_15_10be(void);
+void far fn_16_6afe(void);
 
 /* Parses a number from a short digit string [inferred]. */
 /* near-match 48%: 16:0000 (CL refactors the digit sums: (a-48)*10+(b-48)*100 -> ((b*10+a)-528)*10) */
@@ -1147,5 +1186,134 @@ void far fn_16_27ea(void)
 
 /* Not yet decompiled: stub so calls to it compile as near calls. */
 void far fn_16_2144(void)
+{
+}
+
+/* @addr 16:5f78 */
+void far fn_16_5f78(int i, int v)
+{
+    int a;
+    int b;
+    int n;
+    int k;
+    int t;
+    int q;
+    BITMAP bm;
+
+    fn_10_0552(i + 40, 1);
+    k = g_7092[i].f_0d4;
+    g_6e24[k].f00 = v;
+    t = g_6e24[k].f00;
+    n = g_7092[i].f_04c;
+    fn_14_1b84(i, n, k, t);
+    g_7092[i].f_01c = g_6e24[k].f1c * 40;
+    g_7092[i].f_0aa = g_7092[i].f_0ab = 1;
+    fn_14_11a8(i);
+    a = g_6e24[k].f7a;
+    g_96f0[n].f0c = a;
+    b = g_6e24[k].f7b;
+    if (g_9156 == 0 && (a & 1)) {
+        a++;
+        b = 4;
+    }
+    g_1df8[g_9324][i].f22 = (a << g_9156) >> 1;
+    g_1df8[g_9324][i].f24 = (b << g_9156) >> 1;
+    SelectObject(g_3a38[i], g_39c4[i]);
+    GetObject(g_3b20[i], sizeof(BITMAP), &bm);
+    SelectObject(g_3a38[i], g_3b20[i]);
+    q = (bm.bmHeight - g_1df8[g_9324][i].f24) /
+        (g_1df8[g_9324][i].f22 + g_1df8[g_9324][i].f24);
+    g_1df8[g_9324][i].f20 = a << 3;
+    g_7092[i].f_059 = q - 1;
+    g_96f0[n - 1].f91 = g_96f0[n - 1].f8f = a / 2;
+    if (g_96f0[n - 1].f93 < 0)
+        g_96f0[n - 1].f93 = 4 - g_96f0[n - 1].f93 - a / 2;
+    fn_10_5d3c(i);
+    fn_10_1460(n);
+    fn_10_1620(n);
+    fn_10_1502(n);
+    g_1df8[g_9324][i].f3a = g_3a38[i];
+}
+
+/* @addr 16:6928 */
+void far fn_16_6928(int a)
+{
+    char unused[96];
+    DWORD t;
+
+    if ((GetKeyState(VK_CONTROL) & 0x8000) && g_92a2 != 1)
+        g_0928 = 1;
+    if (g_8f70 > 1)
+        g_0928 = 1;
+    if (a != 0 && (g_929c > 1 || g_92a2 >= 1))
+        fn_15_0760();
+    switch (g_929c) {
+    case 0:
+        fn_11_02f0();
+        fn_15_302e();
+        g_929c++;
+        break;
+    case 1:
+        fn_15_3590();
+        break;
+    case 2:
+        fn_16_6afe();
+        g_929c++;
+        break;
+    case 4:
+        t = GetCurrentTime();
+        do
+            fn_10_740c();
+        while (GetCurrentTime() < t + 1500);
+        g_929c++;
+        break;
+    case 5:
+        fn_15_1584(0);
+        g_1c64 = 0;
+        break;
+    case 6:
+        if (g_1c64 == 0)
+            g_1c64 = GetCurrentTime() + 4000;
+        if (GetCurrentTime() > g_1c64) {
+            fn_15_0cb0();
+            g_929c++;
+        }
+        break;
+    case 3:
+    case 7:
+        fn_15_1584(0);
+        break;
+    case 8:
+        t = GetCurrentTime();
+        do
+            fn_10_740c();
+        while (GetCurrentTime() < t + 1500);
+        g_929c++;
+        break;
+    case 9:
+        fn_15_10be();
+        break;
+    case 10:
+        PatBlt(g_13dc, 0, 0, g_90ea, g_0010, BLACKNESS);
+        t = GetCurrentTime();
+        g_0928 = 0;
+        fn_15_1328(0);
+        do
+            fn_10_740c();
+        while (GetCurrentTime() - t < 2000);
+        fn_10_6e76(8, 0);
+        fn_10_6dd4(0);
+        if (g_95bc)
+            fn_09_6cc4(1);
+        else {
+            g_90f4 = 1;
+            g_93a4 = 0;
+        }
+        break;
+    }
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_16_6afe(void)
 {
 }

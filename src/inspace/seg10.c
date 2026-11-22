@@ -98,8 +98,9 @@ typedef struct {
 } REC_24;
 extern REC_24 g_52f4[];
 typedef struct {
-    char p00[4];
-    long f04;
+    int f00;
+    int f02;
+    union { long l; POINT pt; } f04;
     char p08[0x10];
     int f18;
     char p1a[0x22 - 0x1a];
@@ -126,6 +127,7 @@ extern int g_9158;
 extern RECT g_23e0[];
 int far pascal fn_08_285a(int far *q, int far *p, POINT pt, long a);
 int far fn_10_7032(int a, int b, int c);
+extern int (far pascal *g_fp_3c3c)(int, int, int, int, int, int);
 void far fn_10_9a2a(int d);
 extern int g_92e2;
 extern int g_103c;
@@ -136,7 +138,10 @@ extern int g_073e;
 extern DWORD g_2384;
 extern int g_920c;
 void far fn_06_0f1a(int n, char far *buf);
-void far fn_10_6308(int a, int b, int c, int d);
+int far fn_10_6308(int a, int b, int c, int d);
+extern int g_0740;
+void far fn_10_9962(int unused, HDC dst, int x, int y, int w, int h, HDC src,
+                    int xs, int ys, int ws, int hs, DWORD rop);
 extern void (far pascal *g_fp_3c74)(int, int, long, int, long, int, int, long);
 extern void (far pascal *g_fp_3c78)(int, int, long, int, int, long, int, long,
                                     int, int, int, long, int);
@@ -147,8 +152,61 @@ extern void (far pascal *g_fp_3c6c)(long, long, long, long, long, long, long,
 extern void (far pascal *g_fp_3c38)(int, int, long, int, int, int, int, char,
                                     char, int, int, char, char);
 void far fn_10_754a(int a, int b, int c, int d);
+int far fn_10_7896(int a, POINT pt);
+POINT far pascal fn_08_29ea(POINT pt);
+typedef struct { int f0; int f2; } PAIR;
+extern int (far pascal *g_fp_3c5c)(int, POINT, int, long, long, DWORD, LPCSTR);
+#pragma pack(1)
+typedef struct {
+    int x0[2][6];       /* +0x00 */
+    int y0[2][6];       /* +0x18 */
+    int x1[2][6];       /* +0x30 */
+    int y1[2][6];       /* +0x48 */
+    int z[2][6];        /* +0x60 */
+    int count;          /* +0x78 */
+    char p7a[0x84 - 0x7a];
+    int f84;            /* +0x84 */
+    char rest[0x94 - 0x86];
+} REC_94;
+#pragma pack()
+extern REC_94 g_6098[];
+extern POINT g_5144;
+extern long g_88c0;
+extern int g_90ec;
+extern int g_9150;
+extern int g_9292;
+extern DWORD g_3c88;
+extern int g_9216;
+extern int g_9218;
+extern int g_921a;
+extern int g_921c;
+extern int g_928c;
+extern int g_928e;
+extern int g_9290;
+extern POINT g_3b98;
+extern int g_9226;
 void far fn_10_80dc(void);
 int far fn_10_82a2(int a);
+void far fn_10_885e(int a);
+long far fn_10_804c(int a);
+void far fn_10_744c(int a);
+int far fn_10_80a8(void);
+extern HWND g_9532;
+extern int g_922a;
+extern int g_9224;
+extern int flow_interactive;        /* DS:95bc */
+extern char g_380c[];
+extern DWORD g_6e28;
+extern long g_939a;
+extern long g_939e;
+extern int g_104e;
+extern int g_104c;
+extern int g_951c;
+extern int g_94ac;
+extern int g_9516;
+extern int g_95b8;
+extern int g_9134;
+extern int g_8f64;
 void far fn_10_81b6(void);
 void far fn_15_5932(void);
 void far fn_10_022e(int a);
@@ -429,10 +487,150 @@ void far fn_10_73a6(int a, long b, int c, int d, int e, int f, int g,
     g_fp_3c34(g_920e, a, b, g_13dc, c, d, e, f, g, h, i);
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Plays sound a at a position given by mode d (0 none, 1 object c of
+ * group b, 2 record c of g_6098, 3 g_5144, 4 point (b, c), 5 -11111)
+ * through g_fp_3c5c [inferred]. Some sounds set a follow-up in g_9292
+ * due at g_3c88. vx/vy are computed and then overwritten [sic]. */
+/* @addr 10:754a */
 void far fn_10_754a(int a, int b, int c, int d)
 {
-    g_90f4 = a + b + c + d;
+    int r;
+    POINT p;
+    POINT saved;
+    POINT dd;
+    long pos;
+    union { long l; PAIR p; } q;
+    int k;
+
+    if (a == 0x6e)
+        d = 0;
+    if (g_920c == 3)
+        return;
+    if (d != 5) {
+        if (a >= 0x6a) {
+            switch (a) {
+            case 0x6a:
+                a = 0x20;
+                g_9292 = 0x21;
+                g_3c88 = g_1e50 + 1000;
+                break;
+            case 0x6b:
+                a = 0x39;
+                g_9292 = 0x3a;
+                g_3c88 = g_1e50 + 420;
+                break;
+            case 0x6c:
+                a = 0x38;
+                g_9292 = 0x39;
+                g_3c88 = g_1e50 + 385;
+                break;
+            case 0x6d:
+                a = 0x35;
+                g_9292 = 0x39;
+                g_3c88 = g_1e50 + 385;
+                break;
+            case 0x71:
+                a = 0x24;
+                g_9292 = 0x25;
+                g_3c88 = g_1e50 + 660;
+                break;
+            case 0x72:
+                a = 0x1a;
+                g_9292 = 0x1a;
+                g_3c88 = g_1e50 + 200;
+                break;
+            case 0x73:
+                a = 0x42;
+                g_9292 = 0x43;
+                g_3c88 = g_1e50 + 700;
+                break;
+            case 0x74:
+                a = 0x42;
+                g_9292 = 0x66;
+                g_3c88 = g_1e50 + 400;
+                break;
+            case 0x76:
+                a = 0x23;
+                g_9292 = 0x25;
+                g_3c88 = g_1e50 + 400;
+                break;
+            default:
+                g_3c88 = 0;
+                break;
+            }
+            if (g_3c88) {
+                g_9216 = a;
+                g_9218 = b;
+                g_921a = c;
+            }
+        }
+        q.p.f2 = (g_1df8[g_9324][g_9646].f04.pt.x - ((int)g_90ea / 2 << g_9150)) >> 3;
+        q.p.f0 = (g_1df8[g_9324][g_9646].f04.pt.y - (g_90ec / 2 << g_9150)) >> 3;
+    }
+    switch (d) {
+    case 1:
+        if (b > g_9324)
+            return;
+        p = g_1df8[b][c].f04.pt;
+        break;
+    case 2:
+        if (g_6098[c].f84)
+            k = 0;
+        else
+            k = 1;
+        p.y = g_6098[c].y1[k][0];
+        p.x = g_6098[c].x1[k][0];
+        break;
+    case 3:
+        p = g_5144;
+        break;
+    case 0:
+        p.y = -6000;
+        p.x = -6000;
+        break;
+    case 4:
+        p.x = b;
+        p.y = c;
+        q.p.f0 = -1;
+        q.p.f2 = -1;
+        break;
+    case 5:
+        p.x = -11111;
+        p.y = -11111;
+        q.p.f0 = -1;
+        q.p.f2 = -1;
+        break;
+    }
+    saved = p;
+    r = fn_10_7896(d, saved);
+    if (r == -1) {
+        g_3c88 = 0;
+        g_9216 = 0;
+        g_9292 = 0;
+        return;
+    }
+    if (d != 0 && d != 4 && d != 5) {
+        p = fn_08_29ea(p);
+        if (g_9156 != 1 && !subgame_active) {
+            dd.x = p.x - g_1df8[g_9324][g_9646].f00;
+            dd.y = p.y - g_1df8[g_9324][g_9646].f02;
+            p.x = (dd.x * 2 >> g_9156) + g_1df8[g_9324][g_9646].f00;
+            p.y = (dd.y * 2 >> g_9156) + g_1df8[g_9324][g_9646].f02;
+        }
+    }
+    q.l = 0x10001L;
+    if (subgame_active)
+        pos = g_88c0;
+    else
+        pos = g_90ea;
+    if (g_fp_3c5c(a, p, r, q.l, pos, g_1e50, "")) {
+        g_921c = a;
+        g_928c = b;
+        g_928e = c;
+        g_9290 = d;
+        g_3b98 = saved;
+        g_9226 = r;
+    }
 }
 
 /* Stats SYSTEM.INI and WIN.INI in the Windows directory and IGRAPHIC.DLL
@@ -484,10 +682,112 @@ void far fn_10_81b6(void)
     utime(buf, &g_3c10[2]);
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Runs dialog/screen a through g_fp_3c64 [inferred]. Modes 8 and 10 first
+ * pass today's date (days since 1993); mode 1 reloads the INI player
+ * settings. -100 is mode 6 owned by g_9532. Returns the dialog's result. */
+/* @addr 10:82a2 */
 int far fn_10_82a2(int a)
 {
-    return a;
+    int r;
+    char buf[20];
+    int v1;
+    int v0;
+    HWND hwnd;
+
+    if (a != 10)
+        fn_10_7480(-2, 1);
+    v0 = 0;
+    if (a == 8 || a == 10) {
+        struct tm *tm;
+        int yr;
+        int day;
+        time_t t;
+
+        time(&t);
+        tm = localtime(&t);
+        yr = tm->tm_year - 93;
+        v0 = day = yr * 365 + tm->tm_yday;
+        g_fp_3c64(0, 0, tm->tm_mday, tm->tm_mon + 1, tm->tm_year, 0, 15);
+        if (a == 10) {
+            fn_10_80dc();
+            g_fp_3c64(0, 0, 0, day, 0x9d, 0, 9);
+            fn_10_81b6();
+            fn_10_885e(0);
+            return 1;
+        }
+    }
+    if (a == -100) {
+        a = 6;
+        hwnd = g_9532;
+    } else {
+        hwnd = g_0016;
+    }
+    if (a == 5 || a == 7) {
+        v1 = g_90f4;
+        v0 = flow_interactive;
+    } else if (a == 6) {
+        v1 = flow_interactive;
+    } else if (a == 8 && !g_922a) {
+        v1 = g_9224;
+    } else {
+        v1 = 0;
+    }
+    if (a == 6 || a == 1 || a == 4) {
+        if (g_920c == 0)
+            v0 = 1;
+        else if (g_920c == 3)
+            v0 = 3;
+        else
+            v0 = 0;
+    }
+    r = g_fp_3c64(hwnd, g_39e8[5], g_920e, v1, v0, 0, a);
+    g_1e50 = GetCurrentTime();
+    g_3b94 = GetCurrentTime() + 500;
+    fn_10_7f88();
+    if (a == 5 || a == 6) {
+        fn_10_7480(-3, 1);
+        return r;
+    }
+    if (a == 12) {
+        if (r) {
+            fn_10_744c(0x13);
+            fn_10_80a8();
+        }
+        return r;
+    }
+    if (r) {
+        g_8f64 = 0;
+        g_6e28 = GetCurrentTime() + 40000;
+        if (a == 1) {
+            int flag;
+            int i;
+
+            g_9134 = GetPrivateProfileInt(g_9690, "PlayMode", 0, g_96a9);
+            GetPrivateProfileString(g_9690, "ThePlayer", "", g_380c, 20, g_96a9);
+            GetPrivateProfileString(g_9690, "Restore", "", buf, 9, g_96a9);
+            flag = 0;
+            for (i = 0; lstrlen(buf) > i; i++)
+                if (buf[i] == ' ')
+                    flag = 1;
+            if (flag) {
+                g_939a = fn_10_804c(1);
+                g_939e = fn_10_804c(0);
+            }
+        }
+        g_104e = 0;
+        g_104c = 0;
+        g_951c = 0;
+        GetPrivateProfileString(g_9690, "Drive", "C", buf, 20, g_96a9);
+        g_94ac = buf[0] - 'C';
+        g_9516 = 0;
+    } else {
+        if (g_95b8 < 4)
+            g_6e28 = GetCurrentTime();
+        else
+            g_6e28 = GetCurrentTime() + 15000;
+    }
+    fn_10_7480(-3, 1);
+    return r;
 }
 
 /* @addr 10:561a */
@@ -769,10 +1069,110 @@ void far fn_10_39a8(int a)
     }
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
-void far fn_10_6308(int a, int b, int c, int d)
+/* Rescales a bitmap for the display scale g_9156 (1 = as is): surface a's
+ * bitmap, or bitmap c when a is -1 (then returns the new bitmap). In scale
+ * mode 2 surfaces 7 and 6 are first copied to 9 and 8. b is unused. */
+/* @addr 10:6308 */
+int far fn_10_6308(int a, int b, int c, int d)
 {
-    g_90f4 = a + b + c + d;
+    HDC dc2;
+    HDC dc1;
+    HBITMAP ob2;
+    HBITMAP nbm;
+    HBITMAP ob1;
+    HPALETTE pal2;
+    HPALETTE pal1;
+    BITMAP bmp;
+    int unused;
+    int w;
+    int h;
+
+    if (!g_39e8[a] && a != -1)
+        return 0;
+    if (g_9156 == 1 && d != 2)
+        return c;
+    if (a != -1)
+        c = g_3ad0[a];
+    if (g_9156 == 2) {
+        if (a == 9)
+            return 0;
+        if (a == 8)
+            return 0;
+        if (a == 7) {
+            fn_10_0552(9, 1);
+            g_39e8[9] = g_39e8[7];
+            g_3ad0[9] = g_3ad0[7];
+            g_3974[9] = g_3974[7];
+            g_3a5c[9] = g_3a5c[7];
+            g_0740 = 1;
+        }
+        if (a == 6) {
+            fn_10_0552(8, 1);
+            g_39e8[8] = g_39e8[6];
+            g_3ad0[8] = g_3ad0[6];
+            g_3974[8] = g_3974[6];
+            g_3a5c[8] = g_3a5c[6];
+            g_0740 = 1;
+        }
+    }
+    GetObject(c, sizeof(BITMAP), &bmp);
+    w = bmp.bmWidth;
+    h = bmp.bmHeight;
+    if (a != -1) {
+        dc1 = CreateCompatibleDC(g_39e8[a]);
+        dc2 = CreateCompatibleDC(g_39e8[a]);
+        nbm = CreateCompatibleBitmap(g_39e8[a], (w << g_9156) >> 1,
+                                     (h << g_9156) >> 1);
+        if ((a != 7 && a != 6) || g_9156 != 2) {
+            SelectObject(g_39e8[a], g_3974[a]);
+            if (g_920e && g_3a5c[a])
+                SelectPalette(g_39e8[a], g_3a5c[a], 0);
+            DeleteDC(g_39e8[a]);
+        } else {
+            SelectObject(g_39e8[a], g_3974[a]);
+        }
+    } else {
+        dc1 = CreateCompatibleDC(g_13dc);
+        dc2 = CreateCompatibleDC(g_13dc);
+        nbm = CreateCompatibleBitmap(g_13dc, (w << g_9156) >> 1,
+                                     (h << g_9156) >> 1);
+    }
+    if (g_920e)
+        pal1 = SelectPalette(dc1, g_920e, 0);
+    if (g_920e)
+        pal2 = SelectPalette(dc2, g_920e, 0);
+    ob2 = SelectObject(dc2, c);
+    ob1 = SelectObject(dc1, nbm);
+    PatBlt(dc1, 0, 0, (w << g_9156) >> 1, (h << g_9156) >> 1, BLACKNESS);
+    if (a != 8 && a != 6)
+        SetStretchBltMode(dc1, 3);
+    else
+        SetStretchBltMode(dc1, 2);
+    fn_10_9962(1, dc1, 0, 0, (w << g_9156) >> 1, (h << g_9156) >> 1, dc2,
+               0, 0, w, h, SRCCOPY);
+    SelectObject(dc2, ob2);
+    if (g_920e)
+        SelectPalette(dc2, pal2, 0);
+    DeleteDC(dc2);
+    if ((a != 7 && a != 6) || g_9156 != 2) {
+        DeleteObject(c);
+    } else if (a == 7) {
+        g_3974[9] = SelectObject(g_39e8[9], g_3ad0[9]);
+    } else if (a == 6) {
+        g_3974[8] = SelectObject(g_39e8[8], g_3ad0[8]);
+    }
+    if (a != -1) {
+        g_39e8[a] = dc1;
+        g_3ad0[a] = nbm;
+        g_3974[a] = ob1;
+        g_3a5c[a] = pal1;
+        return 0;
+    }
+    SelectObject(dc1, ob1);
+    if (g_920e)
+        SelectObject(dc1, pal1);
+    DeleteDC(dc1);
+    return nbm;
 }
 
 /* @addr 10:5586 */
@@ -918,7 +1318,7 @@ int far fn_10_7896(int a, POINT pt)
         return 1;
     if (a == 4)
         return 1;
-    d = fn_08_285a(&i, &j, pt, g_1df8[g_9324][g_9646].f04);
+    d = fn_08_285a(&i, &j, pt, g_1df8[g_9324][g_9646].f04.l);
     if (d > 800)
         return -1;
     if (d > 340)
@@ -957,10 +1357,81 @@ void far fn_10_5c42(void)
     }
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Loads bitmap a through g_fp_3c3c and, when b >= 16, builds a 16 x 2
+ * cell sheet of mirrored copies of its cells [inferred]. */
+/* @addr 10:7032 */
 int far fn_10_7032(int a, int b, int c)
 {
-    return a + b + c;
+    HBITMAP bm;
+    HBITMAP ob1;
+    HBITMAP nbm;
+    HBITMAP ob2;
+    HDC dc1;
+    HDC dc2;
+    HPALETTE pal1;
+    HPALETTE pal2;
+    int i;
+    int j;
+    int s;
+    int t;
+
+    bm = g_fp_3c3c(g_920e, 1, 1, a, 5, c);
+    if (subgame_active) {
+        s = g_9156 * 6 + 3;
+        t = 9;
+    } else {
+        s = (9 << g_9156) >> 1;
+        bm = fn_10_6308(-1, -1, bm, -1);
+        t = s;
+    }
+    if (b < 16)
+        return bm;
+    dc1 = CreateCompatibleDC(g_13dc);
+    if (g_920e)
+        pal1 = SelectPalette(dc1, g_920e, 0);
+    ob1 = SelectObject(dc1, bm);
+    dc2 = CreateCompatibleDC(g_13dc);
+    nbm = CreateCompatibleBitmap(g_13dc, s << 4, s * 2);
+    if (g_920e)
+        pal2 = SelectPalette(dc2, g_920e, 0);
+    ob2 = SelectObject(dc2, nbm);
+    PatBlt(dc2, 0, 0, s << 4, s * 2, BLACKNESS);
+    fn_10_9962(0, dc2, 0, 0, s * 5, s * 2, dc1, 0, 0, t * 5, t * 2, SRCCOPY);
+    for (i = 0; i < 5; i++) {
+        for (j = 0; j < 2; j++) {
+            if (i == 0) {
+                fn_10_9962(1, dc2, s << 3, (j + 1) * s - 1, s, -s, dc1,
+                           t * i, t * j, t, t, SRCCOPY);
+            } else if (i == 4) {
+                fn_10_9962(1, dc2, s * 13 - 1, s * j, -s, s, dc1,
+                           t * i, t * j, t, t, SRCCOPY);
+            } else {
+                fn_10_9962(1, dc2, (8 - i) * s, (j + 1) * s - 1, s, -s, dc1,
+                           t * i, t * j, t, t, SRCCOPY);
+                fn_10_9962(1, dc2, (i + 9) * s - 1, (j + 1) * s - 1, -s, -s,
+                           dc1, t * i, t * j, t, t, SRCCOPY);
+                fn_10_9962(1, dc2, (17 - i) * s - 1, s * j, -s, s, dc1,
+                           t * i, t * j, t, t, SRCCOPY);
+            }
+        }
+    }
+    if (dc1) {
+        if (g_920e)
+            SelectPalette(dc1, pal1, 0);
+        SelectObject(dc1, ob1);
+        if (bm)
+            DeleteObject(bm);
+        DeleteDC(dc1);
+        dc1 = bm = 0;
+    }
+    if (dc2) {
+        if (g_920e)
+            SelectPalette(dc2, pal2, 0);
+        SelectObject(dc2, ob2);
+        DeleteDC(dc2);
+        dc2 = 0;
+    }
+    return nbm;
 }
 
 /* Not yet decompiled: stub so calls to it compile as near calls. */
@@ -1255,10 +1726,41 @@ void far fn_10_42ee(void)
     }
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Builds surface 30 for the race: four markers of bitmap 0x1a4 in a row. */
+/* @addr 10:49d4 */
 void far race_marker_strip(void)
 {
-    g_90f4 = 7;
+    int w;
+    int h;
+    int i;
+    HBITMAP bm;
+    HBITMAP ob;
+    HDC dc;
+    HPALETTE pal;
+
+    if (!g_39e8[30]) {
+        bm = fn_10_6c02(0x1a4, 0, -1);
+        w = 14;
+        h = 4;
+        dc = CreateCompatibleDC(g_13dc);
+        ob = SelectObject(dc, bm);
+        if (g_920e)
+            pal = SelectPalette(dc, g_920e, 0);
+        g_3ad0[30] = CreateCompatibleBitmap(g_13dc, w * 4 + h * 5, h * 2 + w);
+        g_39e8[30] = CreateCompatibleDC(g_13dc);
+        g_3974[30] = SelectObject(g_39e8[30], g_3ad0[30]);
+        if (g_920e)
+            g_3a5c[30] = SelectPalette(g_39e8[30], g_920e, 0);
+        PatBlt(g_39e8[30], 0, 0, w * 4 + h * 5, h * 2 + w, BLACKNESS);
+        for (i = 0; i < 4; i++)
+            BitBlt(g_39e8[30], (h + w) * i + h, h, w, w, dc, i * w, 0, SRCCOPY);
+        SelectObject(dc, ob);
+        if (g_920e)
+            SelectPalette(dc, pal, 0);
+        DeleteDC(dc);
+        DeleteObject(bm);
+        fn_10_6308(30, -1, -1, -1);
+    }
 }
 
 /* Rebuilds the game's surfaces: frees each and calls its builder. */
@@ -1507,4 +2009,10 @@ void far fn_10_97ce(char far *s)
     lstrcat(s, "/");
     fn_06_0f1a(tm->tm_year, buf);
     lstrcat(s, buf);
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_10_885e(int a)
+{
+    g_90f4 = a;
 }

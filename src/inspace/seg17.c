@@ -9,7 +9,9 @@ typedef struct {
     int f_00a;    /* DS:709c */
     char pad_00c[0x6];
     int f_012;    /* DS:70a4 */
-    char pad_014[0x8];
+    char pad_014[0x2];
+    int f_016;    /* DS:70a8 */
+    char pad_018[0x4];
     int f_01c;    /* DS:70ae */
     char pad_01e[0x4];
     int f_022;    /* DS:70b4 */
@@ -42,7 +44,10 @@ typedef struct {
 typedef struct {                /* 0x70-byte records, far pointer at DS:1e30 */
     char p00[0x18];
     int f18;
-    char p1a[0x70 - 0x1a];
+    char p1a[0x22 - 0x1a];
+    int f22;
+    int f24;
+    char p26[0x70 - 0x26];
 } REC_70;
 
 #pragma pack(1)
@@ -187,6 +192,29 @@ extern char g_96c5[];
 int far fn_14_4006(HFILE f, char huge *buf, unsigned long len);
 void far fn_06_8eea(LPSTR p);
 void far pascal fn_10_a118(LPSTR src, LPSTR dst);
+int far fn_17_75c6(int n);
+int far fn_17_7526(int n);
+void far fn_17_646e(void);
+extern int g_93c6;
+extern int g_0a76;
+extern int g_6e70;
+extern int g_6e72;
+extern int g_6e52;
+extern int g_6e54;
+extern int g_094e;
+typedef struct {                /* 0x34-byte records, DGROUP array at DS:3d6c */
+    int f00;
+    char p02[0x34 - 0x02];
+} REC_34;
+extern REC_34 g_3d6c[];
+extern DWORD g_18b0;
+extern int g_18b4;
+extern HBITMAP g_5780[];
+extern HDC g_39e8[];
+extern REC_70 far *g_1e00;
+void far fn_10_9962(int unused, HDC dst, int x, int y, int w, int h, HDC src,
+                    int xs, int ys, int ws, int hs, DWORD rop);
+void far fn_17_55e2(int n);
 
 /* @addr 17:306e */
 void far fn_17_306e(void)
@@ -918,11 +946,6 @@ void far pascal fn_17_9308(DRAWITEMSTRUCT far *dis)
         DrawFocusRect(dis->hDC, &rc);
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
-void far pascal fn_17_90d2(DRAWITEMSTRUCT far *dis)
-{
-}
-
 /* @addr 17:646e */
 void far fn_17_646e(void)
 {
@@ -1474,4 +1497,219 @@ void far fn_17_8270(void)
     GlobalUnlock(h);
     GlobalFree(h);
     fn_11_3fd4(g_6078, 1);
+}
+
+/* Owner-drawn list item with tab-positioned columns [inferred]. */
+/* @addr 17:90d2 */
+void far pascal fn_17_90d2(DRAWITEMSTRUCT far *dis)
+{
+    RECT rc;
+    HBRUSH br;
+    HFONT oldf;
+    char text[240];
+    char buf[140];
+    int i;
+    int n;
+    int x;
+    int y;
+    int prev;
+    COLORREF oldtc;
+
+    oldtc = GetTextColor(dis->hDC);
+    CopyRect(&rc, &dis->rcItem);
+    if (dis->itemState & ODS_SELECTED)
+        br = CreateSolidBrush(GetSysColor(COLOR_HIGHLIGHT));
+    else
+        br = CreateSolidBrush(GetSysColor(COLOR_WINDOW));
+    SendMessage(dis->hwndItem, LB_GETTEXT, dis->itemID, (LPARAM)(LPSTR)text);
+    FillRect(dis->hDC, &rc, br);
+    oldf = SelectObject(dis->hDC, g_6094[0]);
+    if (dis->itemState & ODS_SELECTED)
+        SetTextColor(dis->hDC, GetSysColor(COLOR_HIGHLIGHTTEXT));
+    else
+        SetTextColor(dis->hDC, GetSysColor(COLOR_WINDOWTEXT));
+    SetBkMode(dis->hDC, TRANSPARENT);
+    prev = x = 2;
+    n = i = y = 0;
+    while (lstrlen(text) > i) {
+        if (text[i] == '\t') {
+            buf[n] = 0;
+            TextOut(dis->hDC, x + rc.left, y + rc.top, buf, n);
+            x = (text[i + 1] - '0') * 100 + (text[i + 2] - '0') * 10 + (text[i + 3] - '0') - 6;
+            if (x < prev)
+                y = 14;
+            prev = x;
+            i += 4;
+            n = 0;
+        } else {
+            buf[n] = text[i];
+            i++;
+            n++;
+        }
+    }
+    if (n != 0) {
+        buf[n] = 0;
+        TextOut(dis->hDC, x + rc.left, y + rc.top, buf, n);
+    }
+    SelectObject(dis->hDC, oldf);
+    DeleteObject(br);
+    SetTextColor(dis->hDC, oldtc);
+}
+
+/* @addr 17:7324 */
+void far fn_17_7324(void)
+{
+    int save;
+    int kind;
+    int idx;
+    int t;
+    int k;
+    char unused[82];
+    int r;
+
+    g_93aa = 11;
+    g_9462 = -2;
+    g_9464 = g_9646;
+    if (g_93c6 == 6) {
+        g_9466 = 8;
+        fn_06_6576();
+        g_9468 = g_93a2;
+    } else if (g_93c6 == 5) {
+        g_9466 = 8;
+        g_9468 = 0;
+    } else if (g_93c6 == 2) {
+        g_9466 = 0;
+        g_9468 = fn_17_75c6(g_9646);
+    } else if (g_93c6 == 3) {
+        g_9466 = 0;
+        g_9468 = fn_17_75c6(g_9646) + 1;
+    } else if (g_93c6 == 0) {
+        g_9466 = 9;
+        t = g_7092[g_9646].f_0b6[g_7092[g_9646].f_016];
+        g_9468 = fn_17_7526(t);
+        r = fn_17_7526(-1);
+        if (t == 0) {
+            if (r != 0) {
+                g_9468 = 0;
+            } else {
+                g_9466 = 0;
+                g_9468 = fn_17_75c6(g_9646);
+            }
+        }
+    } else {
+        if (g_0a76 == 3) {
+            kind = g_6e72;
+            idx = g_6e70;
+        } else if (g_0a76 == 2) {
+            kind = g_6e54;
+            idx = g_6e52;
+        } else {
+            kind = 14;
+            idx = g_9646;
+        }
+        if (g_93c6 == 4 && (kind == 0 || kind == 7)) {
+            kind = 14;
+            idx = g_9646;
+        }
+        if (g_094e != 0 && g_93c6 == 4) {
+            g_9466 = 7;
+            g_9468 = (g_094e - 1) / 4 * 2 + 1;
+        } else if (kind == 14) {
+            g_9466 = 0;
+            g_9468 = fn_17_75c6(idx);
+        } else if (kind == 0) {
+            g_9466 = 1;
+            g_9468 = 0;
+        } else if (kind == 9) {
+            g_9466 = 2;
+            g_9468 = 1;
+        } else if (kind == 2) {
+            g_9466 = 3;
+            g_9468 = 1;
+        } else if (kind == 7) {
+            if (g_0a76 == 2) {
+                g_9466 = 3;
+                g_9468 = 0;
+            }
+        } else if (kind == 8) {
+            if (g_3d6c[idx].f00 == 2) {
+                g_9466 = 2;
+                g_9468 = 1;
+                if (g_92fe != 0)
+                    g_9468 = 2;
+                for (k = 0; k < 2; k++) {
+                    if (g_4d92[g_4ed4[k]].f10 == g_4d92[idx].f10)
+                        break;
+                    g_9468++;
+                }
+            }
+        }
+    }
+    save = g_9468;
+    fn_17_646e();
+    fn_17_65da();
+    g_9468 = save;
+    fn_17_67e6();
+}
+
+/* @addr 17:193c */
+int far fn_17_193c(int reset)
+{
+    int unused;
+    int k;
+    HGDIOBJ old;
+
+    if (reset) {
+        g_18b0 = 0;
+        g_9474 = 0;
+        return 0;
+    }
+    if (g_18b0 != 0) {
+        if (g_18b0 < g_1e50)
+            return 1;
+        return 0;
+    }
+    switch (g_9462) {
+    case 0:
+        g_9462++;
+        g_5000 = g_6088 - 320;
+        g_5002 = g_6086 + 30;
+        fn_17_30b0(g_93aa, 0x1194, 0);
+        fn_17_55e2(-1);
+        g_18b4 = k = 0;
+        old = SelectObject(g_13dc, g_5780[0]);
+        SetStretchBltMode(g_13dc, 2);
+        fn_10_9962(0, g_13dc, g_6088 / 2 - 200, g_5002 + 50, 13, 13, g_39e8[0],
+                   g_1e00->f24, g_1e00->f24, g_1e00->f22, g_1e00->f22, 0xc000caL);
+        SelectObject(g_13dc, old);
+        break;
+    case 1:
+        fn_17_55e2(-1);
+        g_18b4++;
+        if (g_18b4 > 49)
+            g_18b4 = 0;
+        if (g_18b4 < 25)
+            k = g_18b4;
+        else
+            k = 49 - g_18b4;
+        old = SelectObject(g_13dc, g_5780[k / 5]);
+        SetStretchBltMode(g_13dc, 2);
+        fn_10_9962(0, g_13dc, g_6088 / 2 - 200, g_5002 + 50, 13, 13, g_39e8[0],
+                   g_1e00->f24, g_1e00->f24, g_1e00->f22, g_1e00->f22, 0xc000caL);
+        SelectObject(g_13dc, old);
+        if (g_9460 != 0 && g_9474 != 0) {
+            g_9474 = 0;
+            g_5000 = g_6088 - 320;
+            g_5002 = g_6086 + 30;
+            fn_17_2c5a(1, 1);
+        } else if (fn_17_2c5a(0, 0) == 2 && g_9460 == 0) {
+            g_9462++;
+        }
+        break;
+    case 2:
+        g_18b0 = g_1e50 + 1000;
+        break;
+    }
+    g_9474 = 0;
+    return 0;
 }

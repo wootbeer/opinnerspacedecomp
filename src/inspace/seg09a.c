@@ -73,6 +73,7 @@ typedef struct {                /* 0x23 bytes, DGROUP array at DS:57a8 */
 #pragma pack()
 
 extern int g_0010;
+extern char g_94ac;
 extern int g_13de;
 extern long g_1e50;
 extern long g_1e78;
@@ -253,9 +254,105 @@ void far fn_09_0278(UINT kind, int slot)
     fn_09_09b0(slot);
 }
 
-/* Not yet decompiled. */
-void far fn_09_0352(HDC hdc, int x, int flags, int w, int h, LPSTR name)
+/* Draws a drive/file icon at (x, y) with its caption: name without a
+ * 4-character extension [inferred]. */
+/* @addr 9:0352 */
+void far fn_09_0352(HDC hdc, int x, int flags, int w, int y, LPSTR name)
 {
+    HGDIOBJ oldfont;
+    HFONT hfont;
+    DWORD tc;
+    DWORD bk;
+    int unused;
+    HGDIOBJ oldbrush;
+    HGDIOBJ oldpen;
+    char drv[10];
+    char buf[110];
+
+    lstrcpy(buf, name);
+    if (lstrlen(buf) > 4 && buf[lstrlen(buf) - 4] == '.')
+        buf[lstrlen(buf) - 4] = 0;
+    if (hdc == 0)
+        drv[1] = 0;
+    PatBlt(hdc, x, y, w, w, BLACKNESS);
+    if (flags) {
+        oldbrush = SelectObject(hdc, GetStockObject(GRAY_BRUSH));
+        PatBlt(hdc, x, y, 32, 21, PATCOPY);
+        SelectObject(hdc, CreateSolidBrush(0x800000L));
+        PatBlt(hdc, x, y, 32, 9, PATCOPY);
+        DeleteObject(SelectObject(hdc, GetStockObject(LTGRAY_BRUSH)));
+        PatBlt(hdc, x, y, 8, 8, PATCOPY);
+        SelectObject(hdc, oldbrush);
+        oldpen = SelectObject(hdc, GetStockObject(WHITE_PEN));
+        MoveTo(hdc, x, y + 20);
+        LineTo(hdc, x, y);
+        LineTo(hdc, x + 32, y);
+        SelectObject(hdc, CreatePen(PS_SOLID, 1, 0xc0c0c0L));
+        MoveTo(hdc, x, y + 20);
+        LineTo(hdc, w + x - 1, y + 20);
+        LineTo(hdc, w + x - 1, y);
+        DeleteObject(SelectObject(hdc, GetStockObject(BLACK_PEN)));
+        MoveTo(hdc, x + 1, y + 8);
+        LineTo(hdc, x + 8, y + 8);
+        LineTo(hdc, x + 8, y + 1);
+        MoveTo(hdc, x + 1, y + 5);
+        LineTo(hdc, x + 7, y + 5);
+        SelectObject(hdc, CreatePen(PS_SOLID, 1, 0x808080L));
+        MoveTo(hdc, x + 1, y + 3);
+        LineTo(hdc, x + 7, y + 3);
+        DeleteObject(SelectObject(hdc, oldpen));
+        SetPixel(hdc, x + 1, y + 4, 0);
+        SetPixel(hdc, x + 6, y + 4, 0);
+    } else {
+        oldpen = SelectObject(hdc, GetStockObject(WHITE_PEN));
+        MoveTo(hdc, x, y + 20);
+        LineTo(hdc, x, y);
+        LineTo(hdc, x + 32, y);
+        SelectObject(hdc, CreatePen(PS_SOLID, 1, 0x808080L));
+        MoveTo(hdc, x, y + 20);
+        LineTo(hdc, w + x - 1, y + 20);
+        LineTo(hdc, w + x - 1, y);
+        DeleteObject(SelectObject(hdc, oldpen));
+        SetPixel(hdc, x, y, 0);
+        SetPixel(hdc, x, y + 20, 0);
+        SetPixel(hdc, w + x - 1, y, 0);
+        SetPixel(hdc, w + x - 1, y + 20, 0);
+        SetPixel(hdc, x + 1, y + 1, 0xc0c0c0L);
+        SetPixel(hdc, x + 1, y + 19, 0xc0c0c0L);
+        SetPixel(hdc, w + x - 2, y + 1, 0xc0c0c0L);
+        SetPixel(hdc, w + x - 2, y + 19, 0xc0c0c0L);
+        hfont = CreateFont(10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, "Arial");
+        oldfont = SelectObject(hdc, hfont);
+        SetBkMode(hdc, OPAQUE);
+        bk = SetBkColor(hdc, 0);
+        SetTextAlign(hdc, 0);
+        tc = SetTextColor(hdc, 0xff00L);
+        lstrcpy(drv, "C:>");
+        drv[0] += g_94ac;
+        TextOut(hdc, x + 2, y + 2, drv, lstrlen(drv));
+        SetTextColor(hdc, tc);
+        SetBkColor(hdc, bk);
+        SelectObject(hdc, oldfont);
+        if (hfont) {
+            DeleteObject(hfont);
+            hfont = 0;
+        }
+    }
+    hfont = CreateFont(7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, "Small Fonts");
+    oldfont = SelectObject(hdc, hfont);
+    bk = SetBkColor(hdc, 0);
+    SetTextAlign(hdc, TA_CENTER);
+    tc = SetTextColor(hdc, 0xffffffL);
+    TextOut(hdc, x + 16, y + 26, buf, lstrlen(buf));
+    SetTextColor(hdc, tc);
+    SetBkColor(hdc, bk);
+    SelectObject(hdc, oldfont);
+    if (hfont) {
+        DeleteObject(hfont);
+        hfont = 0;
+    }
+    PatBlt(hdc, x - y, y, y, w, BLACKNESS);
+    PatBlt(hdc, w + x, y, y, w, BLACKNESS);
 }
 
 /* @addr 9:08da */

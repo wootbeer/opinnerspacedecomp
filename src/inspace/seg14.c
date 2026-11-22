@@ -28,7 +28,9 @@ typedef struct {
     int f_03a;    /* DS:70cc */
     int f_03c;    /* DS:70ce */
     int f_03e;    /* DS:70d0 */
-    char pad_040[0xc];
+    char pad_040[0x2];
+    int f_042;    /* DS:70d4 */
+    char pad_044[0x8];
     int f_04c;    /* DS:70de */
     char pad_04e[0x2];
     int f_050;    /* DS:70e2 */
@@ -72,7 +74,7 @@ typedef struct {
 
 /* 0x70-byte records reached through far pointers (DS:1e30, DS:1df8[]). */
 typedef struct {
-    char pad_000[0x4];
+    POINT f_000;
     POINT f_004;
     char pad_008[0x4];
     int f_00c;
@@ -82,11 +84,15 @@ typedef struct {
     int f_01a;
     char pad_01c[0x2];
     int f_01e;
-    char pad_020[0x6];
+    int f_020;
+    char pad_022[0x4];
     int f_026;
-    char pad_028[0x1e];
+    int f_028;
+    char pad_02a[0x1c];
     int f_046;
-    char pad_048[0x1e];
+    char pad_048[0x9];
+    char f_051;
+    char pad_052[0x14];
     FNPTR f_066;
     char pad_06a[0x6];
 } REC70;

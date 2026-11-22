@@ -69,7 +69,9 @@ typedef struct {                /* 0x23 bytes, DGROUP array at DS:57a8 */
 typedef struct {                /* 0x15a bytes, DGROUP array at DS:7090 */
     char p00[0x4e];
     int f4e;                    /* +4e */
-    char p50[0xd0 - 0x50];
+    char p50[0xe3 - 0x50];
+    char fe3;                   /* +e3 */
+    char pe4[0xd0 - 0xe4];
     int fd0;                    /* +d0 */
     char pd2[0x15a - 0xd2];
 } REC_15A;
@@ -156,6 +158,33 @@ extern int g_8f68;
 extern int g_8fee;
 extern HINSTANCE g_8e66;
 extern HWND g_0a7c;
+
+/* 20-byte records at DS:1e90 [inferred]. */
+typedef struct {
+    int f0;
+    int f2;
+    int f4;
+    int f6;
+    int f8;
+    int fa;
+    int fc;
+    int fe;
+    long f10;
+} REC_14B;
+extern REC_14B g_1e90[];
+extern POINT g_5170[];
+extern long g_5224[];
+extern HDC g_5e98[4];
+extern HGDIOBJ g_5ea0[4];
+extern HDC g_39e8[];
+extern int g_6038[];
+extern int g_9430;
+typedef struct { char p00[0x14]; int f14; char p16[0x34 - 0x16]; } REC_34;
+extern REC_34 g_3d5a[];         /* base as in seg03.c */
+typedef struct { int f00; char p02[0x1c - 2]; } REC_1C;
+extern REC_1C g_66e4[];         /* seg04.c uses base DS:66e8 */
+typedef struct { int f00; char p02[0x28 - 2]; int f28; char p2a[0x50 - 0x2a]; } REC_50;
+extern REC_50 g_2f50[];         /* seg04.c uses base DS:2f58 */
 
 void far pascal fn_08_1d54(int a, int b);
 void far pascal fn_08_1b54(int a, int b);
@@ -299,6 +328,79 @@ void far fn_07_26c4(int unused, int n)
     PatBlt(g_13dc, g_1df8[0][n].f00, g_1df8[0][n].f02,
            (32 << g_9156) >> 1, (32 << g_9156) >> 1, BLACKNESS);
     fn_07_5ae8(n, 0);
+}
+
+/* Starts an explosion/flash on an object [inferred]. */
+/* @addr 7:2e02 */
+void far fn_07_2e02(int type, int idx)
+{
+    int u;
+    int i;
+    int j;
+    int u2;
+
+    if (g_1df8[type][idx].f18 == 0) {
+        g_1df8[type][idx].f18 = 1;
+        PatBlt(g_13dc, g_1df8[type][idx].f00, g_1df8[type][idx].f02,
+               g_1df8[type][idx].f22, g_1df8[type][idx].f22, BLACKNESS);
+        for (i = 0; i < 4; i++) {
+            if (g_1e90[i].f0 == -1 || g_1e90[i].fa <= 5) {
+                if (g_5e98[i]) {
+                    SelectObject(g_5e98[i], g_5ea0[i]);
+                    DeleteDC(g_5e98[i]);
+                    g_5e98[i] = 0;
+                }
+                if (type == 1) {
+                    g_5e98[i] = CreateCompatibleDC(g_13dc);
+                    g_5ea0[i] = SelectObject(g_5e98[i], g_4e94[idx]);
+                    fn_10_754a(0x1a, type, idx, 1);
+                } else if (type == 8) {
+                    g_5e98[i] = g_39e8[g_3d5a[idx].f14];
+                    fn_10_754a(0x1a, type, idx, 1);
+                } else if (type == 6) {
+                    g_5e98[i] = g_39e8[g_2f50[g_66e4[idx].f00].f00];
+                    if (g_2f50[g_66e4[idx].f00].f28 == 6)
+                        fn_10_754a(0x1a, type, idx, 1);
+                    else
+                        fn_10_754a(0x1f, type, idx, 1);
+                } else if (type == 4) {
+                    g_5e98[i] = g_39e8[4];
+                    fn_10_754a(0x1f, type, idx, 1);
+                }
+                if (g_1e90[i].f0 > -1)
+                    for (j = 4; j < 45; j++)
+                        if (g_1e90[j].f0 == -1) {
+                            g_1e90[j].f0 = g_1e90[i].f0;
+                            g_1e90[j].f2 = g_1e90[i].f2;
+                            g_1e90[j].f6 = g_1e90[i].f6;
+                            g_1e90[j].f8 = g_1e90[i].f8;
+                            g_1e90[j].f10 = g_1e90[i].f10;
+                            g_1e90[j].fa = g_1e90[i].fa;
+                            g_5170[j] = g_5170[i];
+                            g_5224[j] = g_5224[i];
+                            g_1e90[j].fc = g_1e90[i].fc;
+                            g_1e90[j].fe = g_1e90[i].fe;
+                            break;
+                        }
+                g_1e90[i].f0 = 1;
+                g_1e90[i].f2 = 20;
+                g_9430++;
+                g_1e90[i].fa = 6;
+                g_1e90[i].fc = g_1df8[type][idx].f22 / 5;
+                if (i > g_9208)
+                    g_1e90[i].f4 = 2;
+                else
+                    g_1e90[i].f4 = 1;
+                g_1e90[i].f6 = type;
+                g_1e90[i].f8 = idx;
+                g_5170[i] = *(POINT far *)&g_1df8[type][idx].f00;
+                g_5224[i] = *(long far *)&g_1df8[type][idx].f04;
+                break;
+            }
+        }
+    }
+    if (type == 1)
+        fn_07_65aa(0, g_6038[idx]);
 }
 
 /* @addr 7:3294 */
@@ -855,10 +957,54 @@ void far fn_07_2768(int n)
     g_0a76 = n;
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
-void far fn_07_4d86(int i)
+/* Animates a window pane being cleared: shifts random columns [inferred]. */
+/* @addr 7:4d86 */
+void far fn_07_4d86(int n)
 {
-    g_0a76 = i;
+    int a;
+    int b;
+    int c;
+    int d;
+    int gap;
+    int size;
+    int j;
+    int w;
+
+    size = g_1df8[0]->f22;
+    gap = g_1df8[0]->f24;
+    a = (rand() % 12 + 10 << g_9156) >> 1;
+    b = (rand() % 12 + 10 << g_9156) >> 1;
+    c = rand() % 10 << g_9156;
+    d = (rand() % 10 + 22 << g_9156) >> 1;
+    w = 2 << g_9156 >> 1;
+    if (g_57a8[n].f02 == 0) {
+        BitBlt(g_3a02, (size + gap) * n + gap + a, gap, w, size,
+               g_3a02, (size + gap) * n + gap + a, gap - w, SRCCOPY);
+        BitBlt(g_3a02, (size + gap) * n + gap + b, gap, w, size,
+               g_3a02, (size + gap) * n + gap + b, gap - w, SRCCOPY);
+        BitBlt(g_3a02, (size + gap) * n + gap + c, gap, w, size,
+               g_3a02, (size + gap) * n + gap + c, gap - w, SRCCOPY);
+        BitBlt(g_3a02, (size + gap) * n + gap + d, gap, w, size,
+               g_3a02, (size + gap) * n + gap + d, gap - w, SRCCOPY);
+        g_57a8[n].f00--;
+        return;
+    }
+    if (rand() & 1)
+        c = d;
+    BitBlt(g_3a02, (size + gap) * n + gap + a, gap, w, size,
+           g_3a02, (size + gap) * n + gap + a, gap - w / 2, SRCCOPY);
+    BitBlt(g_3a02, (size + gap) * n + gap + c, gap, w, size,
+           g_3a02, (size + gap) * n + gap + c, gap - w / 2, SRCCOPY);
+    for (j = 1; j < 6; j++) {
+        BitBlt(g_3a04[n], (size + gap) * (j - 1) + gap + a, gap, w, size,
+               g_3a04[n], (size + gap) * (j - 1) + gap + a, gap - w / 2, SRCCOPY);
+        BitBlt(g_3a04[n], (size + gap) * (j - 1) + gap + c, gap, w, size,
+               g_3a04[n], (size + gap) * (j - 1) + gap + c, gap - w / 2, SRCCOPY);
+    }
+    if (g_57a8[n].f02 < 7)
+        g_57a8[n].f00--;
+    if (g_57a8[n].f00 < 50 && g_57a8[n].f00 % 5 == 0)
+        fn_07_5b68(0, n, 0);
 }
 
 /* Not yet decompiled: stub so calls to it compile as near calls. */

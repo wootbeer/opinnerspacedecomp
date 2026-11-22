@@ -38,6 +38,15 @@ extern HBRUSH g_5ea8;
 extern int g_90ea;
 extern int g_90ec;
 
+extern int g_920c;
+extern int g_95d6;
+extern HINSTANCE g_8e66;
+
+extern RECT g_3cb8;
+extern HDC g_929a;
+void far fn_10_949c(HDC dc, int x, int y, int w, int h, int style);
+HBITMAP far fn_10_6c02(int a, int b, int c);
+
 void far fn_06_84fc(int a, int x, int y, int dx, int dy, int w, int h,
                     int c, int d, int e);
 int far fn_06_73f6(void);
@@ -300,6 +309,74 @@ void far fn_15_681c(HINSTANCE inst, LPSTR buf)
     buf[8] = 0;
 }
 
+/* Shows the version line and an 11-line text page from resource 5000
+ * [inferred]. */
+/* @addr 15:6890 */
+void far fn_15_6890(void)
+{
+    HGDIOBJ oldfont;
+    HFONT font;
+    char buf[60];
+    char ver[10];
+    int i;
+    int off;
+    int k;
+    int id;
+    COLORREF oldtext;
+    COLORREF oldbk;
+    HGLOBAL hres;
+    DWORD u;
+    LPSTR ptr;
+
+    fn_15_681c(g_8e66, ver);
+    if (!g_920c)
+        LoadString(g_9212, 0x922, buf, 45);
+    else
+        LoadString(g_9212, 0x921, buf, 45);
+    lstrcat(buf, " ");
+    lstrcat(buf, ver);
+    fn_10_94c4(0, 6, RGB(0x8c, 0, 0xff), g_90ea / 2, g_0010 / 2 - 175, buf);
+    font = CreateFont(18, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, "Arial");
+    oldfont = SelectObject(g_13dc, font);
+    oldbk = SetBkColor(g_13dc, 0L);
+    SetBkMode(g_13dc, TRANSPARENT);
+    SetTextAlign(g_13dc, TA_CENTER);
+    if (g_90ee < 8)
+        oldtext = SetTextColor(g_13dc, RGB(0, 0xff, 0xc8));
+    else
+        oldtext = SetTextColor(g_13dc, PALETTERGB(0x80, 0x80, 0xff));
+    if (g_920c == 0 || g_920c == 1)
+        id = 0x88;
+    else
+        id = 0xc8;
+    hres = LoadResource(g_9212, FindResource(g_9212, MAKEINTRESOURCE(id),
+                                             MAKEINTRESOURCE(5000)));
+    ptr = LockResource(hres);
+    for (k = 0; ptr[k]; k++)
+        if (ptr[k] == '\r')
+            ptr[k] = 0;
+    PatBlt(g_13dc, 0, g_0010 / 2 - 115, g_90ea, g_0010 / 2 + 149, BLACKNESS);
+    for (i = off = 0; i < g_95d6 * 11; i++)
+        off += lstrlen(ptr + off) + 2;
+    for (i = 0; i < 11; i++) {
+        TextOut(g_13dc, g_90ea / 2, g_0010 / 2 + i * 24 - 115, ptr + off, lstrlen(ptr + off));
+        off += lstrlen(ptr + off) + 2;
+    }
+    SetBkColor(g_13dc, oldbk);
+    SetTextColor(g_13dc, oldtext);
+    SelectObject(g_13dc, oldfont);
+    if (font) {
+        DeleteObject(font);
+        font = 0;
+    }
+    if (ptr)
+        GlobalUnlock(hres);
+    if (hres)
+        FreeResource(hres);
+    LoadString(g_9212, 0x847, buf, 60);
+    fn_10_94c4(0, 6, RGB(255, 255, 255), g_90ea / 2, g_0010 / 2 + ++i * 24 - 115, buf);
+}
+
 /* @addr 15:6b52 */
 void far fn_15_6b52(void)
 {
@@ -505,4 +582,48 @@ void far fn_15_84b0(int x, int y)
 void far fn_15_5962(int a)
 {
     g_95b8 = a;
+}
+
+/* Draws a panel with frames, a label bitmap and three lamps in g_3cb8
+ * [inferred]. */
+/* @addr 15:8ae6 */
+void far fn_15_8ae6(void)
+{
+    HBITMAP bmp;
+    HGDIOBJ oldbmp;
+    HDC dc;
+    int u;
+    HGDIOBJ oldbr;
+    HPALETTE pal;
+    int w;
+    int h;
+
+    w = g_3cb8.right - g_3cb8.left;
+    h = g_3cb8.bottom - g_3cb8.top;
+    fn_10_949c(g_929a, g_3cb8.left, g_3cb8.top, w, h, 2);
+    fn_10_949c(g_929a, w / 16 + g_3cb8.left, w / 16 + g_3cb8.top, w * 7 / 8, h - w / 8, 3);
+    fn_10_949c(g_929a, w / 8 + g_3cb8.left, h * 5 / 8 + g_3cb8.top + 1, w * 3 / 4,
+               h * 3 / 8 - w / 8, 1);
+    fn_10_949c(g_929a, w / 8 + g_3cb8.left, h / 2 + g_3cb8.top, w * 3 / 4, h / 8, 1);
+    bmp = fn_10_6c02(0x122, 0, -1);
+    dc = CreateCompatibleDC(g_13dc);
+    if (g_920e)
+        pal = SelectPalette(dc, g_920e, 0);
+    oldbmp = SelectObject(dc, bmp);
+    BitBlt(g_929a, w / 8 + g_3cb8.left + 2, h * 5 / 8 + g_3cb8.top + 3, min(w * 3 / 4, 44), 10,
+           dc, 0, 0, SRCCOPY);
+    SelectObject(dc, oldbmp);
+    if (pal)
+        SelectPalette(dc, pal, 0);
+    DeleteDC(dc);
+    DeleteObject(bmp);
+    oldbr = SelectObject(g_929a, CreateSolidBrush(PALETTERGB(0, 0xff, 0)));
+    PatBlt(g_929a, w * 3 / 8 + g_3cb8.left - 2, h * 17 / 32 + g_3cb8.top, 5, 3, PATCOPY);
+    DeleteObject(SelectObject(g_929a, oldbr));
+    oldbr = SelectObject(g_929a, CreateSolidBrush(PALETTERGB(0x7f, 0xff, 0)));
+    PatBlt(g_929a, w * 4 / 8 + g_3cb8.left - 2, h * 17 / 32 + g_3cb8.top, 5, 3, PATCOPY);
+    DeleteObject(SelectObject(g_929a, oldbr));
+    oldbr = SelectObject(g_929a, CreateSolidBrush(PALETTERGB(0x7f, 0, 0)));
+    PatBlt(g_929a, w * 5 / 8 + g_3cb8.left - 2, h * 17 / 32 + g_3cb8.top, 5, 3, PATCOPY);
+    DeleteObject(SelectObject(g_929a, oldbr));
 }
