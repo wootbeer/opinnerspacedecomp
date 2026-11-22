@@ -201,7 +201,7 @@ class Refs:
             t = self.target(name)
             site = self.site.get((sn, g)) or self.site.get((sn, g + 2))
             if site and site[0] == 'imp':
-                if site[1] != name.lstrip('_').upper():
+                if site[1].lstrip('_') != name.lstrip('_').upper():
                     bad.append(f'+{a - start:#x} calls {name}, game calls {site[1]}')
                 continue
             if t is None:

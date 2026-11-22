@@ -164,7 +164,7 @@ void far fn_15_1328(int full)
             SelectPalette(g_92b8, g_92c2, 0);
         DeleteDC(g_92b8);
         DeleteObject(g_92ac);
-        g_92b8 = g_92ac = 0;
+        g_92ac = g_92b8 = 0;
         if (g_90f4 == 0 && g_3ccc[0] != 0) {
             t = GetCurrentTime();
             while (GetCurrentTime() - t < 1300)
@@ -281,7 +281,7 @@ void far fn_15_3bfa(int w, int h)
             SelectPalette(g_92b8, g_92c2, 0);
         DeleteDC(g_92b8);
         DeleteObject(g_92ac);
-        g_92b8 = g_92ac = 0;
+        g_92ac = g_92b8 = 0;
     }
     g_92b8 = CreateCompatibleDC(g_13dc);
     g_92ac = CreateCompatibleBitmap(g_13dc, w, h);
