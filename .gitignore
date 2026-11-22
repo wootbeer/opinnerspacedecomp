@@ -1,0 +1,30 @@
+# Game data is copyrighted: never commit it. Keep it in data/.
+/data/
+*.EXE
+*.exe
+*.DLL
+*.dll
+*.WAV
+*.wav
+*.DIB
+*.dib
+*.MID
+*.mid
+*.INI
+*.ini
+*.SAV
+*.sav
+# Tool installs with game or third-party binaries
+DOSBox*/
+dosbox*/
+Theworks/
+theworks/
+
+# Unpacked segments and disassembly of the game are derived copyrighted data
+/unpacked/
+/disasm/
+
+# Build output
+/build/
+*.o
+*.obj
