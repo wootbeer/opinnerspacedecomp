@@ -148,26 +148,24 @@ void far fn_09_0000(int max)
     g_69f4[g_94a2].f1d0 = 2;
     lstrcpy(path, g_38c8);
     lstrcat(path, "*.exe");
-    r = _dos_findfirst(path, _A_RDONLY, &g_3948);
-    while (r == 0) {
+    for (r = _dos_findfirst(path, _A_RDONLY, &g_3948); r == 0; r = _dos_findnext(&g_3948)) {
         if (g_9206 > 9)
-            break;
+            goto doneexe;
         lstrcpy(path, g_38c8);
         lstrcat(path, g_3948.name);
         fn_09_0156(path);
-        r = _dos_findnext(&g_3948);
     }
+doneexe:
     lstrcpy(path, g_38c8);
     lstrcat(path, "*.dll");
-    r = _dos_findfirst(path, _A_RDONLY, &g_3948);
-    while (r == 0) {
+    for (r = _dos_findfirst(path, _A_RDONLY, &g_3948); r == 0; r = _dos_findnext(&g_3948)) {
         if (g_9206 > 9)
-            break;
+            goto donedll;
         lstrcpy(path, g_38c8);
         lstrcat(path, g_3948.name);
         fn_09_0156(path);
-        r = _dos_findnext(&g_3948);
     }
+donedll:
     if (g_9202 && g_69f4[g_94a2].f1d0 != 1)
         g_69f4[g_94a2].f1d0 = 0;
     g_91fe = g_91fc = g_91fa = min(g_9206, g_9204);
