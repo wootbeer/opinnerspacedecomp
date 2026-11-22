@@ -238,7 +238,9 @@ void far fn_15_152e(void)
     }
 }
 
-/* near-match: 15:28b2 (with /G2 the jumps match; the original recomputes px+sz / py+sz for the second Ellipse where CL CSEs them into si/di) */
+/* Scatters 250 random dots into two DCs [inferred]. POINT, not two ints:
+ * CL does not CSE struct members across the calls. */
+/* @addr 15:28b2 */
 void far fn_15_28b2(HDC dc1, HDC dc2, int a, int b)
 {
     int i;
@@ -247,26 +249,25 @@ void far fn_15_28b2(HDC dc1, HDC dc2, int a, int b)
     int h;
     int w;
     int sz;
-    int py;
-    int px;
+    POINT pt;
 
     w = b * a - 3;
     h = (b - 8) * a;
     for (i = 0; i < 250; i++) {
-        px = rand() % w + 3;
-        py = rand() % h;
+        pt.x = rand() % w + 3;
+        pt.y = rand() % h;
         if (rand() % 3) {
             sz = rand() % 4 + 2;
             old1 = SelectObject(dc1, GetStockObject(BLACK_BRUSH));
             old2 = SelectObject(dc2, GetStockObject(BLACK_BRUSH));
-            Ellipse(dc1, px, py, px + sz, py + sz);
-            Ellipse(dc2, px, py, px + sz, py + sz);
+            Ellipse(dc1, pt.x, pt.y, pt.x + sz, pt.y + sz);
+            Ellipse(dc2, pt.x, pt.y, pt.x + sz, pt.y + sz);
         } else {
             sz = rand() % 4 + 2;
             old1 = SelectObject(dc1, g_5ea8);
             old2 = SelectObject(dc2, g_5ea8);
-            PatBlt(dc1, px, py, sz, sz, 0xa000c9L);
-            PatBlt(dc2, px, py, sz, sz, 0xa000c9L);
+            PatBlt(dc1, pt.x, pt.y, sz, sz, 0xa000c9L);
+            PatBlt(dc2, pt.x, pt.y, sz, sz, 0xa000c9L);
         }
         SelectObject(dc1, old1);
         SelectObject(dc2, old2);

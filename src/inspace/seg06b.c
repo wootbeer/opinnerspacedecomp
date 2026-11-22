@@ -323,3 +323,49 @@ void far fn_06_8684(int i, int j)
     g_6b08[i].ffd[j] = rand() % 1024 - (g_6b08[i].f1f >> 2) - 512;
     g_6b08[i].f2b[j] = 0;
 }
+
+/* Loads the race data from <dir><name>.rac [inferred]. */
+/* @addr 6:8b90 */
+int far fn_06_8b90(int i)
+{
+    int unused1;
+    int unused2;
+    HFILE hf;
+    DWORD size;
+    char path[114];
+    OFSTRUCT of;
+    char unused3[30];
+
+    lstrcpy(path, g_900a);
+    lstrcat(path, g_a12c[i]);
+    lstrcat(path, ".rac");
+    hf = OpenFile(path, &of, OF_READ);
+    if (hf != -1) {
+        size = _filelength(hf);
+        g_94c8 = size / 0x42;
+        size = g_94c8 * 0x42;
+    } else {
+        g_94c8 = 0;
+        size = 0x42;
+    }
+    if (g_94e0) {
+        GlobalUnlock(g_94e0);
+        GlobalFree(g_94e0);
+    }
+    g_94e0 = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, size);
+    g_6afc = GlobalLock(g_94e0);
+    if (!g_94e0)
+        return 0;
+    if (hf != -1) {
+        if (fn_14_4006(hf, (char huge *)g_6afc, size) == 0) {
+            GlobalUnlock(g_94e0);
+            GlobalFree(g_94e0);
+            if (hf != -1)
+                _lclose(hf);
+            return 0;
+        }
+        _lclose(hf);
+        hf = 0;
+    }
+    return 1;
+}

@@ -57,7 +57,8 @@ typedef struct {
     int f1a;                    /* +1a */
     char p1c[2];
     int f1e;                    /* +1e */
-    char p20[0x2e - 0x20];
+    int f20;                    /* +20 */
+    char p22[0x2e - 0x22];
     char f2e;                   /* +2e */
     char p2f[0x70 - 0x2f];
 } REC_70;
@@ -137,6 +138,7 @@ int far pascal fn_08_285a(int far *p, int far *q, POINT a, POINT b);
 void far fn_08_92a0(int type, int idx);
 void far fn_12_2288(int type, int idx);
 void far fn_07_2080(int a, int b);
+long far fn_08_35d0(long a, long b);
 
 /* @addr 8:0764 */
 void far pascal fn_08_0764(int a, int b)
@@ -243,6 +245,38 @@ void far pascal fn_08_1d54(OBJREF r, int v)
         if (g_1df8[type][idx].f0e != 0)
             g_1df8[type][idx].f0e -= sy;
     }
+}
+
+/* Steer object (type, idx) toward the centre of object (type2, idx2)
+ * [inferred]. */
+/* @addr 8:348e */
+void far fn_08_348e(int type, int idx, int type2, int idx2, int speed)
+{
+    POINT p1;
+    POINT p2;
+    int dx;
+    int dy;
+    int vx;
+    int vy;
+    int d;
+
+    p1 = fn_08_29ea(g_1df8[type][idx].f04);
+    p2 = fn_08_29ea(g_1df8[type2][idx2].f04);
+    p1.x <<= g_9150;
+    p1.y <<= g_9150;
+    p2.x <<= g_9150;
+    p2.y <<= g_9150;
+    p2.x += g_1df8[type2][idx2].f20 / 2;
+    p2.y += g_1df8[type2][idx2].f20 / 2;
+    dx = p2.x - p1.x;
+    dy = p2.y - p1.y;
+    vx = g_1df8[type2][idx2].f0c;
+    vy = g_1df8[type2][idx2].f0e;
+    d = (int)fn_08_35d0(dx, dy);
+    vx += (long)d * speed / dx;
+    vy += (long)dy * speed / d;
+    g_1df8[type][idx].f0c = vx;
+    g_1df8[type][idx].f0e = vy;
 }
 
 /* Random positions and colours for g_9152 entries [inferred: stars]. */

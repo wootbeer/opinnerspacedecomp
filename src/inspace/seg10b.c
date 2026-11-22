@@ -33,12 +33,15 @@ typedef struct {
     int f02;            /* +0x02 */
     char p04[0x26];
     int f2a;            /* +0x2a */
-    char rest[0xad - 0x2c];
+    char p2c[0x68 - 0x2c];
+    POINT f68[2];       /* +0x68 */
+    char rest[0xad - 0x70];
 } REC_AD;               /* 173-byte records at DS:96d2 */
 #pragma pack()
 extern REC_AD g_96d2[];
 extern POINT g_7b60[][64];
 extern POINT g_7ba0[][64];
+extern POINT g_7be0[][4][16];
 int far fn_06_720c(int a);
 int far fn_06_71b2(int a);
 typedef struct {
@@ -457,6 +460,31 @@ void far fn_10_1dd8(void)
                     g_3ad0[i] = 0;
                 }
             }
+        }
+    }
+}
+
+/* Fills g_7be0[i][k] (k = 0, 1) with 16 points of an ellipse with radii
+ * g_96d2[i].f68[k], centred in a g_96d2[i].f2a square. */
+/* @addr 10:1502 */
+void far fn_10_1502(int i)
+{
+    int w;
+    int j;
+    int k;
+    int rx[2];
+    int ry[2];
+    int ang;
+
+    w = g_96d2[i].f2a;
+    for (j = 0; j < 2; j++) {
+        rx[j] = g_96d2[i].f68[j].x;
+        ry[j] = g_96d2[i].f68[j].y;
+    }
+    for (k = 0; k < 2; k++) {
+        for (j = ang = 0; j < 16; j++, ang += j % 2 + 22) {
+            g_7be0[i][k][j].x = w / 2 + (fn_06_720c(ang) * rx[k] - fn_06_71b2(ang) * ry[k]) / 128;
+            g_7be0[i][k][j].y = (fn_06_720c(ang) * ry[k] + fn_06_71b2(ang) * rx[k]) / 128 + w / 2;
         }
     }
 }

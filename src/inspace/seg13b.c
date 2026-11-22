@@ -290,14 +290,14 @@ void far fn_13_a47c(void)
     }
 }
 
-/* near-match 92%: 13:a4f4 (the game copies the pair with two word moves,
- * CL /G3 uses one dword move here) */
+/* @addr 13:a4f4 */
 void far fn_13_a4f4(void)
 {
     PAIR p;
 
     if (g_9134) {
-        p = g_6e52;
+        p.a = g_6e52.a;
+        p.b = g_6e52.b;
         if (p.b == 14) {
             g_7092[g_9646].f_050 = 1;
             g_7092[g_9646].f_052 = p.b;

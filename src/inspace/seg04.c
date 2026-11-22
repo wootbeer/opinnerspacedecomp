@@ -642,3 +642,55 @@ void far race_position(void)
         }
     }
 }
+
+/* Checks whether object n may act now (facing test, timers) and then calls fn_04_584c [inferred]. */
+/* @addr 4:5654 */
+int far pascal fn_04_5654(int n)
+{
+    int u1;
+    int u2;
+    int r;
+    int dir;
+    int c;
+    int m;
+    char pad[18];
+    POINT p2;
+    POINT p1;
+    POINT p3;
+    int u3;
+
+    if (g_7090[n].f18 == 0)
+        return 0;
+    if (g_7090[n].f32 == 14 && g_2f58[g_7090[n].f18].f3e && g_7090[g_7090[n].f34].fe2)
+        fn_04_6e70(n);
+    if (g_7090[n].f5f != 3) {
+        if (g_1df8[g_7090[n].f32][g_7090[n].f34].f1a)
+            p1 = g_1df8[g_7090[n].f32][g_7090[n].f34].f00;
+        else
+            p1 = fn_08_29ea(g_1df8[g_7090[n].f32][g_7090[n].f34].f04);
+        if (g_1df8[14][n].f1a)
+            p2 = g_1df8[14][n].f00;
+        else
+            p2 = fn_08_29ea(g_1df8[14][n].f04);
+        dir = fn_08_19b0(p1.x - p2.x, p1.y - p2.y);
+        c = g_1df8[14][n].f28;
+        m = (c + 8) % 16;
+        if (c == dir)
+            r = 1;
+        else if (m == dir)
+            r = 2;
+        if (g_7090[n].f5f != r)
+            return 0;
+    }
+    if (g_7090[n].fe8 || g_7090[n].f10 > 0) {
+        if (g_8e28 + 3000 > g_1e50) {
+            if (g_1df8[14][n].f2e == -2 && fn_11_4c72(n) && n == g_9646)
+                fn_03_332e(0x409, 0x416);
+            if (g_7090[n].f10 == 7 && fn_11_4b00(n) && n == g_9646)
+                fn_03_332e(0x408, 0x416);
+            return 0;
+        }
+    }
+    fn_04_584c(g_7090[n].f18, n, 0x19);
+    return 1;
+}
