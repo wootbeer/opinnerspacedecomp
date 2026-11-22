@@ -87,3 +87,12 @@ Conventions
 - More type notes: g_1e4c holds a GlobalLock pointer; g_13dc is an HDC;
   g_1df8 needs at least 21 far pointers; fn_10_1eb6 is called with 3 args
   from 18:07b2; fn_08_2bbe returns a POINT (pascal, hidden pointer, retf 6).
+- `if (A) {X} else {Y}` inside loops puts Y before the loop test; if blocks
+  come out mirrored, invert the condition and swap them.
+- `RGB()` / `PALETTERGB()` reproduce the game's byte arithmetic.
+- Put comments above the `@addr` tag: match.py needs the tag directly
+  before the function definition line.
+- Also /G2: 15:0000-52e4 (seg15b.c), 6:5d58-end (seg06b.c).
+- More type notes: fn_10_6e76 is (int lo, int hi) as called at 15:7b34;
+  fn_10_6308 and fn_10_6ec6 return int (bitmap handle); REC_297 needs pack(1);
+  g_94ac is int; g_1e50 is DWORD.

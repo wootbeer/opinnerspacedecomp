@@ -23,7 +23,9 @@ typedef struct {
     char p26[0x2c - 0x26];
     int f2c;                    /* +2c */
     char f2e;                   /* +2e */
-    char p2f[0x44 - 0x2f];
+    char p2f[0x3c - 0x2f];
+    HDC f3c;                    /* +3c */
+    char p3e[0x44 - 0x3e];
     int f44;                    /* +44 */
     char p46[0x51 - 0x46];
     char f51;                   /* +51 */
@@ -67,7 +69,9 @@ typedef struct {                /* 0x15a bytes, DGROUP array at DS:70ae */
     int f1a;
     char p1c[0xb2 - 0x1c];
     int fb2;
-    char pb4[0x15a - 0xb4];
+    char pb4[0xcd - 0xb4];
+    char fcd;
+    char pce[0x15a - 0xce];
 } REC_15A;
 
 typedef struct { int f0, f2, f4, f6; char rest[0x1e - 8]; } REC_1E;
@@ -128,6 +132,19 @@ extern REC_14 g_58bc[];
 extern REC_297 far *g_69f4;
 extern REC_23 g_57a8[];
 extern REC_15A g_70ae[];
+
+/* 0x5a-byte records at DS:221c, 4 of them [inferred: active dissolves]. */
+typedef struct {
+    char b[80];
+    int type;                   /* +50, -1 = free */
+    int idx;                    /* +52 */
+    int r;                      /* +54 */
+    int sq;                     /* +56 */
+    int f58;                    /* +58 */
+} REC_5A;
+extern REC_5A g_221c[4];
+extern int dissolve_active_count;   /* DS:9148 */
+extern int g_92a4;
 extern REC_1E g_6e52[];
 extern REC_1E g_6ea8[];
 extern int g_94a2;
@@ -184,6 +201,66 @@ void far fn_07_11cc(void)
 {
     g_1e30[g_9646].x = g_90ea / 2;
     g_1e30[g_9646].y = g_90ec / 2;
+}
+
+/* Starts a dissolve effect on an object [inferred]. */
+/* @addr 7:13b2 */
+void far fn_07_13b2(char kind, int type, int idx)
+{
+    int i;
+    int j;
+    int u;
+    int sq;
+    int r;
+    int found;
+
+    if (type < 0)
+        MessageBeep(0);
+    if (type <= 14) {
+        if (g_1df8[type][idx].f2e > 0)
+            return;
+        fn_10_754a(0x27, type, idx, 1);
+    }
+    found = 0;
+    if (type <= 14) {
+        if (g_1df8[type][idx].f22 % ((2 << g_9156) >> 1) == 0)
+            r = 0;
+        else
+            r = 1;
+        r += g_1df8[type][idx].f22 >> g_9156;
+    } else if (type == 20)
+        r = g_92a4 / 8;
+    else if (type >= 21)
+        r = 24;
+    sq = r * r;
+    for (i = 0; i < 4; i++) {
+        if (g_221c[i].type != -1)
+            continue;
+        if (type <= 14)
+            g_1df8[type][idx].f2e = kind;
+        g_221c[i].type = type;
+        g_221c[i].idx = idx;
+        g_221c[i].sq = sq;
+        g_221c[i].f58 = 0;
+        g_221c[i].r = r;
+        if (type == 14)
+            g_70ae[idx].fcd = 1;
+        for (j = 0; j < 80; j++)
+            g_221c[i].b[j] = 0;
+        found = 1;
+        dissolve_active_count++;
+        if (kind == 2 && g_221c[i].type <= 14)
+            PatBlt(g_1df8[g_221c[i].type][g_221c[i].idx].f3c, 0, 0,
+                   g_1df8[g_221c[i].type][g_221c[i].idx].f24 * 2
+                       + g_1df8[g_221c[i].type][g_221c[i].idx].f22,
+                   g_1df8[g_221c[i].type][g_221c[i].idx].f24 * 2
+                       + g_1df8[g_221c[i].type][g_221c[i].idx].f22,
+                   BLACKNESS);
+        break;
+    }
+    if (!found && type <= 14)
+        PatBlt(g_13dc, g_1df8[type][idx].f00, g_1df8[type][idx].f02,
+               g_1df8[type][idx].f22, g_1df8[type][idx].f22, BLACKNESS);
 }
 
 /* @addr 7:1f38 */

@@ -22,7 +22,8 @@ typedef struct {
     char p26[0x2c - 0x26];
     int f2c;                    /* +2c */
     char f2e;                   /* +2e */
-    char p2f[0x44 - 0x2f];
+    signed char f2f;            /* +2f */
+    char p30[0x44 - 0x30];
     int f44;                    /* +44 */
     int f46;
     int f48;                    /* +48 */
@@ -51,7 +52,8 @@ typedef struct {                /* 0x297 bytes, far array at DS:69f4 */
 
 typedef struct {                /* 0x23 bytes, DGROUP array at DS:57a8 */
     int f00;
-    char p02[0x06 - 0x02];
+    int f02;
+    char p04[0x06 - 0x04];
     int f06;
     char p08[0x0a - 0x08];
     char f0a;
@@ -84,6 +86,8 @@ extern int g_90ea;
 extern int g_90ec;
 extern int g_0a76;
 extern int g_9208;
+extern int g_92e8;
+extern int g_91fa;
 extern char g_8ffe;
 extern int g_9134;
 extern int g_058c;
@@ -149,8 +153,15 @@ extern HWND g_0a7c;
 
 void far pascal fn_08_1d54(int a, int b);
 void far pascal fn_08_1b54(int a, int b);
-void far fn_07_233c(int a, int b, int c);
+int far fn_07_233c(int a, int n, int amount);
+int far fn_10_6d38(LPCSTR s);
+void far fn_07_26c4(int unused, int n);
 void far fn_07_5a46(void);
+void far fn_07_4d86(int i);
+void far fn_07_4a38(int a, int b, int c);
+void far fn_07_4ffe(int n);
+void far fn_07_5660(int n);
+void far pascal fn_07_3294(int n);
 void far fn_07_63f2(void);
 void far pascal fn_07_3400(int n);
 void far fn_07_2768(int n);
@@ -174,6 +185,53 @@ void far fn_08_99ce(int a, int b, int c, int d, int e);
 void far fn_13_6450(int a, int b, int c);
 void far fn_13_58dc(int a, int b);
 void far fn_13_5a6a(HDC dc, int a, int b, int c, int d, int e, int f, int g);
+
+/* Adds cracks to a window pane and redraws it [inferred]. */
+/* @addr 7:233c */
+int far fn_07_233c(int unused, int n, int amount)
+{
+    int size;
+    int gap;
+    int u;
+    int q;
+    HDC memdc;
+    HGDIOBJ old;
+    HBITMAP bmp;
+
+    if (g_57a8[n].f00 == 0 && g_1df8[0][n].f2f != -100 && g_1df8[0][n].f2f != -2) {
+        g_1df8[0][n].f1e = min(amount * 3 + g_1df8[0][n].f1e, 211);
+        g_69f4[g_94a2].f1d2[n] = g_1df8[0][n].f1e;
+        gap = g_1df8[0][n].f24;
+        size = g_1df8[0][n].f22;
+        if (g_1df8[0][n].f1e > 0 && g_1df8[0][n].f2f >= 0) {
+            memdc = CreateCompatibleDC(g_13dc);
+            bmp = fn_10_6d38("CRACKS");
+            if (amount)
+                bmp = fn_10_6308(-1, -1, bmp, -1);
+            else {
+                gap = 6;
+                size = 32;
+            }
+            old = SelectObject(memdc, bmp);
+            q = g_1df8[0][n].f1e / 70;
+            BitBlt(g_3a02, (gap + size) * n + gap, gap, size, size,
+                   memdc, (q + 3) * size, 0, MERGEPAINT);
+            BitBlt(g_3a02, (gap + size) * n + gap, gap, size, size,
+                   memdc, q * size, 0, SRCAND);
+            SelectObject(memdc, old);
+            DeleteDC(memdc);
+            DeleteObject(bmp);
+            if (amount && g_57a8[n].f02 == 0)
+                fn_10_754a(0x12, 0, n, 1);
+        }
+        if (amount && (g_1df8[0][n].f1e > 208 || g_1df8[0][n].f2f < 0)) {
+            fn_07_26c4(0, n);
+            return 1;
+        }
+    }
+    fn_07_65aa(0, n);
+    return 0;
+}
 
 /* @addr 7:2512 */
 void far fn_07_2512(int n, int m)
@@ -242,6 +300,72 @@ void far pascal fn_07_3294(int n)
     fn_08_1d54((char)n, 0x1e);
     if (!g_1df8[0][n].f54)
         fn_08_1b54((char)n, 3);
+}
+
+/* @addr 7:309c */
+void far fn_07_309c(void)
+{
+    int i;
+    int u1;
+    int r;
+    int u2;
+    int size;
+    int gap;
+    int u3[6];
+    int flag;
+    HDC dc;
+
+    if (g_92e8)
+        return;
+    size = g_1df8[0]->f22;
+    gap = g_1df8[0]->f24;
+    for (i = 0; i < g_91fa; i++) {
+        if (g_1df8[0][i].f18 != 0)
+            continue;
+        flag = 0;
+        if (g_57a8[i].f00 != 0) {
+            fn_07_4d86(i);
+            if (g_57a8[i].f00 < 7) {
+                g_57a8[i].f00 = 0;
+                flag = 1;
+            }
+        }
+        if (g_1df8[0][i].f1a != 0) {
+            if (g_57a8[i].f02 == 0) {
+                g_1df8[0][i].f10 = (gap + size) * i + gap;
+                dc = g_3a02;
+            } else {
+                dc = g_3a04[i];
+                g_1df8[0][i].f10 = (g_57a8[i].f02 / 2 - 1) * (gap + size) + gap;
+            }
+            fn_08_1d54((char)i, 0x28);
+            if (!g_1df8[0][i].f54)
+                fn_08_1b54((char)i, 1);
+            fn_08_0b76((char)i, 1, dc, 0);
+            if (g_1df8[0][i].f1a != 0 && g_1df8[0][i].f1c == 0) {
+                g_943a = 0;
+                g_943c = i;
+                r = fn_08_50aa((char)i);
+                if (r != -1)
+                    fn_07_4a38(HIBYTE(r), LOBYTE(r), i);
+            }
+        } else if (g_9142 % 3 == 0)
+            fn_07_3294(i);
+        if (g_9142 % 30 == 0 && g_1df8[0][i].f2f < 0) {
+            g_1df8[0][i].f2f++;
+            if (g_1df8[0][i].f2f == 0)
+                g_1df8[0][i].f53 = 1;
+            if (g_1df8[0][i].f2f == -2)
+                fn_07_5660(i);
+        }
+        if (g_57a8[i].f02 != 0) {
+            if (g_57a8[i].f02 > 10)
+                g_57a8[i].f02 = 1;
+            g_57a8[i].f02++;
+        }
+        if (flag)
+            fn_07_4ffe(i);
+    }
 }
 
 /* @addr 7:32d0 */
@@ -534,11 +658,6 @@ void far fn_07_63f2(void)
     }
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
-void far fn_07_233c(int a, int b, int c)
-{
-    g_0a76 = a + b + c;
-}
 
 /* Not yet decompiled: stub so calls to it compile as near calls. */
 void far fn_07_5b68(int a, int b, int c)
@@ -550,4 +669,16 @@ void far fn_07_5b68(int a, int b, int c)
 void far fn_07_2768(int n)
 {
     g_0a76 = n;
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_07_4d86(int i)
+{
+    g_0a76 = i;
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_07_4a38(int a, int b, int c)
+{
+    g_0a76 = a + b + c;
 }
