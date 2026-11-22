@@ -85,3 +85,28 @@ more modules match than with large model. Memory model: `/AM` `[inferred]`.
 - Running the compiler: DOSBox (`apt-get install dosbox`), headless with
   `SDL_VIDEODRIVER=dummy`; CL 8.00c runs under its own DOSXNT extender.
   `tools/match.py` does this.
+
+## Decomp conventions and findings (step 4)
+
+- Sources: `src/inspace/segNN.c`, one per segment for now; shared
+  declarations in `src/inspace/inspace.h`. Functions `fn_SS_OOOO`, globals
+  `g_XXXX` (DS offset), until understood; confirmed names from
+  `names/INSPACE.EXE.txt`.
+- A function the game calls with `push cs; call near` must be defined in the
+  same C file (a stub is fine, it is not checked); one called with a far
+  call must not be. This is all matching needs; the original file layout
+  only matters for relinking the whole EXE.
+- `/Os` code ends with `lea sp,[bp-2]`, so the last call in a function often
+  has no `add sp` cleanup: a missing cleanup does not prove the callee is
+  pascal.
+- Unused locals still get stack space (`sub sp,N`) under `/Os`.
+- Far calls to internal functions use selector-only fixups: the offset in
+  the `call far` instruction is the real target (tools/disfn.py shows it).
+- capstone prints byte 99 as `cdq` and 98 as `cwde`; in 16-bit code without
+  a 66 prefix they are `cwd` / `cbw`. tools/disfn.py corrects this.
+- `tools/files.py` estimates source-file boundaries from near/far calls
+  (`inventory/files.tsv`). Open question: 11:1ab6 and 11:1b44 are called only
+  far, from 11:33cc..3bae, although near calls show the code around them is
+  one file. CL 8.00c gave near calls for same-file pascal, cdecl, prototyped
+  and later-defined callees, so the cause is still unknown (separate code
+  segment via pragma, or linker reordering, are guesses).

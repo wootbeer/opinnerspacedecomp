@@ -56,6 +56,10 @@ def compile_all(srcs, work):
     """Compile every source in one DOSBox run. Returns {src: obj path}."""
     objs = {}
     lines = []
+    for d in {os.path.dirname(os.path.abspath(x)) for x in srcs}:
+        for h in os.listdir(d):
+            if h.lower().endswith('.h'):
+                shutil.copyfile(os.path.join(d, h), os.path.join(work, h.upper()))
     for i, src in enumerate(srcs):
         name = f'S{i}'
         shutil.copyfile(src, os.path.join(work, name + '.C'))
