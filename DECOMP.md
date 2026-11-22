@@ -74,3 +74,16 @@ Conventions
 - fn_10_94c4 last argument: LPSTR, not long.
 - g_fp_3c50: called with (int, int, int, int, long, int) and with 7 ints.
 - g_0024: a module handle (LoadLibrary/FreeLibrary).
+- Order of extern declarations can change register choice in compares
+  (6:1e68 needed `g_1e50` declared before `g_1c34`).
+- `x = y = 0;` on two adjacent locals becomes one dword store (lower address
+  first); for globals use `*(long *)&g = 0`.
+- `x = mem - expr` compiled as `sub ax,[mem]; neg ax` needs a temporary for
+  expr.
+- windows.h `min`/`max` reproduce the `cmp; jle; mov` clamps.
+- Two near-identical calls in if/else are tail-merged by the compiler; write
+  both calls, not a `?:` argument.
+- Use your own scratchpad subfolder; the scratchpad is shared.
+- More type notes: g_1e4c holds a GlobalLock pointer; g_13dc is an HDC;
+  g_1df8 needs at least 21 far pointers; fn_10_1eb6 is called with 3 args
+  from 18:07b2; fn_08_2bbe returns a POINT (pascal, hidden pointer, retf 6).

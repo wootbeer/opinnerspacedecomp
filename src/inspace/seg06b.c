@@ -2,10 +2,31 @@
  * (6:5d58 onwards has no 32-bit instructions). */
 /* @cflags /AM /G2 /Gw /Gs /Os */
 #include "inspace.h"
+#include <stdlib.h>
+
+#pragma pack(1)
+typedef struct {                /* 0x229-byte records at far DS:6b08 */
+    char p000[0x02];
+    char f02;
+    char p003[0x13 - 0x03];
+    long f13;
+    long f17;
+    long f1b;
+    long f1f;
+    char p023[0x2b - 0x23];
+    int f2b[15];
+    long f49[15];
+    long f85[15];
+    long fc1[15];
+    long ffd[15];
+    char p139[0x229 - 0x139];
+} REC_229;
+#pragma pack()
 
 void far fn_06_7266(void);
 void far fn_06_717a(void);
 DWORD far pascal fn_06_9e66(HFILE f, char huge *buf, DWORD n);
+int far fn_14_4006(HFILE f, char huge *buf, unsigned long len);
 
 extern HGLOBAL g_94e0;
 extern void far *g_6afc;
@@ -16,7 +37,7 @@ extern void far *g_6b04;
 extern char g_9078[];
 extern char g_96b8[];
 extern HGLOBAL g_94da;
-extern void far *g_6b08;
+extern REC_229 far *g_6b08;
 extern HGLOBAL g_94dc;
 extern HGLOBAL g_94ae;
 extern void far *g_69f4;
@@ -25,6 +46,14 @@ extern void far *g_6e24;
 extern char g_900a[];
 extern char g_a12c[][9];
 extern unsigned g_94c8;
+extern long g_939a;
+extern int g_94ce;
+extern int g_94d0;
+extern int g_94d2;
+extern int g_94d4;
+extern int g_94d6;
+extern int g_9208;
+extern int g_9330;
 extern unsigned char g_0f00[];      /* quarter-wave sine table, 0..90 degrees [inferred] */
 
 /* @addr 6:626c */
@@ -83,6 +112,47 @@ int far fn_06_720c(int deg)
     if (d < 270)
         return -g_0f00[270 - d];
     return g_0f00[d - 270];
+}
+
+/* @addr 6:72d8 */
+void far fn_06_72d8(int n, int m)
+{
+    int i;
+
+    fn_06_7266();
+    g_94ce = n;
+    g_94d0 = m;
+    switch (g_9208) {
+    case 0:
+        g_94d2 = 7;
+        g_94d4 = 7;
+        g_94d6 = 5;
+        break;
+    case 1:
+        g_94d2 = 7;
+        g_94d4 = 10;
+        g_94d6 = 5;
+        break;
+    case 2:
+        g_94d2 = 8;
+        g_94d4 = 13;
+        g_94d6 = 6;
+        break;
+    case 3:
+        g_94d2 = 10;
+        g_94d4 = 15;
+        g_94d6 = 6;
+        break;
+    }
+    g_94da = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, (long)g_94ce * 0x229);
+    g_6b08 = (REC_229 far *)GlobalLock(g_94da);
+    g_94dc = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, (long)g_94d0 * 0x4b0);
+    g_6b0c = (REC_4B0 far *)GlobalLock(g_94dc);
+    for (i = 0; i < g_94d0; i++)
+        g_6b0c[i].b[0] = 0;
+    for (i = 0; i < g_94ce; i++)
+        g_6b08[i].f02 = 0;
+    g_9330 = 0;
 }
 
 /* @addr 6:7266 */
@@ -210,4 +280,46 @@ int far fn_06_8dfe(int i)
     _lclose(hf);
     hf = 0;
     return 1;
+}
+
+/* Returns 1 when the file is missing or does not start with the
+ * expected signature g_939a [inferred]. */
+/* @addr 6:8776 */
+int far fn_06_8776(LPSTR path)
+{
+    OFSTRUCT of;
+    HGLOBAL h;
+    long far *p;
+    int r;
+    DWORD size;
+    HFILE hf;
+
+    hf = OpenFile(path, &of, OF_READ);
+    if (hf == -1)
+        return 1;
+    h = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, 0x1a9L);
+    GlobalLock(h);
+    size = GlobalSize(h);
+    GlobalUnlock(h);
+    if (fn_14_4006(hf, (char huge *)(p = (long far *)GlobalLock(h = GlobalReAlloc(h, size, GMEM_MOVEABLE | GMEM_ZEROINIT))), size) == 0)
+        r = 1;
+    else {
+        r = 0;
+        if (*p == g_939a)
+            r = 1;
+    }
+    GlobalUnlock(h);
+    GlobalFree(h);
+    _lclose(hf);
+    return r;
+}
+
+/* @addr 6:8684 */
+void far fn_06_8684(int i, int j)
+{
+    g_6b08[i].f49[j] = g_6b08[i].f13;
+    g_6b08[i].f85[j] = g_6b08[i].f17;
+    g_6b08[i].fc1[j] = rand() % 1024 - (g_6b08[i].f1b >> 2) - 512;
+    g_6b08[i].ffd[j] = rand() % 1024 - (g_6b08[i].f1f >> 2) - 512;
+    g_6b08[i].f2b[j] = 0;
 }

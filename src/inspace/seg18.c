@@ -28,14 +28,80 @@ typedef struct {                /* 0x15a bytes, DGROUP array at DS:70ae */
     char p02[0x06 - 0x02];
     int f06;
     int f08[4];
-    char p10[0x8e - 0x10];
+    char p10[0x30 - 0x10];
+    int f30;
+    char p32[0x8e - 0x32];
     char f8e;
     char f8f;
-    char p90[0xce - 0x90];
+    char p90[0xb8 - 0x90];
+    int fb8;
+    char pba[0xc6 - 0xba];
+    char fc6;
+    char pc7[0xce - 0xc7];
     char fce;
     char pcf[0x15a - 0xcf];
 } REC_15A;
+
+typedef struct {                /* 0x7c-byte records at far DS:6e24 */
+    char p00[0x1c];
+    unsigned char f1c;
+    char p1d[0x38 - 0x1d];
+    signed char f38[4];
+    char p3c[0x72 - 0x3c];
+    char f72;
+    char f73;
+    signed char f74;
+    char p75[0x7c - 0x75];
+} REC_7C;
 #pragma pack()
+
+extern REC_7C far *g_6e24;
+
+#pragma pack(1)
+typedef struct {                /* 0xad bytes, DGROUP array at DS:96f0 */
+    char p00[0x0a];
+    int f0a;
+    char p0c[0xad - 0x0c];
+} REC_AD;
+#pragma pack()
+extern REC_AD g_96f0[];
+extern int g_959e;
+extern int g_9156;
+extern int g_9316;
+
+void far fn_10_1eb6();              /* called with 3 args; the callee reads 1 */
+void far fn_10_0552(int i, int a);
+void far fn_10_5102(void);
+void far fn_10_5202(void);
+void far fn_10_5c42(void);
+void far fn_16_3784(int a, int b);
+void far fn_10_5d3c(int i);
+void far fn_08_2cd8(int a, int b);
+void far fn_06_0f1a(int v, char far *buf);
+void far fn_10_94c4(int a, int b, long color, int x, int y, LPSTR s);
+extern int g_1ca2;
+extern int g_1ca4;
+extern int g_88e8;
+extern int g_88ea;
+extern char g_a1d5[];
+
+typedef struct {                /* far pointer at DS:1e34 */
+    int f00;
+    int f02;
+    int f04;
+    int f06;
+    int f08;
+    int f0a;
+    int f0c;
+    int f0e;
+    char p10[0x20 - 0x10];
+    int f20;
+    int f22;
+} REC_1E34;
+extern REC_1E34 far *g_1e34;
+extern int g_88c0;
+extern int g_88c2;
+extern long g_88cc;
 
 extern REC_6DA4 far *g_6da4;
 extern REC_15A g_70ae[];
@@ -74,7 +140,26 @@ extern int g_9510;
 extern long g_88d0;
 extern int g_a1d3;
 extern int g_942a;
-typedef struct { char p00[0x1a]; int f1a; } REC_1E40;
+typedef struct {                /* far pointer at DS:1e40 */
+    char p00[0x04];
+    POINT f04;
+    char p08[0x0c - 0x08];
+    int f0c;
+    int f0e;
+    char p10[0x18 - 0x10];
+    int f18;
+    int f1a;
+    char p1c[0x24 - 0x1c];
+    int f24;
+    char p26[0x28 - 0x26];
+    int f28;
+} REC_1E40;
+typedef struct { RECT rc; char p08[0x18 - 0x08]; } REC_18;   /* DS:8870 */
+extern REC_18 g_8870[];
+extern POINT g_1050[];
+POINT far pascal fn_08_2bbe(POINT p);
+void far fn_06_84fc(int a, int x, int y, int dx, int dy, int w, int h,
+                    int c, int d, int e);
 extern REC_1E40 far *g_1e40;
 
 extern int g_238c;
@@ -256,10 +341,31 @@ void far fn_18_17f6(void)
 {
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
-void far fn_18_1cbe(int a)
+/* Draws the two score lines when they changed [inferred]. */
+/* @addr 18:1cbe */
+void far fn_18_1cbe(int force)
 {
-    g_9510 = a;
+    char buf[80];
+
+    if ((g_1ca2 != g_a1cd || force) && !g_9672) {
+        g_1ca2 = g_a1cd;
+        g_1ca4 = g_a1cf;
+        if (force)
+            PatBlt(g_13dc, 0, g_88c2, g_88e8, g_88ea, BLACKNESS);
+        if (!g_9156) {
+            LoadString(g_9212, 0x7f0, buf, 80);
+            if (g_a1cd) {
+                fn_06_0f1a(g_a1cd, g_a1d5);
+                lstrcat(buf, g_a1d5);
+            } else
+                lstrcat(buf, "0");
+            fn_10_94c4(2, 0, PALETTERGB(255, 128, 0), 0, g_88c2, buf);
+            LoadString(g_9212, 0x7f1, buf, 80);
+            fn_06_0f1a(g_a1cf, g_a1d5);
+            lstrcat(buf, g_a1d5);
+            fn_10_94c4(2, 2, PALETTERGB(0, 255, 0), g_88c0 - 6, g_88c2, buf);
+        }
+    }
 }
 
 /* @addr 18:5220 */
@@ -354,4 +460,93 @@ void far fn_18_5f74(void)
     g_8d16 = 164;
     g_8d1a = min(g_0010 * 2 / 5, g_0010 - 370);
     g_8d18 = max(g_90ea / -13 - x + g_90ea / 2 - 90, 0);
+}
+
+/* @addr 18:0c5c */
+void far fn_18_0c5c(void)
+{
+    int i;
+
+    for (i = 0; i < 4; i++)
+        g_a172[i] = (unsigned char)g_70ae[g_9646].f08[i];
+    g_a176 = g_70ae[g_9646].f00 / 10;
+    g_a177 = (unsigned char)g_70ae[g_9646].f06;
+    g_a178 = g_70ae[g_9646].f8e;
+    g_a179 = g_70ae[g_9646].f8f;
+    g_a17a = g_70ae[g_9646].fce;
+    for (i = 0; i < 4; i++)
+        g_70ae[g_9646].f08[i] = g_6e24[g_70ae[g_9646].fb8].f38[i];
+    g_70ae[g_9646].f00 = 40 * g_6e24[g_70ae[g_9646].fb8].f1c;
+    g_70ae[g_9646].f06 = g_6e24[g_70ae[g_9646].fb8].f74;
+    g_70ae[g_9646].f8e = g_6e24[g_70ae[g_9646].fb8].f72;
+    g_70ae[g_9646].f8f = g_6e24[g_70ae[g_9646].fb8].f73;
+    g_70ae[g_9646].fce = 1;
+}
+
+/* @addr 18:337c */
+void far fn_18_337c(void)
+{
+    g_1e34->f20 = (int)(g_1e34->f22 * g_88cc / g_88c0);
+    g_1e34->f04 = (int)g_88cc / 2 - g_1e34->f20 / 2;
+    g_1e34->f06 = (int)(g_88c2 * g_88cc / g_88c0) / 2 - g_1e34->f20 / 2;
+    g_1e34->f00 = g_88c0 / 2 - g_1e34->f22 / 2;
+    g_1e34->f08 = g_1e34->f00;
+    g_1e34->f02 = g_88c2 / 2 - g_1e34->f22 / 2;
+    g_1e34->f0a = g_1e34->f02;
+    g_1e34->f0c = 0;
+    g_1e34->f0e = 0;
+}
+
+/* @addr 18:4faa */
+void far fn_18_4faa(int k)
+{
+    POINT pt;
+    int r;
+
+    if (k == 0 || k == 3)
+        pt.x = g_8870[k].rc.right + 2;
+    else
+        pt.x = g_8870[k].rc.left - 2;
+    pt.y = (g_8870[k].rc.bottom - g_8870[k].rc.top) / 2 + g_8870[k].rc.top;
+    r = (4 - k) * 4 % 16;
+    g_1e40->f04 = fn_08_2bbe(pt);
+    g_1e40->f0c = g_1050[r].x * 5;
+    g_1e40->f0e = g_1050[r].y * 5;
+    g_1e40->f28 = k;
+    g_1e40->f1a = 1;
+    g_1e40->f18 = 1;
+    g_1e40->f24 = 0;
+    g_942a = 1;
+    fn_10_744c(0x6e);
+    fn_06_84fc((rand() % 2 + 1) * 10, 0, 0, 0, 0, 0, 0, 0, 400, k);
+}
+
+/* @addr 18:07b2 */
+void far fn_18_07b2(void)
+{
+    int b;
+    int a;
+    int i;
+
+    g_70ae[g_9646].f8e = g_6e24[g_70ae[g_9646].fb8].f72;
+    g_70ae[g_9646].f8f = g_6e24[g_70ae[g_9646].fb8].f73;
+    a = g_70ae[g_9646].f8e;
+    b = g_70ae[g_9646].f8f;
+    g_9156 = g_959e;
+    fn_10_1eb6(g_9646, g_70ae[g_9646].f30, 1);
+    fn_10_0552(0x22, 1);
+    fn_10_0552(0xc, 1);
+    fn_10_0552(0xa, 1);
+    fn_10_5102();
+    fn_10_5202();
+    fn_10_5c42();
+    fn_16_3784(g_9646, 2);
+    for (i = 0; i <= g_9316; i++)
+        fn_10_5d3c(i);
+    if (g_70ae[g_9646].fc6 && g_96f0[g_70ae[g_9646].f30].f0a == 3) {
+        if (!a)
+            fn_08_2cd8(g_9646, 0);
+        if (!b)
+            fn_08_2cd8(g_9646, 1);
+    }
 }

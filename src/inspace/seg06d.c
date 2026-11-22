@@ -28,6 +28,36 @@ extern int g_0d26;
 extern int g_94b4;
 extern int g_94b6;
 
+/* @addr 6:2dba */
+void far fn_06_2dba(int mode)
+{
+    int a;
+    int b;
+
+    switch (mode) {
+    case 0:
+        a = b = 0;
+        break;
+    case 1:
+        a = SW_SHOW;
+        b = SW_HIDE;
+        break;
+    case 2:
+        a = SW_HIDE;
+        b = SW_SHOW;
+        break;
+    }
+    ShowWindow(GetDlgItem(g_0d1e, 0x8c), a);
+    ShowWindow(GetDlgItem(g_0d1e, 0x8d), a);
+    ShowWindow(GetDlgItem(g_0d1e, 0x8e), a);
+    ShowWindow(GetDlgItem(g_0d1e, 0x8f), a);
+    ShowWindow(GetDlgItem(g_0d1e, 0x90), a);
+    ShowWindow(GetDlgItem(g_0d1e, 0x93), b);
+    ShowWindow(GetDlgItem(g_0d1e, 0x91), b);
+    ShowWindow(GetDlgItem(g_0d1e, 0x92), b);
+    ShowWindow(GetDlgItem(g_0d1e, 0x94), b);
+}
+
 /* @addr 6:1d9a */
 void far fn_06_1d9a(void)
 {

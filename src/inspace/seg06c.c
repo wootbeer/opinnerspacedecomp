@@ -17,6 +17,11 @@ extern HGLOBAL g_9100[];
 extern void far *g_1df8[];
 extern int g_94a4;
 extern HGLOBAL g_912a;
+extern int g_0020;
+extern RECT g_1d20;
+extern int g_90f6;
+extern int g_920c;
+extern HINSTANCE g_8e66;
 
 void far fn_10_6e00(void);
 void far fn_10_6e76(int a, int b);
@@ -26,6 +31,7 @@ int far fn_06_09f8(void);
 void far fn_06_2ebc(void);
 void far fn_02_1d58(void);
 void far fn_10_022e(int a);
+int far fn_06_1290(LPCSTR key, int def);
 void far fn_10_0330(void);
 void far fn_06_033e(void);
 void far fn_10_6e26(void);
@@ -36,6 +42,44 @@ void far fn_06_1b3c(void)
 {
     if (g_8f66 && fn_02_1ac8())
         fn_02_1b96();
+}
+
+/* Creates the main window [inferred]. */
+/* @addr 6:17e0 */
+void far fn_06_17e0(void)
+{
+    HMENU menu;
+    char title[40];
+    int h;
+    int w;
+    int y;
+    int x;
+    DWORD style;
+
+    g_90fa = LoadMenu(g_9212, MAKEINTRESOURCE(0x65));
+    if (g_90f6)
+        menu = g_90fa;
+    else
+        menu = 0;
+    style = WS_POPUP;
+    if (!g_0020) {
+        style = WS_POPUP | WS_OVERLAPPEDWINDOW;
+        x = g_1d20.left;
+        w = g_1d20.right - x;
+        y = g_1d20.top;
+        h = g_1d20.bottom - y;
+    } else {
+        x = y = 0;
+        w = GetSystemMetrics(SM_CXSCREEN);
+        h = GetSystemMetrics(SM_CYSCREEN);
+    }
+    if (!g_920c)
+        LoadString(g_9212, 0x922, title, 40);
+    else
+        LoadString(g_9212, 0x921, title, 40);
+    CreateWindow(g_9690, title, style, x, y, w, h, 0, menu, g_8e66, NULL);
+    if (g_0020 && fn_06_1290("OnTop", 1))
+        SetWindowPos(g_0016, (HWND)-1, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
 }
 
 /* @addr 6:18e0 */

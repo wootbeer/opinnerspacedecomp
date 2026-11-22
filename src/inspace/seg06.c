@@ -25,7 +25,16 @@ extern int g_9152;
 extern int g_9154;
 extern int g_9156;
 
+extern long g_1df4;
+extern int g_8f76;
+extern int g_8f78;
+extern int g_9008;
+extern int g_9208;
+extern int g_8ffe;
+extern int g_8ff2;
+
 int far fn_02_094c(UINT id);
+void far fn_10_4dfe(void);
 void far fn_06_0b3e(void);
 void far fn_06_0f1a(int v, char far *buf);
 
@@ -84,6 +93,55 @@ void far fn_06_0a6c(void)
 void far fn_06_0b3e(void)
 {
     g_9006 = 0;
+}
+
+/* @addr 6:0daa */
+void far fn_06_0daa(void)
+{
+    int v;
+
+    if (g_8ffc > 600) {
+        g_1df4 = 120;
+        g_8f76 = g_8ffa / 28;
+    } else if (g_8ffc > 500) {
+        g_1df4 = 130;
+        g_8f76 = g_8ffa / 80;
+    } else if (g_8ffc > 250) {
+        g_1df4 = 140;
+        g_8f76 = g_8ffa / 80;
+    } else {
+        g_1df4 = 150;
+        g_8f76 = 0;
+    }
+    g_9008 = min(g_8ffa / 65, 26);
+    g_9008 = max(g_9008, 11);
+    g_9008 = 4;
+    switch (g_9208) {
+    case 0:
+        g_9154 = 4;
+        g_8ffe = 3;
+        break;
+    case 1:
+        g_9154 = 7;
+        g_8ffe = 2;
+        break;
+    case 2:
+        g_9154 = 13;
+        g_8ffe = 1;
+        break;
+    case 3:
+        g_9154 = 18;
+        g_8ffe = 1;
+        break;
+    }
+    v = GetPrivateProfileInt(g_9690, "Bright", 0, g_96a9);
+    if (v)
+        g_9154--;
+    if (v != g_8ff2) {
+        g_8ff2 = v;
+        fn_10_4dfe();
+    }
+    g_8f78 = g_8f76;
 }
 
 /* @addr 6:0eb8 */
@@ -168,10 +226,48 @@ void far fn_06_1010(int v, int div, int width, char far *buf)
     lstrcat(buf, tmp);
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Appends the decimal digits of v to buf (after a "-" already there).
+ * Quirk: exactly 1000000000 counts as 9 digits. [inferred] */
+/* @addr 6:10ce */
 void far fn_06_10ce(unsigned long v, char far *buf)
 {
-    buf[1] = (char)v;
+    int unused1;
+    int unused2;
+    int i;
+    int pos;
+    int n;
+    int off;
+
+    if (buf[0])
+        off = 1;
+    else
+        off = 0;
+    if (v > 1000000000)
+        n = 10;
+    else if (v >= 100000000)
+        n = 9;
+    else if (v >= 10000000)
+        n = 8;
+    else if (v >= 1000000)
+        n = 7;
+    else if (v >= 100000)
+        n = 6;
+    else if (v >= 10000)
+        n = 5;
+    else if (v >= 1000)
+        n = 4;
+    else if (v >= 100)
+        n = 3;
+    else if (v >= 10)
+        n = 2;
+    else
+        n = 1;
+    buf[off + n] = 0;
+    pos = n + off - 1;
+    for (i = 0; i < n; i++, pos--) {
+        buf[pos] = (char)(v % 10) + '0';
+        v /= 10;
+    }
 }
 
 /* @addr 6:11ec */
