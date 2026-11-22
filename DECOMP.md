@@ -102,3 +102,16 @@ Conventions
   WRONG REFERENCE, not MATCH. Unknown symbols (string literals, other names)
   are not checked.
 - `a = b = 0;` stores b first.
+- Also /G2: all of segment 12 (seg12.c has the @cflags line).
+- A ternary on `x < 0` gets its arms swapped; `0 > x ? A : B` keeps the order.
+- An early `return`/`continue` resets register tracking; a block
+  (`if (x != -1) { ... } return 1;`) keeps registers live and merges returns.
+- `if (c) return A; else return B;` lays out differently from the same
+  without `else`.
+- A ternary adds a 2-4 byte compiler temp to the frame.
+- Same constant to several fields: separate statements reuse one register;
+  a chained assignment does not.
+- A callee called both with a struct and with two ints (8:9028) needs an
+  old-style K&R definition.
+- More type notes: g_05a0 is read as int (map width, with g_05a2); 8:1cbe's
+  first parameter is a 2-byte struct {unsigned char idx, type}.

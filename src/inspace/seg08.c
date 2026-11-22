@@ -114,13 +114,29 @@ extern int g_90ea;
 extern int g_90ec;
 
 POINT far pascal fn_08_29ea(POINT pt);
+
+extern int subgame_active;      /* DS:9130 */
+#define G_05A0_INT (*(int *)&g_05a0)    /* inspace.h declares DS:05a0 long */
+extern int g_05a2;
+extern int g_2400;
+extern int g_2402;
+extern int g_9150;
+extern int g_88c0;
+extern int g_88c4;
+extern int g_88c6;
+extern long g_88cc;
+extern long g_240c;
+extern long g_2410;
+extern int g_9320;
+extern char g_9eb5;
+int far fn_09_88ba(int x);
+long far abs32(long x);
 void far fn_08_9028();       /* old-style: callers pass ints or a PAIR */
 int far fn_10_754a(int a, int b, int c, int d);
 int far pascal fn_08_285a(int far *p, int far *q, POINT a, POINT b);
 void far fn_08_92a0(int type, int idx);
 void far fn_12_2288(int type, int idx);
 void far fn_07_2080(int a, int b);
-long far abs32(long x);
 
 /* @addr 8:0764 */
 void far pascal fn_08_0764(int a, int b)
@@ -210,10 +226,36 @@ void far fn_08_190e(void)
     }
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* World point to screen point [inferred]: relative to the view origin
+ * DS:240c/2410, wrapped the short way round the map, scaled down by
+ * g_9150; in the sub-game a linear map (inverse of 8:2bbe). */
+/* @addr 8:29ea */
 POINT far pascal fn_08_29ea(POINT pt)
 {
-    return pt;
+    POINT r;
+    long u1;
+    long lx;
+    long ly;
+    int u2[1];
+
+    lx = pt.x;
+    ly = pt.y;
+    if (subgame_active == 0) {
+        r.x = (int)((lx - g_240c) >> g_9150);
+        if (fn_09_88ba((int)lx - (g_90ea << (g_9150 - 1)) - (int)g_240c) > G_05A0_INT * 4
+            && (g_9320 != 6 || g_9eb5 == 1))
+            r.x = (int)(((0 > r.x ? (long)pt.x + G_05A0_INT * 8 : (long)pt.x - G_05A0_INT * 8)
+                         - g_240c) >> g_9150);
+        r.y = (int)((ly - g_2410) >> g_9150);
+        if (abs32(ly - (g_90ec << (g_9150 - 1)) - g_2410) > g_05a2 * 4
+            && (g_9320 != 6 || g_9eb5 == 1))
+            r.y = (int)(((0 > r.y ? (long)pt.y + g_05a2 * 8 : (long)pt.y - g_05a2 * 8)
+                         - g_2410) >> g_9150);
+    } else {
+        r.x = (int)(pt.x * (long)g_88c0 / g_88cc) + g_88c4;
+        r.y = (int)(pt.y * (long)g_88c0 / g_88cc) + g_88c6;
+    }
+    return r;
 }
 
 /* Old-style definition: 8:9b4e passes a PAIR by value, 8:99ce two ints. */
@@ -433,4 +475,37 @@ long far fn_08_35d0(long a, long b)
     else
         g = (ab >> 1) + aa;
     return g ? ((b * b + a * a) / g + g) >> 1 : 1;
+}
+
+/* Screen point to world point [inferred]: scaled by g_9150 and offset by
+ * the view origin, wrapped to the map; in the sub-game a linear map. */
+/* @addr 8:2bbe */
+POINT far pascal fn_08_2bbe(POINT pt)
+{
+    POINT r;
+    int oy;
+    int ox;
+    long lx;
+    long ly;
+
+    if (subgame_active == 0) {
+        oy = g_2402;
+        ox = g_2400;
+        if (ox < 0)
+            ox += G_05A0_INT * 8;
+        if (oy < 0)
+            oy += g_05a2 * 8;
+        lx = (long)ox + (pt.x << g_9150);
+        ly = (long)oy + (pt.y << g_9150);
+        if (lx > G_05A0_INT * 8)
+            lx -= G_05A0_INT * 8;
+        if (ly > g_05a2 * 8)
+            ly -= g_05a2 * 8;
+        r.x = (int)lx;
+        r.y = (int)ly;
+        return r;
+    }
+    r.x = (int)((pt.x - g_88c4) * g_88cc / g_88c0);
+    r.y = (int)((pt.y - g_88c6) * g_88cc / g_88c0);
+    return r;
 }
