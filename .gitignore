@@ -14,6 +14,8 @@
 *.ini
 *.SAV
 *.sav
+*.HLP
+*.hlp
 # Tool installs with game or third-party binaries
 DOSBox*/
 dosbox*/
@@ -28,3 +30,9 @@ theworks/
 /build/
 *.o
 *.obj
+*.BOD
+*.bod
+*.SHP
+*.shp
+*.DED
+*.ded
