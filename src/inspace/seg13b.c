@@ -93,9 +93,14 @@ typedef struct {
 
 /* 0x41-byte records through the far pointer at DS:6e20 [inferred]. */
 typedef struct {
-    char pad_000[0x3];
+    char pad_000[0x1];
+    char f_001;
+    char f_002;
     char f_003;
-    char pad_004[0x6];
+    char pad_004[0x2];
+    char f_006;
+    char pad_007[0x2];
+    char f_009;
     char f_00a[23];
     int f_021;
     char pad_023[0x1e];
@@ -103,7 +108,12 @@ typedef struct {
 
 /* 0x2c-byte records through the far pointer at DS:6e1c [inferred]. */
 typedef struct {
-    char pad_000[0x21];
+    char pad_000[0x1b];
+    char f_01b;
+    char f_01c;
+    char f_01d;
+    char pad_01e[0x2];
+    char f_020;
     int f_021;
     char pad_023[0x9];
 } REC2C;
@@ -171,6 +181,11 @@ void far fn_10_7480(int a, int b);
 void far fn_10_754a(int a, int b, int c, int d);
 int far pascal fn_08_285a(int far *py, int far *px, POINT a, POINT b);
 void far fn_13_2714(int, int, int, int, int, int);
+int far fn_13_2688(int i, int j);
+void far fn_03_00f4(int a, int s, int k);  /* seg03.c: (int, long) */
+extern int g_91fa;
+extern int g_941c;
+extern REC70 far *g_1e24;
 
 /* @addr 13:910a */
 int far fn_13_910a(int n)
@@ -293,21 +308,21 @@ void far fn_13_a47c(void)
 /* @addr 13:a4f4 */
 void far fn_13_a4f4(void)
 {
-    int p[2];
+    PAIR p;
 
     if (g_9134) {
-        p[0] = g_6e52.a;
-        p[1] = g_6e52.b;
-        if (p[1] == 14) {
+        p.a = g_6e52.a;
+        p.b = g_6e52.b;
+        if (p.b != 14)
+            return;
             g_7092[g_9646].f_050 = 1;
-            g_7092[g_9646].f_052 = p[1];
-            g_7092[g_9646].f_054 = p[0];
+            g_7092[g_9646].f_052 = p.b;
+            g_7092[g_9646].f_054 = p.a;
             g_7092[g_9646].f_096 = g_1e50 + 30000;
             g_7092[g_9646].f_092 = g_1e50 + 200;
             g_7092[g_9646].f_0eb = 1;
             g_7092[g_9646].f_056 = g_9646;
             fn_13_a5c2();
-        }
     }
 }
 
@@ -478,8 +493,7 @@ void far fn_13_9ae8(int a)
         fn_10_754a(0x15, 2, best, 1);
 }
 
-/* near-match: 13:9f3e (the game has a dead `xor bx,bx` right after t is
- * loaded; everything else matches, shifted by those 2 bytes) */
+/* @addr 13:9f3e */
 void far fn_13_9f3e(int i)
 {
     int u1, u2, u3, t, cls, m, z;
@@ -487,7 +501,7 @@ void far fn_13_9f3e(int i)
     cls = g_970a[g_7092[i].f_04c].f_000;
     m = g_7092[i].f_03c;
     t = g_7092[i].f_03e;
-    z = 0;
+    u1 = z = 0;
     if (m != 14 || g_970a[g_7092[t].f_04c].f_000 != cls) {
         t = -1;
         fn_03_06ec(i, 7, 0, 0x32);
@@ -544,23 +558,22 @@ int far fn_13_9bb8(int i, int b)
     return 0;
 }
 
-/* near-match 18%: 13:a01c (same logic as the game; the game keeps a dead
- * class-record address in si and the zero in dx, CL drops/spills them) */
+/* near-match 88%: 13:a01c (only the tail merge differs: the game keeps the
+ * shared `push i; jmp call` in the 0x35 branch, CL in the 0x36 one) */
 void far fn_13_a01c(int i)
 {
-    int u1, u2, u3, t, m, z;
-    RECAD *p;
+    int u1, u2, u3, t, cls, m, z;
 
-    p = &g_970a[g_7092[i].f_04c];
+    cls = g_970a[g_7092[i].f_04c].f_000;
     m = g_7092[i].f_03c;
     t = g_7092[i].f_03e;
-    z = 0;
+    u1 = z = 0;
     if (m == 14 && g_970a[g_7092[t].f_04c].f_000 == 7) {
         fn_03_06ec(i, m, t, 0x40);
     } else if (m != 14 || g_970a[g_7092[i].f_04c].f_000
                           != g_970a[g_7092[t].f_04c].f_000) {
-        fn_03_06ec(i, 7, z, 0x36);
-    } else if (g_7092[t].f_050 != z && g_7092[t].f_050 != 7
+        fn_03_06ec(i, 7, 0, 0x36);
+    } else if (g_7092[t].f_050 != 0 && g_7092[t].f_050 != 7
                && g_7092[t].f_09a > g_1e50 && g_7092[t].f_05b > 0) {
         fn_03_06ec(i, 14, t, 0x35);
     } else {
@@ -579,5 +592,100 @@ void far fn_13_a01c(int i)
         g_7092[t].f_0eb = 1;
         g_7092[t].f_0a2 = g_1e50 - g_7092[t].f_05c * 2000 + 8000;
         fn_03_06ec(t, 14, i, 2);
+    }
+}
+
+/* @addr 13:9810 */
+void far fn_13_9810(int i)
+{
+    int u1, u2, m, t, done;
+
+    u1 = done = 0;
+    if (i != g_9646 && g_7092[i].f_09a > g_1e50)
+        return;
+    m = g_7092[i].f_03c;
+    t = g_7092[i].f_03e;
+    if (fn_13_910a(i)) {
+        fn_03_06ec(i, 7, 0, 100);
+        return;
+    }
+    if (m != 14)
+        return;
+    if (g_970a[g_7092[t].f_04c].f_000 == 7) {
+        fn_03_06ec(i, 14, t, 0x40);
+        return;
+    }
+    if (g_1e30[t].f_018 == 0 && g_7092[t].f_0ea
+        && (g_7092[t].f_050 == 0 || g_7092[t].f_050 == 7
+            || g_7092[t].f_096 < g_1e50)
+        && t != i && fn_13_2688(t, i) > 0) {
+        if (g_7092[t].f_050 != 0)
+            fn_03_06ec(g_7092[t].f_056, 14, t, 0x13);
+        g_7092[t].f_050 = 13;
+        g_7092[t].f_092 = g_1e50 + 200;
+        g_7092[t].f_056 = i;
+        g_7092[t].f_096 = g_1e50 + 15000;
+        g_7092[t].f_0eb = 0;
+        fn_03_06ec(t, 14, i, 2);
+        done = 1;
+    } else if (!done)
+        fn_03_06ec(i, 14, t, 0x5a);
+}
+
+/* Send the player to the selected object, or to the nearest free one of
+ * kinds 0 and 11 [inferred]. */
+/* @addr 13:a234 */
+void far fn_13_a234(void)
+{
+    int i;
+    PAIR p;
+    int d, best, bs, bk, y, x;
+
+    if (g_9134) {
+        p.a = g_6e52.a;
+        p.b = g_6e52.b;
+        if ((p.b == 0 || p.b == 11) && g_1df8[p.b][p.a].f_018 == 0)
+            goto set;
+        best = 20000;
+        bs = -1;
+        for (i = 0; i < g_91fa; i++) {
+            if (g_1df8[0][i].f_018 == 0) {
+                d = fn_08_285a(&y, &x, g_1e30[g_9646].f_004,
+                               g_1df8[0][i].f_004);
+                if (d < best) {
+                    best = d;
+                    bs = 0;
+                    bk = i;
+                }
+            }
+        }
+        for (i = 0; i < g_941c; i++) {
+            if (g_1e24[i].f_018 == 0) {
+                d = fn_08_285a(&y, &x, g_1e30[g_9646].f_004,
+                               g_1e24[i].f_004);
+                if (d < best) {
+                    best = d;
+                    bs = 11;
+                    bk = i;
+                }
+            }
+        }
+        if (bs != -1) {
+            fn_03_00f4(g_9646, bs, bk);
+            p.b = bs;
+            p.a = bk;
+        } else {
+            fn_03_06ec(g_9646, 7, 0, 0x25);
+            return;
+        }
+set:
+        g_7092[g_9646].f_050 = 9;
+        g_7092[g_9646].f_092 = g_1e50 + 200;
+        g_7092[g_9646].f_052 = p.b;
+        g_7092[g_9646].f_054 = p.a;
+        g_7092[g_9646].f_056 = g_9646;
+        g_7092[g_9646].f_096 = g_1e50 + 25000;
+        g_7092[g_9646].f_0eb = 1;
+        fn_13_a5c2();
     }
 }

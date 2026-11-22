@@ -25,9 +25,13 @@ typedef struct {
     signed char f_0b6[10];    /* DS:7148 */
     char pad_0c0[0x9];
     signed char f_0c9;    /* DS:715b */
-    char pad_0ca[0xa];
+    char pad_0ca[0x2];
+    int f_0cc;    /* DS:715e */
+    char pad_0ce[0x6];
     int f_0d4;    /* DS:7166 */
-    char pad_0d6[0x8];
+    int f_0d6;    /* DS:7168 */
+    char pad_0d8[0x2];
+    long f_0da;    /* DS:716c */
     char f_0de;    /* DS:7170 */
     char f_0df;    /* DS:7171 */
     char pad_0e0[0xa];
@@ -36,11 +40,20 @@ typedef struct {
 } OBJ15A;
 
 typedef struct {                /* 0x70-byte records */
-    char p00[0x04];
+    int f00;
+    int f02;
     POINT f04;
-    char p08[0x18 - 0x08];
+    int f08;
+    int f0a;
+    int f0c;
+    int f0e;
+    char p10[0x18 - 0x10];
     int f18;
-    char p1a[0x2e - 0x1a];
+    int f1a;
+    char p1c[0x20 - 0x1c];
+    int f20;
+    int f22;
+    char p24[0x2e - 0x24];
     signed char f2e;
     char p2f[0x44 - 0x2f];
     int f44;
@@ -146,6 +159,59 @@ void far fn_16_64fa(void);
 void far fn_16_3784(int a, int b);
 void far pascal fn_16_590c(DRAWITEMSTRUCT far *dis);
 void far pascal fn_16_5ada(DRAWITEMSTRUCT far *dis);
+extern long g_1e58;
+extern DWORD g_1c68;
+extern DWORD g_1e84;
+extern int g_92be;
+extern DWORD g_1e50;
+void far fn_11_02f0(void);
+void far fn_06_885c(int a, int b);
+void far fn_15_302e(void);
+void far fn_15_3590(void);
+void far fn_10_740c(void);
+void far fn_15_1584(int a);
+void far fn_10_744c(int a);
+void far fn_15_1328(int a);
+void far fn_15_14be(void);
+void far fn_10_6e76(int a, int b);
+void far fn_10_6dd4(int a);
+void far fn_16_7396(void);
+void far fn_16_5820(HWND hDlg);
+void far pascal fn_16_5a8a(DRAWITEMSTRUCT far *dis);
+void far fn_16_51d6(HWND hDlg);
+void far fn_16_5b24(HWND hDlg);
+BOOL far pascal fn_16_42a2(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam);
+extern int g_934e;
+extern int g_913a;
+extern int g_913c;
+extern int g_92e8;
+extern int g_94b2;
+extern int g_9320;
+extern int g_9e49;
+extern int g_9e4b;
+extern int g_9318;
+extern REC_70 far *g_1e18;
+extern REC_70 far *g_1e28;
+int far pascal fn_08_285a(int far *p, int far *q, POINT a, POINT b);
+void far fn_07_2080(int a, int b);
+extern int g_3ca8;
+extern int g_3caa;
+extern int g_3cac;
+extern int g_3cae;
+extern int g_3ce6;
+extern int g_3d48;
+extern int g_3d4a;
+extern int g_6dac;
+extern int g_6dae;
+extern int g_6db0;
+extern int g_6db2;
+extern int g_6db4;
+extern int g_6db6;
+extern int g_959e;
+extern HBITMAP g_953c;
+extern REC_70 far *g_1e30;
+void far fn_16_27ea(void);
+void far fn_16_2144(void);
 
 /* Parses a number from a short digit string [inferred]. */
 /* near-match 48%: 16:0000 (CL refactors the digit sums: (a-48)*10+(b-48)*100 -> ((b*10+a)-528)*10) */
@@ -820,5 +886,266 @@ void far pascal fn_16_590c(DRAWITEMSTRUCT far *dis)
 
 /* Not yet decompiled: stub so calls to it compile as near calls. */
 void far fn_16_3784(int a, int b)
+{
+}
+
+/* @addr 16:7210 */
+void far fn_16_7210(void)
+{
+    char unused[96];
+    DWORD t;
+
+    switch (g_92be) {
+    case 0:
+        fn_11_02f0();
+        g_1e58 += 50000;
+        fn_06_885c(1, 2);
+        fn_15_302e();
+        g_92be++;
+        break;
+    case 1:
+        fn_15_3590();
+        break;
+    case 2:
+        fn_15_302e();
+        g_92be++;
+        break;
+    case 3:
+        fn_15_3590();
+        break;
+    case 4:
+        t = GetCurrentTime();
+        do
+            fn_10_740c();
+        while (GetCurrentTime() < t + 1500);
+        fn_16_7396();
+        g_92be++;
+        break;
+    case 5:
+        fn_15_1584(0);
+        break;
+    case 6:
+        fn_10_744c(0x66);
+        t = GetCurrentTime();
+        do
+            fn_10_740c();
+        while (GetCurrentTime() < t + 3500);
+        g_92be++;
+        break;
+    case 7:
+        fn_15_1584(0);
+        g_1c68 = 0;
+        g_92be++;
+        break;
+    case 8:
+        if (g_1c68 == 0) {
+            g_1c68 = GetCurrentTime() + 7000;
+        } else if (GetCurrentTime() > g_1c68) {
+            PatBlt(g_13dc, 0, 0, g_90ea, g_0010, BLACKNESS);
+            g_92be++;
+        }
+        break;
+    case 9:
+        PatBlt(g_13dc, 0, 0, g_90ea, g_0010, BLACKNESS);
+        fn_15_1328(1);
+        fn_15_14be();
+        fn_10_6e76(8, 0);
+        fn_10_6dd4(0);
+        g_1e84 = g_1e50;
+        break;
+    }
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_16_7396(void)
+{
+}
+
+/* Dialog procedure [inferred]. */
+/* @addr 16:4104 */
+BOOL far pascal fn_16_4104(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    DRAWITEMSTRUCT far *dis;
+    TEXTMETRIC tm;
+    HDC hdc;
+    HFONT old;
+    MEASUREITEMSTRUCT far *mis;
+
+    switch (msg) {
+    case WM_INITDIALOG:
+        fn_16_51d6(hDlg);
+        break;
+    case WM_DRAWITEM:
+        dis = (DRAWITEMSTRUCT far *)lParam;
+        if (dis->itemID == -1)
+            fn_16_5a8a(dis);
+        else
+            switch (dis->itemAction) {
+            case ODA_DRAWENTIRE:
+                fn_16_5ada(dis);
+                break;
+            case ODA_SELECT:
+                fn_16_590c(dis);
+                break;
+            case ODA_FOCUS:
+                fn_16_5a8a(dis);
+                break;
+            }
+        return TRUE;
+    case WM_MEASUREITEM:
+        hdc = GetDC(g_0016);
+        old = SelectObject(hdc, g_90fe);
+        GetTextMetrics(hdc, &tm);
+        SelectObject(hdc, old);
+        ReleaseDC(g_0016, hdc);
+        mis = (MEASUREITEMSTRUCT far *)lParam;
+        mis->itemHeight = tm.tmHeight + tm.tmExternalLeading;
+        break;
+    case WM_COMMAND:
+        switch (wParam) {
+        case 0x69:
+            fn_16_44fa(hDlg);
+            break;
+        case 0x6a:
+            fn_16_4900(hDlg);
+            break;
+        case 0xc3:
+            fn_10_744c(0x13);
+            DialogBox(g_9212, MAKEINTRESOURCE(0x17a), g_9532, (DLGPROC)fn_16_42a2);
+            fn_16_5820(hDlg);
+            fn_16_43f2(hDlg);
+            UpdateWindow(GetDlgItem(hDlg, 0x65));
+            break;
+        case 0x65:
+            fn_16_43f2(hDlg);
+            if (HIWORD(lParam) == LBN_DBLCLK)
+                PostMessage(hDlg, WM_COMMAND, 0x69, 0L);
+            break;
+        case 0x66:
+            fn_16_43f2(hDlg);
+            if (HIWORD(lParam) == LBN_DBLCLK)
+                PostMessage(hDlg, WM_COMMAND, 0x6a, 0L);
+            break;
+        case 1:
+            fn_16_5b24(hDlg);
+            return TRUE;
+        }
+        break;
+    }
+    return FALSE;
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_16_51d6(HWND hDlg)
+{
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_16_5b24(HWND hDlg)
+{
+}
+
+/* @addr 16:0b4e */
+int far fn_16_0b4e(int i)
+{
+    int k;
+    int bk;
+    int d;
+    int b;
+    int a;
+    int best;
+    long v;
+
+    if (g_934e < 3)
+        return 0;
+    if (g_913a != 0 || g_913c != 0)
+        return 0;
+    if (g_92e8 != 0 && g_94b2 == 0)
+        return 0;
+    if (g_9320 == 6 || g_9320 == 7)
+        return 0;
+    v = g_7092[i].f_0cc + g_7092[i].f_0da;
+    if (v < -350L && g_7092[i].f_0cc < 200)
+        return 0;
+    if (i != g_9646 && v < 200)
+        return 0;
+    if ((g_1e14->f2e != 0 && g_1e14->f18 == 0) || g_9e49 < 9)
+        return 0;
+    g_9e4b = 0x578;
+    g_952e = i;
+    g_9e49 = 0;
+    if (g_1e14->f18 != 0) {
+        g_1e14->f18 = 0;
+        g_1e14->f2e = 0;
+        best = 20000;
+        for (k = 0; k < g_9318 * 2; k += 2) {
+            d = fn_08_285a(&b, &a, g_1df8[g_9324][g_952e].f04, g_1e28[k].f04);
+            if (d < best) {
+                bk = k;
+                best = d;
+            }
+        }
+        g_1e14->f04.x = g_1e18[bk].f04.x + 480;
+        g_1e14->f04.y = g_1e18[bk].f04.y - g_1e14->f20;
+        g_1e14->f1a = 0;
+        g_1e14->f00 = -1000;
+        g_1e14->f02 = -1000;
+        g_1e14->f08 = 100;
+        g_1e14->f0a = 100;
+        g_1e14->f0c = -20;
+        g_1e14->f0e = -70;
+        fn_07_2080(7, -1);
+    }
+    return 1;
+}
+
+/* @addr 16:1f78 */
+void far fn_16_1f78(void)
+{
+    HDC hdc;
+    HBITMAP old;
+    int h;
+    HPALETTE oldpal;
+
+    g_3caa = g_3ca8 = 0;
+    g_3cac = (g_90ea - g_3ce6) / 2 - 20;
+    g_3cac = min(g_3cac, 260);
+    g_3cae = 200;
+    g_3d48 = g_90ea - g_3cac;
+    g_3d4a = min(g_0010 * 2 / 5, g_0010 - 370);
+    g_6dac = g_3cac;
+    g_6db2 = g_6db6 = g_3d4a;
+    if (g_90ea > 700)
+        g_6db6 = g_6db2 = g_3d4a - 10;
+    g_6dae = max(g_0010 / 2, 370);
+    g_6db0 = min(g_90ea / 13 + g_90ea / 2 + 90, g_90ea - g_6dac);
+    g_6db4 = max(g_90ea / 2 - g_90ea / 13 - g_6dac - 90, 0);
+    g_3d48 = g_6db0;
+    g_3d4a = g_6db2;
+    fn_16_27ea();
+    fn_16_2144();
+    h = (g_1e30[g_9646].f22 << 3) >> g_959e;
+    if (g_953c == 0)
+        g_953c = CreateCompatibleBitmap(g_13dc, g_3ce6, h + 0x43);
+    hdc = CreateCompatibleDC(g_13dc);
+    if (g_920e)
+        oldpal = SelectPalette(hdc, g_920e, 0);
+    old = SelectObject(hdc, g_953c);
+    PatBlt(hdc, 0, 0, g_3ce6, h + 0x43, BLACKNESS);
+    BitBlt(hdc, 0, 5, g_3ce6, h + 0x3e, g_13dc, g_90ea / 2 - g_3ce6 / 2,
+           g_0010 - h - 0x3e, SRCCOPY);
+    SelectObject(hdc, old);
+    if (oldpal)
+        SelectPalette(hdc, oldpal, 0);
+    DeleteDC(hdc);
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_16_27ea(void)
+{
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_16_2144(void)
 {
 }

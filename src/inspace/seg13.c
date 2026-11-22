@@ -96,9 +96,14 @@ typedef struct {
 
 /* 0x41-byte records through the far pointer at DS:6e20 [inferred]. */
 typedef struct {
-    char pad_000[0x3];
+    char pad_000[0x1];
+    char f_001;
+    char f_002;
     char f_003;
-    char pad_004[0x6];
+    char pad_004[0x2];
+    char f_006;
+    char pad_007[0x2];
+    char f_009;
     char f_00a[23];
     int f_021;
     char pad_023[0x1e];
@@ -106,7 +111,12 @@ typedef struct {
 
 /* 0x2c-byte records through the far pointer at DS:6e1c [inferred]. */
 typedef struct {
-    char pad_000[0x21];
+    char pad_000[0x1b];
+    char f_01b;
+    char f_01c;
+    char f_01d;
+    char pad_01e[0x2];
+    char f_020;
     int f_021;
     char pad_023[0x9];
 } REC2C;
@@ -194,6 +204,31 @@ extern HINSTANCE g_8e66;
 extern int g_238c;
 extern int g_951a;
 extern int g_9646;
+extern int g_8f68;
+extern int g_940a;
+extern int g_6e8a;
+extern int g_6e8c;
+extern REC70 far *g_1e00;
+
+/* 0x24-byte records at DS:52ec [inferred base] (as in seg13b.c). */
+typedef struct {
+    int f_00;                       /* DS:52ec */
+    int f_02;
+    char pad_04[0x0a - 0x04];
+    int f_0a;                       /* DS:52f6 */
+    char pad_0c[0x12 - 0x0c];
+    int f_12;                       /* DS:52fe */
+    char pad_14[0x18 - 0x14];
+    int f_18;                       /* DS:5304 */
+    int f_1a;
+    int f_1c;
+    int f_1e;
+    char pad_20[0x24 - 0x20];
+} REC24;
+extern REC24 g_52ec[];
+extern int g_8fea;
+extern char g_8694[];               /* run-time buffer (BSS) */
+extern char g_86d0[];               /* run-time buffer (BSS) */
 
 /* Functions of this file (called near). */
 void far fn_13_4eca(LPCSTR text);
@@ -202,7 +237,8 @@ void far fn_13_4eec(int i, int d);
 int far fn_13_2688(int i, int j);
 void far fn_13_498e(int a, int b);
 void far fn_13_4ba0(int a, int i, int b);
-void far fn_13_50b0(int a, int b);
+void far fn_13_50b0(HDC hdc, int b);
+void far fn_13_57ac(void);
 void far fn_13_5850(void);
 void far fn_13_58dc(HDC hdc, int b);
 void far fn_13_5a6a(HDC hdc, int x, int y, int s, int k, int w, int b, int c);
@@ -211,6 +247,7 @@ void far fn_13_6450(int a, int b, int c);
 void far fn_13_6890(int i);
 
 void far fn_07_1208(void);
+void far fn_03_045a(int a);
 void far fn_07_63f2(void);
 void far fn_07_2080(int a, int b);
 void far fn_07_64ac(int a, int b, int c);
@@ -441,8 +478,124 @@ void far fn_13_675e(void)
     }
 }
 
+/* Window procedure of the pilot window, class "IS_WATCH" [inferred]. */
+/* @addr 13:4f4e */
+LRESULT far pascal fn_13_4f4e(HWND hwnd, UINT msg, WPARAM wParam,
+                              LPARAM lParam)
+{
+    RECT r;
+    RECT rc;
+    PAINTSTRUCT ps;
+    HDC hdc;
+    MINMAXINFO far *mm;
+
+    switch (msg) {
+    case WM_CREATE:
+        g_95fc = hwnd;
+        fn_13_57ac();
+        break;
+    case WM_SETFOCUS:
+        g_8f68 = 1;
+        break;
+    case WM_MOVE:
+        GetWindowRect(g_95fc, &r);
+        if (r.left != g_1ddc || r.top != g_1dde) {
+            CopyRect((LPRECT)&g_1ddc, &r);
+            g_8fea = 1;
+        }
+        SetActiveWindow(g_0016);
+        break;
+    case WM_GETMINMAXINFO:
+        mm = (MINMAXINFO far *)lParam;
+        mm->ptMinTrackSize.x = 0x36;
+        ((MINMAXINFO far *)lParam)->ptMinTrackSize.y
+            = GetSystemMetrics(SM_CYCAPTION) + 0x36;
+        ((MINMAXINFO far *)lParam)->ptMaxTrackSize.y
+            = GetSystemMetrics(SM_CYCAPTION) + 0x36;
+        break;
+    case WM_PAINT:
+        InvalidateRect(hwnd, NULL, TRUE);
+        GetClientRect(hwnd, &rc);
+        hdc = BeginPaint(hwnd, &ps);
+        PatBlt(hdc, 0, 0, rc.right, rc.bottom, BLACKNESS);
+        lstrcpy(g_8694, "");
+        lstrcpy(g_86d0, "");
+        fn_13_50b0(hdc, 1);
+        EndPaint(hwnd, &ps);
+        break;
+    case WM_CLOSE:
+        if (g_95fc) {
+            DestroyWindow(g_95fc);
+            g_95fc = 0;
+        }
+        break;
+    default:
+        return DefWindowProc(hwnd, msg, wParam, lParam);
+    }
+    return 0L;
+}
+
+/* Open or refresh the pilot window on the player's target [inferred]. */
+/* @addr 13:563c */
+int far command_watch_ship(int a, int b)
+{
+    char buf[80];
+    char title[100];
+    int i, s, k;
+
+    if (!g_95fc && !a && !b) {
+        g_6e90 = g_9324;
+        g_6e8e = 0;
+        g_6e8a = 2;
+        g_6e8c = 2;
+    }
+    if (a && !b && g_95fc) {
+        fn_13_5850();
+        return 0;
+    }
+    s = g_7092[g_9646].f_03c;
+    k = g_7092[g_9646].f_03e;
+    if (!b)
+        goto skip;
+    if (s != 2) {
+        for (i = 0; i < g_940a; i++) {
+            if (g_52ec[i].f_18 == g_9324 && g_52ec[i].f_1a == g_9646
+                && g_1e00[i].f_018 == 0) {
+                s = 2;
+                k = i;
+                break;
+            }
+        }
+    }
+skip:
+    if (a || b || !g_95fc) {
+        if (a && b) {
+            s = g_9324;
+            k = g_9646;
+        }
+        a = 0;
+        if (s == g_9324 || s == 2) {
+            g_6e90 = s;
+            g_6e8e = k;
+            a = 1;
+        }
+    }
+    if (!a) {
+        fn_03_045a(6);
+        if (g_6e90 != g_9324 && g_6e90 != 2)
+            return 0;
+    }
+    if (!g_95fc) {
+        PostMessage(g_0016, 0x9a0, 0, 0L);
+    } else {
+        PostMessage(g_95fc, WM_PAINT, 0, 0L);
+        fn_13_57ac();
+    }
+    return 1;
+}
+
 /* Not yet decompiled: stub so calls to it compile as near calls. */
-void far fn_13_50b0(int a, int b)
+void far fn_13_50b0(HDC hdc, int b)
 {
 }
 

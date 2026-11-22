@@ -6,15 +6,27 @@
 /* Records reached through far pointers or DGROUP arrays; only the fields
  * this file uses are named (offset in the name). */
 typedef struct {                /* 0x70 bytes, far array at DS:1df8 / 1e18 */
-    char p00[0x18];
+    POINT f00;                  /* +00 */
+    POINT f04;                  /* +04 */
+    int f08;                    /* +08 */
+    int f0a;                    /* +0a */
+    int f0c;                    /* +0c */
+    int f0e;                    /* +0e */
+    char p10[0x18 - 0x10];
     int f18;
     char p1a[0x1e - 0x1a];
     int f1e;
-    char p20[0x2f - 0x20];
+    char p20[0x26 - 0x20];
+    int f26;                    /* +26 */
+    char p28[0x2f - 0x28];
     char f2f;
-    char p30[0x51 - 0x30];
+    char p30[0x50 - 0x30];
+    char f50;                   /* +50 */
     char f51;
-    char p52[0x70 - 0x52];
+    char f52;                   /* +52 */
+    char p53[0x66 - 0x53];
+    void (far *f66)(int type, int idx);  /* +66 */
+    char p6a[0x70 - 0x6a];
 } REC_70;
 
 #pragma pack(1)
@@ -143,6 +155,25 @@ extern REC_AD g_96f0[];
 extern char g_9ec2[][40];
 typedef struct { int a, b; } PAIR;
 extern PAIR g_9f40[][40];
+/* g_05a0 is declared long in inspace.h; read here as two ints (world
+ * width and height [inferred]). */
+#define G_05A0_LO (((int *)&g_05a0)[0])
+#define G_05A0_HI (((int *)&g_05a0)[1])
+extern int g_9214;
+extern int g_940e;
+extern PAIR g_104c[];
+void far fn_07_2e02(int type, int idx);
+void far fn_12_274a(int type, int idx);
+extern long g_240c;
+extern long g_2410;
+extern int g_9150;
+extern int g_90ec;
+extern int g_9ea2;
+extern char g_9eb9[];
+extern RECT g_67f8[];
+
+POINT far pascal fn_08_29ea(POINT pt);
+long far fn_08_35d0(long a, long b);
 
 void far fn_10_6d52(int a, int b, int c, int d, int e, int f);
 void far fn_17_306e(void);
@@ -330,4 +361,98 @@ void far fn_09_5be0(int n, int k)
         lstrcat(g_6e24[k].f65, buf);
     } else
         lstrcpy(g_6e24[k].f65, g_380c);
+}
+
+/* Per-segment side flags (+52) of the track polygon at g_1df8[8] and the bounding rects g_67f8 [inferred]. */
+/* @addr 9:2012 */
+void far fn_09_2012(void)
+{
+    POINT pa;
+    POINT pb;
+    POINT pc;
+    POINT d1;
+    POINT d2;
+    int i;
+    long l1;
+    long l2;
+    long r;
+
+    for (i = 0; i < g_9ea2; i++) {
+        g_240c = g_1df8[8][g_9318 * 2 + i].f04.x - (g_90ea << (g_9150 - 1));
+        g_2410 = g_1df8[8][g_9318 * 2 + i].f04.y - (g_90ec << (g_9150 - 1));
+        pa = fn_08_29ea(g_1df8[8][g_9318 * 2 + i].f04);
+        if (i < g_9ea2 - 1)
+            pb = fn_08_29ea(g_1df8[8][g_9318 * 2 + i + 1].f04);
+        else
+            pb = fn_08_29ea(g_1df8[8][g_9318 * 2].f04);
+        if (i > 0)
+            pc = fn_08_29ea(g_1df8[8][g_9318 * 2 + i - 1].f04);
+        else
+            pc = fn_08_29ea(g_1df8[8][g_9318 * 2 + g_9ea2 - 1].f04);
+        d1.x = pa.x - pc.x;
+        d1.y = pa.y - pc.y;
+        l2 = (int)fn_08_35d0(d2.x = pb.x - pa.x, d2.y = pb.y - pa.y);
+        l1 = (int)fn_08_35d0(d1.x, d1.y);
+        r = (((long)d2.y * d1.x - (long)d2.x * d1.y) << 7) / (l2 * l1);
+        if (r > 0)
+            g_1df8[8][g_9318 * 2 + i].f52 = 0;
+        else
+            g_1df8[8][g_9318 * 2 + i].f52 = 1;
+    }
+    for (i = 0; i < g_9eb9[g_9322]; i++) {
+        g_67f8[i].left = min(g_9f40[g_9322][g_9ec2[g_9322][i]].a, g_9f40[g_9322][i].a);
+        g_67f8[i].right = max(g_9f40[g_9322][g_9ec2[g_9322][i]].a, g_9f40[g_9322][i].a);
+        g_67f8[i].top = min(g_9f40[g_9322][g_9ec2[g_9322][i]].b, g_9f40[g_9322][i].b);
+        g_67f8[i].bottom = max(g_9f40[g_9322][g_9ec2[g_9322][i]].b, g_9f40[g_9322][i].b);
+    }
+}
+
+/* near-match 99%: 9:0df6 (SetRect right/bottom: the original adds into the
+ * world-half register (add si,bx), this adds into the other one) */
+/* Places object n of type 4 at a random spot outside the centre rect [inferred]. */
+void far fn_09_0df6(int n)
+{
+    int i;
+    int unused;
+    int again;
+    RECT rc;
+
+    again = 1;
+    while (again) {
+        g_1df8[4][n].f04.x = (rand() % (G_05A0_LO - 150) + 150) * 8;
+        g_1df8[4][n].f04.y = (rand() % (G_05A0_HI - 150) + 150) * 8;
+        g_1df8[4][n].f00.x = g_1df8[4][n].f08 = -1000;
+        g_1df8[4][n].f00.y = g_1df8[4][n].f0a = -1000;
+        g_1df8[4][n].f0c = -(rand() % 50 - 25);
+        g_1df8[4][n].f0e = -(rand() % 50 - 25);
+        g_1df8[4][n].f26 = 0;
+        if ((g_9214 == 3 || g_9214 == 4) && n % 2 == 1)
+            g_1df8[4][n].f26 = 5;
+        if (g_9214 == 1 || g_9214 == 2)
+            g_1df8[4][n].f66 = fn_07_2e02;
+        else if (g_9214 == 4 && n % 2 == 0)
+            g_1df8[4][n].f66 = fn_07_2e02;
+        else
+            g_1df8[4][n].f66 = fn_12_274a;
+        g_1df8[4][n].f2f = 0;
+        g_1df8[4][n].f1e = 0;
+        g_1df8[4][n].f50 = 0;
+        g_1df8[4][n].f51 = 0;
+        g_1df8[4][n].f18 = 0;
+        if (g_9320 == 6)
+            g_1df8[4][n].f18 = 1;
+        SetRect(&rc, (G_05A0_LO / 2 - g_90ea / 2) << g_9150, (G_05A0_HI / 2 - g_90ec / 2) << g_9150,
+                (g_90ea / 2 + G_05A0_LO / 2) << g_9150, (g_90ec / 2 + G_05A0_HI / 2) << g_9150);
+        again = 0;
+        if (PtInRect(&rc, g_1df8[4][n].f04))
+            again = 1;
+        if (g_940e == 17 && n == g_940e - 1) {
+            g_1df8[4][0].f0c = g_1df8[4][0].f0e = 0;
+            for (i = 1; i < g_940e; i++) {
+                g_1df8[4][i].f04.y = (g_104c[i].a * 208 + g_1df8[4][0].f04.y) % (G_05A0_HI * 8);
+                g_1df8[4][i].f04.x = (g_104c[i].b * 208 + g_1df8[4][0].f04.x) % (G_05A0_LO * 8);
+                g_1df8[4][i].f0c = g_1df8[4][i].f0e = 0;
+            }
+        }
+    }
 }

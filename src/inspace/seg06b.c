@@ -3,17 +3,28 @@
 /* @cflags /AM /G2 /Gw /Gs /Os */
 #include "inspace.h"
 #include <stdlib.h>
+#include <dos.h>
 
 #pragma pack(1)
 typedef struct {                /* 0x229-byte records at far DS:6b08 */
-    char p000[0x02];
+    char f00;
+    char f01;
     char f02;
-    char p003[0x13 - 0x03];
+    char p003[0x05 - 0x03];
+    int f05;
+    int f07;
+    char p009[0x0b - 0x09];
+    int f0b;
+    int f0d;
+    int f0f;
+    int f11;
     long f13;
     long f17;
     long f1b;
     long f1f;
-    char p023[0x2b - 0x23];
+    char p023[0x27 - 0x23];
+    int f27;
+    int f29;
     int f2b[15];
     long f49[15];
     long f85[15];
@@ -29,7 +40,12 @@ DWORD far pascal fn_06_9e66(HFILE f, char huge *buf, DWORD n);
 int far fn_14_4006(HFILE f, char huge *buf, unsigned long len);
 
 extern HGLOBAL g_94e0;
-extern void far *g_6afc;
+typedef struct {                /* 0x42-byte race record [inferred] */
+    char name[0x14];
+    char f14[3][10];
+    unsigned f32[4][2];
+} REC_42;
+extern REC_42 far *g_6afc;
 extern HGLOBAL g_94de;
 extern void far *g_6af8;
 extern HGLOBAL g_94d8;
@@ -44,6 +60,8 @@ extern void far *g_69f4;
 extern HGLOBAL g_95a4;
 extern void far *g_6e24;
 extern char g_900a[];
+extern char g_8f7a[];
+extern char g_96c5[];
 extern char g_a12c[][9];
 extern unsigned g_94c8;
 extern long g_939a;
@@ -54,7 +72,27 @@ extern int g_94d4;
 extern int g_94d6;
 extern int g_9208;
 extern int g_9330;
-extern unsigned char g_0f00[];      /* quarter-wave sine table, 0..90 degrees [inferred] */
+extern int g_94c4;
+extern int g_0010;
+extern int g_9130;                  /* subgame_active */
+void far fn_10_754a(int a, int b, int c, int d);
+extern unsigned char g_0f00[];
+extern int g_9646;
+extern int flow_interactive;        /* DS:95bc */
+void far fn_17_8e60(int i, LPSTR buf);
+typedef struct {                /* 0x15a bytes at DS:70ae */
+    char p00[0x30];
+    int f30;
+    char p32[0x15a - 0x32];
+} REC_70AE;
+extern REC_70AE g_70ae[];
+#pragma pack(1)
+typedef struct {                /* 0xad bytes at DS:96f0 */
+    char p00[0x52];
+    char f52[0xad - 0x52];
+} REC_96F0;
+#pragma pack()
+extern REC_96F0 g_96f0[];      /* quarter-wave sine table, 0..90 degrees [inferred] */
 
 /* @addr 6:626c */
 void far fn_06_626c(void)
@@ -333,8 +371,9 @@ int far fn_06_8b90(int i)
     HFILE hf;
     DWORD size;
     char path[114];
+    char unused4[20];
     OFSTRUCT of;
-    char unused3[30];
+    char unused3[10];
 
     lstrcpy(path, g_900a);
     lstrcat(path, g_a12c[i]);
@@ -353,7 +392,7 @@ int far fn_06_8b90(int i)
         GlobalFree(g_94e0);
     }
     g_94e0 = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, size);
-    g_6afc = GlobalLock(g_94e0);
+    g_6afc = (REC_42 far *)GlobalLock(g_94e0);
     if (!g_94e0)
         return 0;
     if (hf != -1) {
@@ -368,4 +407,118 @@ int far fn_06_8b90(int i)
         hf = 0;
     }
     return 1;
+}
+
+/* Deletes the *.ded files that carry the signature g_939a [inferred]. */
+/* @addr 6:7042 */
+void far fn_06_7042(void)
+{
+    int unused1;
+    int unused2;
+    HFILE hf;
+    int r;
+    char unused3[20];
+    struct find_t ft;
+    HGLOBAL h;
+    long far *p;
+    char path[110];
+    char unused4[110];
+    OFSTRUCT of;
+    long sig;
+
+    lstrcpy(path, g_8f7a);
+    lstrcat(path, g_96c5);
+    lstrcat(path, "*.ded");
+    h = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, 0x62L);
+    p = (long far *)GlobalLock(h);
+    for (r = _dos_findfirst(path, _A_RDONLY, &ft); r == 0; r = _dos_findnext(&ft)) {
+        lstrcpy(path, g_8f7a);
+        lstrcat(path, g_96c5);
+        lstrcat(path, ft.name);
+        hf = OpenFile(path, &of, OF_READ);
+        if (hf != -1 && fn_14_4006(hf, (char huge *)p, 0x26L) != 0) {
+            sig = *p;
+            _lclose(hf);
+            if (sig == g_939a)
+                OpenFile(path, &of, OF_DELETE);
+        }
+    }
+    GlobalUnlock(h);
+    GlobalFree(h);
+}
+
+/* Finds or adds the race record for player n's name and stores a new
+ * best value v in slot [j][k] [inferred]. */
+/* @addr 6:8cb2 */
+int far fn_06_8cb2(int unused, int n, unsigned v, int j, int k)
+{
+    char name[30];
+    int i;
+
+    lstrcpy(name, g_96f0[g_70ae[n].f30].f52);
+    for (i = 0; i < (int)g_94c8 && lstrcmp(g_6afc[i].name, name); i++)
+        ;
+    if (i == g_94c8) {
+        g_94c8++;
+        GlobalUnlock(g_94e0);
+        g_94e0 = GlobalReAlloc(g_94e0, g_94c8 * 0x42, GMEM_MOVEABLE | GMEM_ZEROINIT);
+        g_6afc = (REC_42 far *)GlobalLock(g_94e0);
+        lstrcpy(g_6afc[i].name, g_96f0[g_70ae[n].f30].f52);
+    }
+    if (v && (g_6afc[i].f32[j][k] > v || g_6afc[i].f32[j][k] == 0)) {
+        g_6afc[i].f32[j][k] = v;
+        if (n == g_9646 && flow_interactive)
+            fn_17_8e60(n, g_6afc[i].f14[j]);
+        else
+            lstrcpy(g_6afc[i].f14[j], "----");
+    }
+    return i;
+}
+
+/* Starts a new particle/explosion in a free slot [inferred]. */
+/* @addr 6:84fc */
+int far fn_06_84fc(int a, int x, int y, int dx, int dy, int w, int h,
+                   int c, int d, int e)
+{
+    int unused1;
+    int i;
+    int unused2;
+    int snd;
+
+    if (!g_94da)
+        return 1;
+    if (g_94c4)
+        return 0;
+    c = c * 600 / g_0010;
+    c = c < 28 ? 28 : c;
+    c = c > 29 ? 29 : c;
+    for (i = 0; i < g_94ce; i++) {
+        if (!g_6b08[i].f02) {
+            if (rand() % 3)
+                snd = 0x4e;
+            else
+                snd = 0x1b;
+            if (g_9330 && !g_9130)
+                fn_10_754a(snd, 6, e, 1);
+            else
+                fn_10_754a(snd, 0, 0, 0);
+            g_6b08[i].f00 = 0;
+            g_6b08[i].f27 = 0;
+            g_6b08[i].f29 = 0;
+            g_6b08[i].f02 = a;
+            g_6b08[i].f05 = d;
+            g_6b08[i].f07 = 0;
+            g_6b08[i].f13 = (long)x << 8;
+            g_6b08[i].f17 = (long)y << 8;
+            g_6b08[i].f1b = dx;
+            g_6b08[i].f1f = dy;
+            g_6b08[i].f0b = w;
+            g_6b08[i].f0d = h;
+            g_6b08[i].f11 = 0;
+            g_6b08[i].f0f = c;
+            g_6b08[i].f01 = e;
+            return 1;
+        }
+    }
+    return 0;
 }

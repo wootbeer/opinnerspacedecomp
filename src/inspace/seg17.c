@@ -25,9 +25,13 @@ typedef struct {
     signed char f_0b6[10];    /* DS:7148 */
     char pad_0c0[0x9];
     signed char f_0c9;    /* DS:715b */
-    char pad_0ca[0xa];
+    char pad_0ca[0x2];
+    int f_0cc;    /* DS:715e */
+    char pad_0ce[0x6];
     int f_0d4;    /* DS:7166 */
-    char pad_0d6[0x8];
+    int f_0d6;    /* DS:7168 */
+    char pad_0d8[0x2];
+    long f_0da;    /* DS:716c */
     char f_0de;    /* DS:7170 */
     char f_0df;    /* DS:7171 */
     char pad_0e0[0xa];
@@ -90,11 +94,11 @@ extern HGDIOBJ g_6094[2];
 extern REC_70 far *g_1e30;
 extern int g_1924;
 extern int g_1926;
+extern int g_9468;
 extern int g_93a2;
 extern int g_93aa;
 extern int g_9484;
 extern int g_9466;
-extern int g_9468;
 extern DWORD g_1e50;
 extern long g_189c;
 extern long g_1890;
@@ -144,12 +148,45 @@ void far fn_13_218a(int i, LPSTR buf);
 void far fn_17_4988(void);
 void far fn_09_9580(int id, LPSTR buf);
 void far fn_17_8a92(int a, int b, LPSTR buf);
-void far fn_17_8f1e(int a, int b, int c, int d, LPSTR buf);
+void far fn_17_8f1e(int a, int b, int c, HWND hwnd, LPSTR buf);
 void far fn_09_95ba(int id);
 void far fn_17_7ba6(int a, LPSTR buf);
 void far fn_17_67e6(void);
 void far pascal fn_17_90d2(DRAWITEMSTRUCT far *dis);
 void far pascal fn_17_9308(DRAWITEMSTRUCT far *dis);
+extern int g_9316;
+extern int g_92fe;
+extern int g_92f0;
+extern int g_4ee0[2];
+extern int g_94c6;
+void far fn_06_6576(void);
+#pragma pack(1)
+typedef struct {                /* 0x31-byte records, far pointer at DS:6af8 */
+    char p00[0x04];
+    char name[0x22 - 0x04];
+    int f22;
+    char p24[0x26 - 0x24];
+    char f26[0x30 - 0x26];
+    signed char f30;
+} REC_31;
+typedef struct {                /* 0x41-byte records, far pointer at DS:6e20 */
+    char p00[0x0a];
+    char name[0x41 - 0x0a];
+} REC_41;
+#pragma pack()
+extern REC_31 far *g_6af8;
+extern REC_41 far *g_6e20;
+extern int g_9214;
+int far fn_14_3eda(void);
+void far fn_14_4074(void);
+extern int g_0956[11];
+void far fn_17_7c2a(void);
+extern char g_9078[];
+extern char g_96b8[];
+extern char g_96c5[];
+int far fn_14_4006(HFILE f, char huge *buf, unsigned long len);
+void far fn_06_8eea(LPSTR p);
+void far pascal fn_10_a118(LPSTR src, LPSTR dst);
 
 /* @addr 17:306e */
 void far fn_17_306e(void)
@@ -972,11 +1009,6 @@ void far fn_17_67e6(void)
 }
 
 /* Not yet decompiled: stub so calls to it compile as near calls. */
-void far fn_17_8a92(int a, int b, LPSTR buf)
-{
-}
-
-/* Not yet decompiled: stub so calls to it compile as near calls. */
 void far fn_17_30b0(int a, int b, int c)
 {
 }
@@ -998,11 +1030,6 @@ void far fn_17_51b0(void)
 }
 
 /* Not yet decompiled: stub so calls to it compile as near calls. */
-void far fn_17_5008(void)
-{
-}
-
-/* Not yet decompiled: stub so calls to it compile as near calls. */
 void far fn_17_8572(HWND hDlg)
 {
 }
@@ -1018,17 +1045,6 @@ void far fn_17_33ee(void)
 }
 
 /* Not yet decompiled: stub so calls to it compile as near calls. */
-int far fn_17_8910(int a, HWND hwnd, int b)
-{
-    return 0;
-}
-
-/* Not yet decompiled: stub so calls to it compile as near calls. */
-void far fn_17_8f1e(int a, int b, int c, int d, LPSTR buf)
-{
-}
-
-/* Not yet decompiled: stub so calls to it compile as near calls. */
 void far fn_17_4988(void)
 {
 }
@@ -1036,4 +1052,426 @@ void far fn_17_4988(void)
 /* Not yet decompiled: stub so calls to it compile as near calls. */
 void far fn_17_0000(int a, int b)
 {
+}
+
+/* @addr 17:8910 */
+int far fn_17_8910(int a, HWND hwnd, int b)
+{
+    char buf[120];
+    int i;
+    int k;
+    int unused;
+    int count;
+    int j;
+
+    switch (a) {
+    case 0:
+        count = 0;
+        for (i = 0; i <= g_9316; i++) {
+            if (g_1e30[i].f18 == 0 && g_7092[i].f_0ea != 0)
+                count += 2;
+        }
+        break;
+    case 2:
+        count = 1;
+        if (g_92fe != 0)
+            count = 2;
+        for (k = 0; k < 2; k++) {
+            if (g_4ee0[k] != 0)
+                count++;
+        }
+        break;
+    case 3:
+        count = 1;
+        if (g_92f0 == 0)
+            break;
+    case 1:
+    case 6:
+        count = 2;
+        break;
+    case 4:
+        count = 9;
+        break;
+    case 5:
+        count = 3;
+        break;
+    case 7:
+        count = 7;
+        break;
+    case 8:
+        if (g_948c != 0) {
+            count = 1;
+            break;
+        }
+        fn_06_6576();
+        count = g_94c6 + 1;
+        break;
+    case 9:
+        count = 0;
+        for (i = 1; i < 27; i++) {
+            if (fn_10_5586(i))
+                count++;
+        }
+        break;
+    }
+    if (hwnd == 0)
+        return count;
+    for (i = 0; i < count; i++) {
+        j = i;
+        if (a == 0)
+            i++;
+        fn_17_8a92(j, a, buf);
+        fn_17_8f1e(j, a, b, hwnd, buf);
+    }
+    return count;
+}
+
+/* @addr 17:8f1e */
+void far fn_17_8f1e(int a, int b, int c, HWND hwnd, LPSTR buf)
+{
+    char s1[120];
+    char s2[110];
+    int i;
+
+    if (hwnd == 0)
+        return;
+    if (g_948c != 0 && b == 8 && a != 0)
+        return;
+    if (c != 0) {
+        if (a == -1) {
+            a = 0;
+            LoadString(g_9212, b + 800, s2, 110);
+            lstrcpy(s1, s2);
+            lstrcat(s1, " ");
+            lstrcat(s1, buf);
+        } else {
+            lstrcpy(s1, buf);
+            lstrcat(s1, " - ");
+            LoadString(g_9212, b + 800, s2, 110);
+            lstrcat(s1, s2);
+        }
+        lstrcat(s1, "\t\t\t\t\t\t\t");
+        lstrcat(s1, " ");
+        s1[lstrlen(s1) - 1] = b + '1';
+        lstrcat(s1, " ");
+        s1[lstrlen(s1) - 1] = a + '0';
+        SendMessage(hwnd, 0x401, 0, (LPARAM)(LPSTR)s1);
+    } else {
+        if (hwnd == g_9484) {
+            lstrcpy(s1, buf);
+            for (i = 0; i < 28; i++)
+                lstrcat(s1, " ");
+            s1[lstrlen(s1) - 1] = b + '1';
+            lstrcat(s1, " ");
+            s1[lstrlen(s1) - 1] = a + '0';
+        } else {
+            lstrcpy(s1, buf);
+        }
+        SendMessage(hwnd, 0x403, 0, (LPARAM)(LPSTR)s1);
+    }
+}
+
+/* @addr 17:8a92 */
+void far fn_17_8a92(int idx, int kind, LPSTR out)
+{
+    char s1[110];
+    char s2[110];
+    int i;
+    int t;
+    int n;
+    int unused;
+
+    n = 0;
+    switch (kind) {
+    case 0:
+        for (i = 0; i <= g_9316; i++) {
+            if (g_1e30[i].f18 == 0 && g_7092[i].f_0ea != 0) {
+                if (n == idx) {
+                    fn_03_1542(0, 14, i, s1, 0);
+                    lstrcpy(s2, s1);
+                    lstrcat(s2, " - ");
+                    fn_17_8e60(i, s1);
+                    lstrcat(s2, s1);
+                    lstrcpy(s1, s2);
+                }
+                n += 2;
+            }
+        }
+        break;
+    case 1:
+        if (idx == 0) {
+            LoadString(g_9212, 0x30e3, s1, 110);
+        } else {
+            switch (g_9214) {
+            case 0:
+                LoadString(g_9212, 0x335, s1, 110);
+                break;
+            case 1:
+                LoadString(g_9212, 0xeb, s1, 110);
+                break;
+            case 3:
+                LoadString(g_9212, 0xef, s1, 110);
+                break;
+            case 2:
+                LoadString(g_9212, 0xec, s1, 110);
+                break;
+            case 4:
+                LoadString(g_9212, 0xf0, s1, 110);
+                break;
+            }
+            fn_11_3fd4(s1, 1);
+        }
+        break;
+    case 2:
+        if (idx == 0) {
+            LoadString(g_9212, 0x27a9, s1, 110);
+        } else if (g_92fe != 0 && idx == 1) {
+            LoadString(g_9212, 0x27ba, s1, 110);
+        } else {
+            t = idx - 1;
+            if (g_92fe != 0)
+                t--;
+            if (g_4ee0[t] != 0)
+                fn_10_a332(s1, (char *)(g_4d92[g_4ed4[t]].f10 + 10000), 1);
+        }
+        break;
+    case 3:
+        if (idx == 0) {
+            LoadString(g_9212, 0x338, s1, 110);
+        } else {
+            LoadString(g_9212, 0x9e2, s1, 110);
+            fn_11_3fd4(s1, 1);
+        }
+        break;
+    case 4:
+        if (idx == 0)
+            LoadString(g_9212, 0x140, s1, 110);
+        else
+            fn_13_218a(idx - 1, s1);
+        break;
+    case 5:
+        LoadString(g_9212, idx + 0x492, s1, 110);
+        break;
+    case 6:
+        if (idx == 0)
+            LoadString(g_9212, 0x4ae, s1, 110);
+        else
+            LoadString(g_9212, 0x30e3, s1, 110);
+        break;
+    case 7:
+        switch (idx) {
+        case 0:
+            LoadString(g_9212, 0x2e1, s1, 110);
+            break;
+        case 1:
+            LoadString(g_9212, 0x2e4, s1, 110);
+            break;
+        case 2:
+            LoadString(g_9212, 0x2e4, s1, 110);
+            LoadString(g_9212, 0x841, s2, 110);
+            lstrcat(s1, s2);
+            break;
+        case 3:
+            LoadString(g_9212, 0x2e5, s1, 110);
+            break;
+        case 4:
+            LoadString(g_9212, 0x2e5, s1, 110);
+            LoadString(g_9212, 0x841, s2, 110);
+            lstrcat(s1, s2);
+            break;
+        case 5:
+            LoadString(g_9212, 0x2e6, s1, 110);
+            break;
+        case 6:
+            LoadString(g_9212, 0x2e6, s1, 110);
+            LoadString(g_9212, 0x841, s2, 110);
+            lstrcat(s1, s2);
+            break;
+        }
+        break;
+    case 8:
+        if (idx == 0) {
+            LoadString(g_9212, 0x80f, s1, 110);
+            lstrcat(s1, "S");
+        } else {
+            fn_14_3eda();
+            lstrcpy(s1, "");
+            fn_17_7ba6(idx, s2);
+            lstrcat(s1, s2);
+            lstrcat(s1, " - ");
+            lstrcat(s1, g_6af8[idx - 1].name);
+            lstrcat(s1, " - ");
+            lstrcat(s1, g_6e20[g_6af8[idx - 1].f22].name);
+            fn_14_4074();
+        }
+        break;
+    case 9:
+        for (i = 1; i < 27; i++) {
+            if (fn_10_5586(i)) {
+                if (n == idx)
+                    LoadString(g_9212, i + 0xba, s1, 110);
+                n++;
+            }
+        }
+        break;
+    }
+    lstrcpy(out, s1);
+}
+
+/* @addr 17:4068 */
+void far fn_17_4068(int i, LPSTR buf)
+{
+    char unused[60];
+    int saved;
+    int id;
+
+    saved = g_7092[i].f_024;
+    g_7092[i].f_024 = 100;
+    fn_13_33d6(i);
+    g_7092[i].f_024 = saved;
+    if (g_7092[i].f_0d6 > 32600)
+        id = 0x2c5;
+    else if (g_7092[i].f_0d6 > 25000)
+        id = 0x2c6;
+    else if (g_7092[i].f_0d6 > g_0956[10] * 100)
+        id = 0x2c7;
+    else if (g_7092[i].f_0d6 > g_0956[9] * 100)
+        id = 0x2c8;
+    else if (g_7092[i].f_0d6 > g_0956[8] * 100)
+        id = 0x2c9;
+    else if (g_7092[i].f_0d6 > g_0956[7] * 100)
+        id = 0x2ca;
+    else if (g_7092[i].f_0d6 > g_0956[6] * 100)
+        id = 0x2cb;
+    else if (g_7092[i].f_0d6 > g_0956[5] * 100)
+        id = 0x2cc;
+    else if (g_7092[i].f_0d6 > g_0956[4] * 100)
+        id = 0x2cd;
+    else if (g_7092[i].f_0d6 > g_0956[3] * 100)
+        id = 0x2ce;
+    else if (g_7092[i].f_0d6 > g_0956[2] * 100)
+        id = 0x2cf;
+    else if (g_7092[i].f_0d6 > g_0956[1] * 100)
+        id = 0x2d0;
+    else if (g_7092[i].f_0d6 > g_0956[0] * 100)
+        id = 0x2d1;
+    else
+        id = 0x2d2;
+    fn_10_a332(buf, "n", 1, i == g_9646, i != g_9646, id);
+}
+
+/* @addr 17:5008 */
+void far fn_17_5008(void)
+{
+    HFONT font;
+    HFONT old;
+    COLORREF oldbk;
+    COLORREF oldtc;
+    char buf[150];
+    int unused;
+    int x;
+    int unused2;
+    int unused3;
+    int t;
+
+    font = CreateFont(15, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, "Arial");
+    old = SelectObject(g_13dc, font);
+    oldbk = SetBkColor(g_13dc, RGB(0, 0, 0));
+    SetBkMode(g_13dc, TRANSPARENT);
+    SetTextAlign(g_13dc, 0);
+    if (g_93aa == 2) {
+        if (g_9460 != 0 && (g_9468 + 1) % 2 != 0)
+            SendMessage(g_9482, CB_GETLBTEXT, g_9468, (LPARAM)(LPSTR)buf);
+        else
+        {
+            if (g_9460)
+                t = (g_9468 - 1) / 2;
+            else
+                t = g_9322;
+            fn_09_955c(t + 0x2e4, buf);
+        }
+    } else if (g_93aa == 0x10 && g_9468 == 0) {
+        fn_09_955c(0x39d, buf);
+    } else {
+        SendMessage(g_9482, CB_GETLBTEXT, g_9468, (LPARAM)(LPSTR)buf);
+    }
+    if (g_93aa == 0x10 && g_9468 != 0)
+        fn_17_7c2a();
+    oldtc = SetTextColor(g_13dc, PALETTERGB(0, 0xd6, 0xff));
+    if (g_93aa == 2 && (g_9460 == 0 || (g_9468 + 1) % 2 == 0))
+        x = g_6088 - 280;
+    else if (g_93aa == 2)
+        x = 20;
+    else
+        x = 35;
+    TextOut(g_13dc, x, g_6086 + 20, buf, lstrlen(buf));
+    SetBkColor(g_13dc, oldbk);
+    SetTextColor(g_13dc, oldtc);
+    SelectObject(g_13dc, old);
+    if (font) {
+        DeleteObject(font);
+        font = 0;
+    }
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_17_7c2a(void)
+{
+}
+
+/* @addr 17:8270 */
+void far fn_17_8270(void)
+{
+    int unused1;
+    int unused2;
+    HFILE fh;
+    char path[110];
+    char unused3[30];
+    DWORD size;
+    long unused4;
+    HGLOBAL h;
+    LPSTR p;
+    OFSTRUCT of;
+    int r;
+
+    lstrcpy(g_6078, "");
+    if (g_9468 != g_93a2) {
+        lstrcpy(path, g_9078);
+        if (g_6af8[g_9468 - 1].f30 == 0)
+            lstrcat(path, g_96b8);
+        else
+            lstrcat(path, g_96c5);
+        lstrcat(path, g_6af8[g_9468 - 1].f26);
+        switch (g_6af8[g_9468 - 1].f30) {
+        case 0:
+            lstrcat(path, ".sav");
+            break;
+        case 1:
+            lstrcat(path, ".ded");
+            break;
+        case 2:
+            lstrcat(path, ".don");
+            break;
+        }
+        if ((fh = OpenFile(path, &of, 0)) == -1)
+            return;
+    }
+    h = GlobalAlloc(GHND, 0x1a9L);
+    GlobalLock(h);
+    size = GlobalSize(h);
+    GlobalUnlock(h);
+    h = GlobalReAlloc(h, size, GHND);
+    p = GlobalLock(h);
+    if (g_9468 != g_93a2) {
+        r = fn_14_4006(fh, p, size);
+        _lclose(fh);
+    } else {
+        fn_06_8eea(p);
+    }
+    fn_10_a118(p, g_6078);
+    if (g_9468 != g_93a2)
+        _lclose(fh);
+    GlobalUnlock(h);
+    GlobalFree(h);
+    fn_11_3fd4(g_6078, 1);
 }

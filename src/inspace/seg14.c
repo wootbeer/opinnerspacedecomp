@@ -93,9 +93,14 @@ typedef struct {
 
 /* 0x41-byte records through the far pointer at DS:6e20 [inferred]. */
 typedef struct {
-    char pad_000[0x3];
+    char pad_000[0x1];
+    char f_001;
+    char f_002;
     char f_003;
-    char pad_004[0x6];
+    char pad_004[0x2];
+    char f_006;
+    char pad_007[0x2];
+    char f_009;
     char f_00a[23];
     int f_021;
     char pad_023[0x1e];
@@ -103,7 +108,12 @@ typedef struct {
 
 /* 0x2c-byte records through the far pointer at DS:6e1c [inferred]. */
 typedef struct {
-    char pad_000[0x21];
+    char pad_000[0x1b];
+    char f_01b;
+    char f_01c;
+    char f_01d;
+    char pad_01e[0x2];
+    char f_020;
     int f_021;
     char pad_023[0x9];
 } REC2C;
@@ -124,6 +134,9 @@ extern int g_95ae;                 /* number of REC2C records */
 extern int g_9498;
 extern HGLOBAL g_95a6;
 extern HGLOBAL g_95ac;
+extern char g_1332[];
+extern int g_0952[];
+extern int g_096c[];
 
 /* @addr 14:455c */
 int far fn_14_455c(int k)
@@ -287,4 +300,32 @@ void far fn_14_4074(void)
         GlobalFree(g_95ac);
         g_95ac = 0;
     }
+}
+
+/* Rating of record n [inferred]: class index 1..10 whose [lo, hi) range
+ * holds the score; falls off the end (returns the score in ax) when none. */
+/* near-match 99%: 14:40d8 (CL adds a dead `mov ax,es` before spilling the
+ * g_6e20[n] pointer and loads the 22 after it; operand orders, max forms,
+ * an explicit pointer variable tried) */
+int far fn_14_40d8(int n)
+{
+    int k, a, b, u1, c, u2;
+
+    a = g_6e20[n].f_002 * g_6e1c[g_6e20[n].f_021].f_01b / 36;
+    b = ((10 * g_6e20[n].f_001 - g_6e1c[g_6e20[n].f_021].f_01c)
+         / g_6e1c[g_6e20[n].f_021].f_01b
+         - 22 * g_6e1c[g_6e20[n].f_021].f_01d / max(g_6e20[n].f_001, 22)) * 2;
+    c = g_1332[g_6e20[n].f_006];
+    if (!(g_6e20[n].f_009 & 4))
+        a = a * 3 / 4;
+    if (g_6e20[n].f_009 & 8)
+        a = a * 6 / 5;
+    if (g_6e1c[g_6e20[n].f_021].f_020 & 2)
+        a = a * 6 / 5;
+    if (!(g_6e20[n].f_009 & 0x10))
+        b = b * 5 / 6;
+    u2 = c + b + a;
+    for (k = 1; k < 11; k++)
+        if (g_0952[k] <= u2 && g_096c[k] > u2)
+            return k;
 }

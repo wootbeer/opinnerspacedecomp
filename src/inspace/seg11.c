@@ -4,16 +4,30 @@
 /* 0x15a-byte records at DS:7090, indexed by g_9646 (same layout as
  * seg04.c's REC_15A) [inferred]. */
 typedef struct {
-    char p000[0x18];
+    char p000[2];
+    int f02;                    /* +02 */
+    char p004[0x10 - 4];
+    int f10;                    /* +10 */
+    int f12;                    /* +12 */
+    char p014[0x18 - 0x14];
     int f18;                    /* +18 */
     char p01a[0x1e - 0x1a];
     int f1e;                    /* +1e */
-    char p020[0x2c - 0x20];
+    int f20;                    /* +20 */
+    int f22;                    /* +22 */
+    char p024[0x26 - 0x24];
+    int f26[3];                 /* +26: [3] is f2c */
     int f2c;                    /* +2c */
     int f2e;                    /* +2e */
-    char p030[0x84 - 0x30];
+    char p030[0x32 - 0x30];
+    int f32;                    /* +32 */
+    char p034[0x4e - 0x34];
+    int f4e;                    /* +4e */
+    char p050[0x84 - 0x50];
     unsigned long f84;          /* +84 */
-    char p088[0xb8 - 0x88];
+    char p088[0x8c - 0x88];
+    long f8c;                   /* +8c */
+    char p090[0xb8 - 0x90];
     char fb8[0x13];             /* +b8 */
     char fcb;                   /* +cb */
     char p0cc[0xe2 - 0xcc];
@@ -21,9 +35,12 @@ typedef struct {
     char p0e3[0xe7 - 0xe3];
     char fe7;                   /* +e7 */
     char fe8;                   /* +e8 */
-    char p0e9[0xeb - 0xe9];
+    char p0e9;
+    char fea;                   /* +ea */
     char feb;                   /* +eb */
-    char p0ec[0x14a - 0xec];
+    char p0ec[0x147 - 0xec];
+    char f147;                  /* +147 */
+    char p148[0x14a - 0x148];
     POINT f14a;                 /* +14a */
     long f14e;                  /* +14e */
     unsigned long f152;         /* +152 */
@@ -38,9 +55,15 @@ typedef struct {
     POINT f04;                  /* +04: position [inferred] */
     char p08[0x18 - 8];
     int f18;                    /* +18 */
-    char p1a[0x28 - 0x1a];
+    char p1a[0x22 - 0x1a];
+    int f22;                    /* +22 */
+    char p24[0x26 - 0x24];
+    int f26;                    /* +26 */
     int f28;                    /* +28 */
-    char p2a[0x46 - 0x2a];
+    char p2a[0x2e - 0x2a];
+    char f2e;                   /* +2e */
+    char p2f[0x44 - 0x2f];
+    int f44;                    /* +44 */
     int f46;                    /* +46 */
     char p48[0x4c - 0x48];
     COLORREF f4c;               /* +4c */
@@ -166,6 +189,58 @@ extern HBITMAP g_9402;
 extern HPALETTE g_9404;
 extern HBRUSH g_5004[];
 
+/* 0x50-byte records at DS:2f58 (same as seg04.c's REC_50) [inferred]. */
+typedef struct {
+    char p00[6];
+    int f06;                    /* +06 */
+    char p08[0x42 - 8];
+    int f42;                    /* +42 */
+    char p44[0x50 - 0x44];
+} REC_50;
+extern REC_50 g_2f58[];
+extern int g_9432;
+extern int g_3a38[];
+extern int g_9522;
+extern int g_094e;
+extern unsigned long g_5014;
+extern int g_1858[];
+extern int g_9320;
+extern HBITMAP g_5038;
+extern char g_9eb4;
+extern int g_238e;
+extern int g_9138;
+void far fn_07_1208(void);
+extern int g_93d4;
+extern int g_93bc;
+extern HBITMAP g_503a;
+extern DWORD g_502c;
+extern int g_1840[];
+void far fn_03_06ec(int n, int kind, int target, int d);
+
+/* 0xad-byte records; lowest field seen at DS:96ea (seg04.c bases them at
+ * 96f0) [inferred]. */
+#pragma pack(1)
+typedef struct {
+    char f00;                   /* +00 */
+    char p01;
+    char f02;                   /* +02 */
+    char p03[0x06 - 3];
+    int f06;                    /* +06 */
+    char p08[0x0a - 8];
+    int f0a[4];                 /* +0a */
+    char p12[0x1e - 0x12];
+    int f1e;                    /* +1e */
+    char p20[0x34 - 0x20];
+    int f34;                    /* +34 */
+    char p36[0x6c - 0x36];
+    char f6c[0x91 - 0x6c];      /* +6c: name [inferred] */
+    long f91;                   /* +91 */
+    char p95[0xad - 0x95];
+} REC_AD;
+#pragma pack()
+extern REC_AD g_96ea[];
+extern DWORD g_8e28;
+
 long far pascal fn_11_1ab6(long x);
 long far pascal fn_11_1b44(long y);
 void far fn_18_0d4e(int msg, int wparam, long lparam);
@@ -187,19 +262,33 @@ void far fn_06_1c72(int a);
 void far fn_09_0d6c(void);
 void far fn_06_626c(void);
 
+void far fn_13_4eec(int i, int d);
+void far fn_10_7328(int a, LPSTR s, long b, char c, char d, int e, int f,
+                    int g, int h);
+void far fn_10_754a(int a, int b, int c, int d);
+void far pascal fn_13_1318(int type, int n, int t, int k);
+
+void far fn_11_0978(void);
+void far fn_11_2154(char align, long color, int x, int y, LPSTR s);
+
 /* Not yet decompiled: stubs so calls to them compile as near calls. */
 void far fn_11_05fe(int a) { }
-void far fn_11_0978(void) { }
 void far fn_11_1ef6(int a) { }
 void far fn_11_33cc(void) { }
 HBITMAP far fn_11_2ff6(int a) { return 0; }
 void far pascal fn_11_4e0a(int a) { }
 void far fn_11_238e(HWND hwnd, HDC dc) { }
-void far fn_11_2154(char a, long color, int x, int y, LPSTR s) { }
 void far fn_11_2dac(HDC dc, int a, int b, int i) { }
 void far fn_11_41bc(HDC dc, int a, int b) { }
 void far fn_11_7902(int msg, int wparam, long lparam) { }
 void far pascal fn_11_6b64(int msg, int wparam, long lparam) { }
+void far pascal fn_11_7c12(int k, int type, int n) { }
+void far pascal fn_11_b09c(int n, int a) { }
+void far fn_11_8a42(int type, int n) { }
+void far fn_11_947a(int type, int n, int k) { }
+void far fn_11_9fdc(int type, int n) { }
+void far fn_11_9daa(int type, int n) { }
+void far fn_11_9078(int type, int n) { }
 
 /* @addr 11:2120 */
 int far fn_11_2120(void)
@@ -1051,4 +1140,300 @@ void far fn_11_0344(void)
     DeleteDC(dc2);
     SelectObject(dc1, old1);
     DeleteDC(dc1);
+}
+
+/* Fire the current weapon of the player's ship [inferred]. */
+/* @addr 11:ac86 */
+void far fn_11_ac86(void)
+{
+    if (g_7090[g_9646].fea || g_7090[g_9646].fe8
+        || g_1df8[g_9324][g_9646].f2e)
+        return;
+    if (g_2f58[g_7090[g_9646].fb8[g_7090[g_9646].f18]].f42 == 0
+        && g_7090[g_9646].f32 != 9)
+        g_9432 += 3;
+    fn_13_4eec(g_9646, 4);
+    g_8e28 = g_1e50;
+    if (g_2f58[g_7090[g_9646].fb8[g_7090[g_9646].f18]].f06) {
+        fn_11_7c12(g_7090[g_9646].fb8[g_7090[g_9646].f18], g_9324, g_9646);
+        return;
+    }
+    switch (g_7090[g_9646].fb8[g_7090[g_9646].f18]) {
+    case 5:
+        fn_13_1318(g_9324, g_9646, 0x1e, 5);
+        break;
+    case 4:
+        fn_13_1318(g_9324, g_9646, 0x1e, 4);
+        break;
+    case 1:
+        fn_11_8a42(g_9324, g_9646);
+        break;
+    case 2:
+        fn_11_947a(g_9324, g_9646, 2);
+        break;
+    case 15:
+        fn_11_947a(g_9324, g_9646, 15);
+        break;
+    case 3:
+        fn_11_9fdc(g_9324, g_9646);
+        break;
+    case 23:
+        fn_11_9daa(g_9324, g_9646);
+        break;
+    case 13:
+        fn_11_9078(g_9324, g_9646);
+        break;
+    }
+}
+
+/* @addr 11:4b00 */
+int far fn_11_4b00(int n)
+{
+    if (g_7090[n].f2c < 0x32 && g_7090[n].fea == 0)
+        return 0;
+    if (g_7090[n].f10 < 7 && g_7090[n].f10 > 0)
+        return 0;
+    if ((n != g_9646 || g_9134 != 0) && g_1e68 - g_7090[n].f152 < 0x96)
+        return 0;
+    if (g_7090[n].fea) {
+        g_7090[n].f10 = 6;
+        g_9522 = -1;
+        g_7090[n].f20 = g_1df8[g_9324][n].f22 - 2;
+        g_7090[n].f22 = 1;
+        g_7090[n].fea = 0;
+    } else {
+        g_9522 = g_7090[n].f10 = 1;
+        g_7090[n].f20 = g_1df8[g_9324][n].f22 - 12;
+        g_7090[n].f22 = 7;
+        g_7090[n].fea = 1;
+    }
+    fn_10_7328(g_96ea[g_7090[n].f4e].f1e, g_96ea[g_7090[n].f4e].f6c,
+               g_96ea[g_7090[n].f4e].f91, g_96ea[g_7090[n].f4e].f00,
+               g_96ea[g_7090[n].f4e].f02, g_1df8[g_9324][n].f28, g_3a38[n],
+               1, 0x63);
+    g_7090[n].f152 = g_1e68;
+    if (g_7090[n].f02)
+        fn_11_b09c(n, 1);
+    fn_10_754a(5, g_9324, n, 1);
+    return 1;
+}
+
+/* @addr 11:37a0 */
+void far pascal fn_11_37a0(int type, int n, HDC dc)
+{
+    POINT pt;
+
+    if (type == 14 && g_7090[n].f147)
+        return;
+    pt.x = fn_11_1ab6(g_1df8[type][n].f04.x) * g_0a6c * g_0a64 / g_501c + g_5050;
+    pt.y = fn_11_1b44(g_1df8[type][n].f04.y) * g_0a6c * g_0a68 / g_5020 + g_5052;
+    if (PtInRect(&g_5048, pt)) {
+        if (type == 14 && n == g_9646)
+            SelectObject(dc, GetStockObject(WHITE_BRUSH));
+        else
+            SelectObject(dc, g_5004[g_1df8[type][n].f46]);
+        switch (type) {
+        case 7:
+            BitBlt(dc, pt.x - 2, pt.y - 2, 4, 4, g_93cc, 0x50, 0, MERGECOPY);
+            break;
+        default:
+            BitBlt(dc, pt.x - 2, pt.y - 2, 5, 5, g_93cc,
+                   g_1df8[type][n].f28 * 5, 0, MERGECOPY);
+            break;
+        }
+    }
+    if (g_094e)
+        g_5054[n] = pt;
+}
+
+/* @addr 11:1d7c */
+void far fn_11_1d7c(void)
+{
+    int j;
+    int i;
+
+    if (g_5014 >= g_1e68)
+        return;
+    g_5014 = g_1e68 + 180;
+    for (i = 0; i <= g_9316; i++) {
+        if (g_1858[i] > 0) {
+            if (g_96ea[g_7090[i].f4e].f34 != 0 && (i == g_9646 || g_9130 == 0)
+                && g_7090[i].f1e > 0x5a) {
+                for (j = 0; j < 4; j++) {
+                    if (g_96ea[g_7090[i].f4e].f0a[j] != -1
+                        && g_7090[i].f26[j] < 0x52
+                        && (j != 3 || g_7090[i].f26[j] != 0 && g_7090[i].f26[j] != 0x32)) {
+                        if (i != g_9646 || j == 3)
+                            g_7090[i].f26[j]++;
+                        else
+                            g_7090[i].f26[j] += 2;
+                        if (g_9320 == 6)
+                            g_7090[i].f26[j]++;
+                        g_7090[i].f1e -= 2;
+                    }
+                }
+            }
+            g_7090[i].f8c = max((0x4b - g_7090[i].f26[1]) * 4, 0x1b) / 0x1b;
+            g_1858[i]--;
+        } else
+            g_1858[i] = max(g_1df8[14][i].f44 / -75 + 9, 1);
+    }
+}
+
+/* @addr 11:0978 */
+void far fn_11_0978(void)
+{
+    int i;
+    int v;
+    HBRUSH oldbrush;
+    HDC dc;
+    HBITMAP oldbmp;
+    HPALETTE oldpal;
+
+    v = min(g_7090[g_9646].f1e / (g_96ea[g_7090[g_9646].f4e].f06 / 60), 59);
+    if (v == g_93d4)
+        return;
+    g_93d4 = v;
+    if (g_502c < g_1e50) {
+        for (i = 250; i > 60; i -= 60) {
+            if (g_1840[g_9646] >= i && g_7090[g_9646].f1e < i) {
+                fn_03_06ec(g_9646, 7, 0, 9);
+                g_502c = g_1e50 + 30000;
+            }
+        }
+    }
+    g_1840[g_9646] = g_7090[g_9646].f1e;
+    if (g_93d4 < 60) {
+        oldbrush = SelectObject(g_13dc, GetStockObject(LTGRAY_BRUSH));
+        PatBlt(g_13dc, g_93bc + 8, g_8e5a + 0x13, 0xe, 60 - g_93d4, PATCOPY);
+        SelectObject(g_13dc, oldbrush);
+    }
+    dc = CreateCompatibleDC(g_13dc);
+    oldbmp = SelectObject(dc, g_503a);
+    if (g_920e)
+        oldpal = SelectPalette(dc, g_920e, 0);
+    BitBlt(g_13dc, g_93bc + 8, g_8e5a - g_93d4 + 0x4f, 0xd, g_93d4, dc, 0,
+           60 - g_93d4, SRCCOPY);
+    if (oldpal)
+        SelectPalette(dc, oldpal, 0);
+    SelectObject(dc, oldbmp);
+    DeleteDC(dc);
+}
+
+/* Turn the player's ship with the arrow keys [inferred]. */
+/* @addr 11:592a */
+void far fn_11_592a(void)
+{
+    int key;                    /* stored value is never read */
+
+    if (g_1034 == 0)
+        return;
+    if (g_9320 == 6 && g_9eb4 == 0 || g_9134 || g_7090[g_9646].feb
+        || g_7090[g_9646].f84 >= g_1e50)
+        return;
+    if ((key = GetAsyncKeyState(VK_RIGHT) & 0x8000) || g_1046) {
+        if (GetAsyncKeyState(VK_MENU) & 0x8000) {
+            g_7090[g_9646].f12++;
+            if (g_7090[g_9646].f12 > 1)
+                g_7090[g_9646].f12 = 1;
+        } else {
+            g_1df8[g_9324][g_9646].f26 = 0;
+            g_7090[g_9646].f12 = 0;
+            g_1df8[g_9324][g_9646].f28++;
+            if (g_1df8[g_9324][g_9646].f28 > 15)
+                g_1df8[g_9324][g_9646].f28 = 0;
+        }
+        if (g_238e == 0)
+            fn_07_1208();
+        g_9138 = 1;
+    }
+    if ((key = GetAsyncKeyState(VK_LEFT) & 0x8000) || g_1044) {
+        if (GetAsyncKeyState(VK_MENU) & 0x8000) {
+            g_7090[g_9646].f12--;
+            if (g_7090[g_9646].f12 < -1)
+                g_7090[g_9646].f12 = -1;
+        } else {
+            g_1df8[g_9324][g_9646].f26 = 0;
+            g_7090[g_9646].f12 = 0;
+            g_1df8[g_9324][g_9646].f28--;
+            if (g_1df8[g_9324][g_9646].f28 < 0)
+                g_1df8[g_9324][g_9646].f28 = 15;
+        }
+        if (g_238e == 0)
+            fn_07_1208();
+        g_9138 = 1;
+    }
+}
+
+/* Draw a string with the digit/letter bitmap font [inferred]. */
+/* @addr 11:2154 */
+void far fn_11_2154(align, color, x, y, s)
+int align;
+long color;
+int x;
+int y;
+LPSTR s;
+{
+    HBRUSH oldbrush;
+    HDC dc;
+    HBITMAP oldbmp;
+    int unused;
+    int x0;
+    int i;
+    int w;
+    int c;
+    int cw;
+
+    w = 10;
+    switch (align) {
+    case 0:
+        x0 = x;
+        break;
+    case 6:
+        x0 = x - lstrlen(s) * w / 2;
+        break;
+    case 2:
+        x0 = x - lstrlen(s) * w;
+        break;
+    }
+    oldbrush = SelectObject(g_13dc, CreateSolidBrush(color));
+    dc = CreateCompatibleDC(g_13dc);
+    oldbmp = SelectObject(dc, g_5038);
+    for (i = 0; i < lstrlen(s); i++) {
+        cw = 10;
+        c = s[i];
+        if (c > '/' && c < ':') {
+            c -= '0';
+            BitBlt(g_13dc, i * 10 + x0, y, 10, 10, dc, c * 10, 0, 0xc00746L);
+        } else {
+            switch (c) {
+            case 'S':
+                c = 5;
+                break;
+            case 'C':
+                c = 0xb;
+                break;
+            case 'O':
+                c = 0;
+                break;
+            case 'R':
+                c = 0xc;
+                break;
+            case 'E':
+                c = 0xd;
+                break;
+            default:
+                c = 100;
+                break;
+            }
+            if (c == 100)
+                PatBlt(g_13dc, (i + 1) * 10 - cw + x0, y, cw, 10, BLACKNESS);
+            else
+                BitBlt(g_13dc, (i + 1) * 10 - cw + x0, y, cw, 10, dc,
+                       (c + 1) * 10 - cw, 0, 0xc00746L);
+        }
+    }
+    DeleteObject(SelectObject(g_13dc, oldbrush));
+    SelectObject(dc, oldbmp);
+    DeleteDC(dc);
 }

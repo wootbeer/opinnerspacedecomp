@@ -1,5 +1,6 @@
 /* INSPACE.EXE segment 8 (selector 1038), /G3 parts.
- * 8:3688..81f8 was compiled with /G2: see seg08b.c. */
+ * 8:3688..81f8 was compiled with /G2: see seg08b.c; 8:8256 to the end is
+ * another source file: see seg08c.c. */
 #include <stdlib.h>
 #include "inspace.h"
 
@@ -60,7 +61,11 @@ typedef struct {
     int f20;                    /* +20 */
     char p22[0x2e - 0x22];
     char f2e;                   /* +2e */
-    char p2f[0x70 - 0x2f];
+    char p2f[0x32 - 0x2f];
+    int f32;                    /* +32 */
+    char p34[0x54 - 0x34];
+    char f54;                   /* +54 */
+    char p55[0x70 - 0x55];
 } REC_70;
 
 /* Object reference passed by value: index, then type [inferred]. */
@@ -130,6 +135,10 @@ extern long g_240c;
 extern long g_2410;
 extern int g_9320;
 extern char g_9eb5;
+extern int g_9e49;
+extern int g_9006;
+extern int g_9328;
+void far pascal fn_08_1e32(int type, int idx);
 int far fn_09_88ba(int x);
 long far abs32(long x);
 void far fn_08_9028();       /* old-style: callers pass ints or a PAIR */
@@ -138,7 +147,7 @@ int far pascal fn_08_285a(int far *p, int far *q, POINT a, POINT b);
 void far fn_08_92a0(int type, int idx);
 void far fn_12_2288(int type, int idx);
 void far fn_07_2080(int a, int b);
-long far fn_08_35d0(long a, long b);
+int far fn_08_35d0(long a, long b);
 
 /* @addr 8:0764 */
 void far pascal fn_08_0764(int a, int b)
@@ -212,6 +221,116 @@ void far pascal fn_08_1cbe(OBJREF r, int v)
         g_1df8[type][idx].f0e = -v;
 }
 
+/* Direction 0..15 of the vector (dx, dy) from the slope dy/dx
+ * [inferred]. */
+/* @addr 8:19b0 */
+int far pascal fn_08_19b0(int dx, int dy)
+{
+    long d;
+    long r;
+    long ldx;
+    long ldy;
+    int dir;
+
+    ldy = dy;
+    ldx = dx;
+    if (abs32(ldx) > 0)
+        d = ldx;
+    else
+        d = 1;
+    r = ldy * 100 / d;
+    if (r > 500 || r < -500) {
+        if (ldy > 0)
+            dir = 8;
+        else
+            dir = 0;
+    }
+    if (r < 501 && r > 154) {
+        if (ldy > 0)
+            dir = 7;
+        else
+            dir = 15;
+    } else if (r < 155 && r > 65) {
+        if (ldy > 0)
+            dir = 6;
+        else
+            dir = 14;
+    } else if (r < 66 && r > 19) {
+        if (ldy > 0)
+            dir = 5;
+        else
+            dir = 13;
+    } else if (r < 20 && r > -20) {
+        if (ldx > 0)
+            dir = 4;
+        else
+            dir = 12;
+    } else if (r < -19 && r > -65) {
+        if (ldy > 0)
+            dir = 11;
+        else
+            dir = 3;
+    } else if (r < -64 && r > -154) {
+        if (ldy > 0)
+            dir = 10;
+        else
+            dir = 2;
+    } else if (r < -153 && r > -501) {
+        if (ldy > 0)
+            dir = 9;
+        else
+            dir = 1;
+    }
+    return dir;
+}
+
+/* r packs (type << 8) | index. Move an object by n times its velocity,
+ * wrapping round the map
+ * [inferred]. */
+/* @addr 8:1b54 */
+void far pascal fn_08_1b54(WORD r, int n)
+{
+    int saved;
+    int type;
+    int idx;
+
+    type = HIBYTE(r);
+    idx = LOBYTE(r);
+    if (type == 14 && g_1df8[14][idx].f54 != 0 && g_92e8 != 0 && g_9e49 == 10)
+        return;
+    if (g_1df8[type][idx].f32 != -1 && type != 10)
+        fn_08_1e32(type, idx);
+    if (type == g_9328) {
+        saved = g_9006;
+        g_9006 = 10;
+    }
+    if (n == 1) {
+        g_1df8[type][idx].f04.x += g_1df8[type][idx].f0c;
+        g_1df8[type][idx].f04.y += g_1df8[type][idx].f0e;
+    } else {
+        g_1df8[type][idx].f04.x += g_1df8[type][idx].f0c * n;
+        g_1df8[type][idx].f04.y += g_1df8[type][idx].f0e * n;
+    }
+    if (subgame_active)
+        return;
+    if (g_1df8[type][idx].f04.x > G_05A0_INT * 8)
+        g_1df8[type][idx].f04.x = 0;
+    if (g_1df8[type][idx].f04.x < 0)
+        g_1df8[type][idx].f04.x = G_05A0_INT * 8;
+    if (g_1df8[type][idx].f04.y > g_05a2 * 8)
+        g_1df8[type][idx].f04.y = 0;
+    if (g_1df8[type][idx].f04.y < 0)
+        g_1df8[type][idx].f04.y = g_05a2 * 8;
+    if (type == g_9328)
+        g_9006 = saved;
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far pascal fn_08_1e32(int type, int idx)
+{
+    g_9006 = type + idx;
+}
+
 /* Slow an object down by one unit per axis once |vx|+|vy| reaches v
  * [inferred: friction]. */
 /* @addr 8:1d54 */
@@ -272,8 +391,8 @@ void far fn_08_348e(int type, int idx, int type2, int idx2, int speed)
     dy = p2.y - p1.y;
     vx = g_1df8[type2][idx2].f0c;
     vy = g_1df8[type2][idx2].f0e;
-    d = (int)fn_08_35d0(dx, dy);
-    vx += (long)d * speed / dx;
+    d = fn_08_35d0(dx, dy);
+    vx += (long)dx * speed / d;
     vy += (long)dy * speed / d;
     g_1df8[type][idx].f0c = vx;
     g_1df8[type][idx].f0e = vy;
@@ -293,6 +412,51 @@ void far fn_08_190e(void)
         g_91e6[i] = rand() % 40;
         g_91c2[i] = 1;
     }
+}
+
+/* Distance from a to b on the wrapping map (in 8-unit cells), with the
+ * offsets stored to *p and *q [inferred]. */
+/* @addr 8:285a */
+int far pascal fn_08_285a(int far *p, int far *q, POINT a, POINT b)
+{
+    int dy;
+    int dx;
+    int ty;
+    int tx;
+    long g;
+    long adx;
+    long ady;
+
+    if (subgame_active == 0) {
+        b.y >>= 3;
+        a.y >>= 3;
+        b.x >>= 3;
+        a.x >>= 3;
+        dx = b.x - a.x;
+        if (fn_09_88ba(dx) > G_05A0_INT >> 1) {
+            tx = 0 > dx ? b.x + G_05A0_INT : b.x - G_05A0_INT;
+            dx = tx - a.x;
+        }
+        dy = b.y - a.y;
+        if (fn_09_88ba(dy) > g_05a2 >> 1) {
+            ty = 0 > dy ? b.y + g_05a2 : b.y - g_05a2;
+            dy = ty - a.y;
+        }
+    } else {
+        b = fn_08_29ea(b);
+        a = fn_08_29ea(a);
+        dx = b.x - a.x;
+        dy = b.y - a.y;
+    }
+    ady = fn_09_88ba(dy);
+    adx = fn_09_88ba(dx);
+    if (adx < ady)
+        g = (adx >> 1) + ady;
+    else
+        g = (ady >> 1) + adx;
+    *p = dx;
+    *q = dy;
+    return g ? ((ady * ady + adx * adx) / g + g) >> 1 : 1;
 }
 
 /* World point to screen point [inferred]: relative to the view origin
@@ -327,185 +491,6 @@ POINT far pascal fn_08_29ea(POINT pt)
     return r;
 }
 
-/* Old-style definition: 8:9b4e passes a PAIR by value, 8:99ce two ints. */
-/* @addr 8:9028 */
-void far fn_08_9028(i, a, kind, idx)
-int i;
-int a;
-int kind;
-int idx;
-{
-    if (g_52ec[i].f18.a == 0xe && (g_52ec[i].f12 == 0xf
-        || kind == 0xe && g_52ec[i].f18.b == idx))
-        return;
-    if (g_52ec[i].f18.a == kind && g_52ec[i].f18.b == idx)
-        return;
-    if (kind == 2 && g_52ec[idx].f18.a == g_52ec[i].f18.a
-        && g_52ec[idx].f18.b == g_52ec[i].f18.b)
-        return;
-    if (a == 5) {
-        g_52ec[i].f14 = 0;
-        if (g_52ec[i].f12 <= 5)
-            g_52ec[i].f12 = 5;
-        g_52ec[i].f1c.a = kind;
-        g_52ec[i].f1c.b = idx;
-    } else {
-        g_52ec[i].f12 = g_52ec[i].f12 < a ? a : g_52ec[i].f12;
-        g_52ec[i].f1c.a = kind;
-        g_52ec[i].f1c.b = idx;
-        if (a == 0xf)
-            g_52ec[i].f0a = 0;
-    }
-}
-
-/* Not yet decompiled: stub so calls to it compile as near calls. */
-void far fn_08_92a0(int type, int idx)
-{
-    g_914e = type + idx;
-}
-
-/* @addr 8:95f2 */
-int far fn_08_95f2(int unused, int i, int v)
-{
-    if (v > 0)
-        v = v < 0x3c ? 0x3c : v;
-    else
-        v = -v;
-    g_1df8[2][i].f1e += v;
-    g_57a0 = g_1e50 + 500;
-    if (g_1df8[2][i].f1e > 0x50)
-        g_52ec[i].f14 = 1;
-    g_52ec[i].f20 = g_1e50 + 0x15e;
-    if (g_1df8[2][i].f1e > (g_9334 + 0x1a) * 5) {
-        fn_08_92a0(2, i);
-        return 1;
-    }
-    return 0;
-}
-
-/* @addr 8:9464 */
-void far fn_08_9464(void)
-{
-    int i;
-    int j;
-    int unused;
-
-    if (g_92e8 != 0 || g_1048 == 0)
-        return;
-    for (i = 0; i < g_9406; i++) {
-        if (g_1df8[0][i].f18 == 0) {
-            for (j = i; j < g_92f0; j += g_9406) {
-                if (g_1df8[2][j].f18 != 0) {
-                    fn_10_754a(0x18, 0, i, 1);
-                    g_52ec[j].d00 = 0xff10ffd0L;
-                    g_1df8[2][j].f0c = 0x46;
-                    g_1df8[2][j].f0e = -0x82;
-                    g_1df8[2][j].f18 = 0;
-                    g_1df8[2][j].f2e = 0;
-                    g_52ec[j].f10 = -1;
-                    g_1df8[2][j].f1e = 0;
-                    g_52ec[j].f08 = 0;
-                    g_52ec[j].f18.a = 0;
-                    g_52ec[j].f18.b = i;
-                    g_52ec[j].f14 = 0;
-                    g_52ec[j].f1c.a = 0;
-                    g_52ec[j].f1c.b = i;
-                    g_52ec[j].f12 = 0;
-                    j = g_92f0;
-                    break;
-                }
-            }
-        }
-    }
-    fn_07_2080(2, -1);
-}
-
-/* @addr 8:9564 */
-void far fn_08_9564(void)
-{
-    int i;
-    int j;
-
-    if (g_92e8 == 0 && g_1048 != 0) {
-        for (i = 0; i < g_9406; i++) {
-            if (g_1df8[0][i].f18 == 0 && g_1df8[0][i].f1a != 0) {
-                for (j = i; j < g_940a; j += g_9406) {
-                    if (g_1df8[2][j].f18 != 0) {
-                        fn_10_754a(0x17, 0, i, 1);
-                        g_914e = 1;
-                        return;
-                    }
-                }
-            }
-        }
-    }
-}
-
-/* @addr 8:9ab8 */
-void far fn_08_9ab8(void)
-{
-    int i;
-    int d;
-    int y;
-    int x;
-
-    for (i = 0; i < g_940a; i++) {
-        if (g_1df8[2][i].f18 == 0 && g_52ec[i].f1c.a == 0xc
-            && g_1df8[2][i].f1a == 0) {
-            d = fn_08_285a(&y, &x, g_1df8[2][i].f04,
-                           g_1df8[12][g_52ec[i].f1c.b / 2].f04);
-            if (d < 0xaa)
-                fn_12_2288(2, i);
-        }
-    }
-}
-
-extern struct { char c0, c1; char rest[0x21]; } g_57b2[];   /* 0x23-byte records [inferred] */
-
-/* @addr 8:99ce */
-void far fn_08_99ce(int a, int b, int kind, int idx)
-{
-    int i;
-    int k;
-    int x;
-
-    if (a == 0 && (kind == 9 || kind == 0xe)) {
-        g_57b2[b].c0 = kind;
-        g_57b2[b].c1 = idx;
-    }
-    for (i = 0; i < g_940a; i++) {
-        if (g_1df8[2][i].f18 == 0 && (kind == 0xe || kind == 2)) {
-            x = idx;
-            k = kind;
-            if ((k == 0xe || k == 2 && g_52ec[x].f12 == 0xf
-                 && !(g_52ec[x].f18.a == g_52ec[i].f18.a
-                      && g_52ec[x].f18.b == g_52ec[i].f18.b))
-                && g_52ec[i].f18.a == a && g_52ec[i].f18.b == b
-                && !(g_52ec[i].f18.a == k && g_52ec[i].f18.b == x)
-                && g_52ec[i].f12 != 0xf) {
-                fn_08_9028(i, 0xf, k, x);
-                break;
-            }
-        }
-    }
-}
-
-/* @addr 8:9b4e */
-void far fn_08_9b4e(void)
-{
-    int i;
-
-    for (i = 0; i < g_940a; i++) {
-        if (g_1df8[2][i].f18 == 0 && g_52ec[i].f18.a == 0xe
-            && g_52ec[i].f12 != 0xf) {
-            if (g_70ae[g_52ec[i].f18.b].f1a == 1)
-                fn_08_9028(i, 10, g_70ae[g_52ec[i].f18.b].f14);
-            else
-                g_52ec[i].f12 = 5;
-        }
-    }
-}
-
 /* Integer square root, one Newton step from guess g [inferred]. The loop
  * after the return is dead code in the original. */
 /* near-match 47%: 8:1290 (the dead loop's update compiles to an add-to-memory;
@@ -529,9 +514,9 @@ long far pascal fn_08_1290(long n, long g)
 
 /* Distance approximation: start from max + min/2, one Newton step of the
  * square root of a*a + b*b [inferred]. */
-/* near-match 94%: 8:35d0 (the original returns 1 as `mov ax,1` with no
- * dx set; every phrasing tried here adds a cwd) */
-long far fn_08_35d0(long a, long b)
+/* Returns int although the expression is long (the result is truncated). */
+/* @addr 8:35d0 */
+int far fn_08_35d0(long a, long b)
 {
     long aa;
     long ab;

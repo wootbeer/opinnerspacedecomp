@@ -12,10 +12,17 @@ extern REC34 g_3d5a[];
 
 /* 0x15a-byte records at DS:7090 [inferred]. */
 typedef struct {
-    char p000[0x54];
+    char p000[0x3e];
+    int f3e;                    /* +3e */
+    int f40;                    /* +40 */
+    char p042[0x4e - 0x42];
+    int f4e;                    /* +4e */
+    char p050[0x54 - 0x50];
     int f54;                    /* +54 */
     int f56;                    /* +56 */
-    char p058[0x147 - 0x58];
+    char p058[0x5d - 0x58];
+    char f5d;                   /* +5d */
+    char p05e[0x147 - 0x5e];
     char f147;                  /* +147 */
     char p148[0x15a - 0x148];
 } REC_15A;
@@ -36,7 +43,9 @@ typedef struct {
     char p02[4];
     int f06;                    /* +06 */
     int f08;                    /* +08 */
-    char p0a[0x24 - 0xa];
+    int f0a;                    /* +0a */
+    int f0c;                    /* +0c */
+    char p0e[0x24 - 0xe];
 } REC_24;
 extern REC_24 g_52fe[];
 
@@ -56,6 +65,24 @@ int far fn_13_371c(int type, int n);
 void far fn_11_3fd4(LPSTR s, int mode);
 void far fn_03_3498(LPSTR s, LPSTR a, LPSTR b);
 
+/* 0xad-byte records; lowest field seen at DS:96ea [inferred]. */
+#pragma pack(1)
+typedef struct {
+    char p00[0x20];
+    int f20;                    /* +20 */
+    char p22[0xad - 0x22];
+} REC_AD;
+#pragma pack()
+extern REC_AD g_96ea[];
+extern int g_940a;
+extern int g_9316;
+extern int g_6e70;
+extern int g_6e72;
+int far fn_13_2688(int a, int b);
+extern char g_8d38[];               /* run-time buffer (BSS) */
+extern int g_9498;
+void far describe_defender_order_message(int n, int k, int mode);
+
 extern char g_8694[];               /* run-time buffer (BSS) */
 extern char g_86d0[];               /* run-time buffer (BSS) */
 extern char g_8768[];               /* run-time buffer (BSS) */
@@ -65,6 +92,8 @@ extern char g_8db0[];               /* run-time buffer (BSS) */
 /* Not yet decompiled: stubs so calls to them compile as near calls. */
 void far fn_03_00f4(int a, long b) { }
 void far fn_03_1542(int a, int b, int n, LPSTR buf, int c) { }
+void far fn_03_06ec(int n, int kind, int target, int d) { }
+void far fn_03_1d0a(int n, int target, int c) { }
 
 /* @addr 3:0000 */
 int far fn_03_0000(int type, int n)
@@ -268,4 +297,110 @@ void far fn_03_33b4(int id)
         g_05c0 = g_1e50 + 1200;
         break;
     }
+}
+
+/* Pick a target for ship n's order [inferred]. */
+/* @addr 3:1b8a */
+void far fn_03_1b8a(int a, int n)
+{
+    int target;
+    int t;
+    int kind;
+    int i;
+    int j;
+    int best;
+    int bestscore;
+    int score;
+
+    target = t = -1;
+    kind = g_7090[n].f3e;
+    if (a && kind != 2) {
+        for (i = 0; i < g_940a; i++) {
+            if (g_52fe[i].f06 == 0xe && g_52fe[i].f08 == n
+                && g_1df8[2][i].f18 == 0) {
+                kind = 2;
+                t = i;
+                break;
+            }
+        }
+    }
+    if (t == -1 && (kind == 0xe || kind == 2))
+        t = g_7090[n].f40;
+    if (t > -1)
+        target = t;
+    if (target == -1) {
+        best = -1;
+        j = bestscore = 0;
+        for (; j <= g_9316; j++) {
+            if (j == n)
+                continue;
+            score = fn_13_2688(j, n) + 0x3c;
+            score += g_7090[j].f5d * 0x32;
+            if (g_96ea[g_7090[n].f4e].f20 == g_96ea[g_7090[j].f4e].f20)
+                score += 300;
+            if (g_6e72 == 0xe && j == g_6e70)
+                score += 100;
+            if (score > bestscore) {
+                best = j;
+                bestscore = score;
+            }
+        }
+        if (best >= 0)
+            target = best;
+    }
+    if (target == -1)
+        fn_03_06ec(n, 7, 0, 100);
+    else {
+        if (kind == 0xe)
+            fn_03_1d0a(n, target, 2);
+        else
+            describe_defender_order_message(n, target, 2);
+        fn_03_06ec(n, kind, target, 0x3a);
+    }
+}
+
+/* @addr 3:304c */
+void far describe_defender_order_message(int n, int k, int mode)
+{
+    int t1;
+    int n1;
+    int unused;
+    int n2;
+    int t2;
+    char name1[40];
+    char name2[40];
+    char line1[60];
+    char line2[60];
+
+    t1 = g_52fe[k].f0a;
+    n1 = g_52fe[k].f0c;
+    t2 = g_52fe[k].f06;
+    n2 = g_52fe[k].f08;
+    if (t1 != 0xe || n1 != n)
+        fn_03_1542(0, t1, n1, name1, 5);
+    else
+        LoadString(g_9212, 0x1c8, name1, 40);
+    if (t2 != 0xe || n2 != n)
+        fn_03_1542(0, t2, n2, name2, 5);
+    else
+        LoadString(g_9212, 0x1c8, name2, 40);
+    switch (g_52fe[k].f00) {
+    case 0xf:
+        if (fn_13_371c(t1, n1))
+            fn_10_a332(g_8d38, 0xbdf, 1, (LPSTR)name2);
+        else
+            fn_10_a332(g_8d38, 0xbe0, 1, (LPSTR)name1, t1 == 2, 0x9eb, 0x8a9,
+                       (LPSTR)name2);
+        break;
+    default:
+        fn_10_a332(g_8d38, 0x8aa, 1, (LPSTR)name2);
+        break;
+    case 0xa:
+        fn_10_a332(g_8d38, 0xbe1, 1, (LPSTR)name1, (LPSTR)name2);
+        break;
+    }
+    fn_03_3498(g_8d38, line1, line2);
+    if (lstrlen(line1) > 40 || lstrlen(line2) > 40)
+        g_9498++;
+    fn_03_31d0(mode, line1, line2);
 }

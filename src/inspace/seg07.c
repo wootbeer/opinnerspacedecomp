@@ -7,7 +7,9 @@
 typedef struct {
     int f00;
     int f02;
-    char p04[0x0c - 0x04];
+    int f04;                    /* +4 */
+    int f06;                    /* +6 */
+    char p08[0x0c - 0x08];
     int f0c;                    /* +c */
     int f0e;                    /* +e */
     int f10;                    /* +10 */
@@ -19,7 +21,9 @@ typedef struct {
     int f20;                    /* +20 */
     int f22;                    /* +22 */
     int f24;                    /* +24 */
-    char p26[0x2c - 0x26];
+    char p26[0x28 - 0x26];
+    int f28;                    /* +28 */
+    char p2a[0x2c - 0x2a];
     int f2c;                    /* +2c */
     char f2e;                   /* +2e */
     signed char f2f;            /* +2f */
@@ -62,15 +66,12 @@ typedef struct {                /* 0x23 bytes, DGROUP array at DS:57a8 */
 } REC_23;
 #pragma pack()
 
-typedef struct {                /* 0x15a bytes, DGROUP array at DS:70ae */
-    char p00[0x14];
-    int f14;
-    int f16;
-    char p18[0x1a - 0x18];
-    int f1a;
-    char p1c[0xb2 - 0x1c];
-    int fb2;
-    char pb4[0x15a - 0xb4];
+typedef struct {                /* 0x15a bytes, DGROUP array at DS:7090 */
+    char p00[0x4e];
+    int f4e;                    /* +4e */
+    char p50[0xd0 - 0x50];
+    int fd0;                    /* +d0 */
+    char pd2[0x15a - 0xd2];
 } REC_15A;
 
 typedef struct { int f0, f2, f4, f6; char rest[0x1e - 8]; } REC_1E;
@@ -133,7 +134,9 @@ typedef struct {
 extern REC_14 g_58bc[];
 extern REC_297 far *g_69f4;
 extern REC_23 g_57a8[];
-extern REC_15A g_70ae[];
+extern REC_15A g_7090[];
+extern POINT g_1050[];
+extern POINT g_7ba0[][64];
 extern REC_1E g_6e52[];
 extern REC_1E g_6ea8[];
 extern int g_94a2;
@@ -146,8 +149,11 @@ extern HDC g_3a04[8];
 extern HGDIOBJ g_3990[8];
 extern HPALETTE g_3a78[8];
 extern HGDIOBJ g_3aec[8];
-extern int g_1de4;
-extern int g_1de6;
+extern RECT g_1de4;                 /* icon window position */
+extern HMENU g_945a;
+extern int g_8f72;
+extern int g_8f68;
+extern int g_8fee;
 extern HINSTANCE g_8e66;
 extern HWND g_0a7c;
 
@@ -163,6 +169,7 @@ void far fn_07_4ffe(int n);
 void far fn_07_5660(int n);
 void far pascal fn_07_3294(int n);
 void far fn_07_63f2(void);
+void far fn_07_63b6(HMENU menu, LPCSTR text, int checked, UINT id);
 void far pascal fn_07_3400(int n);
 void far fn_07_2768(int n);
 void far fn_07_5ae8(int a, int b);
@@ -438,6 +445,58 @@ void far fn_07_3a42(int n)
     }
 }
 
+/* Builds the five-frame strip of a window pane in g_3a04[n] [inferred]. */
+/* @addr 7:477e */
+void far fn_07_477e(int n)
+{
+    int i;
+    int size;
+    int gap;
+    int bmp2;
+    HGDIOBJ old2;
+    int bmp;
+    HGDIOBJ old1;
+    HDC dc2;
+    HDC dc1;
+    HPALETTE pal;
+
+    fn_10_754a(0x6a, 0, n, 1);
+    size = g_1df8[0]->f22;
+    gap = g_1df8[0]->f24;
+    g_57a8[n].f00 = 0x59;
+    bmp = fn_10_6308(-1, -1, fn_10_6c02(0xe6, 0, -1), -1);
+    bmp2 = fn_10_6ec6(bmp);
+    dc1 = CreateCompatibleDC(g_13dc);
+    old1 = SelectObject(dc1, bmp);
+    if (g_920e)
+        pal = SelectPalette(dc1, g_920e, 0);
+    dc2 = CreateCompatibleDC(g_13dc);
+    old2 = SelectObject(dc2, bmp2);
+    if (!g_3a04[n]) {
+        g_3a04[n] = CreateCompatibleDC(g_13dc);
+        g_3aec[n] = CreateCompatibleBitmap(g_13dc, size * 5 + gap * 6, gap * 2 + size);
+        g_3990[n] = SelectObject(g_3a04[n], g_3aec[n]);
+        if (g_920e)
+            g_3a78[n] = SelectPalette(g_3a04[n], g_920e, 0);
+    }
+    PatBlt(g_3a04[n], 0, 0, size * 5 + gap * 6, gap * 2 + size, BLACKNESS);
+    for (i = 0; i < 5; i++) {
+        BitBlt(g_3a04[n], (gap + size) * i + gap, (12 << g_9156 >> 1) + gap, size,
+               size - (12 << g_9156 >> 1), g_3a02, (gap + size) * n + gap,
+               (12 << g_9156 >> 1) + gap, SRCCOPY);
+        BitBlt(g_3a04[n], (gap + size) * i + gap, gap, size, size, dc2, size * i, 0, SRCAND);
+        BitBlt(g_3a04[n], (gap + size) * i + gap, gap, size, size, dc1, size * i, 0, SRCPAINT);
+    }
+    SelectObject(dc1, old1);
+    SelectObject(dc2, old2);
+    if (pal)
+        SelectPalette(dc1, pal, 0);
+    DeleteDC(dc1);
+    DeleteDC(dc2);
+    DeleteObject(bmp2);
+    DeleteObject(bmp);
+}
+
 /* @addr 7:49b6 */
 void far fn_07_49b6(void)
 {
@@ -504,7 +563,7 @@ void far fn_07_5ae8(int a, int b)
     } else {
         g_69f4[g_94a2].f14e++;
         if (g_57a8[a].f0a == g_9324)
-            g_70ae[g_57a8[a].f0b].fb2++;
+            g_7090[g_57a8[a].f0b].fd0++;
         g_945e++;
     }
     if (g_91fc == 0 && g_69f4[g_94a2].f1d0 != 1)
@@ -568,6 +627,84 @@ void far fn_07_5d6a(int a, int b, int unused, int c, int d)
         }
 }
 
+/* Window procedure of the "IS_ICON" pilot-icon window [inferred]. */
+/* @addr 7:6184 */
+LONG far pascal fn_07_6184(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
+{
+    RECT r;
+    RECT rc;
+    PAINTSTRUCT ps;
+    HDC dc;
+    MINMAXINFO far *mmi;
+    UINT cmd;
+    int res;
+
+    switch (msg) {
+    case WM_CREATE:
+        g_9458 = hwnd;
+        g_945a = GetSystemMenu(hwnd, FALSE);
+        AppendMenu(g_945a, MF_SEPARATOR, 0, NULL);
+        AppendMenu(g_945a, 0, 0xf0, "1/2x Scale");
+        fn_07_63b6(g_945a, "1/2x Scale", g_0b6e, 0xf0);
+        DrawMenuBar(g_9458);
+        break;
+    case WM_SYSCOMMAND:
+        switch (cmd = wp & 0xfff0) {
+        case 0xf0:
+            fn_07_63b6(g_945a, "1/2x Scale", g_0b6e = !g_0b6e, 0xf0);
+            GetWindowRect(g_9458, &r);
+            MoveWindow(g_9458, r.left, r.top, r.right - r.left, r.bottom - r.top, TRUE);
+            SetActiveWindow(g_0016);
+            break;
+        case SC_CLOSE:
+            g_8f72 = 0;
+        default:
+            return DefWindowProc(hwnd, msg, wp, lp);
+        }
+        break;
+    default:
+        return DefWindowProc(hwnd, msg, wp, lp);
+    case WM_SETFOCUS:
+        g_8f68 = 1;
+        break;
+    case WM_MOVE:
+        GetWindowRect(g_9458, &r);
+        if (r.left != g_1de4.left || r.top != g_1de4.top) {
+            CopyRect(&g_1de4, &r);
+            g_8fee = 1;
+        }
+        SetActiveWindow(g_0016);
+        break;
+    case WM_GETMINMAXINFO:
+        mmi = (MINMAXINFO far *)lp;
+        mmi->ptMinTrackSize.x = mmi->ptMaxTrackSize.x = 50 >> g_0b6e;
+        if (g_0b6e)
+            mmi->ptMinTrackSize.y = mmi->ptMaxTrackSize.y
+                = GetSystemMetrics(SM_CYCAPTION) + g_91fe * 23 + 3;
+        else
+            mmi->ptMinTrackSize.y = mmi->ptMaxTrackSize.y
+                = GetSystemMetrics(SM_CYCAPTION) + g_91fe * 46 + 6;
+        break;
+    case WM_PAINT:
+        InvalidateRect(hwnd, NULL, TRUE);
+        GetClientRect(hwnd, &rc);
+        dc = BeginPaint(hwnd, &ps);
+        PatBlt(dc, 0, 0, rc.right, rc.bottom, BLACKNESS);
+        res = fn_07_64ac(dc, 1, -1);
+        EndPaint(hwnd, &ps);
+        if (!res)
+            fn_07_63f2();
+        break;
+    case WM_CLOSE:
+        if (g_9458) {
+            DestroyWindow(g_9458);
+            g_9458 = 0;
+        }
+        break;
+    }
+    return 0L;
+}
+
 /* @addr 7:63b6 */
 void far fn_07_63b6(HMENU menu, LPCSTR text, int checked, UINT id)
 {
@@ -592,7 +729,7 @@ void far fn_07_641a(void)
             g_6ea8[i].f0 = 2;
             g_6ea8[i].f2 = i * 0x2e + 2;
         }
-        CreateWindow("IS_ICON", "", 0x10cc0000L, g_1de4, g_1de6, 50, 150,
+        CreateWindow("IS_ICON", "", 0x10cc0000L, g_1de4.left, g_1de4.top, 50, 150,
                      g_0016, 0, g_8e66, 0L);
     }
     SetActiveWindow(g_0016);
@@ -659,10 +796,57 @@ void far fn_07_63f2(void)
 }
 
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
-void far fn_07_5b68(int a, int b, int c)
+/* Spawns a spark/debris particle at an object [inferred]. */
+/* @addr 7:5b68 */
+void far fn_07_5b68(int type, int idx, int flag)
 {
-    g_0a76 = a + b + c;
+    int u1;
+    int u2;
+    int i;
+    int r;
+    int chance;
+
+    switch (g_9208) {
+    case 0:
+        chance = 25;
+        break;
+    case 1:
+        chance = 45;
+        break;
+    case 2:
+        chance = 65;
+        break;
+    case 3:
+        chance = 90;
+        break;
+    }
+    if (g_9208 != 3 && rand() % 100 > chance)
+        return;
+    for (i = 0; i < 20; i++) {
+        if (g_58bc[i].f10 == -1) {
+            g_58bc[i].f10 = 0;
+            if (type == g_9324) {
+                g_58bc[i].c.x = (g_7ba0[g_7090[idx].f4e][g_1df8[type][idx].f28].x
+                                 - g_1050[g_1df8[type][idx].f28].x / 4 - 4) * 8
+                                + g_1df8[type][idx].f04;
+                g_58bc[i].c.y = (g_7ba0[g_7090[idx].f4e][g_1df8[type][idx].f28].y
+                                 - g_1050[g_1df8[type][idx].f28].y / 4 - 4) * 8
+                                + g_1df8[type][idx].f06;
+                g_58bc[i].fc = g_1df8[type][idx].f0c - g_1050[g_1df8[type][idx].f28].x / 2;
+                g_58bc[i].fe = g_1df8[type][idx].f0e - g_1050[g_1df8[type][idx].f28].y / 2;
+            } else {
+                g_58bc[i].c.x = rand() % g_1df8[type][idx].f20 + g_1df8[type][idx].f04;
+                g_58bc[i].c.y = rand() % g_1df8[type][idx].f20 + g_1df8[type][idx].f06;
+                r = rand() % 16;
+                g_58bc[i].fc = g_1050[r].x / 2 + g_1df8[type][idx].f0c / 2;
+                g_58bc[i].fe = g_1050[r].y / 2 + g_1df8[type][idx].f0e / 2;
+            }
+            if (flag)
+                fn_10_754a(1, type, idx, 1);
+            g_9456++;
+            return;
+        }
+    }
 }
 
 /* Not yet decompiled: stub so calls to it compile as near calls. */

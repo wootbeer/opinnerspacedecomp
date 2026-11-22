@@ -99,6 +99,26 @@ void far fn_10_0136(void);
 void far fn_11_a4a6(long a, long b, int c);
 void far fn_11_a9ea(int a);
 
+/* 0x7c-byte records, far array at DS:6e24 [inferred]. */
+typedef struct {
+    char p00[0x7a];
+    char f7a;
+    char f7b;
+} REC_7C;
+extern REC_7C far *g_6e24;
+typedef struct {                /* 0x15a bytes, DGROUP array at DS:7090 */
+    char p00[0xd6];
+    int fd6;                    /* +d6 */
+    char pd8[0x15a - 0xd8];
+} REC_15A;
+extern REC_15A g_7090[];
+extern int g_9646;
+extern POINT g_3d08[2];
+extern int g_3ce8[2];
+
+extern POINT g_3c8c[4];         /* polygon; [3] also used as offset/size [inferred] */
+extern int g_3ce6;
+
 void far fn_15_152e(void);
 
 
@@ -353,10 +373,101 @@ void far fn_15_3590(void)
     }
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Builds the two-frame bitmap pair g_3ccc[] from the bitmaps g_92b0[1..2]
+ * [inferred]. */
+/* @addr 15:1eac */
 void far fn_15_1eac(void)
 {
-    g_92a2 = 0;
+    int u1[2];
+    HGDIOBJ old[2];
+    HDC dc[2];
+    HPALETTE pal[2];
+    int i;
+    int u2[2];
+    int size;
+    int scale;
+    int h;
+
+    if (g_90ee < 8)
+        scale = 4;
+    else
+        scale = 2;
+    size = (g_6e24[g_7090[g_9646].fd6].f7a + (g_6e24[g_7090[g_9646].fd6].f7b - 6) / 2) * scale;
+    for (i = g_3ce8[0] = h = 0; i < 2; i++) {
+        g_3d08[i].x = g_3d08[i].y = (g_6e24[g_7090[g_9646].fd6].f7a
+                                     + (g_6e24[g_7090[g_9646].fd6].f7b - 6) / 2) * 4;
+        g_3ce8[i] = h;
+        h += g_3d08[i].y;
+        dc[i] = CreateCompatibleDC(g_13dc);
+        old[i] = SelectObject(dc[i], g_92b0[i + 1]);
+        if (g_920e)
+            pal[i] = SelectPalette(dc[i], g_920e, 0);
+    }
+    g_3ccc[0] = CreateCompatibleBitmap(dc[0], g_3d08[0].x, h);
+    g_3cdc[0] = CreateCompatibleDC(dc[0]);
+    g_3cd0[0] = SelectObject(g_3cdc[0], g_3ccc[0]);
+    if (g_920e)
+        g_3ce0[0] = SelectPalette(g_3cdc[0], g_920e, 0);
+    PatBlt(g_3cdc[0], 0, 0, g_3d08[0].x, h, BLACKNESS);
+    SetStretchBltMode(g_3cdc[0], COLORONCOLOR);
+    for (i = 0; i < 2; i++)
+        fn_10_9962(0, g_3cdc[0], 0, g_3ce8[i], g_3d08[i].x, g_3d08[i].y, dc[i], 0, 0,
+                   size, size, SRCCOPY);
+    SelectObject(g_3cdc[0], g_3cd0[0]);
+    g_3ccc[1] = fn_10_6ec6(g_3ccc[0]);
+    g_3cdc[1] = CreateCompatibleDC(g_13dc);
+    g_3cd0[1] = SelectObject(g_3cdc[1], g_3ccc[1]);
+    g_3cd0[0] = SelectObject(g_3cdc[0], g_3ccc[0]);
+    for (i = 0; i < 2; i++) {
+        SelectObject(dc[i], old[i]);
+        if (pal[i])
+            SelectPalette(dc[i], pal[i], 0);
+        DeleteDC(dc[i]);
+    }
+}
+
+/* Draws the grey-shaded backdrop into g_92b6 [inferred]. */
+/* @addr 15:4a2e */
+void far fn_15_4a2e(void)
+{
+    HGDIOBJ oldbr;
+    HDC dc;
+    HBITMAP bmp;
+    HGDIOBJ oldbmp;
+    int i;
+    int step;
+    int c;
+    int u;
+
+    dc = CreateCompatibleDC(g_92b6);
+    oldbmp = SelectObject(dc, bmp = CreateCompatibleBitmap(dc, g_3ce6, g_3c8c[3].y));
+    PatBlt(dc, 0, 0, g_3ce6, g_3c8c[3].y, BLACKNESS);
+    oldbr = SelectObject(dc, GetStockObject(WHITE_BRUSH));
+    Polygon(dc, g_3c8c, 4);
+    SelectObject(dc, oldbr);
+    step = 1700 / g_3c8c[3].y;
+    c = 450;
+    for (i = 0; i < g_3c8c[3].y - 2; i += 2) {
+        oldbr = SelectObject(g_92b6, CreateSolidBrush(PALETTERGB(c / 10, c / 10, c / 10)));
+        BitBlt(g_92b6, 0, i, g_3ce6, 2, dc, 0, i, MERGECOPY);
+        DeleteObject(SelectObject(g_92b6, oldbr));
+        c = min(2550, c += step);
+    }
+    SelectObject(dc, oldbmp);
+    DeleteDC(dc);
+    DeleteObject(bmp);
+    oldbr = SelectObject(g_92b6, CreateSolidBrush(PALETTERGB(0x80, 0x80, 0x80)));
+    PatBlt(g_92b6, g_3c8c[3].x + 1, g_3c8c[3].y, g_3ce6 - 2, 10, PATCOPY);
+    DeleteObject(SelectObject(g_92b6, oldbr));
+    step = 227;
+    c = 450;
+    for (i = 0; i < 18; i += 2) {
+        oldbr = SelectObject(g_92b6, CreateSolidBrush(PALETTERGB(c / 10, c / 10, c / 10)));
+        PatBlt(g_92b6, g_3ce6 / 2 + i + g_3c8c[3].x - 18, g_3c8c[3].y + 10, 2, 42, PATCOPY);
+        PatBlt(g_92b6, g_3ce6 / 2 - i + g_3c8c[3].x + 16, g_3c8c[3].y + 10, 2, 42, PATCOPY);
+        DeleteObject(SelectObject(g_92b6, oldbr));
+        c = min(c + step, 2550);
+    }
 }
 
 /* Not yet decompiled: stub so calls to it compile as near calls. */

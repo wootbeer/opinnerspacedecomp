@@ -102,6 +102,14 @@ extern int g_9320;
 typedef struct { int f00; char p02[0x34 - 2]; } REC_34;
 extern REC_34 g_3d82[];
 extern REC_34 g_3d6c[];         /* the same records seen 0x16 bytes earlier */
+/* The same records from their start, DS:3d5a (as in seg10.c). */
+typedef struct {
+    int f00;                    /* +00 */
+    char p02[0x22 - 0x02];
+    int f22;                    /* +22 */
+    char p24[0x34 - 0x24];
+} REC_34B;
+extern REC_34B g_3d5a[];
 
 /* 0x10-byte records at DS:693c [inferred]. */
 typedef struct {
@@ -174,6 +182,8 @@ void far fn_11_9fdc(int type, int idx);
 void far fn_11_9daa(int type, int idx);
 void far fn_11_9078(int type, int idx);
 void far pascal fn_12_2db6(int type, int idx, int c, int d, int kind);
+int far pascal fn_12_67e8(POINT a, POINT b, int mode, int cur);
+void far fn_08_348e(int type, int idx, int type2, int idx2, int speed);
 extern int g_05a2;
 /* DS:05a0 is read as an int here (map width [inferred]); inspace.h
  * declares it long. */
@@ -568,4 +578,62 @@ void far fn_12_3778(void)
             fn_07_2080(10, -1);
         }
     }
+}
+
+/* Turn object (8, idx) one step toward object (14, idx2) [inferred]. */
+/* @addr 12:6902 */
+int far fn_12_6902(int idx, int idx2)
+{
+    int cur;
+    int dir;
+    int speed;
+
+    cur = g_1df8[8][idx].f28;
+    if (g_3d5a[idx].f22 > 400)
+        return fn_12_67e8(g_1df8[8][idx].f04, g_1df8[14][idx2].f04, 2, cur);
+    switch (g_3d5a[idx].f00) {
+    case 4:
+    case 5:
+        speed = 0x56;
+        break;
+    case 11:
+        speed = 0x3a;
+        break;
+    case 10:
+    case 16:
+        speed = 0x2a;
+        break;
+    case 1:
+        speed = 300;
+        break;
+    default:
+        speed = 0x5a;
+        break;
+    }
+    fn_08_348e(8, idx, 14, idx2, speed);
+    dir = fn_08_19b0(g_1df8[8][idx].f0c, g_1df8[8][idx].f0e);
+    g_1df8[8][idx].f0e = 0;
+    g_1df8[8][idx].f0c = g_1df8[8][idx].f0e;
+    if (dir < 0 || dir > 15)
+        return cur;
+    if (dir == cur)
+        return dir;
+    if (dir < cur) {
+        if (cur - dir < 9) {
+            cur--;
+        } else {
+            cur++;
+            if (cur > 15)
+                cur = 0;
+        }
+    } else {
+        if (dir - cur < 9) {
+            cur++;
+        } else {
+            cur--;
+            if (cur < 0)
+                cur = 15;
+        }
+    }
+    return cur;
 }

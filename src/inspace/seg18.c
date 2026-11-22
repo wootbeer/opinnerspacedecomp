@@ -98,9 +98,14 @@ typedef struct {                /* far pointer at DS:1e34 */
     int f0a;
     int f0c;
     int f0e;
-    char p10[0x20 - 0x10];
+    int f10;
+    int f12;
+    char p14[0x20 - 0x14];
     int f20;
     int f22;
+    int f24;
+    char p26[0x28 - 0x26];
+    int f28;
 } REC_1E34;
 extern REC_1E34 far *g_1e34;
 extern int g_88c0;
@@ -125,7 +130,10 @@ typedef struct {                /* 0x70-byte records */
     char p08[0x0c - 0x08];
     int f0c;
     int f0e;
-    char p10[0x70 - 0x10];
+    char p10[0x20 - 0x10];
+    int f20;
+    int f22;
+    char p24[0x70 - 0x24];
 } REC_70;
 extern REC_70 far *g_1df8[21];      /* 0-14: 0x460-byte blocks, 15-20: 0x70 */
 extern int g_9324;
@@ -150,7 +158,7 @@ extern int g_a1d3;
 extern int g_a1d1;
 extern int g_942a;
 typedef struct {                /* far pointer at DS:1e40 */
-    char p00[0x04];
+    POINT f00;
     POINT f04;
     char p08[0x0c - 0x08];
     int f0c;
@@ -185,12 +193,22 @@ void far fn_10_754a(int a, int b, int c, int d);
 void far fn_10_7480(int a, int b);
 void far fn_10_744c(int a);
 void far fn_12_6d64(int a, int b);
-void far fn_06_7c14(void);
+int far fn_06_7c14(void);
+POINT far pascal fn_08_29ea(POINT pt);
+int far pascal fn_08_285a(int far *p, int far *q, POINT a, POINT b);
 void far fn_18_17f6(void);
 void far fn_18_1cbe(int a);
 void far fn_18_52a0(void);
 void far fn_13_65f2(int);
 void far fn_11_02f0(void);
+int far pascal fn_08_19b0(int dx, int dy);
+int far fn_09_88ba(int x);
+extern signed char g_a198;
+extern int g_9676;
+extern HDC g_966a;
+extern int g_9678;
+extern POINT g_88f4[4];
+extern int g_3a36;
 
 /* @addr 18:034c */
 void far fn_18_034c(void)
@@ -346,8 +364,35 @@ int far fn_18_1dd0(void)
 }
 
 /* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_18_1934(int a, int b, int c)
+{
+}
+
+/* @addr 18:17f6 */
 void far fn_18_17f6(void)
 {
+    int unused1;
+    int unused2;
+
+    g_9672 = 0;
+    PatBlt(g_13dc, 0, 0, g_88c0, g_88c2 + g_88ea, BLACKNESS);
+    fn_18_1cbe(1);
+    fn_18_034c();
+    PatBlt(g_966a, (-7 << g_9156 * 2) + g_9678, (-7 << g_9156 * 2) + g_9678,
+           7 << g_9156 * 2, 7 << g_9156 * 2, BLACKNESS);
+    if (g_1318 <= 1) {
+        BitBlt(g_13dc, g_88f4[0].x, g_88f4[0].y, g_9678, g_9678,
+               g_966a, 0, g_9678, SRCCOPY);
+        BitBlt(g_13dc, g_88f4[1].x, g_88f4[1].y, g_9678, g_9678,
+               g_966a, g_9678, g_9678, SRCCOPY);
+        BitBlt(g_13dc, g_88f4[2].x, g_88f4[2].y, g_9678, g_9678,
+               g_966a, g_9678, 0, SRCCOPY);
+        BitBlt(g_13dc, g_88f4[3].x, g_88f4[3].y, g_9678, g_9678,
+               g_966a, 0, 0, SRCCOPY);
+    }
+    g_1e34->f10 = (g_1e34->f22 + g_1e34->f24) * g_1e34->f28 + g_1e34->f24;
+    g_1e34->f12 = g_1e34->f24;
+    fn_18_1934(g_3a36, 1, 0xf00);
 }
 
 /* Draws the two score lines when they changed [inferred]. */
@@ -603,4 +648,70 @@ void far fn_18_621e(void)
     if ((g_70ae[g_9646].f06 = g_7090[g_9646].f0a) == 2)
         g_70ae[g_9646].fc2 = g_70ae[g_9646].fc3 = 1;
     fn_10_7480(-3, 1);
+}
+
+/* near-match 58%: 18:3f02 (branch 1 register allocation, 4 bytes more frame) */
+void far fn_18_3f02(int x, int y, int k)
+{
+    int unused1;
+    int a;
+    int dir;
+    int t;
+    int t1;
+    int t2;
+    POINT d;
+
+    fn_10_754a(0x10, x, y, 4);
+    a = g_1e34->f28;
+    d.x = x - g_1e34->f20 / 2 - g_1e34->f04;
+    d.y = y - g_1e34->f20 / 2 - g_1e34->f06;
+    dir = (fn_08_19b0(d.x, d.y) + 8) % 16;
+    t1 = fn_09_88ba(dir - a);
+    t2 = fn_09_88ba(dir > a ? dir - a - 16 : dir - a + 16);
+    t = min(t2, t1);
+    if (g_90f4 == 1)
+        g_9676 = min(max((21 - g_a198 * 5) * t * k * 2 / 20, (6 - g_a198) * 4) + g_9676,
+                     (10 - g_a198) * 12);
+    else {
+        g_9676 = min(max((8 - g_a198) * t * k * 6 / 20, (13 - g_a198) * 2) + g_9676,
+                     (15 - g_a198) * 8);
+        g_9676 = max(g_9676, 18);
+    }
+}
+
+/* @addr 18:50ac */
+void far fn_18_50ac(void)
+{
+    int unused1;
+    int unused2;
+    POINT pt;
+    int d;
+    int b;
+    int a;
+
+    if (g_1e40->f1a) {
+        g_1e40->f00 = fn_08_29ea(g_1e40->f04);
+        g_1e40->f24++;
+        if (g_1e40->f24 % 5 == 1) {
+            int m;
+
+            m = max(10 - g_a198, 0);
+            g_1e40->f0c = (m + 28) * g_1e40->f0c / (m + 29);
+            g_1e40->f0e = g_1e40->f0e * (m + 28) / (m + 29);
+        }
+        g_1e40->f00 = fn_08_29ea(g_1e40->f04);
+        g_1e40->f04.x += g_1e40->f0c;
+        g_1e40->f04.y += g_1e40->f0e;
+        if (fn_06_7c14()) {
+            g_1e40->f1a = 0;
+            g_942a = 0;
+            if (g_90f4 == 6)
+                fn_18_52a0();
+        }
+        pt.x = g_1df8[g_9324][g_9646].f20 / 2 + g_1df8[g_9324][g_9646].f04;
+        pt.y = g_1df8[g_9324][g_9646].f20 / 2 + g_1df8[g_9324][g_9646].f06;
+        d = fn_08_285a(&b, &a, g_1e40->f04, pt);
+        if (g_1e40->f24 > 40 && g_1df8[g_9324][g_9646].f22 > d)
+            fn_18_5220(g_1e40->f28);
+    }
 }

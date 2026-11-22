@@ -8,11 +8,13 @@
 typedef struct {
     int f00;
     int f02;
-    char p04[0x0c - 0x04];
+    POINT f04;                  /* +4 */
+    char p08[0x0c - 0x08];
     int f0c;                    /* +c */
     int f0e;                    /* +e */
     int f10;                    /* +10 */
-    char p12[0x18 - 0x12];
+    int f12;                    /* +12 */
+    char p14[0x18 - 0x14];
     int f18;                    /* +18 */
     int f1a;                    /* +1a */
     int f1c;                    /* +1c */
@@ -20,7 +22,9 @@ typedef struct {
     int f20;                    /* +20 */
     int f22;                    /* +22 */
     int f24;                    /* +24 */
-    char p26[0x2c - 0x26];
+    char p26[0x28 - 0x26];
+    int f28;                    /* +28 */
+    char p2a[0x2c - 0x2a];
     int f2c;                    /* +2c */
     char f2e;                   /* +2e */
     char p2f[0x3c - 0x2f];
@@ -61,27 +65,41 @@ typedef struct {                /* 0x23 bytes, DGROUP array at DS:57a8 */
 } REC_23;
 #pragma pack()
 
-typedef struct {                /* 0x15a bytes, DGROUP array at DS:70ae */
-    char p00[0x14];
-    int f14;
-    int f16;
-    char p18[0x1a - 0x18];
-    int f1a;
-    char p1c[0xb2 - 0x1c];
-    int fb2;
-    char pb4[0xcd - 0xb4];
-    char fcd;
-    char pce[0x15a - 0xce];
+typedef struct {                /* 0x15a bytes, DGROUP array at DS:7090 */
+    char p00[0x10];
+    int f10;                    /* +10 */
+    char p12[0x32 - 0x12];
+    int f32;                    /* +32 */
+    int f34;                    /* +34 */
+    char p36[0x38 - 0x36];
+    int f38;                    /* +38 */
+    char p3a[0x4e - 0x3a];
+    int f4e;                    /* +4e */
+    int f50;                    /* +50 */
+    char p52[0x5e - 0x52];
+    char f5e;                   /* +5e */
+    char p5f[0x88 - 0x5f];
+    DWORD f88;                  /* +88 */
+    char p8c[0xd0 - 0x8c];
+    int fd0;                    /* +d0 */
+    char pd2[0xe4 - 0xd2];
+    char fe4;                   /* +e4 */
+    char pe5[0xe9 - 0xe5];
+    char fe9;                   /* +e9 */
+    char fea;                   /* +ea */
+    char feb;                   /* +eb */
+    char fec;                   /* +ec */
+    char ped[0x15a - 0xed];
 } REC_15A;
 
 typedef struct { int f0, f2, f4, f6; char rest[0x1e - 8]; } REC_1E;
 
-typedef struct { int x, y; char rest[0x70 - 4]; } REC_70P;
 
 extern REC_70 far *g_1df8[16];
-extern REC_70P far *g_1e30;
+extern REC_70 far *g_1e30;     /* = g_1df8[14] */
 extern int g_3a02;
 extern int g_3a28;
+extern int g_952e;
 extern int g_9646;
 extern int g_90ea;
 extern int g_90ec;
@@ -98,11 +116,13 @@ extern int g_952c;
 extern int g_9530;
 extern int g_914a;
 extern int g_92a2;
-extern int g_914c;
 extern DWORD g_1e64;
+extern DWORD g_1e50;
 extern DWORD g_1e8c;
-extern int g_9004;
+/* order g_0586, g_9004, g_914c and g_1e50 before g_1e8c: operand choice in 7:2206 */
 extern int g_0586;
+extern int g_9004;
+extern int g_914c;
 extern int g_0592;
 extern int g_059a;
 extern HGDIOBJ g_4e94[32];
@@ -114,7 +134,7 @@ extern int g_0b6e;
 extern int g_9316;
 extern int g_9432;
 extern DWORD g_8e28;
-extern DWORD g_1e50;
+
 extern int g_9156;
 extern int g_9456;
 extern int g_92ec[];
@@ -131,7 +151,7 @@ typedef struct {
 extern REC_14 g_58bc[];
 extern REC_297 far *g_69f4;
 extern REC_23 g_57a8[];
-extern REC_15A g_70ae[];
+extern REC_15A g_7090[];
 
 /* 0x5a-byte records at DS:221c, 4 of them [inferred: active dissolves]. */
 typedef struct {
@@ -161,6 +181,44 @@ extern int g_1de4;
 extern int g_1de6;
 extern HINSTANCE g_8e66;
 extern HWND g_0a7c;
+
+/* 20-byte records at DS:1e90 [inferred]. */
+typedef struct {
+    int f0;
+    char p2[4];
+    int f6;
+    int f8;
+    char pa[0x14 - 0x0a];
+} REC_14B;
+extern REC_14B g_1e90[];
+extern int g_9434;
+extern int g_951a;
+extern int g_9e49;
+extern int g_3a38;
+extern RECT g_1e5c;
+extern HDC g_39e8[];
+extern int subgame_active;              /* DS:9130 */
+extern int hazards_ship_redraw_pending; /* DS:058a */
+
+#pragma pack(1)
+typedef struct {                /* 0xad bytes, DGROUP array at DS:96f0 */
+    char p00[0x1a];
+    int f1a;                    /* +1a */
+    char p1c[0x24 - 0x1c];
+    int f24;                    /* +24 */
+    char p26[0xad - 0x26];
+} REC_AD;
+#pragma pack()
+extern REC_AD g_96f0[];
+extern int g_9318;
+extern int g_9140;
+extern int g_9320;
+extern int g_668a;
+extern int g_094e;
+extern int g_0950;
+void far fn_08_0000(void);
+void far fn_12_2556(int type, int idx);
+void far command_watch_ship(int a, int b);   /* 13:563c */
 
 void far pascal fn_08_1d54(int a, int b);
 void far pascal fn_08_1b54(int a, int b);
@@ -199,8 +257,53 @@ void far fn_07_119c(int a)
 /* @addr 7:11cc */
 void far fn_07_11cc(void)
 {
-    g_1e30[g_9646].x = g_90ea / 2;
-    g_1e30[g_9646].y = g_90ec / 2;
+    g_1e30[g_9646].f00 = g_90ea / 2;
+    g_1e30[g_9646].f02 = g_90ec / 2;
+}
+
+/* Updates the player ship sprite frame [inferred]. */
+/* @addr 7:1208 */
+void far fn_07_1208(void)
+{
+    int u1;
+    int u2;
+    int v;
+    int idx;
+    int i;
+    int w;
+    int h;
+    int mode;
+    int u3;
+
+    if (g_90f4 != 1 || g_1e30[g_9646].f18 != 0 || g_951a || subgame_active)
+        return;
+    if (g_9e49 >= 3 && g_9e49 <= 6 && g_9646 == g_952e)
+        return;
+    if (!g_3a38)
+        return;
+    if (!g_7090[g_9646].fec)
+        for (i = 0; i <= g_9434; i++)
+            if (g_1e90[i].f6 == 14 && g_1e90[i].f8 == g_9646 && g_1e90[i].f0 > 0
+                && g_1e90[i].f0 < 9)
+                return;
+    idx = g_9646;
+    w = g_1e30[idx].f22;
+    h = g_1e30[idx].f24;
+    SetRect(&g_1e5c, g_1e30[idx].f00 + 2, g_1e30[idx].f02 + 2,
+            g_1e30[idx].f00 + w - 2, g_1e30[idx].f02 + w - 2);
+    mode = g_7090[idx].f10;
+    u1 = g_7090[idx].fea;      /* never read: CL drops the store, keeps the load */
+    v = (g_7090[idx].fe4 ? idx : g_7090[idx].f50) + 40;
+    if (mode == 0 || mode == 7)
+        g_1e30[g_9646].f10 = g_1e30[g_9646].f28 * (h + w) + h;
+    else
+        g_1e30[g_9646].f10 = w * 16 + h * 17;
+    if (mode > 3)
+        g_1e30[g_9646].f12 = h * 2 + w;
+    else if (g_7090[idx].fe9)
+        g_1e30[g_9646].f12 = h;
+    fn_08_0b76((char)g_9646 | 0xe00, 1, g_39e8[v], 0);
+    hazards_ship_redraw_pending = 0;
 }
 
 /* Starts a dissolve effect on an object [inferred]. */
@@ -244,7 +347,7 @@ void far fn_07_13b2(char kind, int type, int idx)
         g_221c[i].f58 = 0;
         g_221c[i].r = r;
         if (type == 14)
-            g_70ae[idx].fcd = 1;
+            g_7090[idx].feb = 1;
         for (j = 0; j < 80; j++)
             g_221c[i].b[j] = 0;
         found = 1;
@@ -261,6 +364,53 @@ void far fn_07_13b2(char kind, int type, int idx)
     if (!found && type <= 14)
         PatBlt(g_13dc, g_1df8[type][idx].f00, g_1df8[type][idx].f02,
                g_1df8[type][idx].f22, g_1df8[type][idx].f22, BLACKNESS);
+}
+
+/* Respawns ships waiting in state 100 after their timer runs out [inferred].
+ * The redundant `j <= g_9316` test reproduces the extra jg. */
+/* @addr 7:1d0c */
+void far fn_07_1d0c(void)
+{
+    int i;
+    int t;
+    int j;
+    int r;
+
+    if (g_1e30[g_9646].f18 == 100)
+        fn_07_1208();
+    for (i = 0; i <= g_9316; i++) {
+        if (g_7090[i].f88 < g_1e50) {
+            t = g_96f0[g_7090[i].f4e].f1a;
+            for (j = i + 1; j <= g_9316; j++)
+                if (j <= g_9316 && g_1e30[i].f18 == 100 && g_1e30[j].f18 == 100) {
+                    g_7090[j].f88 = g_1e50 + 5000;
+                    break;
+                }
+            if (g_1e30[i].f18 == 100 && (t != 7 || g_7090[i].f5e != 1)) {
+                r = rand() % g_9318;
+                if (i == g_9646)
+                    r = 0;
+                g_1e30[i].f04 = g_1df8[8][r * 2].f04;
+                g_1e30[i].f04.x += (g_1df8[8][r * 2 + 1].f04.x - g_1df8[8][r * 2].f04.x) / 2
+                                   - g_1e30[i].f20 / 2 + g_1df8[8]->f20 / 2;
+                g_1e30[i].f18 = 0;
+                if (i == g_9646)
+                    g_96f0[g_7090[i].f4e].f24 = 1;
+                fn_08_0000();
+                fn_10_754a(0x27, 14, i, 1);
+                fn_12_2556(14, i);
+                fn_07_13b2(2, 14, i);
+                for (j = g_9140 = 0; j <= g_9316; j++)
+                    if (g_1e30[j].f18 == 100 && g_7090[j].fec)
+                        g_9140 = 1;
+                if (!g_9140 && g_9320 == 7)
+                    g_668a = 1;
+                if ((g_094e || g_0950) && i != g_9646)
+                    command_watch_ship(0, 0);
+                return;
+            }
+        }
+    }
 }
 
 /* @addr 7:1f38 */
@@ -326,7 +476,7 @@ void far fn_07_2128(void)
         return;
     }
     for (i = 0; i < g_9316; i++)
-        if (g_70ae[i].f14 == 14 && g_70ae[i].f16 == g_9646 && g_70ae[i].f1a == 1) {
+        if (g_7090[i].f32 == 14 && g_7090[i].f34 == g_9646 && g_7090[i].f38 == 1) {
             g_9432 -= max(g_9432 / 18, 4);
             if (g_9432 < 0)
                 g_9432 = 0;
@@ -349,7 +499,7 @@ void far fn_07_2128(void)
 
 /* Frame-rate bookkeeping [inferred]: counts frames per 250 ms and per
  * second and rescales g_9004 when off target. */
-/* near-match 76%: 7:2206 */
+/* @addr 7:2206 */
 void far fn_07_2206(void)
 {
     int a;
