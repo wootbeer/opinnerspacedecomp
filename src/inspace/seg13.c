@@ -2,10 +2,12 @@
  * Functions from 13:6900 on were a separate source file (they call
  * 2688/2714/4eec far, and are called far): see seg13b.c. */
 #include "inspace.h"
+#include <stdlib.h>
 
 extern int g_131a;                 /* debug output on when nonzero */
 
 /* BEGIN STRUCTS */
+typedef void (far *FNPTR)(int, int);  /* REC70 handler [inferred] */
 #pragma pack(1)
 /* Object records: array of 0x15a-byte records at DS:7092 [inferred base:
  * lowest offset accessed with an index * 0x15a]. Fields named by offset
@@ -13,14 +15,20 @@ extern int g_131a;                 /* debug output on when nonzero */
 typedef struct {
     char pad_000[0x4];
     int f_004;    /* DS:7096 */
-    char pad_006[0x8];
+    int f_006;    /* DS:7098 */
+    char pad_008[0x6];
     int f_00e;    /* DS:70a0 */
-    char pad_010[0x20];
+    char pad_010[0x14];
+    int f_024;    /* DS:70b6 */
+    int f_026;    /* DS:70b8 */
+    int f_028;    /* DS:70ba */
+    char pad_02a[0x6];
     int f_030;    /* DS:70c2 */
     int f_032;    /* DS:70c4 */
     char pad_034[0x2];
     int f_036;    /* DS:70c8 */
-    char pad_038[0x4];
+    char pad_038[0x2];
+    int f_03a;    /* DS:70cc */
     int f_03c;    /* DS:70ce */
     int f_03e;    /* DS:70d0 */
     char pad_040[0xc];
@@ -40,9 +48,18 @@ typedef struct {
     long f_092;    /* DS:7124 */
     unsigned long f_096;    /* DS:7128 */
     unsigned long f_09a;    /* DS:712c */
-    char pad_09e[0x36];
+    char pad_09e[0x4];
+    long f_0a2;    /* DS:7134 */
+    char pad_0a6[0x4];
+    char f_0aa;    /* DS:713c */
+    char f_0ab;    /* DS:713d */
+    char pad_0ac[0x20];
+    int f_0cc;    /* DS:715e */
+    char pad_0ce[0x6];
     int f_0d4;    /* DS:7166 */
-    char pad_0d6[0x13];
+    char pad_0d6[0x4];
+    int f_0da;    /* DS:716c */
+    char pad_0dc[0xd];
     char f_0e9;    /* DS:717b */
     char f_0ea;    /* DS:717c */
     char f_0eb;    /* DS:717d */
@@ -52,7 +69,7 @@ typedef struct {
     char f_146;    /* DS:71d8 */
     char f_147;    /* DS:71d9 */
     char pad_148[0xc];
-    long f_154;    /* DS:71e6 */
+    unsigned long f_154;    /* DS:71e6 */
     char pad_158[0x2];
 } OBJ15A;
 
@@ -72,7 +89,9 @@ typedef struct {
     int f_026;
     char pad_028[0x1e];
     int f_046;
-    char pad_048[0x28];
+    char pad_048[0x1e];
+    FNPTR f_066;
+    char pad_06a[0x6];
 } REC70;
 
 /* 0x41-byte records through the far pointer at DS:6e20 [inferred]. */
@@ -105,7 +124,8 @@ extern OBJ15A g_7092[];
  * child window [inferred], see fn_13_59e8). */
 typedef struct {
     int f_00;                       /* DS:6e3e */
-    char pad_02[0x0a - 0x02];
+    long f_02;                      /* DS:6e40: colour */
+    char pad_06[0x0a - 0x06];
     int f_0a;                       /* DS:6e48 */
     int f_0c;                       /* DS:6e4a */
     char pad_0e[0x10 - 0x0e];
@@ -145,23 +165,55 @@ extern REC70 far *g_1e30;
 extern REC70 far *g_1df8[];
 
 extern long g_1e50;
-extern int g_0a7c;
+extern HWND g_0a7c;
+extern int g_8f72;
+extern int g_8f74;
+extern int g_131c;
+extern REC70 far *g_1e24;
+extern int g_9302;
+extern int g_2390;
+extern int g_2392;
+
+/* 0x34-byte records at DS:8564 [inferred base]. */
+typedef struct {
+    int f_00;
+    char pad_02[0x34 - 0x02];
+} REC34;
+extern REC34 g_8564[];
 extern int g_1ddc;
 extern int g_1dde;
 extern int g_1de0;
 extern int g_9134;
-extern int g_6e8e;
-extern int g_6e90;
 extern int g_0a76;
 extern int g_9316;
 extern int g_92e8;
 extern int g_9324;
+extern int g_6e8e;
+extern int g_6e90;
 extern HINSTANCE g_8e66;
 extern int g_238c;
 extern int g_951a;
 extern int g_9646;
 
+/* Functions of this file (called near). */
+void far fn_13_4eca(LPCSTR text);
+int far fn_13_371c(int a, int b);
+void far fn_13_4eec(int i, int d);
+int far fn_13_2688(int i, int j);
+void far fn_13_498e(int a, int b);
+void far fn_13_4ba0(int a, int i, int b);
+void far fn_13_50b0(int a, int b);
+void far fn_13_5850(void);
+void far fn_13_58dc(HDC hdc, int b);
+void far fn_13_5a6a(HDC hdc, int x, int y, int s, int k, int w, int b, int c);
+void far fn_13_6362(void);
+void far fn_13_6450(int a, int b, int c);
+void far fn_13_6890(int i);
+
 void far fn_07_1208(void);
+void far fn_07_63f2(void);
+void far fn_07_2080(int a, int b);
+void far fn_07_64ac(int a, int b, int c);
 int far fn_03_0000(int a, int b);
 void far fn_03_06ec(int, int, int, int);
 void far fn_03_1d0a(int a, int b, int c);
@@ -360,14 +412,82 @@ void far fn_13_6450(int a, int b, int c)
 {
 }
 
+/* @addr 13:675e */
+void far fn_13_675e(void)
+{
+    int i;
+
+    for (i = 0; i <= g_9316; i++) {
+        if (g_131c || g_7092[i].f_154 + 10000 < g_1e50) {
+            if ((g_7092[i].f_154 < g_1e50 && i != g_9646)
+                || g_1df8[g_9324][i].f_018 != 0) {
+                g_7092[i].f_154 = g_1e50 + 5000;
+                fn_13_6890(i);
+            }
+        }
+    }
+    fn_13_50b0(0, 0);
+    if (g_6e3e[g_0a76 - 2].f_16 != g_9324)
+        fn_13_58dc(0, 0);
+    fn_07_64ac(0, 0, -1);
+    if (!g_95fe && g_9316 && g_8f74) {
+        i = 0;
+        g_95fa = 0;
+        for (; i <= g_9316; i++)
+            if (i != g_9646 && fn_03_0000(g_9324, i))
+                g_95fa++;
+        if (g_95fa)
+            PostMessage(g_0016, 0x9b4, 0, 0L);
+    }
+}
+
 /* Not yet decompiled: stub so calls to it compile as near calls. */
 void far fn_13_50b0(int a, int b)
 {
 }
 
 /* Not yet decompiled: stub so calls to it compile as near calls. */
-void far fn_13_58dc(int a, int b)
+void far fn_13_5a6a(HDC hdc, int x, int y, int s, int k, int w, int b, int c)
 {
+}
+
+/* Redraw the map child window [inferred: g_0a7c, modes 2/3 in g_0a76]. */
+/* @addr 13:58dc */
+void far fn_13_58dc(HDC hdc, int b)
+{
+    int u1, k, s, w, got, u2;
+    HPALETTE pal;
+
+    if (!g_0a7c)
+        return;
+    if (g_0a76 != 2 && g_0a76 != 3)
+        return;
+    if (g_9320 == 6 && g_0a76 == 2)
+        return;
+    w = g_0a76 - 2;
+    s = g_6e3e[w].f_16;
+    k = g_6e3e[w].f_14;
+    if (s != 7 && s != 12 && !fn_03_0000(s, k)) {
+        if (g_0a76 == 3) {
+            g_0a76 = 2;
+            PostMessage(g_0a7c, WM_PAINT, 0, 0L);
+        }
+        return;
+    }
+    got = 0;
+    if (hdc == 0) {
+        got = 1;
+        hdc = GetDC(g_0a7c);
+    }
+    if (g_920e)
+        pal = SelectPalette(hdc, g_920e, 0);
+    fn_13_5a6a(hdc, g_6e3e[w].f_10, g_6e3e[w].f_12, s, k, w, b, 0);
+    if (pal)
+        SelectPalette(hdc, pal, 0);
+    if (got) {
+        ReleaseDC(g_0a7c, hdc);
+        hdc = 0;
+    }
 }
 
 /* @addr 13:6890 */
@@ -375,7 +495,7 @@ void far fn_13_6890(int i)
 {
     if (g_95fe && i != g_9646)
         fn_13_6450(0, 2, i);
-    if (g_95fc && g_6e3e[0].f_16 == g_9324 && g_6e3e[0].f_14 == i)
+    if (g_95fc && g_6e90 == g_9324 && g_6e8e == i)
         fn_13_50b0(0, 2);
     if (g_6e3e[g_0a76 - 2].f_16 == g_9324 && g_6e3e[g_0a76 - 2].f_14 == i)
         fn_13_58dc(0, 2);
@@ -410,7 +530,7 @@ void far fn_13_57ac(void)
     fn_03_1542(0, g_6e90, g_6e8e, buf, 0);
     fn_11_3fd4(buf, 2);
     lstrcpy(title, buf);
-    if (g_6e90 == g_9324) {
+    if (g_9324 == g_6e90) {
         lstrcat(title, " - ");
         fn_17_8e60(g_6e8e, buf);
         fn_11_3fd4(buf, 2);
@@ -508,7 +628,7 @@ void far pascal fn_13_2f30(int i)
     lstrcpy(buf, g_8630);
     if (g_1df8[g_9324][i].f_01a != 0 || i == g_9646)
         fn_03_1d0a(100, i, (i != g_9646 || g_9134) ? 1 : 0);
-    if (lstrcmp(g_8630, buf)) {
+    if (lstrcmp(buf, g_8630)) {
         g_058c = 1;
         fn_13_4eca(g_8630);
         lstrcpy(buf, "\n\r");
@@ -516,8 +636,50 @@ void far pascal fn_13_2f30(int i)
     }
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* near-match 78%: 13:498e (the game lays out the last loop with its test
+ * at the top; CL puts it at the bottom here) */
 void far fn_13_498e(int a, int b)
+{
+    int i, best, bi, sel, found;
+
+    found = 0;
+    for (i = 0; i < g_9302; i++) {
+        if (g_1e24[i].f_018 != 0) {
+            fn_13_4ba0(a, i, b);
+            sel = i;
+            found = 1;
+            break;
+        }
+    }
+    if (!found) {
+        best = 0;
+        for (i = 0; i < g_9302; i++) {
+            if (g_8564[i].f_00 > best) {
+                best = g_8564[i].f_00;
+                bi = i;
+            }
+        }
+        g_1e24[bi].f_066(11, bi);
+        fn_13_4ba0(a, bi, b);
+        sel = bi;
+        fn_07_2080(11, -1);
+    }
+    if (b) {
+        for (i = 0; i <= g_9316; i++) {
+            if (g_7092[i].f_0ea
+                && ((g_970a[g_7092[i].f_04c].f_000 == 7 && g_7092[i].f_05c > 1)
+                    || g_970a[g_7092[i].f_04c].f_000 == 3)) {
+                g_7092[i].f_050 = 0;
+                g_7092[i].f_004 = g_7092[i].f_030 = 11;
+                g_7092[i].f_032 = g_7092[i].f_006 = sel;
+                g_7092[i].f_03a = g_7092[i].f_036 = 2;
+            }
+        }
+    }
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_13_4ba0(int a, int i, int b)
 {
 }
 
@@ -528,12 +690,9 @@ void far fn_13_4ac4(int a)
 
     fn_13_498e(a, 0);
     for (j = 0; j <= g_9316; j++) {
-        if (g_1e30[j].f_018 != 0 || j == a)
-            continue;
-        if (g_7092[j].f_036 != 1 || g_7092[j].f_030 != 14
-            || g_7092[j].f_032 != a)
-            continue;
-        if (g_7092[j].f_0d4 == -1) {
+        if (g_1e30[j].f_018 == 0 && j != a && g_7092[j].f_036 == 1
+            && g_7092[j].f_030 == 14 && g_7092[j].f_032 == a) {
+            if (g_7092[j].f_0d4 == -1) {
             g_8680[a] = j;
             g_7092[j].f_050 = 0x16;
             g_7092[j].f_052 = 14;
@@ -546,10 +705,102 @@ void far fn_13_4ac4(int a)
                 g_a152++;
             }
             return;
+            } else {
+            g_8680[a] = j;
+            g_7092[a].f_036 = 2;
+            g_7092[a].f_030 = 11;
+            g_7092[a].f_032 = 0;
+            }
         }
-        g_8680[a] = j;
-        g_7092[a].f_036 = 2;
-        g_7092[a].f_030 = 11;
-        g_7092[a].f_032 = 0;
+    }
+}
+
+/* Show/hide the game's child windows [inferred]. */
+/* @addr 13:65f2 */
+int far fn_13_65f2(int cmd)
+{
+    int r;
+
+    r = 1;
+    switch (cmd) {
+    case 3:
+        if (g_95fc)
+            ShowWindow(g_95fc, SW_HIDE);
+        if (g_9458)
+            ShowWindow(g_9458, SW_HIDE);
+        if (g_95fe)
+            ShowWindow(g_95fe, SW_HIDE);
+        break;
+    case 2:
+        if (g_95fc)
+            ShowWindow(g_95fc, SW_SHOW);
+        if (g_9458)
+            ShowWindow(g_9458, SW_SHOW);
+        if (g_95fe)
+            ShowWindow(g_95fe, SW_SHOW);
+        if (g_95fc || g_9458 || g_95fe)
+            SetActiveWindow(g_0016);
+        break;
+    case 1:
+        fn_13_5850();
+        fn_07_63f2();
+        fn_13_6362();
+        break;
+    case 0:
+        r = 0;
+        if (g_8f72 && !g_9458) {
+            PostMessage(g_0016, 0x9aa, 0, 0L);
+            r = 1;
+        }
+        if (g_8f74 && !g_95fe) {
+            PostMessage(g_0016, 0x9b4, 0, 0L);
+            r = 1;
+        }
+        break;
+    }
+    return r;
+}
+
+/* @addr 13:54da */
+void far fn_13_54da(HDC hdc, int a, int k, int j, int i, int shift)
+{
+    int y, x;
+
+    if (a == 0 && g_238c == 0 && g_1df8[j][i].f_00c == 0
+        && g_1df8[j][i].f_00e == 0)
+        return;
+    if (a == 0) {
+        g_6e3e[k].f_0a -= g_1df8[j][i].f_00c >> 2;
+        g_6e3e[k].f_0c -= g_1df8[j][i].f_00e >> 2;
+        if (g_238c) {
+            g_6e3e[k].f_0a += g_2390 >> 2;
+            g_6e3e[k].f_0c += g_2392 >> 2;
+        }
+        if (g_6e3e[k].f_0a < 0) {
+            g_6e3e[k].f_0a = 43;
+            g_6e3e[k].f_0c = rand() % 43;
+            g_6e3e[k].f_02 = 0xffff00L;
+        } else if (g_6e3e[k].f_0a > 43) {
+            g_6e3e[k].f_0a = 0;
+            g_6e3e[k].f_0c = rand() % 43;
+            g_6e3e[k].f_02 = 0xffff00L;
+        }
+        if (g_6e3e[k].f_0c < 0) {
+            g_6e3e[k].f_0c = 43;
+            g_6e3e[k].f_0a = rand() % 43;
+            g_6e3e[k].f_02 = 0xffff00L;
+        } else if (g_6e3e[k].f_0c > 43) {
+            g_6e3e[k].f_0c = 0;
+            g_6e3e[k].f_0a = rand() % 43;
+            g_6e3e[k].f_02 = 0xffff00L;
+        }
+    }
+    x = (g_6e3e[k].f_0a + g_6e3e[k].f_10) >> shift;
+    y = (g_6e3e[k].f_0c + g_6e3e[k].f_12) >> shift;
+    if (GetPixel(hdc, x, y) == 0) {
+        SetPixel(hdc, x, y, g_6e3e[k].f_02);
+        g_6e3e[k].f_00 = 1;
+    } else {
+        g_6e3e[k].f_00 = 0;
     }
 }

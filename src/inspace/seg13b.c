@@ -1,8 +1,10 @@
 /* INSPACE.EXE segment 13 (selector 1060), second source file (13:6900-end).
  * Calls into the first file (seg13.c: 2688, 2714, 4eec) are far. */
 #include "inspace.h"
+#include <stdlib.h>
 
 /* BEGIN STRUCTS */
+typedef void (far *FNPTR)(int, int);  /* REC70 handler [inferred] */
 #pragma pack(1)
 /* Object records: array of 0x15a-byte records at DS:7092 [inferred base:
  * lowest offset accessed with an index * 0x15a]. Fields named by offset
@@ -10,14 +12,20 @@
 typedef struct {
     char pad_000[0x4];
     int f_004;    /* DS:7096 */
-    char pad_006[0x8];
+    int f_006;    /* DS:7098 */
+    char pad_008[0x6];
     int f_00e;    /* DS:70a0 */
-    char pad_010[0x20];
+    char pad_010[0x14];
+    int f_024;    /* DS:70b6 */
+    int f_026;    /* DS:70b8 */
+    int f_028;    /* DS:70ba */
+    char pad_02a[0x6];
     int f_030;    /* DS:70c2 */
     int f_032;    /* DS:70c4 */
     char pad_034[0x2];
     int f_036;    /* DS:70c8 */
-    char pad_038[0x4];
+    char pad_038[0x2];
+    int f_03a;    /* DS:70cc */
     int f_03c;    /* DS:70ce */
     int f_03e;    /* DS:70d0 */
     char pad_040[0xc];
@@ -37,9 +45,18 @@ typedef struct {
     long f_092;    /* DS:7124 */
     unsigned long f_096;    /* DS:7128 */
     unsigned long f_09a;    /* DS:712c */
-    char pad_09e[0x36];
+    char pad_09e[0x4];
+    long f_0a2;    /* DS:7134 */
+    char pad_0a6[0x4];
+    char f_0aa;    /* DS:713c */
+    char f_0ab;    /* DS:713d */
+    char pad_0ac[0x20];
+    int f_0cc;    /* DS:715e */
+    char pad_0ce[0x6];
     int f_0d4;    /* DS:7166 */
-    char pad_0d6[0x13];
+    char pad_0d6[0x4];
+    int f_0da;    /* DS:716c */
+    char pad_0dc[0xd];
     char f_0e9;    /* DS:717b */
     char f_0ea;    /* DS:717c */
     char f_0eb;    /* DS:717d */
@@ -49,7 +66,7 @@ typedef struct {
     char f_146;    /* DS:71d8 */
     char f_147;    /* DS:71d9 */
     char pad_148[0xc];
-    long f_154;    /* DS:71e6 */
+    unsigned long f_154;    /* DS:71e6 */
     char pad_158[0x2];
 } OBJ15A;
 
@@ -69,7 +86,9 @@ typedef struct {
     int f_026;
     char pad_028[0x1e];
     int f_046;
-    char pad_048[0x28];
+    char pad_048[0x1e];
+    FNPTR f_066;
+    char pad_06a[0x6];
 } REC70;
 
 /* 0x41-byte records through the far pointer at DS:6e20 [inferred]. */
@@ -119,6 +138,10 @@ extern REC70 far *g_1df8[];
 extern REC70 far *g_1e00;
 extern int g_9406[];
 extern int g_940a;
+extern REC70 far *g_1e14;
+extern int g_1c8e[];
+extern int g_91f8;
+extern int g_9334;
 
 /* 0x24-byte records at DS:52ec [inferred base]. */
 typedef struct {
@@ -455,7 +478,8 @@ void far fn_13_9ae8(int a)
         fn_10_754a(0x15, 2, best, 1);
 }
 
-/* @addr 13:9f3e */
+/* near-match: 13:9f3e (the game has a dead `xor bx,bx` right after t is
+ * loaded; everything else matches, shifted by those 2 bytes) */
 void far fn_13_9f3e(int i)
 {
     int u1, u2, u3, t, cls, m, z;
@@ -477,6 +501,83 @@ void far fn_13_9f3e(int i)
             fn_03_06ec(g_7092[t].f_056, m, t, 0x13);
         g_7092[t].f_050 = 10;
         g_7092[t].f_092 = g_1e50;
+        fn_03_06ec(t, 14, i, 2);
+    }
+}
+
+/* @addr 13:9bb8 */
+int far fn_13_9bb8(int i, int b)
+{
+    int u1, u2, s;
+
+    if (g_1e14->f_018 == 0)
+        return 0;
+    s = g_7092[i].f_0cc;
+    s += g_7092[i].f_0da;
+    if (s < 250 && i != g_9646)
+        return 0;
+    if ((g_7092[g_9646].f_030 == 14 && g_7092[g_9646].f_032 == i)
+        || (g_7092[i].f_030 == 14 && g_7092[i].f_032 == g_9646)) {
+        if (g_7092[i].f_080 < 1700)
+            return 0;
+        if (g_7092[i].f_024 > 1)
+            return 0;
+    }
+    if (g_1c8e[i] == g_91f8)
+        return 0;
+    if (g_7092[i].f_026 <= 0 || g_7092[i].f_028 <= 0) {
+        g_1c8e[i] = g_91f8;
+        return 1;
+    }
+    if (g_7092[i].f_024 + g_7092[i].f_026 + g_7092[i].f_028
+        < max(min((b + 2) * 20 + s / 10, 180), 70)
+        || (g_7092[i].f_0cc > 200 && (g_9334 + 20) * 35 < s)) {
+        g_1c8e[i] = g_91f8;
+        return 1;
+    }
+    if (g_7092[i].f_0aa && g_7092[i].f_0ab)
+        return 0;
+    if (s > 500) {
+        g_1c8e[i] = g_91f8;
+        return 1;
+    }
+    return 0;
+}
+
+/* near-match 18%: 13:a01c (same logic as the game; the game keeps a dead
+ * class-record address in si and the zero in dx, CL drops/spills them) */
+void far fn_13_a01c(int i)
+{
+    int u1, u2, u3, t, m, z;
+    RECAD *p;
+
+    p = &g_970a[g_7092[i].f_04c];
+    m = g_7092[i].f_03c;
+    t = g_7092[i].f_03e;
+    z = 0;
+    if (m == 14 && g_970a[g_7092[t].f_04c].f_000 == 7) {
+        fn_03_06ec(i, m, t, 0x40);
+    } else if (m != 14 || g_970a[g_7092[i].f_04c].f_000
+                          != g_970a[g_7092[t].f_04c].f_000) {
+        fn_03_06ec(i, 7, z, 0x36);
+    } else if (g_7092[t].f_050 != z && g_7092[t].f_050 != 7
+               && g_7092[t].f_09a > g_1e50 && g_7092[t].f_05b > 0) {
+        fn_03_06ec(i, 14, t, 0x35);
+    } else {
+        if (g_7092[t].f_050 != 0)
+            fn_03_06ec(g_7092[t].f_056, 14, t, 0x13);
+        g_7092[t].f_050 = 12;
+        g_7092[t].f_030 = 14;
+        g_7092[t].f_032 = i;
+        g_7092[t].f_03a = g_7092[t].f_036 = 2;
+        g_7092[t].f_052 = 14;
+        g_7092[t].f_054 = i;
+        g_7092[t].f_056 = i;
+        g_7092[t].f_096 = g_1e50 + 25000;
+        g_7092[t].f_092 = g_1e50 + 500;
+        g_7092[i].f_09a = g_1e50 + 15000;
+        g_7092[t].f_0eb = 1;
+        g_7092[t].f_0a2 = g_1e50 - g_7092[t].f_05c * 2000 + 8000;
         fn_03_06ec(t, 14, i, 2);
     }
 }

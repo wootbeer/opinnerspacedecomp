@@ -115,3 +115,14 @@ Conventions
   old-style K&R definition.
 - More type notes: g_05a0 is read as int (map width, with g_05a2); 8:1cbe's
   first parameter is a 2-byte struct {unsigned char idx, type}.
+- Statement order, not chained assignment, decides which adjacent stores
+  merge into one dword store.
+- Variables used only through their address live on the stack.
+- A `continue` moves the loop test.
+- A shared tail reached from two conditions can come from a `goto` into
+  the shared block.
+- Object records (0x15a bytes) start at DS:7092 (the lowest offset ever
+  indexed), not 70ae. Field-offset mistakes hide in masked bytes; the
+  reference check catches them.
+- g_1e50 (millisecond clock) should be DWORD: compares against it are
+  unsigned.
