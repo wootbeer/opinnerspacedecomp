@@ -23,6 +23,7 @@ void far fn_15_482e(void);
 int far fn_15_374c(int a);
 extern int g_92a2;
 extern int g_0010;
+extern DWORD g_1e50;             /* declared before g_17f2: compare operand order (15:3590) */
 extern DWORD g_17f2;
 extern int g_93a6;
 extern int g_0928;
@@ -56,7 +57,7 @@ extern char g_87e0[];               /* run-time buffer (BSS) */
 extern char g_881c[];               /* run-time buffer (BSS) */
 extern DWORD g_6e28;
 extern long g_6e2c;
-extern DWORD g_1e50;
+
 
 extern int g_92a8;
 extern int g_92aa;
@@ -291,7 +292,7 @@ void far fn_15_3bfa(int w, int h)
     PatBlt(g_92b8, 0, 0, w, h, BLACKNESS);
 }
 
-/* near-match 99%: 15:3590 (only the operand order of the long compare in case 1 differs) */
+/* @addr 15:3590 */
 void far fn_15_3590(void)
 {
     int i;

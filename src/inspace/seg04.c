@@ -10,7 +10,7 @@
 /* 0x70-byte records; DS:1df8 holds one far array of them per object
  * type [inferred]. Only the fields this file uses are named. */
 typedef struct {
-    char p00[0x04];
+    POINT f00;                  /* +00 */
     POINT f04;                  /* +04: position [inferred] */
     char p08[0x0c - 0x08];
     int f0c;                    /* +0c */
@@ -34,20 +34,24 @@ typedef struct {
 /* 0x15a-byte records at DS:7090, indexed like the object records
  * [inferred]. */
 typedef struct {
-    char p000[0x12];
+    char p000[0x10];
+    int f10;                    /* +10 */
     int f12;                    /* +12 */
     char p014[0x18 - 0x14];
     int f18;                    /* +18 */
     char p01a[0x1e - 0x1a];
     int f1e;                    /* +1e */
-    char p020[0x32 - 0x20];
+    char p020[0x26 - 0x20];
+    int f26;                    /* +26 */
+    char p028[0x32 - 0x28];
     int f32;                    /* +32 */
     int f34;                    /* +34 */
     char p036[0x38 - 0x36];
     int f38;                    /* +38 */
     char p03a[0x3c - 0x3a];
     int f3c;                    /* +3c */
-    char p03e[0x4e - 0x3e];
+    char p03e[0x44 - 0x3e];
+    int f44[5];                 /* +44: history [inferred] */
     int f4e;                    /* +4e */
     char p050[0x5e - 0x50];
     char f5e;                   /* +5e */
@@ -61,14 +65,18 @@ typedef struct {
     int fce;                    /* +ce */
     char p0d0[0xd4 - 0xd0];
     int fd4;                    /* +d4 */
-    char p0d6[0xda - 0xd6];
+    char p0d6[0xd8 - 0xd6];
+    int fd8;                    /* +d8 */
     int fda;                    /* +da */
     long fdc;                   /* +dc */
-    char p0e0[0xe8 - 0xe0];
+    char p0e0[0xe2 - 0xe0];
+    char fe2;                   /* +e2 */
+    char p0e3[0xe8 - 0xe3];
     char fe8;                   /* +e8 */
     char p0e9[0xec - 0xe9];
     char fec;                   /* +ec */
-    char p0ed[0x146 - 0xed];
+    char p0ed[0x13e - 0xed];
+    char f13e[8];               /* +13e, indexed by object [inferred] */
     char f146;                  /* +146 */
     char p147;
     char f148;                  /* +148 */
@@ -141,6 +149,10 @@ extern int g_8e48[];
 extern int g_9ea2;
 extern int flow_interactive;        /* DS:95bc */
 extern unsigned long g_9e60[];
+extern long g_8e00;
+extern long g_8e04;
+extern int g_9680;
+extern int g_9682;
 
 void far fn_03_06ec(int a, int b, int n, int id);
 void far fn_07_1208(void);
@@ -161,6 +173,13 @@ void far fn_11_2f8c(void);
 void far pascal fn_13_1318(int type, int n, int t, int k);
 void far fn_13_4eec(int i, int d);
 void far fn_13_9a18(int n, int x, int y);
+POINT far pascal fn_08_29ea(POINT pt);
+int far pascal fn_08_19b0(int dx, int dy);
+void far pascal fn_03_332e(int a, int b);
+int far fn_11_4c72(int n);
+int far fn_11_4b00(int n);
+void far pascal fn_04_584c(int s, int n, int t);
+void far fn_04_6e70(int n);
 
 /* @addr 4:0000 */
 void far pascal fn_04_0000(int n)
@@ -539,4 +558,87 @@ int far fn_04_8d3a(void)
         }
     }
     return found;
+}
+/* @addr 4:5d9c */
+int far fn_04_5d9c(int a, int b)
+{
+    long a26;
+    long ad8;
+    long b26;
+    long bd8;
+    long x;
+    long y;
+
+    if (a >= 0 && a <= g_9316 && b >= 0 && b <= g_9316) {
+        ad8 = g_7090[a].fd8;
+        bd8 = g_7090[b].fd8;
+        a26 = g_7090[a].f26;
+        b26 = g_7090[b].f26;
+        x = (long)g_7090[a].f26 * ad8 / (a26 / 2 + 50);
+        y = (long)g_7090[b].f26 * bd8 / (b26 / 2 + 50);
+        if (y == 0)
+            y = 10;
+        return x * 100 / y;
+    }
+    return 100;
+}
+
+/* @addr 4:7d36 */
+void far fn_04_7d36(int a, int b, int c)
+{
+    int k;
+    int i;
+
+    if ((g_7090[a].f32 == 14 && g_7090[a].f34 == b)
+        || (g_7090[b].f32 == 14 && g_7090[b].f34 == a)) {
+        k = 1;
+        if (c > 30)
+            k = 2;
+        g_7090[a].f13e[b] = g_7090[a].f13e[b] + k > 6 ? 6 : g_7090[a].f13e[b] + k;
+        g_7090[b].f13e[a] = g_7090[b].f13e[a] - k < -6 ? -6 : g_7090[b].f13e[a] - k;
+        if (a == g_9646) {
+            g_9680++;
+            g_8e00 += c;
+        } else if (b == g_9646) {
+            g_9682++;
+            g_8e04 += c;
+        }
+    }
+    if (c > 0 && a == g_9646) {
+        for (i = 3; i >= 0; i--)
+            g_7090[b].f44[i + 1] = g_7090[b].f44[i];
+        g_7090[b].f44[0] = g_1e68 / 10;
+    }
+}
+
+/* Updates g_9684 with the player's race standing [inferred]. */
+/* @addr 4:8b82 */
+void far race_position(void)
+{
+    int i;
+    int score;
+    int mine;
+    int a;
+
+    if (g_1df8[14][g_9646].f51 == 0) {
+        if (g_7090[g_9646].fda < 0)
+            a = -g_7090[g_9646].fda;
+        else
+            a = g_7090[g_9646].fda;
+        mine = a * g_9ea2 + g_7090[g_9646].f148;
+        g_9684 = 1;
+        for (i = 0; i <= g_9316; i++) {
+            if (g_7090[i].fec && g_1df8[14][i].f18 == 0 && i != g_9646) {
+                if (g_7090[i].fda < 0)
+                    a = -g_7090[i].fda;
+                else
+                    a = g_7090[i].fda;
+                score = a * g_9ea2 + g_7090[i].f148;
+                if (score > mine)
+                    g_9684++;
+                if (mine == score && g_8e48[i] < g_8e48[g_9646])
+                    g_9684++;
+            }
+        }
+    }
 }

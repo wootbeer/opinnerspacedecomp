@@ -6,14 +6,28 @@
 typedef struct {
     char p000[0x18];
     int f18;                    /* +18 */
-    char p01a[0x84 - 0x1a];
+    char p01a[0x1e - 0x1a];
+    int f1e;                    /* +1e */
+    char p020[0x2c - 0x20];
+    int f2c;                    /* +2c */
+    int f2e;                    /* +2e */
+    char p030[0x84 - 0x30];
     unsigned long f84;          /* +84 */
     char p088[0xb8 - 0x88];
     char fb8[0x13];             /* +b8 */
     char fcb;                   /* +cb */
     char p0cc[0xe2 - 0xcc];
     char fe2;                   /* +e2 */
-    char p0e3[0x15a - 0xe3];
+    char p0e3[0xe7 - 0xe3];
+    char fe7;                   /* +e7 */
+    char fe8;                   /* +e8 */
+    char p0e9[0xeb - 0xe9];
+    char feb;                   /* +eb */
+    char p0ec[0x14a - 0xec];
+    POINT f14a;                 /* +14a */
+    long f14e;                  /* +14e */
+    unsigned long f152;         /* +152 */
+    char p156[0x15a - 0x156];
 } REC_15A;
 extern REC_15A g_7090[];
 
@@ -21,12 +35,19 @@ extern REC_15A g_7090[];
  * type [inferred]. */
 typedef struct {
     char p00[4];
-    int f04;                    /* +04 */
-    int f06;                    /* +06 */
-    char p08[0x4c - 8];
+    POINT f04;                  /* +04: position [inferred] */
+    char p08[0x18 - 8];
+    int f18;                    /* +18 */
+    char p1a[0x28 - 0x1a];
+    int f28;                    /* +28 */
+    char p2a[0x46 - 0x2a];
+    int f46;                    /* +46 */
+    char p48[0x4c - 0x48];
     COLORREF f4c;               /* +4c */
     char f50;                   /* +50 */
-    char p51[0x70 - 0x51];
+    char p51[0x62 - 0x51];
+    void (far pascal *f62)(int type, int n, HDC dc);   /* +62: draw [inferred] */
+    char p66[0x70 - 0x66];
 } REC_70;
 extern REC_70 far *g_1df8[16];
 
@@ -46,6 +67,16 @@ extern HWND g_0a7a;
 extern HWND g_0a7c;
 extern HWND g_0a7e;
 extern int g_13de;
+extern int g_1034;
+extern int g_1040;
+extern unsigned long g_5028;
+extern HBITMAP g_5036;
+extern int g_8e5a;
+extern int g_93c0;
+extern int g_93d8;
+extern int g_93da;
+extern int g_952e;
+extern int g_9e49;
 extern int g_1dcc[];
 extern int g_6b54[];
 extern int g_500a;
@@ -109,6 +140,31 @@ extern long g_5020;
 extern RECT g_5048;
 extern int g_5050;
 extern int g_5052;
+extern HBITMAP g_503c;
+extern HBITMAP g_503e;
+extern unsigned long g_1e68;
+extern long g_1e58;
+extern long g_5018;
+extern int g_104c;
+extern int g_90ea;
+extern int g_90f0;
+extern int g_93b8;
+extern int g_93dc;
+extern int g_951c;
+extern POINT g_5054[];
+extern int g_9316;
+extern int g_9326;
+extern int g_9406[];
+extern int g_9ea2;
+extern HBITMAP g_5030[12];
+extern HBITMAP g_93c8;
+extern HBITMAP g_93ca;
+extern HDC g_93cc;
+extern HPALETTE g_93d2;
+extern HBITMAP g_9400;
+extern HBITMAP g_9402;
+extern HPALETTE g_9404;
+extern HBRUSH g_5004[];
 
 long far pascal fn_11_1ab6(long x);
 long far pascal fn_11_1b44(long y);
@@ -121,20 +177,25 @@ void far fn_03_045a(int a);
 void far fn_16_638a(int a, int b, int c, int d);
 void far fn_16_614c(int msg, int wparam, long lparam);
 int far fn_10_6b54(void);
+int far fn_09_88ba(int x);
+void far fn_10_949c(HDC dc, int a, int b, int c, int d, int e);
+void far fn_12_2556(int type, int n);
+void far fn_07_13b2(char kind, int type, int n);
+void far fn_06_0eb8(long v, char far *buf);
+void far fn_10_94c4(int a, int b, long color, int x, int y, LPSTR s);
 void far fn_06_1c72(int a);
 void far fn_09_0d6c(void);
 void far fn_06_626c(void);
 
 /* Not yet decompiled: stubs so calls to them compile as near calls. */
-void far fn_11_04ea(void) { }
 void far fn_11_05fe(int a) { }
 void far fn_11_0978(void) { }
 void far fn_11_1ef6(int a) { }
 void far fn_11_33cc(void) { }
 HBITMAP far fn_11_2ff6(int a) { return 0; }
 void far pascal fn_11_4e0a(int a) { }
-void far fn_11_7650(int a, int b) { }
 void far fn_11_238e(HWND hwnd, HDC dc) { }
+void far fn_11_2154(char a, long color, int x, int y, LPSTR s) { }
 void far fn_11_2dac(HDC dc, int a, int b, int i) { }
 void far fn_11_41bc(HDC dc, int a, int b) { }
 void far fn_11_7902(int msg, int wparam, long lparam) { }
@@ -266,6 +327,41 @@ int far fn_11_b306(int c)
                 return g_94e4[i];
     }
     return c;
+}
+
+/* @addr 11:04ea */
+void far fn_11_04ea(void)
+{
+    char buf[20];
+    long color;
+    int k;
+
+    if (g_5018 != g_1e58) {
+        g_5018 = g_1e58;
+        if (g_5018 == 0)
+            lstrcpy(buf, "000");
+        else
+            fn_06_0eb8(g_1e58, buf);
+        if (g_951c) {
+            if (g_104c)
+                color = 0x02ffc800L;
+            else
+                color = 0x02ffffffL;
+        } else if (g_90f0)
+            color = 0x0200a0ffL;
+        else
+            color = 0x000080ffL;
+        if (g_90ea < 0x294) {
+            k = 2;
+            fn_11_2154(2, color, g_93dc + g_93b8 - k, g_8e5a + 0x2d, buf);
+        } else if (g_90ea < 0x2f8) {
+            k = 1;
+            fn_10_94c4(k, 2, color, g_93dc + g_93b8 - k, g_8e5a + 0x31, buf);
+        } else {
+            k = 3;
+            fn_10_94c4(0, 2, color, g_93dc + g_93b8 - k, g_8e5a + 0x31, buf);
+        }
+    }
 }
 
 /* @addr 11:04a0 */
@@ -491,6 +587,33 @@ void far fn_11_7588(int n)
     }
 }
 
+/* @addr 11:7650 */
+void far fn_11_7650(int a, int b)
+{
+    int unused;
+
+    if (g_9134 == 0 && (b != 0 || g_1034 == 0)) {
+        if (a > -1 && g_1df8[g_9324][g_9646].f28 == a)
+            g_1040 = 1;
+        else {
+            g_1040 = 0;
+            if (a > -1 && g_1df8[g_9324][g_9646].f28 != a) {
+                if (fn_09_88ba(g_1df8[g_9324][g_9646].f28 - a) > 8) {
+                    if (g_1df8[g_9324][g_9646].f28 < a)
+                        g_1044 = 1;
+                    else
+                        g_1046 = 1;
+                } else {
+                    if (g_1df8[g_9324][g_9646].f28 < a)
+                        g_1046 = 1;
+                    else
+                        g_1044 = 1;
+                }
+            }
+        }
+    }
+}
+
 /* @addr 11:7504 */
 void far fn_11_7504(void)
 {
@@ -666,8 +789,266 @@ void far pascal fn_11_3914(int type, int n, HDC dc)
 {
     POINT pt;
 
-    pt.x = fn_11_1ab6(g_1df8[type][n].f04) * g_0a6c * g_0a64 / g_501c + g_5050;
-    pt.y = fn_11_1b44(g_1df8[type][n].f06) * g_0a6c * g_0a68 / g_5020 + g_5052;
+    pt.x = fn_11_1ab6(g_1df8[type][n].f04.x) * g_0a6c * g_0a64 / g_501c + g_5050;
+    pt.y = fn_11_1b44(g_1df8[type][n].f04.y) * g_0a6c * g_0a68 / g_5020 + g_5052;
     if (PtInRect(&g_5048, pt))
         SetPixel(dc, pt.x, pt.y, g_1df8[type][n].f4c);
+}
+
+/* near-match 41%: 11:0894 (original keeps g_1e50 in eax+dx across the compare) */
+void far fn_11_0894(void)
+{
+    HDC dc;
+    HBITMAP oldbmp;
+    HPALETTE oldpal;
+
+    if (g_1e50 < g_5028)
+        return;
+    g_5028 = g_1e50 + 300;
+    if (g_9e49 == 0 && g_952e == g_9646)
+        g_93d8 = g_93d8 == 0;
+    else
+        g_93d8 = 1;
+    if (g_93da == g_93d8)
+        return;
+    dc = CreateCompatibleDC(g_13dc);
+    oldbmp = SelectObject(dc, g_5036);
+    if (g_920e)
+        oldpal = SelectPalette(dc, g_920e, 0);
+    BitBlt(g_13dc, g_93c0, g_8e5a + 2, 20, 20, dc, g_93d8 * 20, 0, SRCCOPY);
+    if (oldpal)
+        SelectPalette(dc, oldpal, 0);
+    SelectObject(dc, oldbmp);
+    DeleteDC(dc);
+    g_93da = g_93d8;
+}
+
+/* @addr 11:39d8 */
+void far pascal fn_11_39d8(int type, int n, HDC dc)
+{
+    POINT pt;
+
+    pt.x = fn_11_1ab6(g_1df8[type][n].f04.x) * g_0a6c * g_0a64 / g_501c + g_5050;
+    pt.y = fn_11_1b44(g_1df8[type][n].f04.y) * g_0a6c * g_0a68 / g_5020 + g_5052;
+    if (PtInRect(&g_5048, pt)) {
+        SelectObject(dc, g_5004[g_1df8[type][n].f46]);
+        PatBlt(dc, pt.x, pt.y, ((int)g_0a6c - 200) / 150 + 2,
+               ((int)g_0a6c - 200) / 200 + 2, PATCOPY);
+    }
+}
+
+/* @addr 11:3aca */
+void far pascal fn_11_3aca(int type, int n, HDC dc)
+{
+    POINT pt;
+    int first;
+
+    if (n == -1) {
+        n = g_9318 * 2;
+        first = 1;
+    } else
+        first = 0;
+    pt.x = fn_11_1ab6(g_1df8[type][n].f04.x) * g_0a6c * g_0a64 / g_501c + g_5050;
+    pt.y = fn_11_1b44(g_1df8[type][n].f04.y) * g_0a6c * g_0a68 / g_5020 + g_5052;
+    if (g_9318 * 2 == n && !first)
+        MoveTo(dc, pt.x, pt.y);
+    else
+        LineTo(dc, pt.x, pt.y);
+}
+
+/* @addr 11:3bae */
+void far pascal fn_11_3bae(int type, int n, HDC dc)
+{
+    POINT pt;
+
+    pt.x = fn_11_1ab6(g_1df8[type][n].f04.x) * g_0a6c * g_0a64 / g_501c + g_5050;
+    pt.y = fn_11_1b44(g_1df8[type][n].f04.y) * g_0a6c * g_0a68 / g_5020 + g_5052;
+    if (PtInRect(&g_5048, pt)) {
+        if (g_0a6c > 200) {
+            SelectObject(dc, g_5004[g_1df8[type][n].f46]);
+            PatBlt(dc, pt.x, pt.y, ((int)g_0a6c - 200) / 150 + 2,
+                   ((int)g_0a6c - 200) / 150 + 2, PATCOPY);
+        } else
+            SetPixel(dc, pt.x, pt.y, g_1df8[type][n].f4c);
+    }
+}
+
+/* @addr 11:01e0 */
+void far fn_11_01e0(void)
+{
+    int i;
+
+    for (i = 0; i < 8; i++) {
+        if (g_5004[i]) {
+            DeleteObject(g_5004[i]);
+            g_5004[i] = 0;
+        }
+    }
+    if (g_93cc) {
+        SelectObject(g_93cc, g_9400);
+        DeleteDC(g_93cc);
+        g_93cc = 0;
+    }
+    if (g_93ce) {
+        if (g_9404)
+            SelectPalette(g_93ce, g_9404, 0);
+        SelectObject(g_93ce, g_9402);
+        DeleteDC(g_93ce);
+        g_93ce = 0;
+    }
+    if (g_93d0) {
+        SelectObject(g_93d0, g_93ca);
+        if (g_920e)
+            SelectPalette(g_93d0, g_93d2, 0);
+        DeleteDC(g_93d0);
+        DeleteObject(g_93c8);
+        g_93d0 = 0;
+        g_93c8 = 0;
+    }
+    for (i = 0; i < 12; i++) {
+        if (g_5030[i]) {
+            DeleteObject(g_5030[i]);
+            g_5030[i] = 0;
+        }
+    }
+    fn_11_02f0();
+}
+
+/* @addr 11:367c */
+void far fn_11_367c(void)
+{
+    HBRUSH old;
+    int unused;
+    int type;
+    int i;
+
+    SetRect(&g_5048, g_5050 - g_0a72 / 2 + 1, g_5052 - g_0a74 / 2 + 1,
+            g_0a72 / 2 + g_5050 - 1, g_0a74 / 2 + g_5052 - 1);
+    g_0a6c = 100;
+    old = SelectObject(g_93ce, g_5004[0]);
+    for (i = 0; i <= g_9316; i++)
+        BitBlt(g_93ce, g_5054[i].x - 2, g_5054[i].y - 2, 5, 5,
+               g_93d0, g_5054[i].x - 2, g_5054[i].y - 2, SRCCOPY);
+    for (type = g_9326; type <= g_9324; type++) {
+        if (type == 0xe) {
+            for (i = 0; i < g_9406[type]; i++) {
+                if (g_1df8[type][i].f18 == 0
+                    && (type != 8 || g_9318 * 2 + g_9ea2 > i))
+                    g_1df8[type][i].f62(type, i, g_93ce);
+            }
+        }
+    }
+    SelectObject(g_93ce, old);
+}
+
+/* @addr 11:4c72 */
+int far fn_11_4c72(int n)
+{
+    if (g_7090[n].fe7 == 0)
+        return 0;
+    if ((n != g_9646 || g_9134) && g_1e68 - g_7090[n].f152 < 150)
+        return 0;
+    if (g_7090[n].fe8 == 0 && g_7090[n].f1e < 0x78)
+        return 0;
+    if (g_7090[n].feb == 0) {
+        if (g_7090[n].fe8) {
+            fn_12_2556(g_9324, n);
+            g_7090[n].f2e = 2;
+            fn_07_13b2(2, g_9324, n);
+            g_7090[n].fe8 = 0;
+            g_7090[n].f152 = g_1e68;
+            return 1;
+        }
+        if (g_7090[n].f2c == 0)
+            return 0;
+        if ((n != g_9646 || g_9134) && g_7090[n].f2c <= 0x28)
+            return 0;
+        g_7090[n].f14a = g_1df8[g_9324][n].f04;
+        g_7090[n].f14e = g_1e50;
+        fn_12_2556(g_9324, n);
+        g_7090[n].f2e = 2;
+        fn_07_13b2(1, g_9324, n);
+        g_7090[n].fe8 = 1;
+        g_7090[n].f152 = g_1e68;
+        return 1;
+    }
+    return 0;
+}
+
+/* Changes letter case in place by mode [inferred]. */
+/* @addr 11:3fd4 */
+void far fn_11_3fd4(LPSTR s, int mode)
+{
+    int i;
+    int unused;
+    int j;
+    int cap;
+
+    cap = 1;
+    for (i = unused = 0; i < lstrlen(s); i++) {
+        switch (mode) {
+        case 0:
+            cap = 0;
+            break;
+        case 1:
+            cap = 1;
+            break;
+        }
+        if (cap) {
+            if (s[i] < 0x7b && s[i] > 0x60)
+                s[i] -= 0x20;
+        } else {
+            if (s[i] < 0x5b && s[i] > 0x40)
+                s[i] += 0x20;
+        }
+        cap = 0;
+        if (mode == 2 && s[i] == ' ')
+            cap = 1;
+        if (lstrlen(s) - 3 > i && s[i] == ' ' && s[i + 1] == 'I' && s[i + 2] == ' ')
+            cap = 1;
+        if (mode == 3 && (s[i] == '.' || s[i] == '!' || s[i] == '\r' || s[i] == '\n')) {
+            cap = 1;
+            for (j = i + 1; j < lstrlen(s); j++) {
+                if (s[j] == ' ')
+                    i++;
+                else
+                    break;
+            }
+        }
+        if (s[i] == '(')
+            i++;
+    }
+}
+
+/* Builds two small bitmaps at start-up [inferred]. */
+/* @addr 11:0344 */
+void far fn_11_0344(void)
+{
+    int unused;
+    HBITMAP old2;
+    HBITMAP old1;
+    HDC dc2;
+    HDC dc1;
+    int i;
+
+    dc1 = CreateCompatibleDC(g_13dc);
+    old1 = SelectObject(dc1, g_5030[0]);
+    dc2 = CreateCompatibleDC(dc1);
+    old2 = SelectObject(dc2, g_503c = CreateCompatibleBitmap(dc1, 0x54, 0x3d));
+    fn_10_949c(dc2, 0, 0, 0x53, 0x3c, 2);
+    for (i = 0; i < 4; i++) {
+        fn_10_949c(dc2, 5, i * 14 + 5, 0x1c, 7, 3);
+        BitBlt(dc2, 0x29, i * 14 + 5, 0x20, 0xb, dc1, 0, (i + 1) * 11, SRCCOPY);
+    }
+    SelectObject(dc2, old2);
+    DeleteDC(dc2);
+    dc2 = CreateCompatibleDC(dc1);
+    old2 = SelectObject(dc2, g_503e = CreateCompatibleBitmap(dc1, 0x1e, 0x55));
+    fn_10_949c(dc2, 0, 0, 0x1d, 0x54, 2);
+    fn_10_949c(dc2, 6, 0x12, 0x10, 0x3e, 3);
+    BitBlt(dc2, 5, 5, 0x15, 0xb, dc1, 0, 0, SRCCOPY);
+    SelectObject(dc2, old2);
+    DeleteDC(dc2);
+    SelectObject(dc1, old1);
+    DeleteDC(dc1);
 }

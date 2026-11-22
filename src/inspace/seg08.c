@@ -210,6 +210,41 @@ void far pascal fn_08_1cbe(OBJREF r, int v)
         g_1df8[type][idx].f0e = -v;
 }
 
+/* Slow an object down by one unit per axis once |vx|+|vy| reaches v
+ * [inferred: friction]. */
+/* @addr 8:1d54 */
+void far pascal fn_08_1d54(OBJREF r, int v)
+{
+    int sum;
+    int sx;
+    int sy;
+    int type;
+    int idx;
+
+    type = r.type;
+    idx = r.idx;
+    if (g_1df8[type][idx].f0c > 0) {
+        sum = g_1df8[type][idx].f0c;
+        sx = 1;
+    } else {
+        sum = -g_1df8[type][idx].f0c;
+        sx = -1;
+    }
+    if (g_1df8[type][idx].f0e > 0) {
+        sum += g_1df8[type][idx].f0e;
+        sy = 1;
+    } else {
+        sum -= g_1df8[type][idx].f0e;
+        sy = -1;
+    }
+    if (sum >= v) {
+        if (g_1df8[type][idx].f0c != 0)
+            g_1df8[type][idx].f0c -= sx;
+        if (g_1df8[type][idx].f0e != 0)
+            g_1df8[type][idx].f0e -= sy;
+    }
+}
+
 /* Random positions and colours for g_9152 entries [inferred: stars]. */
 /* @addr 8:190e */
 void far fn_08_190e(void)

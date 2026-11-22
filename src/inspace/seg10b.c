@@ -65,6 +65,25 @@ extern int g_92f0;
 void far fn_15_5932(void);
 void far fn_10_022e(int a);
 void far fn_10_0552(int i, int a);
+void far fn_10_0136(void);
+void far fn_10_3864(void);
+void far fn_10_37d0(int i);
+void far fn_16_631c(void);
+void far fn_18_03d6(void);
+void far fn_15_14be(void);
+void far fn_11_02f0(void);
+void far fn_10_7d8e(void);
+void far fn_12_26a4(int a, int b);
+void far fn_09_8908(void);
+void far fn_09_699e(void);
+void far fn_10_5cfa(void);
+void far fn_10_5c1a(void);
+void far fn_09_1092(void);
+void far fn_07_49b6(void);
+extern int g_001a;
+extern int g_92ec[];
+extern HDC g_5e98[4];
+extern HGDIOBJ g_5ea0[4];
 void far fn_10_0522(int a);
 void far fn_10_7480(int a, int b);
 void far fn_15_1328(int a);
@@ -78,6 +97,22 @@ extern HGDIOBJ g_3820[2];
 extern HGDIOBJ g_5ea8[2];
 extern HINSTANCE g_9210;
 extern int g_3824[8][8];
+typedef struct {
+    int a;
+    int b;
+    int c;
+} REC_6;
+extern REC_6 g_38a4[6];             /* keys of surfaces 23..27 [inferred] */
+typedef struct {
+    char p00;
+    char f01;           /* +0x01 */
+    char p02[0x0e - 0x02];
+    int f0e;            /* +0x0e */
+    int f10;            /* +0x10 */
+    char rest[0x14 - 0x12];
+} REC_14B;              /* = seg17's REC_14 at DS:4d92 seen 2 bytes earlier [inferred] */
+extern REC_14B g_4d90[];
+extern int g_4ed4[];
 
 /* @addr 10:3864 */
 void far fn_10_3864(void)
@@ -115,10 +150,43 @@ int far fn_10_01fe(void)
     return 1;
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Shutdown [inferred]: frees the game's surfaces, DCs and other
+ * resources; a != 0 also calls fn_10_7d8e. */
+/* @addr 10:022e */
 void far fn_10_022e(int a)
 {
-    g_90f4 = a;
+    int i;
+    int j;
+
+    g_001a = 1;
+    fn_16_631c();
+    fn_18_03d6();
+    fn_15_14be();
+    fn_10_0136();
+    fn_10_3864();
+    fn_11_02f0();
+    if (a)
+        fn_10_7d8e();
+    for (i = 0; i <= 14; i++)
+        for (j = 0; j < g_92ec[i]; j++)
+            fn_12_26a4(i, j);
+    fn_09_8908();
+    fn_09_699e();
+    fn_10_5cfa();
+    for (i = 0; i <= 5; i++)
+        g_38a4[i].a = g_38a4[i].b = -1;
+    for (i = 0; i < 4; i++) {
+        if (g_5e98[i]) {
+            SelectObject(g_5e98[i], g_5ea0[i]);
+            DeleteDC(g_5e98[i]);
+            g_5e98[i] = 0;
+        }
+    }
+    for (i = 0; i < 3; i++)
+        fn_10_37d0(i);
+    fn_10_5c1a();
+    fn_09_1092();
+    fn_07_49b6();
 }
 
 /* @addr 10:0522 */
@@ -360,4 +428,35 @@ void far fn_10_38e0(void)
     }
     if (hg)
         FreeResource(hg);
+}
+
+/* Frees surfaces 23..27 (g_39e8 DCs) whose key in g_38a4 matches neither
+ * of the two entries g_4ed4[0..1]. */
+/* @addr 10:1dd8 */
+void far fn_10_1dd8(void)
+{
+    int i;
+    int j;
+    int found;
+
+    for (i = 23; i < 28; i++) {
+        if (g_39e8[i]) {
+            for (j = found = 0; j < 2; j++)
+                if (g_4d90[g_4ed4[j]].f10 == g_38a4[i - 23].b &&
+                    g_4d90[g_4ed4[j]].f0e == g_38a4[i - 23].a &&
+                    g_4d90[g_4ed4[j]].f01 == g_38a4[i - 23].c)
+                    found = 1;
+            if (!found) {
+                if (g_3a5c[i])
+                    SelectPalette(g_39e8[i], g_3a5c[i], 0);
+                SelectObject(g_39e8[i], g_3974[i]);
+                DeleteDC(g_39e8[i]);
+                g_38a4[i - 23].a = g_38a4[i - 23].b = g_39e8[i] = 0;
+                if (g_3ad0[i]) {
+                    DeleteObject(g_3ad0[i]);
+                    g_3ad0[i] = 0;
+                }
+            }
+        }
+    }
 }

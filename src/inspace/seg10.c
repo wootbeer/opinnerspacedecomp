@@ -3,6 +3,7 @@
 #include <time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/utime.h>
 
 extern int g_90f4;
 extern int g_9228;
@@ -29,7 +30,7 @@ extern int g_8ffa;
 extern int g_8ffc;
 extern DWORD g_1e50;
 extern DWORD g_3b94;
-extern void (far pascal *g_fp_3c64)(int, int, int, int, int, int, int);
+extern int (far pascal *g_fp_3c64)(int, int, int, int, int, int, int);
 void far fn_06_0b3e(void);
 void far fn_10_7480(int a, int b);
 void far fn_10_7f88(void);
@@ -61,7 +62,9 @@ extern int g_92fe;
 extern int g_9316;
 typedef struct {
     int id;
-    char rest[0x32];
+    char p02[0x12 - 0x02];
+    int f12;            /* +0x12 */
+    char rest[0x34 - 0x14];
 } REC_34;
 extern REC_34 g_3d5a[];
 extern int g_9416;
@@ -99,14 +102,20 @@ typedef struct {
     long f04;
     char p08[0x10];
     int f18;
-    char rest[0x70 - 0x1a];
+    char p1a[0x22 - 0x1a];
+    int f22;            /* +0x22 */
+    int f24;            /* +0x24 */
+    char rest[0x70 - 0x26];
 } REC_70;
 extern REC_70 far *g_1e00;
 extern int g_92f0;
 extern int g_3b9c[];
 typedef struct {
     int f00;
-    char rest[0x15a - 2];
+    char p02[0x4a - 0x02];
+    int f4a;            /* +0x4a */
+    int f4c;            /* +0x4c */
+    char rest[0x15a - 0x4e];
 } REC_15A_B;
 extern REC_15A_B g_7094[];
 extern int g_9646;
@@ -143,7 +152,51 @@ int far fn_10_82a2(int a);
 void far fn_10_81b6(void);
 void far fn_15_5932(void);
 void far fn_10_022e(int a);
+void far fn_10_0552(int i, int force);
 extern struct stat g_922e;
+typedef struct {
+    int f00;            /* +0x00 */
+    int f02;            /* +0x02 */
+    int f04;            /* +0x04: surface index */
+    int f06;            /* +0x06 */
+    char p08[0x0e - 0x08];
+    int f0e;            /* +0x0e */
+    char p10[0x12 - 0x10];
+    int f12;            /* +0x12 */
+    char p14[0x22 - 0x14];
+    int f22;            /* +0x22 */
+    int f24;            /* +0x24 */
+    char p26[0x2e - 0x26];
+    int f2e;            /* +0x2e */
+    char rest[0x50 - 0x30];
+} REC_50;
+extern REC_50 g_2f4c[];
+extern int g_931e;
+extern REC_70 far *g_1e10;
+void far fn_10_4412(int a, int b, int c, int d);
+void far fn_06_99b6(void);
+void far fn_06_885c(int a, int b);
+extern int g_9320;
+void far fn_10_3ea2(void);
+void far fn_10_58ce(int a);
+void far fn_10_565a(void);
+void far fn_10_5202(void);
+void far fn_10_3a2e(void);
+void far fn_10_42ee(void);
+void far race_marker_strip(void);
+extern long g_1e68;
+extern int g_8fe8;
+void far fn_09_27da(int a);
+extern HWND g_0a7c;
+extern int g_0a76;
+extern DWORD g_870c;
+extern int g_059c;
+extern int g_059e;
+extern long g_05c4;
+extern long g_05c8;
+extern int g_9214;
+extern int g_9406;
+extern struct utimbuf g_3c10[3];
 extern struct stat g_924c;
 extern struct stat g_926a;
 extern char g_8f7a[];
@@ -406,10 +459,29 @@ void far fn_10_80dc(void)
     r = stat(buf, &g_926a);
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Puts back the modification times fn_10_80dc saved for SYSTEM.INI,
+ * WIN.INI and IGRAPHIC.DLL. */
+/* @addr 10:81b6 */
 void far fn_10_81b6(void)
 {
-    g_90f4 = 1;
+    char buf[120];
+
+    GetWindowsDirectory(buf, 110);
+    if (buf[lstrlen(buf) - 1] != '\\')
+        lstrcat(buf, "\\");
+    lstrcat(buf, "SYSTEM.INI");
+    g_3c10[0].modtime = g_922e.st_mtime;
+    utime(buf, &g_3c10[0]);
+    GetWindowsDirectory(buf, 110);
+    if (buf[lstrlen(buf) - 1] != '\\')
+        lstrcat(buf, "\\");
+    lstrcat(buf, "WIN.INI");
+    g_3c10[1].modtime = g_924c.st_mtime;
+    utime(buf, &g_3c10[1]);
+    lstrcpy(buf, g_8f7a);
+    lstrcat(buf, "IGRAPHIC.DLL");
+    g_3c10[2].modtime = g_926a.st_mtime;
+    utime(buf, &g_3c10[2]);
 }
 
 /* Not yet decompiled: stub so calls to it compile as near calls. */
@@ -425,11 +497,34 @@ void far fn_10_561a(void)
         fn_10_6ee6(3, 0xb4, "", 0, 0x63, 3, 0, 1, 0, 12, 12, 0, 0);
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Builds surface a with g_fp_3c30 (a d >= 100 means d - 100 and no
+ * fn_10_6308 afterwards); h becomes a 0/1 flag. */
+/* @addr 10:6ee6 */
 void far fn_10_6ee6(int a, int b, char far *s, int c, int d, int e, int f,
                     int g, int h, int i, int j, int k, int l)
 {
-    g_90f4 = a;
+    int u[8];
+    int flag;
+
+    flag = 1;
+    if (g_39e8[a])
+        fn_10_0552(a, 0);
+    if (d >= 100) {
+        d -= 100;
+        flag = 0;
+    }
+    if ((g_9156 >= 2 && h != -1 && !l) || h > 1)
+        h = 1;
+    else
+        h = 0;
+    g_3ad0[a] = g_fp_3c30(g_920e, b, (long)s, g_13dc, c, d, e, f, g, h,
+                          (char)i, (char)j, (char)k, l);
+    g_39e8[a] = CreateCompatibleDC(g_13dc);
+    g_3974[a] = SelectObject(g_39e8[a], g_3ad0[a]);
+    if (g_920e)
+        g_3a5c[a] = SelectPalette(g_39e8[a], g_920e, 0);
+    if (!subgame_active && flag && (g_9156 != 2 || l))
+        fn_10_6308(a, -1, -1, -1);
 }
 
 /* @addr 10:740c */
@@ -897,4 +992,469 @@ void far fn_10_9962(int unused, HDC dst, int x, int y, int w, int h, HDC src,
         fn_10_6bca(dst, x, y, w, h, src, xs, ys, ws, hs, rop);
     else
         StretchBlt(dst, x, y, w, h, src, xs, ys, ws, hs, rop);
+}
+
+/* Recreates surface 13: a (32 + 6) * g_9406 + 6 by 6 * 2 + 32 bitmap,
+ * cleared to black. */
+/* @addr 10:5b30 */
+void far fn_10_5b30(void)
+{
+    int a;
+    int b;
+
+    a = 6;
+    b = 32;
+    if (!g_9288)
+        g_9288 = CreateCompatibleDC(g_13dc);
+    if (g_39e8[13]) {
+        SelectObject(g_39e8[13], g_3974[13]);
+        if (g_920e)
+            SelectPalette(g_39e8[13], g_3a5c[13], 0);
+        DeleteObject(g_3ad0[13]);
+        DeleteDC(g_39e8[13]);
+    }
+    g_39e8[13] = CreateCompatibleDC(g_13dc);
+    g_3ad0[13] = CreateCompatibleBitmap(g_13dc, (b + a) * g_9406 + a, a * 2 + b);
+    g_3974[13] = SelectObject(g_39e8[13], g_3ad0[13]);
+    if (g_920e)
+        g_3a5c[13] = SelectPalette(g_39e8[13], g_920e, 0);
+    PatBlt(g_39e8[13], 0, 0, (b + a) * g_9406 + a, b * a * 2, BLACKNESS);
+}
+
+/* Meal break check: g_9214 = 3 (Lunch, default 12:00), 4 (Breakfast,
+ * 8:00), 1 (Coffee, 10:00), 2 (Tea, 15:30) when the time read from the
+ * INI file lies in the half hour before now (hhmm + 1), else 0. */
+/* @addr 10:9672 */
+int far fn_10_9672(void)
+{
+    struct tm *tm;
+    time_t t;
+    int v;
+    int now;
+
+    time(&t);
+    tm = localtime(&t);
+    now = tm->tm_hour * 100 + tm->tm_min + 1;
+    if ((v = GetPrivateProfileInt(g_9690, "Lunch", 1200, g_96a9)) < now && v + 30 > now)
+        g_9214 = 3;
+    else if ((v = GetPrivateProfileInt(g_9690, "Breakfast", 800, g_96a9)) < now && v + 30 > now)
+        g_9214 = 4;
+    else if ((v = GetPrivateProfileInt(g_9690, "Coffee", 1000, g_96a9)) < now && v + 30 > now)
+        g_9214 = 1;
+    else if ((v = GetPrivateProfileInt(g_9690, "Tea", 1530, g_96a9)) < now && v + 30 > now)
+        g_9214 = 2;
+    else
+        g_9214 = 0;
+    return g_9214;
+}
+
+/* Changes the frame delay g_059c by 2 * d (clamped to 4..104, wrapping
+ * past 104 to 1200 [sic]), derives the frame rate values and saves
+ * "FrameRateSet" to the INI file. */
+/* @addr 10:7e1c */
+void far fn_10_7e1c(int d)
+{
+    int u;
+    char buf[8];
+    long l1;
+    long l2;
+    int q;
+    int r;
+    int u2;
+
+    if (g_0a7c) {
+        g_870c = g_1e50 + 5000;
+        g_0a76 = 4;
+        PostMessage(g_0a7c, WM_PAINT, 0, 0L);
+    }
+    g_059c += d * 2;
+    if (d < 0 && g_059c > 1000)
+        g_059c = 104;
+    g_059c = g_059c < 4 ? 4 : g_059c;
+    if (g_059c > 104)
+        g_059c = 1200;
+    g_059e = g_059c / 4;
+    g_05c4 = 1000 / g_059c;
+    q = 10000 / g_059c;
+    r = q % 10;
+    if (r > 4)
+        g_05c4++;
+    g_05c8 = g_05c4 - 1;
+    fn_06_0f1a(g_059c, buf);
+    WritePrivateProfileString(g_9690, "FrameRateSet", buf, g_96a9);
+}
+
+/* Copies surface 40 + g_7094[i].f4c into a new surface 40 + i sized from
+ * g_96d2[g_7094[i].f4a].f2a and the current ship's f24 [inferred]. */
+/* @addr 10:86e2 */
+void far fn_10_86e2(int i)
+{
+    int d;
+    int w;
+    int n;
+    int s;
+
+    w = g_96d2[g_7094[i].f4a].f2a;
+    n = g_1df8[g_9324]->f24;
+    d = i + 40;
+    s = g_7094[i].f4c + 40;
+    if (g_39e8[d])
+        fn_10_0552(d, 0);
+    g_3ad0[d] = CreateCompatibleBitmap(g_13dc, w * 16 + n * 17, n * 2 + w);
+    g_39e8[d] = CreateCompatibleDC(g_13dc);
+    g_3974[d] = SelectObject(g_39e8[d], g_3ad0[d]);
+    if (g_920e)
+        g_3a5c[d] = SelectPalette(g_39e8[d], g_920e, 0);
+    BitBlt(g_39e8[d], 0, 0, w * 16 + n * 17, n * 2 + w, g_39e8[s], 0, 0, SRCCOPY);
+}
+
+/* Creates surfaces 10 and 11 (bitmaps 0xaa and 0xaf, the second mirrored
+ * [inferred]) when either is missing. */
+/* @addr 10:5102 */
+void far fn_10_5102(void)
+{
+    int a;
+    int i;
+    int b, c, d, e;
+    int n;
+    int f;
+    int id;
+    int x;
+    int y;
+    int g, h, k, m;
+
+    if (!g_39e8[10] || !g_39e8[11]) {
+        for (i = 0; i < 2; i++) {
+            fn_10_740c();
+            if (i == 0) {
+                n = 10;
+                id = 0xaa;
+                if (g_8fe8)
+                    x = 2;
+                else
+                    x = 0;
+                y = 1;
+            } else if (i == 1) {
+                n = 11;
+                id = 0xaf;
+                x = 0;
+                y = -1;
+                if (!g_1e68)
+                    fn_09_27da(50);
+            }
+            if (!g_39e8[n]) {
+                g_3ad0[n] = fn_10_6c02(id, x, y);
+                g_39e8[n] = CreateCompatibleDC(g_13dc);
+                g_3974[n] = SelectObject(g_39e8[n], g_3ad0[n]);
+                if (g_920e)
+                    g_3a5c[n] = SelectPalette(g_39e8[n], g_920e, 0);
+                fn_10_740c();
+                fn_10_6308(n, -1, -1, -1);
+            }
+        }
+    }
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_10_3ea2(void)
+{
+    g_90f4 = 2;
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_10_58ce(int a)
+{
+    g_90f4 = a;
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_10_565a(void)
+{
+    g_90f4 = 3;
+}
+
+/* Builds surface 12: a 270 x 22 strip of six pieces of bitmap 200,
+ * growing in size [inferred]. */
+/* @addr 10:5202 */
+void far fn_10_5202(void)
+{
+    int i;
+    int h;
+    int u;
+    int x;
+    HBITMAP bm;
+    HBITMAP ob;
+    HDC dc;
+    HPALETTE pal;
+
+    bm = fn_10_6c02(200, 0, -1);
+    dc = CreateCompatibleDC(g_13dc);
+    ob = SelectObject(dc, bm);
+    if (g_920e)
+        pal = SelectPalette(dc, g_920e, 0);
+    x = 0;
+    g_3ad0[12] = CreateCompatibleBitmap(g_13dc, 270, h = 22);
+    g_39e8[12] = CreateCompatibleDC(g_13dc);
+    g_3974[12] = SelectObject(g_39e8[12], g_3ad0[12]);
+    if (g_920e)
+        g_3a5c[12] = SelectPalette(g_39e8[12], g_920e, 0);
+    PatBlt(g_39e8[12], 0, 0, 270, h, BLACKNESS);
+    for (i = 0; i <= 5; i++) {
+        u = (i + 5) * 6;
+        BitBlt(g_39e8[12], x * 3, 0, u, u / 3, dc, 0, x, SRCCOPY);
+        x += u / 3;
+    }
+    SelectObject(dc, ob);
+    DeleteObject(bm);
+    if (pal)
+        SelectPalette(dc, pal, 0);
+    DeleteDC(dc);
+    fn_10_6308(12, -1, -1, -1);
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_10_3a2e(void)
+{
+    g_90f4 = 5;
+}
+
+/* Builds surface 29 (89 x 33) from bitmaps 0x2b2..0x2b4. Selects the
+ * palette into g_13dc instead of the new DC and frees its temporary DC
+ * with DeleteObject [sic]. */
+/* @addr 10:42ee */
+void far fn_10_42ee(void)
+{
+    HDC dc;
+    HPALETTE old;
+    HBITMAP bm;
+    HBITMAP ob;
+    int i;
+    int u;
+    int u2;
+
+    if (!g_39e8[29]) {
+        dc = CreateCompatibleDC(g_13dc);
+        if (g_920e)
+            old = SelectPalette(dc, g_920e, 0);
+        g_39e8[29] = CreateCompatibleDC(g_13dc);
+        if (g_920e)
+            g_3a5c[29] = SelectPalette(g_13dc, g_920e, 0);
+        g_3ad0[29] = CreateCompatibleBitmap(g_13dc, 0x59, 0x21);
+        g_3974[29] = SelectObject(g_39e8[29], g_3ad0[29]);
+        PatBlt(g_39e8[29], 0, 0, 0x59, 0x21, BLACKNESS);
+        for (i = 0; i < 3; i++) {
+            ob = SelectObject(dc, bm = fn_10_6c02(i + 0x2b2, 3, -1));
+            BitBlt(g_39e8[29], i * 0x1c + 5, u = 5, 0x17, 0x17, dc, 0, 0, SRCCOPY);
+            SelectObject(dc, ob);
+            DeleteObject(bm);
+        }
+        if (g_920e)
+            SelectPalette(dc, old, 0);
+        DeleteObject(dc);
+        fn_10_6308(29, -1, -1, -1);
+    }
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far race_marker_strip(void)
+{
+    g_90f4 = 7;
+}
+
+/* Rebuilds the game's surfaces: frees each and calls its builder. */
+/* @addr 10:9568 */
+void far fn_10_9568(void)
+{
+    fn_10_0552(1, 1);
+    fn_10_0552(2, 1);
+    fn_10_3ea2();
+    fn_10_0552(22, 1);
+    fn_10_58ce(1);
+    fn_10_0552(4, 1);
+    fn_10_565a();
+    fn_10_0552(12, 1);
+    fn_10_5202();
+    fn_10_0552(5, 1);
+    fn_10_39a8(1);
+    fn_10_0552(6, 1);
+    fn_10_0552(8, 1);
+    fn_10_0552(7, 1);
+    fn_10_0552(9, 1);
+    fn_10_3a2e();
+    fn_10_0552(10, 1);
+    fn_10_0552(11, 1);
+    fn_10_5102();
+    fn_10_0552(29, 1);
+    fn_10_42ee();
+    fn_10_0552(3, 1);
+    fn_10_561a();
+    fn_10_0552(0, 1);
+    fn_10_464a();
+    fn_10_0552(30, 1);
+    if (g_9320 == 6)
+        race_marker_strip();
+}
+
+/* "StratAsk": while the INI value is 0 or 1, asks (strings 0xb22..0xb25)
+ * with a yes/no box; yes adds 10 to the value and saves it, no returns 0. */
+/* @addr 10:a96c */
+int far fn_10_a96c(void)
+{
+    int r;
+    int v;
+    char b0[200];
+    char b1[200];
+    char b2[200];
+
+    v = GetPrivateProfileInt(g_9690, "StratAsk", 0, g_96a9);
+    if (v == 0 || v == 1) {
+        fn_10_744c(0x2c);
+        LoadString(g_9212, 0xb22, b1, 200);
+        LoadString(g_9212, 0xb23, b2, 200);
+        lstrcat(b1, b2);
+        LoadString(g_9212, 0xb24, b2, 200);
+        lstrcat(b1, b2);
+        LoadString(g_9212, 0xb25, b2, 200);
+        lstrcat(b1, b2);
+        r = MessageBox(g_0016, b1, g_9690, MB_YESNO | MB_ICONEXCLAMATION);
+        if (r != IDYES)
+            return 0;
+        fn_06_0f1a(v += 10, b1);
+        WritePrivateProfileString(g_9690, "StratAsk", b1, g_96a9);
+    }
+    return 1;
+}
+
+/* Frees the surface of g_2f4c[a] unless another active entry of g_7148
+ * or g_3d5a (state 2) still uses it, or a is 22. */
+/* @addr 10:546e */
+void far fn_10_546e(int a)
+{
+    int i;
+    int j;
+    int s;
+
+    for (i = 0; i <= g_9316; i++) {
+        if (g_7148[i].flag) {
+            for (j = 0; j < g_7148[i].cnt; j++)
+                if (g_2f4c[g_7148[i].list[j]].f04 == g_2f4c[a].f04)
+                    return;
+        }
+    }
+    for (i = 0; i <= g_9416; i++)
+        if (g_3d5a[i].f12 == 2 && g_2f4c[g_3d5a[i].id].f04 == g_2f4c[a].f04)
+            return;
+    if (a == 22)
+        return;
+    s = g_2f4c[a].f04;
+    if (s < 0)
+        return;
+    if (g_39e8[s]) {
+        if (g_3a5c[s])
+            SelectPalette(g_39e8[s], g_3a5c[s], 0);
+        SelectObject(g_39e8[s], g_3974[s]);
+        DeleteDC(g_39e8[s]);
+        g_39e8[s] = 0;
+        g_2f4c[a].f04 = 0;
+        if (g_3ad0[s]) {
+            DeleteObject(g_3ad0[s]);
+            g_3ad0[s] = 0;
+        }
+    }
+}
+
+/* Quit/leave confirmation [inferred]: for a = 1, -1 or 3 asks only when
+ * "SavePrompt" is set or the "Restore" entry looks unused; shows the
+ * g_fp_3c64 dialog and on yes ends (a = 1 or -1 destroys the window). */
+/* @addr 10:8568 */
+int far fn_10_8568(int a)
+{
+    int r;
+    int ask;
+    char buf[80];
+
+    ask = 1;
+    fn_10_7480(-2, 1);
+    if (a == 1 || a == -1 || a == 3) {
+        ask = GetPrivateProfileInt(g_9690, "SavePrompt", 1, g_96a9);
+        if (!ask) {
+            GetPrivateProfileString(g_9690, "Restore", "", buf, 9, g_96a9);
+            if (buf[3] == ' ' || !buf[0])
+                ask = 1;
+        }
+    }
+    if (ask) {
+        fn_10_744c(0x6e);
+        fn_10_744c(0x13);
+        r = g_fp_3c64(g_0016, g_39e8[5], g_920e, 0, 0, 0, 3);
+        g_1e50 = GetCurrentTime();
+        g_3b94 = GetCurrentTime() + 500;
+    } else
+        r = 1;
+    if (r) {
+        switch (a) {
+        case 1:
+        case 2:
+        case 3:
+            fn_06_99b6();
+            if (a == 1)
+                DestroyWindow(g_0016);
+            break;
+        case -1:
+        case 0:
+            fn_06_885c(1, 0);
+            if (a == -1)
+                DestroyWindow(g_0016);
+            break;
+        }
+    }
+    fn_10_7480(-3, 1);
+    return r;
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_10_4412(int a, int b, int c, int d)
+{
+    g_90f4 = a + b + c + d;
+}
+
+/* Gives g_2f4c[a] a surface in 48..56: shares one already built for the
+ * same f06, else builds a new one (fn_10_4412 for kind 4, else
+ * fn_10_6ee6). Entries 22 and 27 are skipped. */
+/* @addr 10:533a */
+void far fn_10_533a(int a)
+{
+    int i;
+    int j;
+    int u;
+    int f;
+
+    if (a == 27 || a == 22)
+        return;
+    for (i = 0x30; i < 0x39; i++) {
+        if (g_39e8[i]) {
+            for (j = 0; j <= 27; j++)
+                if (g_2f4c[j].f12 && g_2f4c[j].f04 == i &&
+                    g_2f4c[j].f06 == g_2f4c[a].f06) {
+                    g_2f4c[a].f04 = i;
+                    return;
+                }
+        }
+    }
+    for (i = 0x30; i < 0x39; i++) {
+        if (!g_39e8[i]) {
+            g_2f4c[a].f04 = i;
+            g_1e10->f22 = g_2f4c[a].f00;
+            g_1e10->f24 = g_2f4c[a].f02;
+            if (g_2f4c[a].f0e == 4) {
+                fn_10_4412(i, 6, g_2f4c[a].f06, g_2f4c[a].f2e);
+            } else {
+                f = (g_90f4 == 1 && g_1e68 && (g_931e == 1 || g_931e == 2)) ||
+                    g_931e == 2 ? 1 : 0;
+                fn_10_6ee6(i, g_2f4c[a].f06, "", 2, 0x63, g_2f4c[a].f22,
+                           g_2f4c[a].f24, 1, 0, 12, 12, 0, f);
+            }
+            return;
+        }
+    }
 }

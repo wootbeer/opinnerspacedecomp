@@ -35,7 +35,10 @@ typedef struct {                /* 0x15a bytes, DGROUP array at DS:70ae */
     char f8f;
     char p90[0xb8 - 0x90];
     int fb8;
-    char pba[0xc6 - 0xba];
+    char pba[0xc2 - 0xba];
+    char fc2;
+    char fc3;
+    char pc4[0xc6 - 0xc4];
     char fc6;
     char pc7[0xce - 0xc7];
     char fce;
@@ -59,7 +62,8 @@ extern REC_7C far *g_6e24;
 
 #pragma pack(1)
 typedef struct {                /* 0xad bytes, DGROUP array at DS:96f0 */
-    char p00[0x0a];
+    int f00;
+    char p02[0x0a - 0x02];
     int f0a;
     char p0c[0xad - 0x0c];
 } REC_AD;
@@ -114,7 +118,11 @@ extern char g_a179;
 extern char g_a17a;
 extern HGLOBAL g_9100[];
 typedef struct {                /* 0x70-byte records */
-    char p00[0x0c];
+    int f00;
+    int f02;
+    int f04;
+    int f06;
+    char p08[0x0c - 0x08];
     int f0c;
     int f0e;
     char p10[0x70 - 0x10];
@@ -139,6 +147,7 @@ extern REC_14 g_58cc[20];
 extern int g_9510;
 extern long g_88d0;
 extern int g_a1d3;
+extern int g_a1d1;
 extern int g_942a;
 typedef struct {                /* far pointer at DS:1e40 */
     char p00[0x04];
@@ -549,4 +558,49 @@ void far fn_18_07b2(void)
         if (!b)
             fn_08_2cd8(g_9646, 1);
     }
+}
+
+/* The same 0x15a-byte records seen from DS:7090 (seg 3/4 base). */
+typedef struct {
+    char p00[0x0a];
+    int f0a;
+    char p0c[0x15a - 0x0c];
+} REC_7090;
+extern REC_7090 g_7090[];
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_18_1eac(void)
+{
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_18_2fee(int n)
+{
+}
+
+/* @addr 18:621e */
+void far fn_18_621e(void)
+{
+    int i;
+
+    g_a1d1 = g_a1cd;
+    g_a1d3 = 0;
+    g_6da4->f1c = 1;
+    for (i = 0; i < 4; i++)
+        g_a18f[i] = g_a193[i] = 1;
+    fn_18_1eac();
+    g_1df8[20][g_9646].f04 = (int)g_88cc / 2;
+    g_1df8[20][g_9646].f06 = 150;
+    g_1df8[20][g_9646].f00 = -1000;
+    g_1df8[20][g_9646].f02 = -1000;
+    g_1df8[20][g_9646].f0c = 50;
+    g_1df8[20][g_9646].f0e = 0;
+    for (i = 0; i < 4; i++)
+        g_70ae[g_9646].f08[i] = 100;
+    g_70ae[g_9646].f00 = g_96f0[g_70ae[g_9646].f30].f00;
+    if (!g_70ae[g_9646].f8e || !g_70ae[g_9646].f8f)
+        fn_18_2fee(g_9646);
+    if ((g_70ae[g_9646].f06 = g_7090[g_9646].f0a) == 2)
+        g_70ae[g_9646].fc3 = g_70ae[g_9646].fc2 = 1;
+    fn_10_7480(-3, 1);
 }

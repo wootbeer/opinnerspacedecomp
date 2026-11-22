@@ -1,5 +1,6 @@
 /* INSPACE.EXE segment 2 (selector 1008). */
 #include "inspace.h"
+#include <stdlib.h>
 
 extern int g_0020;
 extern RECT g_1d20;
@@ -30,7 +31,29 @@ extern char g_8f7a[];
 int far fn_06_1290(char far *key, int def);
 extern int g_0a7c;
 extern HWND g_9460;
-extern long g_90ea;
+extern int g_90ea;
+extern int g_90ec;
+extern int g_0010;
+extern int g_0a70;
+extern int g_0a78;
+extern int g_8e58;
+extern int g_8e5a;
+extern RECT g_1d28;
+extern RECT g_1d30;
+int far fn_10_0000(void);
+void far fn_02_0ca4(void);
+void far fn_07_11cc(void);
+void far fn_07_1208(void);
+extern int g_1038;
+extern int g_9646;
+typedef struct {
+    int x;              /* +0x00 */
+    int y;              /* +0x02 */
+    char p04[0x22 - 0x04];
+    int f22;            /* +0x22 */
+    char rest[0x70 - 0x24];
+} REC_70P;
+extern REC_70P far *g_1e30;
 extern int g_1dc4;
 extern int g_1dc6;
 extern int g_1dc8;
@@ -92,10 +115,10 @@ void far fn_02_084c(int id)
 {
     switch (id) {
     case 0x9fa:
-        g_8e5e = g_8f70 = 0;
+        g_8f70 = g_8e5e = 0;
         break;
     case 0x9f0:
-        g_8e5e = g_8f70 = 1;
+        g_8f70 = g_8e5e = 1;
         break;
     }
     g_90f8 = 1;
@@ -227,10 +250,32 @@ void far fn_02_1d58(void)
     }
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Measures the main window's client area (clipped to the screen) into
+ * g_90ea x g_0010, sets the clip region g_0012, seeds rand and runs
+ * fn_10_0000 with the window DC in g_13dc. */
+/* @addr 2:1ac8 */
 int far fn_02_1ac8(void)
 {
-    return g_90f4;
+    int r;
+    RECT rc;
+
+    g_13dc = GetDC(g_0016);
+    GetClientRect(g_0016, &rc);
+    g_90ea = rc.right < GetSystemMetrics(SM_CXSCREEN) ? rc.right : GetSystemMetrics(SM_CXSCREEN);
+    g_0010 = rc.bottom < GetSystemMetrics(SM_CYSCREEN) ? rc.bottom : GetSystemMetrics(SM_CYSCREEN);
+    g_90ec = g_0010 - g_0a70;
+    g_8e58 = 0;
+    g_8e5a = g_0010 - 0x55;
+    if (g_0012) {
+        DeleteObject(g_0012);
+        g_0012 = 0;
+    }
+    g_0012 = CreateRectRgn(0, 0, g_90ea, g_90ec);
+    srand(GetCurrentTime());
+    r = fn_10_0000();
+    ReleaseDC(g_0016, g_13dc);
+    g_13dc = 0;
+    return r;
 }
 
 /* @addr 2:1b96 */
@@ -291,7 +336,7 @@ void far fn_02_088e(void)
     char buf[80];
 
     if (g_0a7c && !g_9460) {
-        x = (int)g_90ea - 80;
+        x = g_90ea - 80;
         x = x < 640 ? 640 : x;
         x = x > 760 ? 760 : x;
         g_1dc8 = x + g_1dc4;
@@ -325,4 +370,66 @@ void far fn_02_1994(void)
             }
         }
     }
+}
+
+/* Sets the play-view rectangle g_1d30 and its clip region g_0012; g_1d28
+ * is a status strip [inferred]. */
+/* @addr 2:0ca4 */
+void far fn_02_0ca4(void)
+{
+    int t;
+    int l;
+    int b;
+    int u;
+
+    if (g_0a78) {
+        u = (0x3a - g_90ea % 0x3a) / 2;
+        l = 0x4e - u;
+        t = 0x4e;
+        g_1d28.left = l;
+        g_1d28.right = g_90ea - l * 2;
+        g_1d28.top = g_90ec - 0x28;
+        g_1d28.bottom = b = 20;
+    } else {
+        b = l = t = 0;
+        g_1d28.left = 0;
+        g_1d28.right = g_90ea;
+        g_1d28.top = g_0010 - 0x69;
+        g_1d28.bottom = 20;
+    }
+    if (g_9134)
+        b += 20;
+    if (g_0012) {
+        DeleteObject(g_0012);
+        g_0012 = 0;
+    }
+    SetRect(&g_1d30, l, t, g_90ea - l, g_90ec - b);
+    g_0012 = CreateRectRgn(g_1d30.left, g_1d30.top, g_1d30.right, g_1d30.bottom);
+}
+
+/* Re-measures the main window after a resize [inferred], clears the
+ * play area and the bottom strip, and repaints. */
+/* @addr 2:0ba4 */
+void far fn_02_0ba4(void)
+{
+    RECT rc;
+
+    g_1038 = 0;
+    GetClientRect(g_0016, &rc);
+    g_90ea = rc.right < GetSystemMetrics(SM_CXSCREEN) ? rc.right : GetSystemMetrics(SM_CXSCREEN);
+    g_0010 = rc.bottom < GetSystemMetrics(SM_CYSCREEN) ? rc.bottom : GetSystemMetrics(SM_CYSCREEN);
+    g_0a70 = 0x55;
+    g_90ec = g_0010 - 0x55;
+    PatBlt(g_13dc, g_1e30[g_9646].x - 20, g_1e30[g_9646].y - 20,
+           g_1e30[g_9646].f22 + 40, g_1e30[g_9646].f22 + 40, BLACKNESS);
+    fn_07_11cc();
+    fn_07_1208();
+    g_8e58 = 0;
+    g_8e5a = g_0010 - 0x55;
+    fn_02_0ca4();
+    if (g_0a78)
+        PatBlt(g_13dc, g_1d28.left, g_1d28.top, g_1d28.right, g_1d28.bottom, BLACKNESS);
+    else
+        PatBlt(g_13dc, 0, 0, g_90ea, g_90ec, BLACKNESS);
+    PostMessage(g_0016, WM_PAINT, 0, 0L);
 }
