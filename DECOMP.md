@@ -37,3 +37,23 @@ Conventions
   `cwd` before = signed.
 - Plain C99-compatible code where the 1993 compiler allows; keep
   `far`/`pascal` as the game needs them for matching.
+
+## Compiler patterns found while matching (CL 8.00c /Os)
+
+- Some original files were built with `/G2`: no 66-prefixed instructions,
+  long conditional jumps as `jcc short` over `jmp near` (not `0f 8x`),
+  far-pointer zeroing as `sub ax,ax` + two word stores. Put such a file's
+  functions in `src/inspace/segNNb.c` with `/* @cflags /AM /G2 /Gw /Gs /Os */`.
+  Known: 10:0000-39a8 (file 21), part of segment 8 (about 3688-81f8).
+- switch: case bodies are laid out in source order; the tests follow numeric
+  order.
+- `x = x < 640 ? 640 : x;` keeps x in AX; the `if` form stores to memory.
+- `v &= ~MASK;` as its own statement gives the in-memory `and`.
+- `if (c) n = a; else n = b;` and `n = c ? a : b;` load operands in different
+  orders.
+- Long from two words: `((long)hi << 16) | (unsigned)lo`; MAKELONG adds a temp.
+- Locals: the first declared gets bp-4; unused locals must still be declared
+  to reproduce `sub sp,N`.
+- Under /G3 two adjacent int stores of 0 merge into one dword store.
+- A struct passed by value to a pascal function is pushed as one block;
+  field assignment order before the call matters.
