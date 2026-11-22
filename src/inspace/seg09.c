@@ -1,4 +1,5 @@
 /* INSPACE.EXE segment 9 (selector 1040). */
+#include <stdlib.h>
 #include "inspace.h"
 
 /* Records reached through far pointers or DGROUP arrays; only the fields
@@ -6,42 +7,92 @@
 typedef struct {                /* 0x70 bytes, far array at DS:1df8 / 1e18 */
     char p00[0x18];
     int f18;
-    char p1a[0x51 - 0x1a];
+    char p1a[0x1e - 0x1a];
+    int f1e;
+    char p20[0x2f - 0x20];
+    char f2f;
+    char p30[0x51 - 0x30];
     char f51;
     char p52[0x70 - 0x52];
 } REC_70;
 
+#pragma pack(1)
 typedef struct {                /* 0x297 bytes, far array at DS:69f4 */
-    char p000[0x1d0];
-    char f1d0;
-    char p1d1[0x1e2 - 0x1d1];
+    char p000[0x14e];
+    int f14e;                   /* +14e */
+    int f150;                   /* +150 */
+    char p152[0x1c8 - 0x152];
+    char f1c8[8];               /* +1c8 */
+    char f1d0;                  /* +1d0 */
+    char f1d1;                  /* +1d1 */
+    int f1d2[8];                /* +1d2 */
     unsigned char f1e2[0x297 - 0x1e2];
 } REC_297;
+#pragma pack()
 
-typedef struct {                /* 0x15a bytes, DGROUP array at DS:70ae */
-    int f00;
-    char p02[0x30 - 0x02];
-    int f30;
-    char p32[0x15a - 0x32];
+typedef struct {                /* 0x15a bytes, DGROUP array at DS:7090 */
+    char p000[0x1e];
+    int f1e;                    /* +1e */
+    char p020[0x32 - 0x20];
+    int f32;                    /* +32 */
+    char p034[0x4e - 0x34];
+    int f4e;                    /* +4e */
+    char p050[0x56 - 0x50];
+    int f56;                    /* +56 */
+    char p058[0x5e - 0x58];
+    char f5e;                   /* +5e */
+    char p05f[0xce - 0x5f];
+    int fce;                    /* +ce */
+    int fd0;                    /* +d0 */
+    int fd2;                    /* +d2 */
+    char p0d4[0xec - 0xd4];
+    char fec;                   /* +ec */
+    char p0ed;
+    char fee[0x146 - 0xee];     /* +ee, indexed by object [inferred] */
+    char p146[0x15a - 0x146];
 } REC_15A;
 
 #pragma pack(1)
 typedef struct {                /* 0xad bytes, DGROUP array at DS:96f0 */
     int f00;
-    char p02[0xad - 0x02];
+    char p02[0x1a - 0x02];
+    int f1a;                    /* +1a */
+    char p1c[0x30 - 0x1c];
+    int f30;                    /* +30 */
+    char p32[0xad - 0x32];
 } REC_AD;
+
+typedef struct {                /* 0x23 bytes, DGROUP array at DS:57a8 */
+    int f00;                    /* +00 */
+    int f02;                    /* +02 */
+    char p04[2];
+    int f06;                    /* +06 */
+    char p08[2];
+    char f0a;                   /* +0a */
+    char f0b;                   /* +0b */
+    char f0c[13];               /* +0c: name [inferred] */
+    int f19;                    /* +19 */
+    char p1b[0x23 - 0x1b];
+} REC_23;
 #pragma pack()
 
-typedef struct { int a, b; } PAIR;
-
 extern int g_0010;
-extern REC_70 far *g_1df8;
-extern REC_70 far *g_1e18;
+extern int g_13de;
+extern long g_1e50;
+extern long g_1e78;
+extern long g_1e88;
+extern long g_1e74;
+extern void far *g_3d4c;
+extern REC_70 far *g_1df8[16];
+extern int g_3a02;
+extern char g_3966[];
 extern HGDIOBJ g_4e94[32];
+extern REC_23 g_57a8[];
+extern void far *g_4fcc;
 extern long g_5078;
 extern LPSTR g_6078;
 extern REC_297 far *g_69f4;
-extern REC_15A g_70ae[];
+extern REC_15A g_7090[];
 extern long g_09bc[12];
 extern int g_90ea;
 extern int g_9200;
@@ -50,94 +101,174 @@ extern int g_92e6;
 extern int g_9316;
 extern int g_9318;
 extern int g_9322;
+extern int g_91f8;
+extern long g_1e58;
+extern int g_929c;
+extern HGLOBAL g_92e0;
+extern int g_92e4;
+extern int g_92ec[15];
+extern int g_9320;
+extern int g_9330;
+extern int g_9332;
+extern int g_9346;
+extern int g_93a4;
+extern int g_93b2;
+extern int g_94c4;
 extern int g_9334;
 extern int g_9406;
+extern int g_9408;
+extern int g_94b0;
 extern int g_94a2;
+extern int g_9518;
+extern int g_9646;
+extern int flow_interactive;        /* DS:95bc */
+extern int g_90f4;
+extern HGLOBAL g_93a8;
 extern HGDIOBJ g_93ae;
+extern HGLOBAL g_93b4;
 extern REC_AD g_96f0[];
-extern char g_9ec2[][40];
-extern PAIR g_9f40[][40];
 
 void far fn_10_6d52(int a, int b, int c, int d, int e, int f);
 void far fn_17_306e(void);
+void far fn_03_1542(int a, int b, int n, LPSTR buf, int c);
+void far fn_07_2512(int i, int v);
+void far fn_09_6a12(void);
+void far fn_09_0000(int a);
+void far fn_10_022e(int a);
+void far fn_11_02f0(void);
+void far fn_13_65f2(int a);
+void far fn_06_7266(void);
+void far fn_07_49b6(void);
+void far fn_07_5ae8(int j, int a);
+void far fn_09_1092(void);
+void far fn_09_2828(void);
+void far fn_10_7480(int a, int b);
+void far fn_10_7db8(void);
+void far fn_10_94c4(int a, int b, long color, int x, int y, LPSTR s);
+void far fn_10_a332(LPSTR buf, int id, int n, ...);
+void far fn_12_26a4(int i, int j);
+void far fn_16_6928(int a);
 
-/* @addr 9:094c */
-int far fn_09_094c(void)
+int far fn_09_094c(void);
+void far fn_09_0352(HDC hdc, int x, int flags, int w, int h, LPSTR name);
+void far fn_09_09b0(int slot);
+int far fn_09_955c(UINT id, LPSTR buf);
+void far fn_09_95ba(UINT id);
+void far fn_09_6cc4(int flag);
+void far fn_09_6db0(void);
+void far fn_09_6dec(int a);
+
+/* @addr 9:699e */
+void far fn_09_699e(void)
 {
-    int i;
-    int unused;
-    int found;
-
-    for (i = 0; i < g_9406; i++) {
-        found = 1;
-        if (g_1df8[i].f18 == 0)
-            found = 0;
-        if (found)
-            return i;
+    if (g_93b4) {
+        if (g_4fcc) {
+            GlobalUnlock(g_93b4);
+            g_4fcc = 0;
+        }
+        FreeResource(g_93b4);
+        g_93b4 = 0;
+    } else if (g_93a8) {
+        if (g_4fcc) {
+            GlobalUnlock(g_93a8);
+            g_4fcc = 0;
+        }
+        GlobalFree(g_93a8);
+        g_93a8 = 0;
     }
-    g_69f4[g_94a2].f1d0 = 1;
-    g_9206++;
-    return -1;
 }
 
-/* @addr 9:0ac4 */
-int far fn_09_0ac4(int n, int count)
+/* @addr 9:6a12 */
+void far fn_09_6a12(void)
 {
-    unsigned char mask;
-    int unused;
-    int idx;
+    char buf[80];
+    char buf2[60];
 
-    idx = n / 8;
-    mask = 1 << (n % 8);
-    if (count)
-        g_9200++;
-    if (g_69f4[g_94a2].f1e2[idx] & mask)
-        return 1;
-    return 0;
+    if (flow_interactive == 0)
+        return;
+    fn_09_955c(0x145, buf);
+    fn_10_94c4(0, 6, 0x020080ffL, g_90ea / 2, g_0010 / 2 - 175, buf);
+    fn_10_a332(buf, 0x9e4, 1, g_91f8);
+    fn_10_94c4(0, 0, 0x8000L, g_90ea / 2 - 240, g_0010 / 2 - 115, buf);
+    fn_10_a332(buf, 0x9e5, 1);
+    fn_10_94c4(0, 0, 0x8000L, g_90ea / 2 - 240, g_0010 / 2 - 85, buf);
+    fn_10_a332(buf, 0x9e6, 1, g_7090[g_9646].fd2);
+    fn_10_94c4(0, 2, 0x8000L, g_90ea / 2 + 124, g_0010 / 2 - 85, buf);
+    fn_10_a332(buf, 0x9e7, 1, g_7090[g_9646].fd0);
+    fn_10_94c4(0, 2, 0x8000L, g_90ea / 2 + 124, g_0010 / 2 - 55, buf);
+    fn_10_a332(buf, 0x9e8, 1, g_1e58);
+    fn_10_94c4(0, 6, 0xffL, g_90ea / 2, g_0010 / 2 + 65, buf);
 }
 
-/* @addr 9:1092 */
-void far fn_09_1092(void)
+/* @addr 9:6bc2 */
+void far fn_09_6bc2(void)
 {
     int i;
+    int j;
+    int unused;
 
-    for (i = 0; i < 32; i++) {
-        if (g_4e94[i]) {
-            DeleteObject(g_4e94[i]);
-            g_4e94[i] = 0;
+    fn_10_7480(-1, 1);
+    g_1e74 = 0;
+    if (g_9320 == 6) {
+        for (i = 0; i <= g_9316; i++) {
+            if (g_7090[i].f32 == 0 && i != g_9646) {
+                for (j = 0; j < g_9406; j++) {
+                    if (g_1df8[0][j].f18 == 0) {
+                        g_7090[i].fce += g_1df8[0][j].f1e * -90 / 210 + 100;
+                        g_7090[i].fd2++;
+                        fn_07_5ae8(j, 1);
+                    }
+                }
+            }
         }
     }
+    if (g_93a4) {
+        g_90f4 = 8;
+        g_929c = 0;
+        fn_16_6928(0);
+        g_9346 = -1;
+        for (i = 0; i <= g_9316; i++) {
+            if (g_96f0[g_7090[i].f4e].f1a == 7 && g_7090[i].f5e == 0
+                && g_7090[i].f56 == g_9646)
+                g_7090[i].fec = 0;
+        }
+    } else
+        fn_09_6cc4(0);
 }
 
-/* near-match 53%: 9:225a */
-PAIR far fn_09_225a(int a)
-{
-    PAIR v;
-    int unused[3];
-
-    v.a = g_9f40[g_9322][a].a;
-    v.b = g_9f40[g_9322][a].b;
-    g_1e18[g_9318 * 2 + a].f51 = (int)g_9ec2[g_9322][a] + g_9318 * 2;
-    return v;
-}
-
-/* @addr 9:27da */
-void far fn_09_27da(int a)
-{
-    if (g_92e6 == 0)
-        fn_10_6d52(g_13dc, g_90ea / 4, g_0010 * 3 / 4 - 10, g_90ea / 2, 20, a);
-}
-
-/* @addr 9:484c */
-void far fn_09_484c(void)
+/* @addr 9:6cc4 */
+void far fn_09_6cc4(int flag)
 {
     int i;
+    int j;
 
-    g_9334 = 0;
-    for (i = 0; i < 12; i++) {
-        if (g_09bc[i] < g_5078)
-            g_9334 = i + 1;
+    fn_10_7db8();
+    fn_13_65f2(1);
+    g_1e74 = 0;
+    g_90f4 = 2;
+    g_92e4 = 0;
+    if (g_9320 == 6)
+        fn_09_6db0();
+    if (g_92e0) {
+        GlobalUnlock(g_92e0);
+        g_3d4c = 0;
+        GlobalFree(g_92e0);
+        g_92e0 = 0;
     }
+    fn_09_1092();
+    for (i = 0; i <= 14; i++)
+        for (j = 0; j < g_92ec[i]; j++)
+            fn_12_26a4(i, j);
+    fn_11_02f0();
+    fn_07_49b6();
+    PatBlt(g_13dc, 0, 0, g_90ea, g_0010, BLACKNESS);
+    g_93b2 = g_9332;
+    fn_09_2828();
+    fn_06_7266();
+    g_94c4 = 1;
+    g_9330 = 0;
+    if (flag)
+        fn_09_6dec(1);
 }
 
 /* @addr 9:6db0 */
@@ -146,7 +277,30 @@ void far fn_09_6db0(void)
     int i;
 
     for (i = 0; i <= g_9316; i++)
-        g_70ae[i].f00 = g_96f0[g_70ae[i].f30].f00;
+        g_7090[i].f1e = g_96f0[g_7090[i].f4e].f00;
+}
+
+/* Not yet decompiled. */
+void far fn_09_6dec(int a)
+{
+}
+
+/* @addr 9:8838 */
+void far fn_09_8838(int n)
+{
+    int v;
+    char buf[50];
+
+    v = g_96f0[g_7090[g_9646].f4e].f1a;
+    if (g_7090[n].fec) {
+        fn_03_1542(0, 14, n, buf, 1);
+        lstrcat(g_6078, buf);
+        if (g_7090[n].fee[g_9646] <= 5)
+            fn_09_95ba(0x372);
+        else
+            fn_09_95ba(0x371);
+        lstrcat(g_6078, ". ");
+    }
 }
 
 /* @addr 9:88ba */
@@ -172,6 +326,80 @@ void far fn_09_8908(void)
     if (g_93ae) {
         DeleteObject(g_93ae);
         g_93ae = 0;
+    }
+}
+
+/* @addr 9:8bec */
+void far fn_09_8bec(HDC hdc, int x, int y, int size, int width, UINT align, LPSTR s)
+{
+    HFONT old;
+    HFONT font;
+    char buf[80];
+    COLORREF text;
+    COLORREF bk;
+    int shadow;
+
+    shadow = 1;
+    if (size == 13) {
+        size = 14;
+        shadow = 0;
+    }
+    if (size < 14)
+        shadow = 0;
+    old = SelectObject(hdc, font = CreateFont(size, width, 0, 0, 600, 0, 0, 0, 0, 0, 0,
+                                              2, 0x22, "Arial"));
+    bk = SetBkColor(hdc, RGB(0, 0, 0));
+    SetBkMode(hdc, TRANSPARENT);
+    SetTextAlign(hdc, align);
+    if (shadow) {
+        text = SetTextColor(hdc, 0x02ffffffL);
+        TextOut(hdc, x + 2, y + 2, s, lstrlen(s));
+    }
+    text = SetTextColor(hdc, 0x025a5a5aL);
+    TextOut(hdc, x, y, s, lstrlen(s));
+    SetBkColor(hdc, bk);
+    SetTextColor(hdc, text);
+    SelectObject(hdc, old);
+    if (font)
+        DeleteObject(font);
+}
+
+/* @addr 9:90fe */
+BOOL far pascal fn_09_90fe(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    RECT r;
+    int w;
+    int h;
+    char buf[80];
+
+    switch (msg) {
+    case WM_INITDIALOG:
+        GetWindowRect(hDlg, &r);
+        w = r.right - r.left;
+        h = r.bottom - r.top;
+        if (g_9518) {
+            fn_09_955c(0x8dd, buf);
+            SetWindowText(GetDlgItem(hDlg, 0x72), buf);
+        }
+        MoveWindow(hDlg, GetSystemMetrics(SM_CXSCREEN) / 2 - w / 2,
+                   GetSystemMetrics(SM_CYSCREEN) / 2 - h / 2, w, h, TRUE);
+        break;
+    }
+    return FALSE;
+}
+
+/* @addr 9:94ba */
+void far fn_09_94ba(void)
+{
+    int i;
+
+    for (i = 0; i < 8; i++) {
+        if (g_69f4[g_94a2].f1c8[i])
+            fn_07_2512(i, g_69f4[g_94a2].f1c8[i] - 1);
+        if (g_69f4[g_94a2].f1c8[i] == 2)
+            g_1df8[0][i].f2f = (char)0x9c;
+        if (g_9320 == 2 && (g_9334 == 0 || rand() % 3 == 0))
+            fn_07_2512(i, 0);
     }
 }
 
