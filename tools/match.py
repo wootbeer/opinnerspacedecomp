@@ -23,6 +23,7 @@ INCLUDE), CFLAGS (default the flags confirmed for INSPACE.EXE).
 import os
 import re
 import shutil
+import struct
 import subprocess
 import sys
 import tempfile
@@ -31,6 +32,11 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from ne_info import read_ne          # noqa: E402
 from omf_match import modules        # noqa: E402
+from omf_fixups import parse as parse_fixups   # noqa: E402
+from ne_relocs import relocs         # noqa: E402
+from impnames import load as load_imports      # noqa: E402
+
+ROOT = os.path.dirname(HERE)
 
 MSVC_DIR = os.environ.get('MSVC_DIR', '/home/user/toolchain/msvc')
 CFLAGS = os.environ.get('CFLAGS', '/AM /G3 /Gw /Gs /Os')
@@ -130,6 +136,102 @@ def compare(fn, game, exe_prologue):
     return n, bad
 
 
+class Refs:
+    """What the game's code refers to, to check object fixups against."""
+
+    def __init__(self, data, exe):
+        self.data = data
+        self.h, self.segs = read_ne(data)
+        base = os.path.basename(exe)
+        self.addr = {}                       # symbol name (upper) -> (seg, off)
+        inv = os.path.join(ROOT, 'inventory', base + '.tsv')
+        if os.path.exists(inv):
+            for line in open(inv):
+                if line.startswith('#'):
+                    continue
+                r = line.rstrip('\n').split('\t')
+                if r[4]:
+                    sn, off = r[0].split(':')
+                    self.addr[r[4].lstrip('_').upper()] = (int(sn), int(off, 16))
+        names = os.path.join(ROOT, 'names', base + '.txt')
+        if os.path.exists(names):
+            for line in open(names, encoding='utf-8'):
+                line = line.split('#')[0].strip()
+                if line:
+                    a, n = line.split(None, 1)
+                    sel, off = a.split(':')
+                    self.addr[n.split()[0].upper()] = ((int(sel, 16) - 0x1000) // 8 + 1, int(off, 16))
+        imps = load_imports(os.path.join(ROOT, 'names', 'imports.txt'))
+        self.site = {}                       # (seg, off) -> ('imp', NAME) | ('sel', seg)
+        for sg, src, fl, sites, tgt in relocs(data):
+            m = re.fullmatch(r'(\w+)\.(\d+)', tgt)
+            if m and (m.group(1), int(m.group(2))) in imps:
+                info = ('imp', imps[(m.group(1), int(m.group(2)))].upper())
+            else:
+                m = re.fullmatch(r'(\d+):([0-9a-f]{4})', tgt)
+                info = ('sel', int(m.group(1))) if m and src == 2 else ('int', tgt)
+            for a in sites:
+                self.site[(sg['n'], a)] = info
+
+    def target(self, name):
+        n = name.lstrip('_').upper()
+        m = re.fullmatch(r'G_(?:FP_)?([0-9A-F]{4})', n)
+        if m:
+            return (19, int(m.group(1), 16))
+        m = re.fullmatch(r'FN_(\d+)_([0-9A-F]{4})', n)
+        if m:
+            return (int(m.group(1)), int(m.group(2), 16))
+        return self.addr.get(n)
+
+    def word(self, sn, off):
+        s = self.segs[sn - 1]
+        return struct.unpack_from('<H', self.data, s['file_off'] + off)[0]
+
+    def check(self, objinfo, si, start, end, sn, goff):
+        """Problems with the fixups of one function: list of strings."""
+        segs, exts, _, fixes = objinfo
+        body = segs[si - 1][1]
+        bad = []
+        for fsi, a, loc, tm, tidx, disp, segrel in fixes:
+            if fsi != si or not start <= a < end or tm != 2:
+                continue
+            name = exts[tidx]
+            g = goff + (a - start)                     # game offset of the site
+            inplace = struct.unpack_from('<H', body, a)[0] if a + 2 <= len(body) else 0
+            t = self.target(name)
+            site = self.site.get((sn, g)) or self.site.get((sn, g + 2))
+            if site and site[0] == 'imp':
+                if site[1] != name.lstrip('_').upper():
+                    bad.append(f'+{a - start:#x} calls {name}, game calls {site[1]}')
+                continue
+            if t is None:
+                continue                               # unknown symbol: not checked
+            tsn, toff = t
+            if not segrel:                             # near call: rel16
+                if tsn != sn:
+                    bad.append(f'+{a - start:#x} near call to {name} in another segment')
+                    continue
+                want = (toff - (g + 2)) & 0xffff
+                got = self.word(sn, g)
+                if want != got:
+                    bad.append(f'+{a - start:#x} near call {name} -> {toff:04x}, '
+                               f'game -> {(got + g + 2) & 0xffff:04x}')
+                continue
+            if loc in (1, 5, 3):                       # offset or far pointer
+                want = (toff + inplace + disp) & 0xffff
+                got = self.word(sn, g)
+                if loc == 3 and tsn != 19:
+                    want = (toff + disp) & 0xffff
+                if want != got:
+                    bad.append(f'+{a - start:#x} {name} -> {want:04x}, game {got:04x}')
+                    continue
+            if loc in (2, 3) and tsn != 19:            # selector part
+                sel = self.site.get((sn, g + (2 if loc == 3 else 0)))
+                if sel and sel[0] == 'sel' and sel[1] != tsn:
+                    bad.append(f'+{a - start:#x} {name} in segment {tsn}, game segment {sel[1]}')
+        return bad
+
+
 def run(srcs, exe='unpacked/INSPACE.EXE', keep=False):
     """Compile and compare. Returns a list of dicts: src, name, seg, off,
     size (bytes compared, 0 if missing), bad (differing byte count, None
@@ -137,14 +239,19 @@ def run(srcs, exe='unpacked/INSPACE.EXE', keep=False):
     data = open(exe, 'rb').read()
     h, segs = read_ne(data)
     is_exe = not h['flags'] & 0x8000              # NE flag: library (DLL)
+    refs = Refs(data, exe)
     work = tempfile.mkdtemp(prefix='match-')
     results = []
     try:
         objs = compile_all(srcs, work)
         for src in srcs:
             have = {}
+            pubs = {}
             if os.path.exists(objs[src]):
                 have = {n.lstrip('_').upper(): f for n, f in functions(objs[src]).items()}
+                objinfo = parse_fixups(objs[src])
+                for n, si, off in objinfo[2]:
+                    pubs[n.lstrip('_').upper()] = (si, off)
             for name, (sn, off) in tags(src).items():
                 r = {'src': src, 'name': name, 'seg': sn, 'off': off, 'size': 0, 'bad': None}
                 fn = have.get(name.upper())
@@ -152,7 +259,12 @@ def run(srcs, exe='unpacked/INSPACE.EXE', keep=False):
                     s = segs[sn - 1]
                     game = data[s['file_off'] + off:s['file_off'] + s['len']]
                     n, bad = compare(fn, game, is_exe)
-                    r.update(size=n, bad=len(bad), first=bad[0] if bad else None)
+                    refbad = []
+                    if name.upper() in pubs:
+                        si, start = pubs[name.upper()]
+                        refbad = refs.check(objinfo, si, start, start + n, sn, off)
+                    r.update(size=n, bad=len(bad) + len(refbad),
+                             first=bad[0] if bad else None, refs=refbad)
                 results.append(r)
     finally:
         if keep:
@@ -177,6 +289,9 @@ def main():
             print(f"  {r['name']:32} {where:8} not in object")
         elif r['bad'] == 0:
             print(f"  {r['name']:32} {where:8} MATCH  ({r['size']} bytes)")
+        elif r['first'] is None:
+            print(f"  {r['name']:32} {where:8} WRONG REFERENCE: {r['refs'][0]}"
+                  + (f" (+{len(r['refs']) - 1} more)" if len(r['refs']) > 1 else ''))
         else:
             pct = 100 * (r['size'] - r['bad']) / r['size']
             print(f"  {r['name']:32} {where:8} {pct:5.1f}%  first diff at +{r['first']:#x} "

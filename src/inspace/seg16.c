@@ -13,7 +13,8 @@ typedef struct {
     int f_01c;    /* DS:70ae */
     char pad_01e[0x4];
     int f_022;    /* DS:70b4 */
-    char pad_024[0x28];
+    int f_024;    /* DS:70b6 */
+    char pad_026[0x26];
     int f_04c;    /* DS:70de */
     char pad_04e[0xe];
     char f_05c;    /* DS:70ee */
@@ -46,11 +47,18 @@ typedef struct {                /* 0x70-byte records */
     char p46[0x70 - 0x46];
 } REC_70;
 
-typedef struct {                /* far pointer at DS:6da4 [inferred: input event] */
-    char p00[0x22];
+typedef struct {                /* 0x2e bytes (GlobalAlloc), far pointer at DS:6da4 */
+    HWND f00;
+    POINT f02;
+    int f06;
+    char f08[0x1e - 0x08];
+    int f1e;
+    int f20;
     int f22;
     int f24;
     long f26;
+    int f2a;
+    int f2c;
 } REC_6DA4;
 
 #pragma pack(1)
@@ -71,6 +79,28 @@ extern REC_70 far *g_1e14;
 extern REC_70 far *g_1df8[16];
 extern int g_9324;
 extern int g_9646;
+extern HWND g_9532;
+extern int g_0010;
+extern RECT g_6e08;
+extern int g_9004;
+extern int g_914a;
+extern int g_920c;
+extern int g_958a;
+extern int g_958c;
+extern int g_95bc;              /* flow.interactive */
+extern int g_9660;
+extern HFONT g_90fe;
+extern char g_9564[];
+extern int g_959c;
+extern int g_90ea;
+extern int g_9210;
+extern int g_93a6;
+extern HRGN g_9536;
+extern int g_965e;
+extern POINT g_6e14;
+extern int g_9e55;
+extern long g_9e57;
+extern int g_9e5d;
 extern int g_9406[];
 typedef struct {                /* 0x7c-byte records, far pointer at DS:6e24 */
     char p00[0x32];
@@ -100,6 +130,15 @@ void far fn_12_26a4(int a, int b);
 void far fn_11_2f8c(void);
 void far fn_12_6d64(int a, int b);
 void far fn_06_1010(int v, int div, int width, LPSTR buf);
+void far fn_06_0f54(long v, int div, int width, LPSTR buf);
+void far fn_18_0be2(void);
+void far fn_16_541c(HWND hDlg);
+void far fn_16_44fa(HWND hDlg);
+void far fn_16_4900(HWND hDlg);
+void far fn_16_5db0(HWND hDlg);
+void far fn_16_43f2(HWND hDlg);
+int far fn_16_5f0e(LPSTR a, LPSTR b);
+void far fn_18_0c5c(void);
 void far fn_18_0378(int a);
 void far fn_09_955c(int id, LPSTR buf);
 void far fn_09_9580(int id, LPSTR buf);
@@ -456,14 +495,327 @@ int far fn_16_4030(int i, int j)
     return (g_6e24[g_7092[i].f_0d4].f32[j] + 3) * 100;
 }
 
+/* @addr 16:5820 */
+void far fn_16_5820(HWND hDlg)
+{
+    char num[50];
+    char text[50];
+    int v;
+
+    text[0] = 0;
+    fn_06_0f54(g_9e57, 100, 2, num);
+    lstrcat(text, num);
+    lstrcat(text, " ");
+    fn_09_9580(0x30e3, text);
+    if (hDlg == g_9532)
+        SetWindowText(GetDlgItem(hDlg, 0x71), text);
+    else
+        SetWindowText(GetDlgItem(hDlg, 0x6e), text);
+    text[0] = 0;
+    if (hDlg == g_9532)
+        v = g_9e55;
+    else
+        v = g_9e5d;
+    fn_06_1010(v, 100, 2, num);
+    lstrcat(text, num);
+    lstrcat(text, " ");
+    fn_09_9580(0x30e3, text);
+    SetWindowText(GetDlgItem(hDlg, 0x6d), text);
+}
+
+/* @addr 16:43f2 */
+void far fn_16_43f2(HWND hDlg)
+{
+    int i;
+    int v;
+    int n;
+    int items[100];
+    int enable;
+    char text[60];
+
+    n = (int)SendMessage(GetDlgItem(hDlg, 0x65), LB_GETSELCOUNT, 0, 0L);
+    SendMessage(GetDlgItem(hDlg, 0x65), LB_GETSELITEMS, n, (LPARAM)(int far *)items);
+    enable = 0;
+    for (i = 0; i < n; i++) {
+        SendMessage(GetDlgItem(hDlg, 0x65), LB_GETTEXT, items[i], (LPARAM)(LPSTR)text);
+        v = fn_16_0000(text);
+        if (v <= g_9e57 || text[0] == ' ')
+            enable = 1;
+    }
+    EnableWindow(GetDlgItem(hDlg, 0x69), enable);
+    n = (int)SendMessage(GetDlgItem(hDlg, 0x66), LB_GETSELCOUNT, 0, 0L);
+    if (n)
+        EnableWindow(GetDlgItem(hDlg, 0x6a), 1);
+    else
+        EnableWindow(GetDlgItem(hDlg, 0x6a), 0);
+}
+
+/* Mouse click handler [inferred]. */
+/* @addr 16:638a */
+void far fn_16_638a(int w, LPARAM lParam, int flag)
+{
+    POINT pt;
+    int hit;
+    RECT rc;
+
+    if (!g_95bc)
+        return;
+    pt.x = LOWORD(lParam);
+    pt.y = HIWORD(lParam);
+    if (!g_952c)
+        return;
+    if (flag) {
+        if (g_9530 == 1)
+            hit = 0;
+        else
+            hit = 1;
+    } else {
+        if (g_9530 != 1)
+            CopyRect(&rc, &g_6e08);
+        else
+            SetRect(&rc, 0, 0, g_6e08.right, g_0010);
+        if (PtInRect(&rc, pt))
+            hit = 1;
+        else
+            hit = 0;
+    }
+    if (!g_920c && hit) {
+        fn_16_68d6(g_9532, 0x912, -1);
+    } else if (hit) {
+        switch (g_9530) {
+        case 3:
+        case 4:
+            if (g_9004)
+                g_9004 *= 2;
+            else
+                g_9004 = 250;
+            g_9004 = g_9004 < 250 ? 250 : g_9004;
+            g_958c = g_914a;
+            g_914a = -1;
+            g_9530 = 1;
+            if (g_9660)
+                fn_18_0be2();
+            break;
+        case 1:
+            PostMessage(g_0016, 0x9c5, w, lParam);
+            break;
+        }
+    } else if (!hit) {
+        switch (g_9530) {
+        case 1:
+            g_9530 = 4;
+            g_914a = g_958c;
+            fn_18_0c5c();
+            break;
+        }
+    }
+    g_958a = 1;
+}
+
+/* Dialog procedure [inferred]. */
+/* @addr 16:42a2 */
+BOOL far pascal fn_16_42a2(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    DRAWITEMSTRUCT far *dis;
+    TEXTMETRIC tm;
+    HDC hdc;
+    HFONT old;
+    MEASUREITEMSTRUCT far *mis;
+
+    switch (msg) {
+    case WM_INITDIALOG:
+        fn_16_541c(hDlg);
+        break;
+    case WM_DRAWITEM:
+        dis = (DRAWITEMSTRUCT far *)lParam;
+        if (dis->itemID == -1)
+            fn_16_5a8a(dis);
+        else
+            switch (dis->itemAction) {
+            case ODA_DRAWENTIRE:
+                fn_16_5ada(dis);
+                break;
+            case ODA_SELECT:
+                fn_16_590c(dis);
+                break;
+            case ODA_FOCUS:
+                fn_16_5a8a(dis);
+                break;
+            }
+        return TRUE;
+    case WM_MEASUREITEM:
+        hdc = GetDC(g_0016);
+        old = SelectObject(hdc, g_90fe);
+        GetTextMetrics(hdc, &tm);
+        SelectObject(hdc, old);
+        ReleaseDC(g_0016, hdc);
+        mis = (MEASUREITEMSTRUCT far *)lParam;
+        mis->itemHeight = tm.tmHeight + tm.tmExternalLeading;
+        break;
+    case WM_COMMAND:
+        switch (wParam) {
+        case 0x69:
+            fn_16_44fa(hDlg);
+            break;
+        case 0x6a:
+            fn_16_4900(hDlg);
+            break;
+        case 0x65:
+            fn_16_43f2(hDlg);
+            if (HIWORD(lParam) == LBN_DBLCLK)
+                PostMessage(hDlg, WM_COMMAND, 0x69, 0L);
+            break;
+        case 0x66:
+            fn_16_43f2(hDlg);
+            if (HIWORD(lParam) == LBN_DBLCLK)
+                PostMessage(hDlg, WM_COMMAND, 0x6a, 0L);
+            break;
+        case 1:
+            fn_16_5db0(hDlg);
+            return TRUE;
+        }
+        break;
+    }
+    return FALSE;
+}
+
+/* @addr 16:619e */
+int far fn_16_619e(void)
+{
+    POINT sz;
+
+    if (g_93a6)
+        return 0;
+    if (!(g_95a2 = GlobalAlloc(GHND, 0x2eL)))
+        return 0;
+    g_6da4 = (REC_6DA4 far *)GlobalLock(g_95a2);
+    if (g_6da4 == NULL) {
+        GlobalFree(g_95a2);
+        return 0;
+    }
+    if (g_90f4 == 6) {
+        g_6da4->f02 = g_6e14;
+    } else {
+        if (g_9536) {
+            DeleteObject(g_9536);
+            g_9536 = 0;
+        }
+        if (g_965e == 1) {
+            sz.x = g_90ea;
+            sz.y = g_0010;
+        } else {
+            sz.x = 0xa0;
+            sz.y = 0x82;
+        }
+        SetRect(&g_6e08, g_90ea / 2 - sz.x / 2, g_0010 / 2 - sz.y / 2,
+                g_90ea / 2 + sz.x / 2, g_0010 / 2 + sz.y / 2);
+        g_6da4->f02 = sz;
+        PatBlt(g_13dc, 0, 0, g_90ea, g_0010, BLACKNESS);
+        g_9536 = CreateRectRgn(g_6e08.left, g_6e08.top, g_6e08.right, g_6e08.bottom);
+    }
+    g_6da4->f06 = 0;
+    g_6da4->f00 = g_0016;
+    g_6da4->f1e = g_920e;
+    g_6da4->f20 = g_9210;
+    g_6da4->f2a = 0x24;
+    g_6da4->f2c = 0;
+    lstrcpy(g_6da4->f08, "...");
+    g_959a = 0;
+    fn_16_64c8();
+    g_958a = 1;
+    return 1;
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_16_541c(HWND hDlg)
+{
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_16_44fa(HWND hDlg)
+{
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_16_4900(HWND hDlg)
+{
+}
+
+/* @addr 16:5db0 */
+void far fn_16_5db0(HWND hDlg)
+{
+    int i;
+    int j;
+    int n;
+    char a[50];
+    char b[50];
+    char c[50];
+    int m;
+
+    n = (int)SendMessage(GetDlgItem(hDlg, 0x66), LB_GETCOUNT, 0, 0L);
+    for (i = 0; i < n; i++) {
+        SendMessage(GetDlgItem(hDlg, 0x66), LB_GETTEXT, i, (LPARAM)(LPSTR)a);
+        for (j = 1; j < 27; j++) {
+            fn_09_955c(j + 0xba, b);
+            if (fn_16_5f0e(a, b)) {
+                g_9564[j] = 1;
+                m = (int)SendMessage(GetDlgItem(g_9532, 0x65), LB_GETCOUNT, 0, 0L);
+                for (j = 0; j < m; j++) {
+                    SendMessage(GetDlgItem(g_9532, 0x65), LB_GETTEXT, j, (LPARAM)(LPSTR)c);
+                    if (fn_16_5f0e(c, b))
+                        SendMessage(GetDlgItem(g_9532, 0x65), LB_DELETESTRING, j, 0L);
+                }
+                break;
+            }
+        }
+    }
+    InvalidateRect(GetDlgItem(g_9532, 0x65), NULL, TRUE);
+    UpdateWindow(GetDlgItem(g_9532, 0x65));
+    g_959c = 0;
+    EndDialog(hDlg, 1);
+}
+
 /* Not yet decompiled: stub so calls to it compile as near calls. */
 void far fn_16_64fa(void)
 {
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Owner-draw list item [inferred]. */
+/* @addr 16:590c */
 void far pascal fn_16_590c(DRAWITEMSTRUCT far *dis)
 {
+    RECT rc;
+    HBRUSH hbr;
+    char text[80];
+    HFONT old;
+    int v;
+
+    CopyRect(&rc, &dis->rcItem);
+    if (dis->itemState & ODS_SELECTED) {
+        hbr = CreateSolidBrush(GetSysColor(COLOR_HIGHLIGHT));
+        SetTextColor(dis->hDC, GetSysColor(COLOR_HIGHLIGHTTEXT));
+    } else {
+        hbr = CreateSolidBrush(GetSysColor(COLOR_WINDOW));
+        SetTextColor(dis->hDC, GetSysColor(COLOR_WINDOWTEXT));
+    }
+    SetBkMode(dis->hDC, TRANSPARENT);
+    SendMessage(dis->hwndItem, LB_GETTEXT, dis->itemID, (LPARAM)(LPSTR)text);
+    FillRect(dis->hDC, &rc, hbr);
+    old = SelectObject(dis->hDC, g_90fe);
+    if (dis->CtlID == 0x65) {
+        v = fn_16_0000(text);
+        if (v > g_9e57 && text[0] != ' ')
+            SetTextColor(dis->hDC, GetSysColor(COLOR_GRAYTEXT));
+    }
+    if (text[1] == ' ' || text[0] == 'a' || text[1] == 'a') {
+        for (v = 0; v < lstrlen(text); v++)
+            text[v] = text[v + 1];
+        if (text[0] == 'a')
+            text[0] = ' ';
+    }
+    TextOut(dis->hDC, rc.left + 2, rc.top, text, lstrlen(text));
+    SelectObject(dis->hDC, old);
+    DeleteObject(hbr);
 }
 
 /* Not yet decompiled: stub so calls to it compile as near calls. */
