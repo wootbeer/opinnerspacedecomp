@@ -14,3 +14,11 @@ int far fn_09_955c(UINT id, LPSTR buf)
 {
     return LoadString(g_9212, id, buf, 160);
 }
+
+/* @addr 9:95f4 */
+void far fn_09_95f4(UINT id)
+{
+    char buf[100];
+
+    LoadString(g_9212, id, ambulance_line, 90);
+}

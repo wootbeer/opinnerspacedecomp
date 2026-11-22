@@ -34,7 +34,7 @@ int far fn_10_6d38(LPCSTR s)
 /* @addr 10:6e26 */
 void far fn_10_6e26(void)
 {
-    g_fp_3c50(g_920e, 0, 0, 0, 0, 0, 2);
+    g_fp_3c50(g_920e, 0, 0, 0, 0L, 2);
 }
 
 /* @addr 10:6ec6 */
@@ -69,4 +69,78 @@ void far fn_10_86ca(void)
 
     r = 0;
     g_fp_3c4c();
+}
+
+/* @addr 10:86a8 */
+void far fn_10_86a8(void)
+{
+    g_8e5c = 1;
+    g_fp_3c54(g_05a0, 4);
+}
+
+/* @addr 10:6e00 */
+void far fn_10_6e00(void)
+{
+    g_920e = g_fp_3c50(0, 0, 0, 0, 0L, 0);
+}
+
+/* @addr 10:6ea0 */
+void far fn_10_6ea0(unsigned a)
+{
+    g_fp_3c50(g_920e, 0, 0, 0, a, 7);
+}
+
+/* @addr 10:6e4c */
+void far fn_10_6e4c(void)
+{
+    g_fp_3c50(g_920e, g_0016, g_13dc, 0, 0L, 3);
+}
+
+/* @addr 10:6e76 */
+void far fn_10_6e76(long a)
+{
+    g_fp_3c50(g_920e, 0, 0, 0, a, 1);
+    fn_10_6e4c();
+}
+
+void far fn_10_4672(int a, int b);
+
+/* @addr 10:464a */
+void far fn_10_464a(void)
+{
+    g_928a = fn_10_6d38("DEF");
+    fn_10_4672(0, 3);
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_10_4672(int a, int b)
+{
+    g_928a = a + b;
+}
+
+/* @addr 10:5c1a */
+void far fn_10_5c1a(void)
+{
+    if (g_9288) {
+        DeleteDC(g_9288);
+        g_9288 = 0;
+    }
+}
+
+/* @addr 10:6d52 */
+void far fn_10_6d52(int a, int b, int c, int d, int e, int f)
+{
+    g_fp_3c80(a, b, c, d, e, f);
+}
+
+/* @addr 10:949c */
+void far fn_10_949c(int a, int b, int c, int d, int e, int f)
+{
+    g_fp_3c70(a, b, c, d, e, f);
+}
+
+/* @addr 10:993a */
+void far fn_10_993a(int a, int b)
+{
+    g_fp_3c7c(g_920e, a, b, g_0016, g_13dc);
 }
