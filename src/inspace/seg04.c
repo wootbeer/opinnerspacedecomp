@@ -1,12 +1,17 @@
 /* INSPACE.EXE segment 4 (selector 1018). */
+#include <stdlib.h>
 #include "inspace.h"
+
+/* g_05a0 is declared long in inspace.h; this code reads its two words
+ * separately (world width and height [inferred]). */
+#define G_05A0_LO (((int *)&g_05a0)[0])
+#define G_05A0_HI (((int *)&g_05a0)[1])
 
 /* 0x70-byte records; DS:1df8 holds one far array of them per object
  * type [inferred]. Only the fields this file uses are named. */
 typedef struct {
     char p00[0x04];
-    int f04;                    /* +04 */
-    int f06;                    /* +06 */
+    POINT f04;                  /* +04: position [inferred] */
     char p08[0x0c - 0x08];
     int f0c;                    /* +0c */
     int f0e;                    /* +0e */
@@ -18,7 +23,8 @@ typedef struct {
     int f28;                    /* +28 */
     char p2a[0x2e - 0x2a];
     char f2e;                   /* +2e */
-    char p2f[0x51 - 0x2f];
+    char f2f;                   /* +2f */
+    char p30[0x51 - 0x30];
     char f51;                   /* +51 */
     char p52;
     char f53;                   /* +53 */
@@ -32,32 +38,43 @@ typedef struct {
     int f12;                    /* +12 */
     char p014[0x18 - 0x14];
     int f18;                    /* +18 */
-    char p01a[0x32 - 0x1a];
+    char p01a[0x1e - 0x1a];
+    int f1e;                    /* +1e */
+    char p020[0x32 - 0x20];
     int f32;                    /* +32 */
     int f34;                    /* +34 */
     char p036[0x38 - 0x36];
     int f38;                    /* +38 */
-    char p03a[0x4e - 0x3a];
+    char p03a[0x3c - 0x3a];
+    int f3c;                    /* +3c */
+    char p03e[0x4e - 0x3e];
     int f4e;                    /* +4e */
     char p050[0x5e - 0x50];
     char f5e;                   /* +5e */
-    char p05f[0xb8 - 0x5f];
+    char f5f;                   /* +5f */
+    char p060[0xae - 0x60];
+    char fae[10];               /* +ae, indexed by slot [inferred] */
     char fb8[0x12];             /* +b8, indexed by slot [inferred] */
     char fca;                   /* +ca */
-    char p0cb[0xce - 0xcb];
+    char fcb;                   /* +cb: slot count [inferred] */
+    char p0cc[0xce - 0xcc];
     int fce;                    /* +ce */
     char p0d0[0xd4 - 0xd0];
     int fd4;                    /* +d4 */
     char p0d6[0xda - 0xd6];
     int fda;                    /* +da */
     long fdc;                   /* +dc */
-    char p0e0[0xec - 0xe0];
+    char p0e0[0xe8 - 0xe0];
+    char fe8;                   /* +e8 */
+    char p0e9[0xec - 0xe9];
     char fec;                   /* +ec */
     char p0ed[0x146 - 0xed];
     char f146;                  /* +146 */
     char p147;
     char f148;                  /* +148 */
-    char p149[0x15a - 0x149];
+    char p149;
+    POINT f14a;                 /* +14a */
+    char p14e[0x15a - 0x14e];
 } REC_15A;
 
 #pragma pack(1)
@@ -78,16 +95,21 @@ typedef struct {                /* 0x1c bytes, DGROUP array at DS:66e8 */
     char p0e[0x1c - 0x0e];
 } REC_1C;
 
-typedef struct {                /* 0x50 bytes, DGROUP array at DS:2f5e */
+typedef struct {                /* 0x50 bytes, DGROUP array at DS:2f58 */
     int f00;                    /* +00 */
-    char p02[0x1e - 0x02];
-    int f1e;                    /* +1e */
-    char p20[0x38 - 0x20];
-    int f38;                    /* +38 */
-    char p3a[0x50 - 0x3a];
+    char p02[0x06 - 0x02];
+    int f06;                    /* +06 */
+    char p08[0x24 - 0x08];
+    int f24;                    /* +24 */
+    char p26[0x28 - 0x26];
+    int f28;                    /* +28 */
+    int f2a;                    /* +2a */
+    char p2c[0x3e - 0x2c];
+    int f3e;                    /* +3e */
+    char p40[0x50 - 0x40];
 } REC_50;
 
-extern REC_50 g_2f5e[];
+extern REC_50 g_2f58[];
 extern REC_1C g_66e8[];
 extern DWORD g_1d06;
 extern REC_70 far *g_1df8[16];
@@ -95,6 +117,17 @@ extern DWORD g_1e50;
 extern DWORD g_1e68;
 extern DWORD g_8e28;
 extern int g_9000;
+extern long g_1e58;
+extern long g_5078;
+extern int g_9318;
+extern int g_91fc;
+extern int g_94a8;
+extern int g_94aa;
+extern int g_967c;
+extern int g_9684;
+extern int g_9ea0;
+extern int g_9ea4;
+extern char g_9eb5;
 extern int g_9134;
 extern int g_9334;
 extern int g_9524;
@@ -111,6 +144,11 @@ extern unsigned long g_9e60[];
 
 void far fn_03_06ec(int a, int b, int n, int id);
 void far fn_07_1208(void);
+int far pascal fn_08_285a(int far *p, int far *q, POINT a, POINT b);
+void far fn_10_744c(int a);
+void far race_radar_background(int a);
+void far fn_12_3e98(int i);
+int far fn_04_6a78(int n, int i);
 int far fn_13_2688(int n, int m);
 int far fn_13_1076(int n, int type);
 void far pascal fn_11_7c12(int k, int type, int n);
@@ -137,6 +175,65 @@ void far pascal fn_04_0000(int n)
             g_1df8[14][n].f28 = 15;
         fn_07_1208();
     }
+}
+
+/* @addr 4:2da2 */
+void far fn_04_2da2(void)
+{
+    int v;
+    int i;
+
+    g_9eb5 = 1;
+    for (i = 0; i <= g_9316; i++) {
+        if (g_1df8[14][i].f18 != 0)
+            continue;
+        if (g_7090[i].fda < 0)
+            v = -1 - g_7090[i].fda;
+        else
+            v = g_7090[i].fda;
+        if (v < g_9ea0)
+            g_9eb5 = 0;
+    }
+    if (g_7090[g_9646].fda - g_9ea0 == 1)
+        g_9eb5 = 1;
+    else {
+        if (g_9684 == 1) {
+            fn_10_744c(0x74);
+            if (g_91fc) {
+                fn_03_06ec(g_9646, 7, 0, 0xba);
+                g_967c++;
+            }
+        } else {
+            fn_10_744c(0x42);
+            if (g_91fc)
+                fn_03_06ec(g_9646, 7, 0, 0xbb);
+        }
+        g_9e60[g_9646] = g_1e68 - g_9e60[g_9646];
+        if (g_91fc)
+            g_9eb5 = 1;
+        if (g_9684 == 1 && g_9316 != 0) {
+            g_5078 += ((9 - g_94aa) * g_9316 + (g_94a8 + 5) * 4) * 500;
+            g_1e58 += ((9 - g_94aa) * g_9316 + (g_94a8 + 5) * 4) * 500;
+        } else if (g_9684 == 2 && g_9316 > 1) {
+            g_5078 += (g_94a8 + 8) * 500 + (8 - g_94aa) * g_9316 * 200;
+            g_1e58 += (g_94a8 + 8) * 500 + (8 - g_94aa) * g_9316 * 200;
+        }
+    }
+    if (g_9eb5) {
+        fn_10_744c(20);
+        race_radar_background(0);
+        for (i = g_9318 * 2; i < g_9318 * 2 + g_9ea2 + g_9ea4; i++)
+            fn_12_3e98(i);
+        for (i = 0; i <= g_9316; i++) {
+            g_7090[i].f148 = -2;
+            g_7090[i].f32 = 12;
+            g_7090[i].f34 = 0;
+            g_7090[i].f3c = g_7090[i].f38 = 2;
+            if (g_1df8[14][i].f51 == 0)
+                g_1df8[14][i].f51 = 1;
+        }
+    }
+    g_1df8[14][g_9646].f51 = 2;
 }
 
 /* near-match 81%: 4:474c (the original keeps g_1e50 in eax/dx:ax across the
@@ -188,8 +285,8 @@ void far pascal fn_04_5514(int n)
     g_66e8[n].f0a = LOBYTE(v);
     if (g_66e8[n].f00 == g_66e8[n].f08 && g_66e8[n].f02 == g_66e8[n].f0a)
         goto none;
-    ax_ = g_1df8[HIBYTE(v)][LOBYTE(v)].f04 - g_1df8[6][n].f04;
-    ay = g_1df8[HIBYTE(v)][LOBYTE(v)].f06 - g_1df8[6][n].f06;
+    ax_ = g_1df8[HIBYTE(v)][LOBYTE(v)].f04.x - g_1df8[6][n].f04.x;
+    ay = g_1df8[HIBYTE(v)][LOBYTE(v)].f04.y - g_1df8[6][n].f04.y;
     bx_ = g_1df8[HIBYTE(v)][LOBYTE(v)].f0c - g_1df8[6][n].f0c;
     by = g_1df8[HIBYTE(v)][LOBYTE(v)].f0e - g_1df8[6][n].f0e;
     if (ax_ * by - ay * bx_ > 0)
@@ -211,14 +308,14 @@ void far pascal fn_04_584c(int s, int n, int t)
     if (n == g_9646 && g_9134 == 0)
         g_8e28 = g_1e50;
     k = g_7090[n].fb8[s];
-    if (g_2f5e[k].f38 == 0)
-        g_7090[n].fca = g_7090[n].f5e * 4 + g_2f5e[k].f1e;
+    if (g_2f58[k].f3e == 0)
+        g_7090[n].fca = g_7090[n].f5e * 4 + g_2f58[k].f24;
     else {
         g_7090[n].fca = 2;
-        g_7090[n].fd4 = g_2f5e[k].f1e * 3;
+        g_7090[n].fd4 = g_2f58[k].f24 * 3;
     }
     fn_13_4eec(n, 5);
-    if (g_2f5e[k].f00)
+    if (g_2f58[k].f06)
         fn_11_7c12(k, 14, n);
     else if (k == 5)
         fn_13_1318(14, n, t, 5);
@@ -244,6 +341,79 @@ void far pascal fn_04_584c(int s, int n, int t)
     g_7090[n].f18 = s;
 }
 
+/* Not yet decompiled. */
+int far fn_04_6a78(int n, int i)
+{
+    return 0;
+}
+
+/* near-match 18%: 4:6e70 (control flow and layout right; the original indexes
+ * fae[i]/fb8[i] as (row + i) in bx, this picks bx+si) */
+void far fn_04_6e70(int n)
+{
+    int i;
+    int best;
+    int sel;
+    int v;
+    int j;
+
+    i = g_7090[n].f18;
+    g_7090[n].f5f = 0;
+    best = -1000;
+    sel = -1;
+    if (g_7090[n].fcb <= 1)
+        return;
+    for (i = 1; i < g_7090[n].fcb; i++) {
+        if (g_7090[n].fae[i] <= 0)
+            continue;
+        if (g_7090[n].f32 == 0 && g_1df8[0][g_7090[n].f34].f2f < 0 && g_7090[n].fb8[i] == 5)
+            v = 10000;
+        else
+            v = fn_04_6a78(n, i);
+        if (v > best) {
+            sel = i;
+            best = v;
+        }
+    }
+    if (best > 0) {
+        if (g_2f58[g_7090[n].fb8[sel]].f00 == 2)
+            g_7090[n].f5f = 2;
+        else if (g_2f58[g_7090[n].fb8[sel]].f00 == 3)
+            g_7090[n].f5f = 3;
+        else
+            g_7090[n].f5f = 1;
+        g_7090[n].f18 = sel;
+    } else if (best == -100) {
+        best = 100;
+        for (j = 1; j < g_7090[n].fcb; j++) {
+            if (g_7090[n].fae[j] < 0)
+                continue;
+            if (g_2f58[g_7090[n].fb8[j]].f2a < g_7090[n].f1e
+                && g_2f58[g_7090[n].fb8[j]].f28 < best) {
+                best = g_2f58[g_7090[n].fb8[j]].f28;
+                sel = j;
+            }
+        }
+        if (best < 100) {
+            if (g_2f58[g_7090[n].fb8[sel]].f00 == 2)
+                g_7090[n].f5f = 2;
+            else if (g_2f58[g_7090[n].fb8[sel]].f00 == 3)
+                g_7090[n].f5f = 3;
+            else
+                g_7090[n].f5f = 1;
+            g_7090[n].f18 = sel;
+        } else {
+            g_7090[n].f18 = 0;
+            g_7090[n].f5f = 1;
+        }
+    } else {
+        g_7090[n].f18 = 0;
+        g_7090[n].f5f = 1;
+    }
+    if (n == g_9646)
+        fn_11_2f8c();
+}
+
 /* @addr 4:8346 */
 int far fn_04_8346(int n, int x, int y, int v)
 {
@@ -253,6 +423,38 @@ int far fn_04_8346(int n, int x, int y, int v)
         fn_13_9a18(n, x, y);
     g_7090[n].f146 = v;
     return 1;
+}
+
+/* @addr 4:83ae */
+void far fn_04_83ae(void)
+{
+    int i;
+    int j;
+    int a;
+    int b;
+    int d;
+
+    for (i = 0; i <= g_9316; i++) {
+        if (g_7090[i].fec && g_7090[i].fe8) {
+            for (j = 0; j <= g_9316; j++) {
+                if (j != i && g_7090[j].fec && g_7090[j].f32 == 14 && g_7090[j].f34 == i) {
+                    d = fn_08_285a(&a, &b, g_1df8[14][i].f04, g_7090[i].f14a);
+                    if (d > 350) {
+                        g_7090[i].f14a.x = rand() % 4000 + g_1df8[14][i].f04.x - 2000;
+                        g_7090[i].f14a.y = rand() % 4000 + g_1df8[14][i].f04.y - 2000;
+                        if (g_7090[i].f14a.x < 0)
+                            g_7090[i].f14a.x += G_05A0_LO * 8;
+                        else if (g_7090[i].f14a.x > G_05A0_LO * 8)
+                            g_7090[i].f14a.x -= G_05A0_LO * 8;
+                        if (g_7090[i].f14a.y < 0)
+                            g_7090[i].f14a.y += G_05A0_HI * 8;
+                        else if (g_7090[i].f14a.y > G_05A0_HI * 8)
+                            g_7090[i].f14a.y -= G_05A0_HI * 8;
+                    }
+                }
+            }
+        }
+    }
 }
 
 /* @addr 4:84de */

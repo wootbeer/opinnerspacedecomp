@@ -57,3 +57,20 @@ Conventions
 - Under /G3 two adjacent int stores of 0 merge into one dword store.
 - A struct passed by value to a pascal function is pushed as one block;
   field assignment order before the call matters.
+- Loops whose body is an if/else or `&&` chain: CL puts the *else* arm at the
+  loop top; write the if/else the way round that gives the game's layout.
+- `goto` sometimes reproduces a loop layout that `break`/`while` cannot.
+- Adjacent constant stores merge into one dword store only in the right
+  statement order.
+- Odd-sized records need `#pragma pack(1)` (seen: 0x297, 0xad, 0x23).
+- A segment can hold several original files that far-call each other: split
+  into segNN.c / segNNa.c / segNNb.c following inventory/files.tsv.
+- `tools/objdiff.py SRC.c NAME` shows the compiled code next to the game's.
+
+## Type questions to settle when consolidating inspace.h
+- g_05a0: declared long, but 4:83ae reads it as two ints (world width/height
+  [inferred]).
+- g_6084 / g_607c: RECTs (seg 4) vs int g_6084 (seg 17).
+- fn_10_94c4 last argument: LPSTR, not long.
+- g_fp_3c50: called with (int, int, int, int, long, int) and with 7 ints.
+- g_0024: a module handle (LoadLibrary/FreeLibrary).

@@ -82,6 +82,17 @@ extern long g_1e50;
 extern long g_1e78;
 extern long g_1e88;
 extern long g_1e74;
+extern long g_1e70;
+extern int g_5000;
+extern int g_5002;
+extern RECT g_607c;
+extern RECT g_6084;
+extern char g_38c8[];
+extern int g_8f70;
+extern int g_90f8;
+extern int g_91fe;
+extern int g_93aa;
+extern int g_9134;
 extern void far *g_3d4c;
 extern REC_70 far *g_1df8[16];
 extern int g_3a02;
@@ -130,6 +141,10 @@ extern REC_AD g_96f0[];
 
 void far fn_10_6d52(int a, int b, int c, int d, int e, int f);
 void far fn_17_306e(void);
+void far fn_11_1774(int c, int l, int t, int r, int b);
+void far fn_17_30b0(int a, int b, int c);
+int far fn_17_2c5a(int a, int b);
+void far fn_17_0000(int a, int b);
 void far fn_03_1542(int a, int b, int n, LPSTR buf, int c);
 void far fn_07_2512(int i, int v);
 void far fn_09_6a12(void);
@@ -157,6 +172,7 @@ void far fn_09_95ba(UINT id);
 void far fn_09_6cc4(int flag);
 void far fn_09_6db0(void);
 void far fn_09_6dec(int a);
+void far fn_09_8bec(HDC hdc, int x, int y, int size, int width, UINT align, LPSTR s);
 
 /* @addr 9:699e */
 void far fn_09_699e(void)
@@ -280,10 +296,51 @@ void far fn_09_6db0(void)
         g_7090[i].f1e = g_96f0[g_7090[i].f4e].f00;
 }
 
-/* Not yet decompiled. */
-void far fn_09_6dec(int a)
+/* @addr 9:6dec */
+void far fn_09_6dec(int force)
 {
+    char buf[140];
+    char unused[40];
+    int r;
+    int left;
+    int right;
+    int clip;
+
+    clip = 0;
+    if (flow_interactive == 0 || g_1e50 == g_1e70)
+        return;
+    if (force || g_6078 == 0) {
+        SetRect(&g_6084, g_90ea / 2 - 290, g_0010 / 2 - 173, g_90ea / 2 + 290, g_0010 / 2 + 173);
+        left = max(g_6084.left - 6, 0);
+        right = min(g_6084.right + 6, g_90ea);
+        fn_11_1774(2, g_6084.left - 6, g_6084.top - 15, g_6084.right + 6, g_6084.bottom + 6);
+        fn_11_1774(-1, left, g_6084.top - 15, right, g_6084.top + 10);
+        fn_10_a332(buf, 0xbbb, 1, g_91f8);
+        fn_09_8bec(g_13dc, left + 5, g_6084.top - 13, 22, 10, 0, buf);
+        fn_09_955c(0x8be, buf);
+        fn_09_8bec(g_13dc, right - 7, g_6084.top - 6, 14, 0, 2, buf);
+        g_5000 = g_6084.left + 14;
+        g_5002 = g_6084.top + 18;
+        if (g_93ae) {
+            DeleteObject(g_93ae);
+            g_93ae = 0;
+        }
+        g_93ae = CreateRectRgn(g_6084.left, g_5002, g_6084.right, g_6084.bottom);
+        clip = 1;
+        SelectClipRgn(g_13dc, g_93ae);
+        if (g_6078 == 0)
+            fn_17_30b0(11, 0xdac, 0);
+        else
+            fn_17_2c5a(1, 1);
+    }
+    if (clip == 0)
+        SelectClipRgn(g_13dc, g_93ae);
+    if (g_6078)
+        r = fn_17_2c5a(0, 0);
+    if (g_9134 && r == 1)
+        g_1e74 = g_1e50 + 3000;
 }
+
 
 /* @addr 9:8838 */
 void far fn_09_8838(int n)
@@ -327,6 +384,69 @@ void far fn_09_8908(void)
         DeleteObject(g_93ae);
         g_93ae = 0;
     }
+}
+
+/* @addr 9:8934 */
+void far draw_briefing_panel_with_esc_prompt(int a)
+{
+    char buf[120];
+    char unused[82];
+    int left;
+    int right;
+    int y;
+    int x;
+    int h;
+    int w;
+    int unused2;
+
+    if (g_90ea < 640)
+        w = g_90ea + 20;
+    else
+        w = min(g_90ea - 20, 620);
+    if (g_0010 < 440)
+        h = g_0010 + 20;
+    else
+        h = min(g_0010 - 20, 460);
+    g_6084.left = g_90ea / 2 - w / 2;
+    g_6084.right = g_6084.left + w;
+    g_6084.top = g_0010 / 2 - h / 2;
+    g_6084.bottom = g_6084.top + h - 180;
+    if (g_0010 > 400)
+        g_6084.top = max(g_6084.top, 15);
+    g_607c.left = g_90ea / 2 - w / 2;
+    g_607c.right = g_607c.left + w;
+    g_607c.top = g_6084.bottom;
+    g_607c.bottom = g_607c.top + 180;
+    left = max(g_6084.left, 0);
+    right = min(g_6084.right, g_90ea);
+    if (g_8f70 == 0 && g_90f8 == 0) {
+        fn_11_1774(2, g_6084.left, g_6084.top - 15, g_6084.right, g_607c.bottom);
+        fn_11_1774(-1, left, g_6084.top - 15, right, g_6084.top + 10);
+        fn_11_1774(-1, left, g_607c.top + 20, right, g_607c.top + 40);
+        fn_10_a332(buf, 0x9e9, 1, g_91f8);
+        fn_09_8bec(g_13dc, left + 5, g_6084.top - 13, 22, 10, 0, buf);
+        fn_09_955c(0x8dc, buf);
+        fn_09_8bec(g_13dc, right - 7, g_6084.top - 6, 14, 0, 2, buf);
+        x = g_607c.left + 15;
+        y = g_607c.top + 22;
+        lstrcpy(buf, g_38c8);
+        fn_09_8bec(g_13dc, left + 5, y, 15, 8, 0, buf);
+        if (g_91fe) {
+            fn_10_a332(buf, 0x90c, 1, g_91fe, 0x9d3);
+            fn_09_8bec(g_13dc, right - 5, y, 15, 8, 2, buf);
+        }
+    }
+    g_6084.left += 6;
+    g_6084.right -= 6;
+    g_6084.top += 11;
+    g_6084.bottom = g_607c.top + 9;
+    if (g_93ae) {
+        DeleteObject(g_93ae);
+        g_93ae = 0;
+    }
+    g_93ae = CreateRectRgn(g_6084.left, g_6084.top, g_6084.right, g_6084.bottom);
+    g_93aa = 0;
+    fn_17_0000(a == 0, 1);
 }
 
 /* @addr 9:8bec */

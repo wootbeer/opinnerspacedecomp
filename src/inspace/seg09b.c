@@ -74,8 +74,35 @@ typedef struct {                /* 0x23 bytes, DGROUP array at DS:57a8 */
 #pragma pack()
 
 extern int g_0010;
+extern int g_0986[6];
+extern int g_0990;
+extern int g_0992;
+extern long g_1e80;
+extern long g_1e84;
+extern int g_4eec[8][3];
+extern long g_5018;
+extern int g_91f8;
+extern int g_92e4;
+extern int g_93ac;
+extern int g_9432;
+extern int g_94ca;
+extern char g_953e;
+extern char g_953f;
+extern char g_9540;
+extern char g_9541;
+extern char g_9542[27];
+extern char g_9563;
+extern char g_9564[27];
+extern int g_967c;
+extern int g_9156;
+extern char g_a161;
+extern char g_a18f[4];
+extern char g_a193[4];
+extern int g_a1cd;
+extern int g_a1cf;
 extern int g_13de;
 extern long g_1e50;
+extern long g_1e58;
 extern long g_1e78;
 extern long g_1e88;
 extern REC_70 far *g_1df8[16];
@@ -84,7 +111,6 @@ extern char g_3966[];
 extern HGDIOBJ g_4e94[32];
 extern REC_23 g_57a8[];
 extern void far *g_4fcc;
-extern long g_5078;
 extern LPSTR g_6078;
 extern REC_297 far *g_69f4;
 extern char g_380c[];
@@ -101,6 +127,8 @@ extern int g_9318;
 extern int g_9322;
 extern int g_9320;
 extern int g_9334;
+extern int g_9346;
+extern long g_5078;
 extern int g_9406;
 extern int g_9408;
 extern int g_94b0;
@@ -118,6 +146,11 @@ extern PAIR g_9f40[][40];
 
 void far fn_10_6d52(int a, int b, int c, int d, int e, int f);
 void far fn_17_306e(void);
+void far fn_02_16a2(void);
+void far fn_09_5cca(void);
+void far fn_10_0552(int i, int a);
+void far fn_10_39a8(int a);
+void far fn_13_4eca(LPSTR s);
 void far fn_13_218a(int a, LPSTR buf);
 void far fn_06_0f1a(int k, LPSTR buf);
 void far fn_03_1542(int a, int b, int n, LPSTR buf, int c);
@@ -156,6 +189,55 @@ void far fn_09_0b2a(void)
         g_69f4[g_94a2].f14e = g_69f4[g_94a2].f150;
     }
     fn_09_0000(8);
+}
+
+/* @addr 9:0c06 */
+void far fn_09_0c06(void)
+{
+    int i;
+    int j;
+
+    for (i = 0; i < 2; i++)
+        fn_13_4eca("\n\r");
+    fn_13_4eca("START OF GAME! \n\r");
+    fn_02_16a2();
+    g_0992 = 0;
+    if (g_92e4 == 0) {
+        g_1e58 = 0;
+        g_5078 = 0;
+        g_9346 = -1;
+        g_91f8 = 0;
+        g_967c = 0;
+        g_94ca = 0;
+        g_93ac = 0;
+        for (i = 0; i < 8; i++)
+            for (j = 0; j < 3; j++)
+                g_4eec[i][j] = -1;
+        g_9432 = 100;
+        g_a1cf = 1;
+        g_a1cd = 0;
+        for (i = 0; i < 4; i++)
+            g_a193[i] = 1;
+    }
+    for (i = 0; i < 6; i++)
+        g_0986[i] = 1;
+    g_0990 = 2;
+    g_5018 = -1;
+    for (i = 0; i < 4; i++)
+        g_a18f[i] = 1;
+    g_953e = g_9540 = g_953f = g_9541 = 0;
+    for (j = 1; j < 27; j++)
+        g_9564[j] = g_9542[j] = 0;
+    g_9563 = 0;
+    g_1e84 = 0;
+    g_1e80 = 0;
+    g_a161 = -1;
+    if (g_9156 != 1) {
+        fn_10_0552(5, 1);
+        fn_10_39a8(1);
+        fn_10_0552(0x16, 1);
+    }
+    fn_09_5cca();
 }
 
 /* @addr 9:0d6c */
