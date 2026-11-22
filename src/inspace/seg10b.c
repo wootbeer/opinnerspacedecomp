@@ -482,9 +482,9 @@ void far fn_10_1502(int i)
         ry[j] = g_96d2[i].f68[j].y;
     }
     for (k = 0; k < 2; k++) {
-        for (j = ang = 0; j < 16; j++, ang += j % 2 + 22) {
+        for (ang = j = 0; j < 16; j++, ang += j % 2 + 22) {
             g_7be0[i][k][j].x = w / 2 + (fn_06_720c(ang) * rx[k] - fn_06_71b2(ang) * ry[k]) / 128;
-            g_7be0[i][k][j].y = (fn_06_720c(ang) * ry[k] + fn_06_71b2(ang) * rx[k]) / 128 + w / 2;
+            g_7be0[i][k][j].y = (fn_06_71b2(ang) * rx[k] + fn_06_720c(ang) * ry[k]) / 128 + w / 2;
         }
     }
 }
