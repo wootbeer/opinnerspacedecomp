@@ -126,3 +126,11 @@ Conventions
   reference check catches them.
 - g_1e50 (millisecond clock) should be DWORD: compares against it are
   unsigned.
+- Switch with six or more cases including 0 gives a jump table; merging
+  `case 0:` with `default:` gives a dec chain instead.
+- A constant stored just before being passed is sunk into the push; if the
+  game pushes the literal separately, the parameter is `char`.
+- Loops with constant bounds are rotated (no initial jump to the test).
+- To get one shared tail, write identical statements at the end of each
+  branch (cross-jumping).
+- More type notes: g_1e4c is used as a far pointer (les); g_0016 is an HWND.
