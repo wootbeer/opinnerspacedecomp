@@ -1,0 +1,39 @@
+# Names for INSPACE.EXE, by selector:offset (selector of segment n = 0x1000 + 8*(n-1)).
+# From HANDOFF.md ("Selected names (confirmed)") unless noted. Names tagged
+# [inferred] are not certain. Format: SEL:OFF name
+#
+# Functions
+1040:8934 draw_briefing_panel_with_esc_prompt
+1060:1fc2 spawn_gun_shot
+1078:08e4 self_destruct_ship
+1060:3008 ship_collected_aftermath
+1048:49d4 race_marker_strip
+1050:4108 lap_timer
+1018:8b82 race_position
+1050:488c race_radar_background
+1048:8b1c world_map
+1088:551a repulsive_force_weapon
+1088:59ec attractive_force_weapon
+1048:a856 sprite_dc_release
+1048:a90c sprite_dc_restore
+1060:3d40 draw_scaled_object
+1010:304c describe_defender_order_message
+1060:563c command_watch_ship [inferred]  # HANDOFF said 1010:563c, past the end of segment 1010; 1060:563c is the only function at that offset
+1080:4354 pilot_panel_header
+1080:3ba6 ship_status_lines
+1060:0d6c steer_toward_direction
+1040:88dc abs32
+#
+# Data (DS = 1090)
+1090:6b00 fireworks_end_ms
+1090:1c38 fireworks_next_launch_ms
+1090:95bc flow_interactive
+1090:9222 music_pause_state
+1090:9148 dissolve_active_count
+1090:058a hazards_ship_redraw_pending
+1090:9336 session_helper_groups
+1090:9130 subgame_active
+1090:9442 object_sizes
+1090:9446 object_masses
+1090:6db8 ambulance_line
+1090:6e08 demon_host_rect

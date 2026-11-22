@@ -119,6 +119,38 @@ def compare(fn, game, exe_prologue):
     return n, bad
 
 
+def run(srcs, exe='unpacked/INSPACE.EXE', keep=False):
+    """Compile and compare. Returns a list of dicts: src, name, seg, off,
+    size (bytes compared, 0 if missing), bad (differing byte count, None
+    if the function was not produced)."""
+    data = open(exe, 'rb').read()
+    h, segs = read_ne(data)
+    is_exe = not h['flags'] & 0x8000              # NE flag: library (DLL)
+    work = tempfile.mkdtemp(prefix='match-')
+    results = []
+    try:
+        objs = compile_all(srcs, work)
+        for src in srcs:
+            have = {}
+            if os.path.exists(objs[src]):
+                have = {n.lstrip('_').upper(): f for n, f in functions(objs[src]).items()}
+            for name, (sn, off) in tags(src).items():
+                r = {'src': src, 'name': name, 'seg': sn, 'off': off, 'size': 0, 'bad': None}
+                fn = have.get(name.upper())
+                if fn is not None:
+                    s = segs[sn - 1]
+                    game = data[s['file_off'] + off:s['file_off'] + s['len']]
+                    n, bad = compare(fn, game, is_exe)
+                    r.update(size=n, bad=len(bad), first=bad[0] if bad else None)
+                results.append(r)
+    finally:
+        if keep:
+            print('work dir:', work)
+        else:
+            shutil.rmtree(work)
+    return results
+
+
 def main():
     args = sys.argv[1:]
     exe = 'unpacked/INSPACE.EXE'
@@ -126,44 +158,21 @@ def main():
         i = args.index('--exe')
         exe = args[i + 1]
         del args[i:i + 2]
-    keep = '--keep' in args
     srcs = [a for a in args if not a.startswith('--')]
-    data = open(exe, 'rb').read()
-    _, segs = read_ne(data)
-    is_exe = not read_ne(data)[0]['flags'] & 0x8000      # NE flag: DLL
-    work = tempfile.mkdtemp(prefix='match-')
-    total = matched = 0
-    try:
-        objs = compile_all(srcs, work)
-        for src in srcs:
-            want = tags(src)
-            if not os.path.exists(objs[src]):
-                print(f'{src}: did not compile')
-                total += len(want)
-                continue
-            have = {n.lstrip('_').upper(): f for n, f in functions(objs[src]).items()}
-            for name, (sn, off) in want.items():
-                total += 1
-                fn = have.get(name.upper())
-                if fn is None:
-                    print(f'  {name:32} {sn}:{off:04x}  not in object')
-                    continue
-                s = segs[sn - 1]
-                game = data[s['file_off'] + off:s['file_off'] + s['len']]
-                n, bad = compare(fn, game, is_exe)
-                if not bad:
-                    matched += 1
-                    print(f'  {name:32} {sn}:{off:04x}  MATCH  ({n} bytes)')
-                else:
-                    pct = 100 * (n - len(bad)) / n
-                    print(f'  {name:32} {sn}:{off:04x}  {pct:5.1f}%  first diff at +{bad[0]:#x} ({len(bad)} bytes differ)')
-        print(f'{matched}/{total} functions match')
-    finally:
-        if keep:
-            print('work dir:', work)
+    results = run(srcs, exe, '--keep' in args)
+    for r in results:
+        where = f"{r['seg']}:{r['off']:04x}"
+        if r['bad'] is None:
+            print(f"  {r['name']:32} {where:8} not in object")
+        elif r['bad'] == 0:
+            print(f"  {r['name']:32} {where:8} MATCH  ({r['size']} bytes)")
         else:
-            shutil.rmtree(work)
-    return 0 if matched == total else 1
+            pct = 100 * (r['size'] - r['bad']) / r['size']
+            print(f"  {r['name']:32} {where:8} {pct:5.1f}%  first diff at +{r['first']:#x} "
+                  f"({r['bad']} bytes differ)")
+    matched = sum(1 for r in results if r['bad'] == 0)
+    print(f'{matched}/{len(results)} functions match')
+    return 0 if matched == len(results) else 1
 
 
 if __name__ == '__main__':
