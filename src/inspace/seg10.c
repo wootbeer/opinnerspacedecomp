@@ -1465,3 +1465,46 @@ void far fn_10_533a(int a)
         }
     }
 }
+
+/* Writes the current time and date into s as "h:mmAM m/d/yy". */
+/* @addr 10:97ce */
+void far fn_10_97ce(char far *s)
+{
+    struct tm *tm;
+    time_t t;
+    char buf[80];
+    int h;
+    int pm;
+
+    time(&t);
+    tm = localtime(&t);
+    lstrcpy(s, "");
+    h = tm->tm_hour;
+    if (h > 11) {
+        h -= 12;
+        pm = 1;
+    } else
+        pm = 0;
+    if (h == 0)
+        h = 12;
+    fn_06_0f1a(h, buf);
+    lstrcat(s, buf);
+    lstrcat(s, ":");
+    if (tm->tm_min < 10)
+        lstrcat(s, "0");
+    fn_06_0f1a(tm->tm_min, buf);
+    lstrcat(s, buf);
+    if (pm)
+        lstrcat(s, "PM");
+    else
+        lstrcat(s, "AM");
+    lstrcat(s, " ");
+    fn_06_0f1a(tm->tm_mon + 1, buf);
+    lstrcat(s, buf);
+    lstrcat(s, "/");
+    fn_06_0f1a(tm->tm_mday, buf);
+    lstrcat(s, buf);
+    lstrcat(s, "/");
+    fn_06_0f1a(tm->tm_year, buf);
+    lstrcat(s, buf);
+}

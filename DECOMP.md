@@ -134,3 +134,16 @@ Conventions
 - To get one shared tail, write identical statements at the end of each
   branch (cross-jumping).
 - More type notes: g_1e4c is used as a far pointer (les); g_0016 is an HWND.
+- An unused temporary (`u = expr; x = k - u;`) is removed as a dead store but
+  still stops CL folding a negation or division.
+- To change layout, change the expression's form, not just operand order:
+  CL normalises many equivalent forms.
+- `a = b = c = 0` stores c first.
+- `do ; while (GetCurrentTime() < t);` gives the busy-wait layout.
+- A block that can never run, laid out out of line without an entry jump:
+  `while (cond) { ...; break; }`.
+- if/else-if chains and switches compile differently; keep whichever the
+  game shows.
+- `volatile` keeps two zero stores as immediates (2:1c08) [inferred].
+- 0x50-byte records start at DS:2f4c (not 2f50). DS:9646 is traced as
+  "iMainSmart" in a debug string.

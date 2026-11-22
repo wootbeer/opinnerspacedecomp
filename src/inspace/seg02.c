@@ -42,6 +42,38 @@ extern RECT g_1d28;
 extern RECT g_1d30;
 int far fn_10_0000(void);
 void far fn_02_0ca4(void);
+int far fn_02_18b8(int a);
+extern int g_95fa;
+extern int g_91fc;
+extern int g_940a;
+typedef struct {
+    char p00[0x10];
+    int f10;            /* +0x10 */
+    int f12;            /* +0x12 */
+    char rest[0x24 - 0x14];
+} REC_24;
+extern REC_24 g_52f4[];
+void far fn_10_744c(int a);
+extern int g_93c6;
+extern int g_93c0;
+extern int g_93ba;
+void far fn_13_4eca(LPSTR s);
+void far fn_06_0f1a(int n, char far *buf);
+void far fn_17_60d8(void);
+void far fn_07_0000(void);
+void far fn_10_8686(void);
+void far fn_10_86a8(void);
+extern volatile int g_968c;
+extern int g_001c;
+extern int g_001e;
+extern int g_8f6e;
+extern DWORD g_1d44;
+extern DWORD g_1d3c;
+extern int g_8f62;
+extern int g_1d48;
+extern int g_1d4a;
+extern HWND g_934c;
+extern HWND g_0d1e;
 void far fn_07_11cc(void);
 void far fn_07_1208(void);
 extern int g_1038;
@@ -203,10 +235,54 @@ void far fn_02_16a2(void)
         SetMenu(g_0016, g_90fa);
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Enables or greys the menu items (flags from fn_02_18b8) to match the
+ * game state; the menu bar has one more popup when g_9134 is set. */
+/* @addr 2:170e */
 void far fn_02_170e(void)
 {
-    g_90f6 = 0;
+    HMENU m;
+    UINT fl;
+    int n;
+    int i;
+    int cnt;
+    int base;
+
+    if (g_90f6) {
+        if (!g_9134)
+            base = 0;
+        else
+            base = 1;
+        fl = fn_02_18b8(g_95fa);
+        m = GetSubMenu(g_90fa, base + 1);
+        n = GetMenuItemCount(m);
+        for (i = 0; i < n; i++)
+            EnableMenuItem(m, i, fl);
+        m = GetSubMenu(g_90fa, base + 3);
+        EnableMenuItem(m, 1, fl);
+        EnableMenuItem(m, 2, fl);
+        for (i = cnt = 0; i < g_940a; i++)
+            if (g_52f4[i].f10 == 14 && g_52f4[i].f12 == g_9646) {
+                cnt++;
+                break;
+            }
+        fl = fn_02_18b8(cnt);
+        m = GetSubMenu(g_90fa, base + 2);
+        n = GetMenuItemCount(m);
+        for (i = 0; i < n; i++)
+            EnableMenuItem(m, i, fl);
+        fl = fn_02_18b8(g_91fc);
+        EnableMenuItem(GetSubMenu(g_90fa, base + 3), 3, fl);
+        fl = fn_02_18b8(1);
+        m = GetSubMenu(g_90fa, 0);
+        EnableMenuItem(m, 0, fl);
+        EnableMenuItem(m, 3, fl);
+        if (!flow_interactive) {
+            m = GetSubMenu(g_90fa, base);
+            n = GetMenuItemCount(m);
+            for (i = 0; i < n; i++)
+                EnableMenuItem(m, i, fl);
+        }
+    }
 }
 
 /* @addr 2:0a06 */
@@ -432,4 +508,142 @@ void far fn_02_0ba4(void)
     else
         PatBlt(g_13dc, 0, 0, g_90ea, g_90ec, BLACKNESS);
     PostMessage(g_0016, WM_PAINT, 0, 0L);
+}
+
+/* Draws one game frame [inferred] into the window DC (the pop-up g_9460
+ * when open), with debug traces of g_9646 ("iMainSmart") in mode 1. */
+/* @addr 2:1c08 */
+void far fn_02_1c08(void)
+{
+    char pad[18];
+    HPALETTE pal;
+    char buf[20];
+    HWND hwnd;
+
+    if (g_90f4 == 1) {
+        fn_13_4eca("GameFrame 2 iMainSmart = ");
+        fn_06_0f1a(g_9646, buf);
+        fn_13_4eca(buf);
+        fn_13_4eca("\n\r");
+    }
+    hwnd = g_9460 ? g_9460 : g_0016;
+    if (g_13de) {
+        fn_02_1d58();
+        return;
+    }
+    g_968c = 1;
+    g_13dc = GetDC(hwnd);
+    if (g_920e)
+        pal = SelectPalette(g_13dc, g_920e, 0);
+    if (g_90f4 == 1) {
+        fn_13_4eca("GameFrame 3 iMainSmart = ");
+        fn_06_0f1a(g_9646, buf);
+        fn_13_4eca(buf);
+        fn_13_4eca("\n\r");
+    }
+    if (g_9460)
+        fn_17_60d8();
+    else
+        fn_07_0000();
+    if (g_90f4 == 1) {
+        fn_13_4eca("GameFrame 1 iMainSmart = ");
+        fn_06_0f1a(g_9646, buf);
+        fn_13_4eca(buf);
+        fn_13_4eca("\n\r");
+    }
+    if (pal)
+        SelectPalette(g_13dc, pal, 0);
+    ReleaseDC(hwnd, g_13dc);
+    g_13dc = 0;
+    g_968c = 0;
+}
+
+/* Timer tick [inferred]: handles a pending g_001c request, wiggles the
+ * mouse in attract mode every 20 s, and follows activation changes. */
+/* @addr 2:11f8 */
+void far fn_02_11f8(void)
+{
+    int u1;
+    int u2;
+    int u3;
+    HWND act;
+    HTASK task;
+    int u4;
+
+    if (g_001c) {
+        g_8f6a = g_001c = 0;
+        if (g_8f6e)
+            PostMessage(g_0016, 0x8e2, 0, 0L);
+        PostMessage(g_0016, 0x914, 0, 0L);
+        g_001e = 1;
+        return;
+    }
+    if (!flow_interactive && GetCurrentTime() > g_1d44 + 20000 &&
+        GetCurrentTime() > g_1d3c + 10000) {
+        g_1d44 = GetCurrentTime();
+        if (++g_8f62 > 2)
+            g_8f62 = 0;
+        SetCursorPos(g_1d48 + g_8f62 - 1, g_1d4a);
+    }
+    if (g_8f66) {
+        act = GetActiveWindow();
+        task = GetWindowTask(g_0016);
+        if (GetWindowTask(act) != task) {
+            if (g_8e5c)
+                fn_10_8686();
+        } else if (!g_8e5c && !IsIconic(g_0016))
+            fn_10_86a8();
+        if (act != g_0016 && act != g_934c && act != g_0d1e) {
+            if (g_8f68)
+                fn_02_09c4();
+        } else if (!g_8f68 && !IsIconic(g_0016))
+            fn_02_0a06();
+    }
+}
+
+/* Click at (x, y) on the bottom panel [inferred]: three buttons set
+ * g_93c6 (6, 2, 5) and call fn_02_088e; else, with g_001e set, restores
+ * the normal window frame or calls fn_02_0fc4. */
+/* @addr 2:1046 */
+void far fn_02_1046(int x, int y)
+{
+    LONG style;
+    POINT pt;
+    RECT rc;
+
+    pt.x = x;
+    pt.y = y;
+    SetRect(&rc, g_90ea / 2 - 43, g_8e5a + 7, g_90ea / 2 + 43, g_0010 - 3);
+    if (g_0a7c && PtInRect(&rc, pt)) {
+        fn_10_744c(0x6e);
+        fn_10_744c(0x13);
+        g_93c6 = 6;
+        fn_02_088e();
+        return;
+    }
+    SetRect(&rc, g_93c0, g_8e5a + 24, g_93c0 + 84, g_0010 - 2);
+    if (g_0a7c && PtInRect(&rc, pt)) {
+        g_93c6 = 2;
+        fn_02_088e();
+        return;
+    }
+    SetRect(&rc, 0, g_8e5a + 5, g_93ba - 1, g_0010 - 2);
+    if (g_0a7c && PtInRect(&rc, pt)) {
+        fn_10_744c(0x6e);
+        fn_10_744c(0x13);
+        g_93c6 = 5;
+        fn_02_088e();
+        return;
+    }
+    if (g_001e) {
+        if (g_0020) {
+            style = GetWindowLong(g_0016, GWL_STYLE);
+            style |= WS_OVERLAPPEDWINDOW;
+            SetWindowLong(g_0016, GWL_STYLE, style);
+            SetWindowPos(g_0016, (HWND)-2, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+            PostMessage(g_0016, WM_SYSCOMMAND, SC_RESTORE, 0L);
+            g_0020 = 0;
+        } else
+            fn_02_0fc4();
+    }
 }
