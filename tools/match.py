@@ -12,6 +12,11 @@ object (or the segment end, without trailing alignment padding). Fixup
 bytes in the object are masked. The linker (OPTLINK) rewrote EXE prologues
 `mov ax,ds` (8C D8) to `mov ax,ss` (8C D0); that byte is accepted.
 
+A source may set its own compile flags with a comment anywhere in it:
+    /* @cflags /AM /G2 /Gw /Gs /Os */
+(some original files were built with other flags, e.g. part of segment 8
+with /G2).
+
 Environment: MSVC_DIR (default /home/user/toolchain/msvc, holding BIN, LIB,
 INCLUDE), CFLAGS (default the flags confirmed for INSPACE.EXE).
 """
@@ -63,7 +68,9 @@ def compile_all(srcs, work):
     for i, src in enumerate(srcs):
         name = f'S{i}'
         shutil.copyfile(src, os.path.join(work, name + '.C'))
-        lines.append(f'cl /c /nologo {CFLAGS} /Fo{name}.OBJ {name}.C >> D:\\CL.TXT')
+        m = re.search(r'/\*\s*@cflags\s+(.*?)\s*\*/', open(src, encoding='latin-1').read())
+        flags = m.group(1) if m else CFLAGS
+        lines.append(f'cl /c /nologo {flags} /Fo{name}.OBJ {name}.C >> D:\\CL.TXT')
         objs[src] = os.path.join(work, name + '.OBJ')
     with open(os.path.join(work, 'RUN.BAT'), 'w', newline='\r\n') as f:
         f.write('\n'.join(lines) + '\n')
