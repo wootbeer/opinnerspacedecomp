@@ -24,7 +24,9 @@ typedef struct {
     char f2e;                   /* +2e */
     char p2f[0x44 - 0x2f];
     int f44;                    /* +44 */
-    char p46[0x51 - 0x46];
+    int f46;
+    int f48;                    /* +48 */
+    char p4a[0x51 - 0x4a];
     char f51;                   /* +51 */
     char f52;
     char f53;                   /* +53 */
@@ -82,6 +84,7 @@ extern int g_90ea;
 extern int g_90ec;
 extern int g_0a76;
 extern int g_9208;
+extern char g_8ffe;
 extern int g_9134;
 extern int g_058c;
 extern RECT g_1d28;
@@ -164,152 +167,13 @@ int far fn_10_6c02(int a, int b, int c);
 int far fn_10_6308(int a, int b, int c, int d);   /* seg10 declares void */
 int far fn_10_6ec6(int a);                         /* seg10 declares void */
 void far fn_10_754a(int a, int b, int c, int d);
+void far fn_07_1208(void);
+void far fn_07_2080(int t, int unused);  /* defined in seg07b.c with one arg */
+int far fn_13_59e8(int a, int b);
 void far fn_08_99ce(int a, int b, int c, int d, int e);
 void far fn_13_6450(int a, int b, int c);
 void far fn_13_58dc(int a, int b);
 void far fn_13_5a6a(HDC dc, int a, int b, int c, int d, int e, int f, int g);
-
-/* @addr 7:11cc */
-void far fn_07_11cc(void)
-{
-    g_1e30[g_9646].x = g_90ea / 2;
-    g_1e30[g_9646].y = g_90ec / 2;
-}
-
-/* @addr 7:119c */
-void far fn_07_119c(int a)
-{
-    g_0a76 = a;
-    if (g_0a7c)
-        PostMessage(g_0a7c, WM_PAINT, 0, 0L);
-}
-
-/* @addr 7:1f38 */
-void far fn_07_1f38(void)
-{
-    HFONT oldfont;
-    HFONT font;
-    COLORREF textcol;
-    COLORREF bkcol;
-
-    if (g_9134 == 1 && g_058c) {
-        font = CreateFont(14, 9, g_058c = 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, "Arial");
-        oldfont = SelectObject(g_13dc, font);
-        bkcol = SetBkColor(g_13dc, 0L);
-        SetBkMode(g_13dc, OPAQUE);
-        SetTextAlign(g_13dc, 0);
-        textcol = SetTextColor(g_13dc, PALETTERGB(0, 0xff, 0xff));
-        PatBlt(g_13dc, g_1d28.left + 10, g_1d28.top, g_1d28.right - 10, g_1d28.bottom,
-               BLACKNESS);
-        g_1d28.bottom += g_1d28.top;
-        g_1d28.right += g_1d28.left;
-        fn_02_094c(0x929);
-        lstrcat(g_8e68, g_8630);
-        ExtTextOut(g_13dc, g_1d28.left + 10, g_1d28.top, ETO_CLIPPED, &g_1d28,
-                   g_8e68, lstrlen(g_8e68), NULL);
-        g_1d28.bottom -= g_1d28.top;
-        g_1d28.right -= g_1d28.left;
-        SetBkColor(g_13dc, bkcol);
-        SetTextColor(g_13dc, textcol);
-        SelectObject(g_13dc, oldfont);
-        if (font)
-            DeleteObject(font);
-    }
-}
-
-/* @addr 7:2080 */
-void far fn_07_2080(int t)
-{
-    int i;
-
-    if (t == 1 || t == 2 || t == 7 || t == 5 || t == 11 || t == 9
-        || t == 10 || t == 4 || t == 6 || t == 8 || t == 19) {
-        for (i = g_92ec[t]; i > 0; i--)
-            if (g_1df8[t][i - 1].f18 == 0 || g_1df8[t][i - 1].f51 != 0) {
-                g_9406[t] = i;
-                break;
-            }
-        if (i == 0)
-            g_9406[t] = 0;
-    }
-}
-
-/* @addr 7:2128 */
-void far fn_07_2128(void)
-{
-    int i;
-    char unused[72];
-
-    if (g_9316 == 0) {
-        g_9432 -= max(g_9432 / 50, 2);
-        if (g_9432 < 0)
-            g_9432 = 0;
-        return;
-    }
-    for (i = 0; i < g_9316; i++)
-        if (g_70ae[i].f14 == 14 && g_70ae[i].f16 == g_9646 && g_70ae[i].f1a == 1) {
-            g_9432 -= max(g_9432 / 18, 4);
-            if (g_9432 < 0)
-                g_9432 = 0;
-            if (g_8e28 + 15000 < g_1e50) {
-                g_9432 -= max(g_9432 / 14, 4);
-                if (g_9432 < 0)
-                    g_9432 = 0;
-            }
-            return;
-        }
-    g_9432 -= max(g_9432 / 40, 3);
-    if (g_9432 < 0)
-        g_9432 = 0;
-    if (g_8e28 + 15000 < g_1e50) {
-        g_9432 -= max(g_9432 / 36, 2);
-        if (g_9432 < 0)
-            g_9432 = 0;
-    }
-}
-
-/* Frame-rate bookkeeping [inferred]: counts frames per 250 ms and per
- * second and rescales g_9004 when off target. */
-/* near-match 76%: 7:2206 */
-void far fn_07_2206(void)
-{
-    int a;
-    int b;
-
-    if (g_90f4 == 6 && g_952c && g_9530 == 1) {
-        b = g_6da4->f2a;
-        a = b / 4;
-    } else if (g_90f4 == 6 && g_914a == 1 && g_92a2 == 0) {
-        a = 8;
-        b = 32;
-    } else {
-        a = 18;
-        b = 72;
-    }
-    g_914c++;
-    if (g_1e50 > g_1e64) {
-        if (a + 1 < g_914c || a - 1 > g_914c) {
-            if (g_914c > a && g_9004 == 0)
-                g_9004 = 1;
-            g_9004 = g_914c * g_9004 / a;
-        }
-        g_1e64 = g_1e50 + 250;
-        g_914c = 0;
-    }
-    g_0586++;
-    if (g_1e50 > g_1e8c) {
-        g_1e8c = g_1e50 + 1000;
-        if (b + 9 > g_0586 && b - 9 < g_0586) {
-            if (b < g_0586 && g_9004 == 0)
-                g_9004 = 1;
-            g_9004 = g_9004 * g_0586 / b;
-        }
-        if (g_0592)
-            g_0592--;
-        g_059a = g_0586;
-        g_0586 = 0;
-    }
-}
 
 /* @addr 7:2512 */
 void far fn_07_2512(int n, int m)
@@ -420,6 +284,34 @@ void far pascal fn_07_3400(int n)
 {
     fn_08_1d54((char)n | 0x100, 0x28);
     fn_08_1b54((char)n | 0x100, 3);
+}
+
+/* @addr 7:3a42 */
+void far fn_07_3a42(int n)
+{
+    int size;
+    int gap;
+
+    size = g_1df8[0]->f22;
+    gap = g_1df8[0]->f24;
+    g_1df8[0][n].f51 -= g_8ffe;
+    if (g_1df8[0][n].f51 < 0)
+        g_1df8[0][n].f51 = 0;
+    if (g_1df8[0][n].f1a == 0 && !fn_13_59e8(0, n))
+        return;
+    SetStretchBltMode(g_3a02, COLORONCOLOR);
+    StretchBlt(g_3a02, (gap + size) * n + gap, gap, size, size,
+               g_3a02, (gap + size) * n + gap - 2, gap - 2, size + 4, size + 4, SRCCOPY);
+    BitBlt(g_13dc, g_1df8[0][n].f00, g_1df8[0][n].f02, size, size,
+           g_3a02, (gap + size) * n + gap, gap, SRCCOPY);
+    if (g_1df8[0][n].f48 == g_9646 && g_9208 > 1 && (g_1df8[0][n].f51 & 1))
+        fn_07_1208();
+    if (g_1df8[0][n].f51 < 1) {
+        PatBlt(g_13dc, g_1df8[0][n].f00, g_1df8[0][n].f02, size, size, BLACKNESS);
+        PatBlt(g_3a02, (gap + size) * n + gap, gap, size, size, BLACKNESS);
+        fn_07_65aa(0, n);
+        fn_07_2080(0, -1);
+    }
 }
 
 /* @addr 7:49b6 */
@@ -653,7 +545,6 @@ void far fn_07_5b68(int a, int b, int c)
 {
     g_0a76 = a + b + c;
 }
-
 
 /* Not yet decompiled: stub so calls to it compile as near calls. */
 void far fn_07_2768(int n)

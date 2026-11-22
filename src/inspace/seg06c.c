@@ -141,3 +141,35 @@ int far fn_06_1c0c(void)
 }
 
 /* Appends three digits to s, as '0' plus each value [inferred]. */
+
+/* Nonzero when size bytes can be allocated, after compacting and
+ * trying in 15000-byte blocks [inferred]. */
+/* @addr 6:1a68 */
+int far fn_06_1a68(DWORD size)
+{
+    int i;
+    int j;
+    int n;
+    HGLOBAL h[20];
+
+    for (i = 0; i < 10; i++)
+        h[i] = 0;
+    if ((h[0] = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, size)) != 0) {
+        GlobalFree(h[0]);
+        return 1;
+    }
+    GlobalCompact(-1L);
+    GlobalCompact(0L);
+    n = (int)(size / 15000);
+    if (n > 20)
+        n = 20;
+    for (i = 0; i < n; i++)
+        if ((h[i] = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, 15000L)) == 0)
+            break;
+    for (j = 0; j < n; j++)
+        if (h[j])
+            GlobalFree(h[j]);
+    if (i == n)
+        return 1;
+    return 0;
+}

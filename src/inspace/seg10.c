@@ -1,6 +1,8 @@
 /* INSPACE.EXE segment 10 (selector 1048). */
 #include "inspace.h"
 #include <time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 extern int g_90f4;
 extern int g_9228;
@@ -141,6 +143,11 @@ int far fn_10_82a2(int a);
 void far fn_10_81b6(void);
 void far fn_15_5932(void);
 void far fn_10_022e(int a);
+extern struct stat g_922e;
+extern struct stat g_924c;
+extern struct stat g_926a;
+extern char g_8f7a[];
+extern int g_0742;
 
 /* @addr 10:6d38 */
 int far fn_10_6d38(LPCSTR s)
@@ -375,10 +382,28 @@ void far fn_10_754a(int a, int b, int c, int d)
     g_90f4 = a + b + c + d;
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Stats SYSTEM.INI and WIN.INI in the Windows directory and IGRAPHIC.DLL
+ * in the game directory g_8f7a, into g_922e / g_924c / g_926a [inferred:
+ * a copy-protection or change check]. */
+/* @addr 10:80dc */
 void far fn_10_80dc(void)
 {
-    g_90f4 = 0;
+    char buf[120];
+    int r;
+
+    GetWindowsDirectory(buf, 110);
+    if (buf[lstrlen(buf) - 1] != '\\')
+        lstrcat(buf, "\\");
+    lstrcat(buf, "SYSTEM.INI");
+    r = stat(buf, &g_922e);
+    GetWindowsDirectory(buf, 110);
+    if (buf[lstrlen(buf) - 1] != '\\')
+        lstrcat(buf, "\\");
+    lstrcat(buf, "WIN.INI");
+    stat(buf, &g_924c);
+    lstrcpy(buf, g_8f7a);
+    lstrcat(buf, "IGRAPHIC.DLL");
+    r = stat(buf, &g_926a);
 }
 
 /* Not yet decompiled: stub so calls to it compile as near calls. */
@@ -847,4 +872,29 @@ int far fn_10_7032(int a, int b, int c)
 void far fn_10_9a2a(int d)
 {
     g_90f4 = d;
+}
+
+/* StretchBlt, or fn_10_6bca (g_fp_3c48) for an exact 2x stretch or a
+ * mirrored one when g_0742 is set and the source DC is not mono or more
+ * than 8 bits deep. The first argument is unused. */
+/* @addr 10:9962 */
+void far fn_10_9962(int unused, HDC dst, int x, int y, int w, int h, HDC src,
+                    int xs, int ys, int ws, int hs, DWORD rop)
+{
+    HBITMAP bm;
+    BITMAP b;
+    int flag;
+    char pad[0x30];
+
+    flag = 0;
+    bm = CreateCompatibleBitmap(src, 2, 2);
+    GetObject(bm, sizeof(BITMAP), &b);
+    if (b.bmPlanes * b.bmBitsPixel == 1 || b.bmPlanes * b.bmBitsPixel > 8)
+        flag = 1;
+    DeleteObject(bm);
+    if (g_0742 && !flag &&
+        ((ws * 2 == w && hs * 2 == h) || w < 0 || h < 0))
+        fn_10_6bca(dst, x, y, w, h, src, xs, ys, ws, hs, rop);
+    else
+        StretchBlt(dst, x, y, w, h, src, xs, ys, ws, hs, rop);
 }

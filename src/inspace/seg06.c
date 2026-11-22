@@ -15,7 +15,19 @@ extern int g_932a;
 extern int g_9000;
 extern int g_91f8;
 
+extern int g_8ffa;
+extern int g_8ffc;
+extern int g_9002;
+extern int g_9004;
+extern int g_9006;
+extern int g_9150;
+extern int g_9152;
+extern int g_9154;
+extern int g_9156;
+
 int far fn_02_094c(UINT id);
+void far fn_06_0b3e(void);
+void far fn_06_0f1a(int v, char far *buf);
 
 /* @addr 6:02ca */
 void far fn_06_02ca(void)
@@ -38,6 +50,40 @@ int far fn_06_09f8(void)
     }
     SetClassWord(g_0016, GCW_HICON, LoadIcon(g_8e66, "GAME"));
     return 1;
+}
+
+/* @addr 6:0a6c */
+void far fn_06_0a6c(void)
+{
+    char buf[10];
+
+    g_8ffc = g_8ffa;
+    if (g_8ffc > 1200)
+        g_9004 = g_8ffc / 50;
+    else if (g_8ffc > 850)
+        g_9004 = g_8ffc / 150;
+    else
+        g_9004 = 0;
+    g_9002 = g_9004;
+    g_9006 = 10;
+    if (g_8ffc > 360)
+        g_9006 = g_8ffc / 38;
+    else
+        g_9006 = 7;
+    g_9006 = min(g_9006, 10);
+    g_9006 = max(g_9006, 7);
+    fn_06_0b3e();
+    g_9156 = GetPrivateProfileInt(g_9690, "Size", 1, g_96a9);
+    g_9150 = 4 - g_9156;
+    g_9152 = g_9154;
+    fn_06_0f1a(g_8ffc, buf);
+    WritePrivateProfileString(g_9690, "Calibrate", buf, g_96a9);
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_06_0b3e(void)
+{
+    g_9006 = 0;
 }
 
 /* @addr 6:0eb8 */
@@ -77,6 +123,29 @@ void far fn_06_0f1a(int v, char far *buf)
 }
 
 /* Formats v / div as "int.frac", the fraction cut to width digits [inferred]. */
+/* Long version of fn_06_1010 [inferred]. */
+/* @addr 6:0f54 */
+void far fn_06_0f54(long v, int div, int width, char far *buf)
+{
+    char tmp[16];
+    long r;
+
+    buf[0] = 0;
+    if (v < 0) {
+        lstrcpy(buf, "-");
+        v = -v;
+    }
+    tmp[0] = 0;
+    fn_06_10ce(v / div, tmp);
+    lstrcat(buf, tmp);
+    lstrcat(buf, ".");
+    tmp[0] = 0;
+    r = v % div;
+    fn_06_10ce(r, tmp);
+    tmp[width] = 0;
+    lstrcat(buf, tmp);
+}
+
 /* @addr 6:1010 */
 void far fn_06_1010(int v, int div, int width, char far *buf)
 {

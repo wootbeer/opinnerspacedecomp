@@ -11,14 +11,19 @@ extern int g_131a;                 /* debug output on when nonzero */
  * lowest offset accessed with an index * 0x15a]. Fields named by offset
  * in the record. Generated layout; keep in sync between seg13.c/seg14.c. */
 typedef struct {
-    char pad_000[0xe];
+    char pad_000[0x4];
+    int f_004;    /* DS:7096 */
+    char pad_006[0x8];
     int f_00e;    /* DS:70a0 */
     char pad_010[0x20];
     int f_030;    /* DS:70c2 */
     int f_032;    /* DS:70c4 */
     char pad_034[0x2];
     int f_036;    /* DS:70c8 */
-    char pad_038[0x14];
+    char pad_038[0x4];
+    int f_03c;    /* DS:70ce */
+    int f_03e;    /* DS:70d0 */
+    char pad_040[0xc];
     int f_04c;    /* DS:70de */
     char pad_04e[0x2];
     int f_050;    /* DS:70e2 */
@@ -33,7 +38,7 @@ typedef struct {
     int f_080;    /* DS:7112 */
     char pad_082[0x10];
     long f_092;    /* DS:7124 */
-    long f_096;    /* DS:7128 */
+    unsigned long f_096;    /* DS:7128 */
     unsigned long f_09a;    /* DS:712c */
     char pad_09e[0x36];
     int f_0d4;    /* DS:7166 */
@@ -41,7 +46,12 @@ typedef struct {
     char f_0e9;    /* DS:717b */
     char f_0ea;    /* DS:717c */
     char f_0eb;    /* DS:717d */
-    char pad_0ec[0x68];
+    char pad_0ec[0x8];
+    char f_0f4[9][9];    /* DS:7186 */
+    char pad_145[0x1];
+    char f_146;    /* DS:71d8 */
+    char f_147;    /* DS:71d9 */
+    char pad_148[0xc];
     long f_154;    /* DS:71e6 */
     char pad_158[0x2];
 } OBJ15A;
@@ -55,7 +65,10 @@ typedef struct {
     int f_00e;
     char pad_010[0x8];
     int f_018;
-    char pad_01a[0xc];
+    int f_01a;
+    char pad_01c[0x2];
+    int f_01e;
+    char pad_020[0x6];
     int f_026;
     char pad_028[0x1e];
     int f_046;
@@ -106,6 +119,27 @@ extern REC1E g_6e3e[];
 
 extern RECAD g_970a[];
 
+/* 0x1e-byte records at DS:6f98, eight of them [inferred: smart-window
+ * entries, see fn_13_638a]. */
+typedef struct {
+    int f_00;                       /* DS:6f98 */
+    int f_02;
+    int f_04;
+    int f_06;
+    char pad_08[0x1e - 0x08];
+} REC1E2;
+extern REC1E2 g_6f98[];
+extern int g_131e[];
+extern int g_1dec;
+extern int g_1dee;
+extern int g_95fa;
+extern int g_9320;
+extern char g_8630[];               /* run-time buffer (BSS) */
+extern int g_058c;
+extern int g_8680[];
+extern char g_a152;
+extern char g_a163;
+
 extern int g_3824[][8];
 extern REC70 far *g_1e30;
 extern REC70 far *g_1df8[];
@@ -128,6 +162,9 @@ extern int g_951a;
 extern int g_9646;
 
 void far fn_07_1208(void);
+int far fn_03_0000(int a, int b);
+void far fn_03_06ec(int, int, int, int);
+void far fn_03_1d0a(int a, int b, int c);
 void far fn_06_0f1a(int v, char far *buf);
 int far pascal fn_08_285a(int far *py, int far *px, POINT a, POINT b);
 int far pascal fn_08_19b0(int dy, int dx);
@@ -380,4 +417,140 @@ void far fn_13_57ac(void)
         lstrcat(title, buf);
     }
     SetWindowText(g_95fc, title);
+}
+
+/* @addr 13:638a */
+void far fn_13_638a(void)
+{
+    int i;
+
+    if (g_0a7c && !g_95fe) {
+        i = 0;
+        g_95fa = 0;
+        for (; i <= g_9316; i++)
+            if (i != g_9646 && fn_03_0000(g_9324, i))
+                g_95fa++;
+        if (!g_95fa)
+            return;
+        for (i = 0; i < 8; i++) {
+            g_6f98[i].f_06 = g_9324;
+            g_6f98[i].f_04 = i;
+            g_6f98[i].f_00 = 2;
+            g_6f98[i].f_02 = i * 0x2e + 2;
+        }
+        CreateWindow("IS_SMART", "", 0x10cc0000L, g_1dec, g_1dee, 50, 150,
+                     g_0016, 0, g_8e66, NULL);
+    }
+    SetActiveWindow(g_0016);
+}
+
+/* @addr 13:2e60 */
+void far pascal fn_13_2e60(int p, int q, int t)
+{
+    int u;
+
+    if (t == -1)
+        t = 9;
+    if (q != g_9646) {
+        fn_13_4eec(p, g_131e[t] * 5);
+        fn_13_4eec(q, g_131e[t] * 5);
+    } else {
+        fn_13_4eec(p, g_131e[t] * 12);
+        fn_13_4eec(q, g_131e[t] * 12);
+    }
+    if (t == 9)
+        return;
+    if (t == 2 || t == 3) {
+        if (g_970a[g_7092[q].f_04c].f_000 == g_970a[g_7092[p].f_04c].f_000)
+            return;
+        if (fn_13_2688(p, q) > 70)
+            return;
+    }
+    g_7092[p].f_0f4[q][t] += (char)g_131e[t];
+}
+
+/* @addr 13:3302 */
+void far fn_13_3302(void)
+{
+    int i, u;
+
+    if (g_9320 == 6)
+        return;
+    for (i = 0; i <= g_9316; i++) {
+        if (g_7092[i].f_036 == 2 && g_7092[i].f_146 == g_7092[i].f_030
+            && g_7092[i].f_147 == g_7092[i].f_032)
+            continue;
+        if (g_7092[g_9646].f_036 != 1
+            && g_7092[i].f_146 == g_7092[g_9646].f_030
+            && g_7092[i].f_147 == g_7092[g_9646].f_032 && i != g_9646
+            && (fn_13_2688(i, g_9646) > 0
+                || g_970a[g_7092[i].f_04c].f_000
+                   == g_970a[g_7092[g_9646].f_04c].f_000))
+            fn_03_06ec(g_9646, 14, i, 0xb8);
+        g_7092[i].f_146 = g_7092[i].f_147 = -1;
+    }
+}
+
+/* @addr 13:2f30 */
+void far pascal fn_13_2f30(int i)
+{
+    int u1, u2, flag;
+    char buf[162];
+    char buf2[218];
+
+    flag = 1;
+    if (i != g_9646)
+        return;
+    if (g_7092[i].f_004 < 0) {
+        g_7092[i].f_004 = 0;
+        return;
+    }
+    lstrcpy(buf, g_8630);
+    if (g_1df8[g_9324][i].f_01a != 0 || i != g_9646)
+        fn_03_1d0a(100, i, (i != g_9646 || g_9134) ? 1 : 0);
+    if (lstrcmp(g_8630, buf)) {
+        g_058c = 1;
+        fn_13_4eca(g_8630);
+        lstrcpy(buf, "\n\r");
+        fn_13_4eca(buf);
+    }
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_13_498e(int a, int b)
+{
+}
+
+/* @addr 13:4ac4 */
+void far fn_13_4ac4(int a)
+{
+    int j;
+
+    fn_13_498e(a, 0);
+    for (j = 0; j <= g_9316; j++) {
+        if (g_1e30[j].f_018 != 0 || j == a)
+            continue;
+        if (g_7092[j].f_036 == 1 && g_7092[j].f_030 == 14
+            && g_7092[j].f_032 == a) {
+            if (g_7092[j].f_0d4 != -1) {
+                g_8680[a] = j;
+                g_7092[a].f_036 = 2;
+                g_7092[a].f_030 = 11;
+                g_7092[a].f_032 = 0;
+            } else {
+                g_8680[a] = j;
+                g_7092[j].f_050 = 0x16;
+                g_7092[j].f_052 = 14;
+                g_7092[j].f_054 = a;
+                g_7092[j].f_096 = g_1e50 + 50000;
+                g_7092[j].f_0eb = 1;
+                g_7092[j].f_092 = g_1e50 + 500;
+                if (a == g_9646) {
+                    g_a163 = 5;
+                    g_a152++;
+                }
+                return;
+            }
+        }
+    }
 }

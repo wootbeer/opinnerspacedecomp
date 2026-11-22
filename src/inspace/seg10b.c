@@ -65,6 +65,19 @@ extern int g_92f0;
 void far fn_15_5932(void);
 void far fn_10_022e(int a);
 void far fn_10_0552(int i, int a);
+void far fn_10_0522(int a);
+void far fn_10_7480(int a, int b);
+void far fn_15_1328(int a);
+void far fn_06_626c(void);
+void far fn_18_0ba0(void);
+extern HDC g_929a;
+extern HBITMAP g_9296;
+extern HPALETTE g_92a0;
+extern HBITMAP g_9294;
+extern HGDIOBJ g_3820[2];
+extern HGDIOBJ g_5ea8[2];
+extern HINSTANCE g_9210;
+extern int g_3824[8][8];
 
 /* @addr 10:3864 */
 void far fn_10_3864(void)
@@ -285,4 +298,66 @@ void far fn_10_069a(void)
             break;
         }
     }
+}
+
+/* @addr 10:0136 */
+void far fn_10_0136(void)
+{
+    int i;
+
+    fn_10_7480(-1, 1);
+    fn_15_1328(1);
+    fn_10_0522(0);
+    fn_06_626c();
+    fn_18_0ba0();
+    if (g_929a) {
+        SelectObject(g_929a, g_9296);
+        if (g_92a0)
+            SelectPalette(g_929a, g_92a0, 0);
+        DeleteDC(g_929a);
+        DeleteObject(g_9294);
+        g_929a = g_9294 = 0;
+    }
+    for (i = 0; i < 2; i++) {
+        if (g_3820[i]) {
+            DeleteObject(g_3820[i]);
+            g_3820[i] = 0;
+        }
+        if (g_5ea8[i]) {
+            DeleteObject(g_5ea8[i]);
+            g_5ea8[i] = 0;
+        }
+    }
+}
+
+/* Loads the 8x8 int table g_3824 from resource 0x87 of type 0x15e0 in
+ * library g_9210. */
+/* @addr 10:38e0 */
+void far fn_10_38e0(void)
+{
+    int i;
+    int j;
+    int k;
+    HGLOBAL hg;
+    HRSRC hr;
+    int far *p;
+    long size;
+
+    p = 0;
+    hr = FindResource(g_9210, MAKEINTRESOURCE(0x87), MAKEINTRESOURCE(0x15e0));
+    if (hr) {
+        SizeofResource(g_9210, hr);
+        hg = LoadResource(g_9210, hr);
+        if (hg)
+            p = (int far *)LockResource(hg);
+    }
+    for (i = k = 0; i < 8; i++)
+        for (j = 0; j < 8; j++, k++)
+            g_3824[i][j] = p[k];
+    if (p) {
+        GlobalUnlock(hg);
+        p = 0;
+    }
+    if (hg)
+        FreeResource(hg);
 }

@@ -30,19 +30,26 @@ typedef struct {
 } REC_70;
 extern REC_70 far *g_1df8[16];
 
-/* 0x1e-byte records at DS:6e3c [inferred]. */
+/* 0x1e-byte records at DS:6e38 [inferred]. */
 typedef struct {
-    int  w00;                   /* +0x00 */
-    char pad02[0x1c];
+    int  f00;                   /* +00 */
+    int  f02;                   /* +02 */
+    int  f04;                   /* +04 */
+    char p06[0x16 - 6];
+    POINT f16;                  /* +16 */
+    char p1a[0x1e - 0x1a];
 } REC1E;
-extern REC1E g_6e3c[];
+extern REC1E g_6e38[];
 
 extern int g_001a;
 extern HWND g_0a7a;
 extern HWND g_0a7c;
 extern HWND g_0a7e;
 extern int g_13de;
+extern int g_1dcc[];
+extern int g_6b54[];
 extern int g_500a;
+extern int g_5024;
 extern int g_8e62;
 extern int g_8ff4;
 extern int g_90f4;
@@ -76,6 +83,7 @@ extern int g_952c;
 
 /* inspace.h declares g_1e4c as long; here it is used as a far pointer. */
 #define g_1e4c_ptr (*(unsigned far **)&g_1e4c)
+#define g_1e4c_cp (*(char far **)&g_1e4c)
 
 extern int g_0a72;
 extern int g_0a74;
@@ -122,13 +130,12 @@ void far fn_11_04ea(void) { }
 void far fn_11_05fe(int a) { }
 void far fn_11_0978(void) { }
 void far fn_11_1ef6(int a) { }
-void far fn_11_2ce6(HDC dc, int a) { }
 void far fn_11_33cc(void) { }
 HBITMAP far fn_11_2ff6(int a) { return 0; }
 void far pascal fn_11_4e0a(int a) { }
-void far fn_11_7588(int a) { }
 void far fn_11_7650(int a, int b) { }
 void far fn_11_238e(HWND hwnd, HDC dc) { }
+void far fn_11_2dac(HDC dc, int a, int b, int i) { }
 void far fn_11_41bc(HDC dc, int a, int b) { }
 void far fn_11_7902(int msg, int wparam, long lparam) { }
 void far pascal fn_11_6b64(int msg, int wparam, long lparam) { }
@@ -299,13 +306,45 @@ void far fn_11_02f0(void)
     }
 }
 
+/* @addr 11:2ce6 */
+void far fn_11_2ce6(HDC dc, int i)
+{
+    switch (i) {
+    case 0:
+        g_6e38[i].f16.x = 2;
+        g_6e38[i].f16.y = 0x11;
+        break;
+    case 1:
+        g_6e38[i].f16.x = g_5024 - 0x38;
+        g_6e38[i].f16.y = 2;
+        break;
+    case 2:
+        g_6e38[i].f16.x = 2;
+        g_6e38[i].f16.y = 2;
+        break;
+    }
+    if (g_6e38[i].f04) {
+        if (g_6e38[i].f02 != g_6e38[i].f00) {
+            fn_11_2dac(dc, g_6e38[i].f02, 0, i);
+            g_6e38[i].f02 = g_6e38[i].f00;
+        }
+        fn_11_2dac(dc, g_6e38[i].f00, 1, i);
+    } else {
+        if (g_6e38[i].f02 != g_6e38[i].f00) {
+            fn_11_2dac(dc, g_6e38[i].f02, 0, i);
+            g_6e38[i].f02 = g_6e38[i].f00;
+        }
+        fn_11_2dac(dc, g_6e38[i].f00, 0, i);
+    }
+}
+
 /* @addr 11:3ed8 */
 void far fn_11_3ed8(int i)
 {
     HDC dc;
     HWND hwnd;
 
-    g_6e3c[i].w00 = g_6e3c[i].w00 == 0;
+    g_6e38[i].f04 = g_6e38[i].f04 == 0;
     if (i == 2)
         hwnd = g_95fc;
     else
@@ -417,6 +456,39 @@ void far fn_11_772e(int a, int b)
     }
 done:
     fn_03_045a(b);
+}
+
+/* @addr 11:7588 */
+void far fn_11_7588(int n)
+{
+    if ((g_1e4c_cp + 4)[n] == g_6b54[n] && g_1dcc[n] != 0 && g_1dcc[n] != 3)
+        return;
+    g_6b54[n] = (g_1e4c_cp + 4)[n];
+    if (g_6b54[n] == 0)
+        return;
+    switch (g_1dcc[n]) {
+    case 0:
+        g_1042 = 1;
+        break;
+    case 1:
+        PostMessage(g_0016, 0x101, 0xd, 0L);
+        break;
+    case 2:
+        PostMessage(g_0016, 0x100, 9, 0L);
+        break;
+    case 3:
+        g_103e = 1;
+        break;
+    case 4:
+        PostMessage(g_0016, 0x100, 0x48, 0L);
+        break;
+    case 5:
+        PostMessage(g_0016, 0x100, 0x52, 0L);
+        break;
+    case 6:
+        PostMessage(g_0016, 0x101, 0x14, 0L);
+        break;
+    }
 }
 
 /* @addr 11:7504 */
@@ -548,7 +620,10 @@ void far lap_timer(void)
     else
         oldtext = SetTextColor(dc, 0xff00L);
     oldbk = SetBkColor(dc, 0L);
-    fn_11_41bc(dc, 0, g_0a76 == 2 ? 1 : 0);
+    if (g_0a76 != 2)
+        fn_11_41bc(dc, 0, 0);
+    else
+        fn_11_41bc(dc, 0, 1);
     SetBkColor(dc, oldbk);
     SetTextColor(dc, oldtext);
     SelectObject(dc, oldfont);

@@ -1,5 +1,6 @@
 /* INSPACE.EXE segment 18 (selector 1088). */
 #include "inspace.h"
+#include <stdlib.h>
 
 extern int g_9668;
 extern int g_9672;
@@ -10,7 +11,6 @@ extern char g_a193[4];
 extern HANDLE g_88d8[8];
 extern int g_8e62;
 extern int g_90f4;
-extern int g_1318;
 extern int g_9530;
 extern long g_8d34;
 extern int g_965e;
@@ -47,7 +47,20 @@ extern char g_a178;
 extern char g_a179;
 extern char g_a17a;
 extern HGLOBAL g_9100[];
-extern void far *g_1df8[];
+typedef struct {                /* 0x70-byte records */
+    char p00[0x0c];
+    int f0c;
+    int f0e;
+    char p10[0x70 - 0x10];
+} REC_70;
+extern REC_70 far *g_1df8[21];      /* 0-14: 0x460-byte blocks, 15-20: 0x70 */
+extern int g_9324;
+extern int g_1318;
+extern int g_0010;
+extern int g_8d14;
+extern int g_8d16;
+extern int g_8d18;
+extern int g_8d1a;
 extern int g_88ec;                  /* window origin, negated [inferred] */
 extern int g_88ee;
 
@@ -64,7 +77,17 @@ extern int g_942a;
 typedef struct { char p00[0x1a]; int f1a; } REC_1E40;
 extern REC_1E40 far *g_1e40;
 
+extern int g_238c;
+extern int g_238e;
+extern int g_2390;
+extern int g_2392;
+extern int g_90ea;
+extern int g_90ec;
+extern DWORD g_1e50;
+extern DWORD g_2408;
+
 void far sprite_dc_release(void);
+void far fn_10_754a(int a, int b, int c, int d);
 void far fn_10_7480(int a, int b);
 void far fn_10_744c(int a);
 void far fn_12_6d64(int a, int b);
@@ -220,7 +243,7 @@ int far fn_18_1dd0(void)
     for (i = 15; i <= 20; i++) {
         if ((g_9100[i] = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, 0x70L)) == 0)
             return 0;
-        if ((g_1df8[i] = GlobalLock(g_9100[i])) == 0) {
+        if ((g_1df8[i] = (REC_70 far *)GlobalLock(g_9100[i])) == 0) {
             GlobalFree(g_9100[i]);
             return 0;
         }
@@ -285,4 +308,50 @@ void far fn_18_52a0(void)
         fn_18_1cbe(1);
         g_88d0 = 2;
     }
+}
+
+/* @addr 18:591c */
+void far fn_18_591c(void)
+{
+    if (g_238c) {
+        fn_10_754a(8, rand() % g_90ea, rand() % g_90ec, 4);
+        g_2390 += g_238c;
+        g_2392 += g_238e;
+        g_2390 += rand() % 3 - 2;
+        g_2392 += rand() % 3 - 2;
+        if (g_2390 > 5)
+            g_238c = -9;
+        else if (g_2390 < -5)
+            g_238c = 9;
+        if (g_2392 > 5)
+            g_238e = -6;
+        else if (g_2392 < -5)
+            g_238e = 6;
+        if (g_2408 < g_1e50)
+            g_238c = 0;
+        if (g_90f4 == 6) {
+            g_2390 >>= 1;
+            g_2392 >>= 1;
+        }
+    } else {
+        *(long *)&g_2390 = 0;   /* clears g_2390 and g_2392 in one dword store */
+    }
+}
+
+/* @addr 18:5f74 */
+void far fn_18_5f74(void)
+{
+    int x;
+    int t;
+
+    fn_10_744c(0x48);
+    g_1df8[g_9324][g_9646].f0e = 0;
+    g_1df8[g_9324][g_9646].f0c = g_1df8[g_9324][g_9646].f0e;
+    g_1318 = 2;
+    t = (g_90ec * 4 / 3 - 1100) / 36 + 164;
+    x = min((g_90ea - t) / 2 - 20, 260);
+    g_8d14 = x - 18;
+    g_8d16 = 164;
+    g_8d1a = min(g_0010 * 2 / 5, g_0010 - 370);
+    g_8d18 = max(g_90ea / -13 - x + g_90ea / 2 - 90, 0);
 }

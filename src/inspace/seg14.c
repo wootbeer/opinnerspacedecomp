@@ -8,14 +8,19 @@
  * lowest offset accessed with an index * 0x15a]. Fields named by offset
  * in the record. Generated layout; keep in sync between seg13.c/seg14.c. */
 typedef struct {
-    char pad_000[0xe];
+    char pad_000[0x4];
+    int f_004;    /* DS:7096 */
+    char pad_006[0x8];
     int f_00e;    /* DS:70a0 */
     char pad_010[0x20];
     int f_030;    /* DS:70c2 */
     int f_032;    /* DS:70c4 */
     char pad_034[0x2];
     int f_036;    /* DS:70c8 */
-    char pad_038[0x14];
+    char pad_038[0x4];
+    int f_03c;    /* DS:70ce */
+    int f_03e;    /* DS:70d0 */
+    char pad_040[0xc];
     int f_04c;    /* DS:70de */
     char pad_04e[0x2];
     int f_050;    /* DS:70e2 */
@@ -30,7 +35,7 @@ typedef struct {
     int f_080;    /* DS:7112 */
     char pad_082[0x10];
     long f_092;    /* DS:7124 */
-    long f_096;    /* DS:7128 */
+    unsigned long f_096;    /* DS:7128 */
     unsigned long f_09a;    /* DS:712c */
     char pad_09e[0x36];
     int f_0d4;    /* DS:7166 */
@@ -38,7 +43,12 @@ typedef struct {
     char f_0e9;    /* DS:717b */
     char f_0ea;    /* DS:717c */
     char f_0eb;    /* DS:717d */
-    char pad_0ec[0x68];
+    char pad_0ec[0x8];
+    char f_0f4[9][9];    /* DS:7186 */
+    char pad_145[0x1];
+    char f_146;    /* DS:71d8 */
+    char f_147;    /* DS:71d9 */
+    char pad_148[0xc];
     long f_154;    /* DS:71e6 */
     char pad_158[0x2];
 } OBJ15A;
@@ -52,7 +62,10 @@ typedef struct {
     int f_00e;
     char pad_010[0x8];
     int f_018;
-    char pad_01a[0xc];
+    int f_01a;
+    char pad_01c[0x2];
+    int f_01e;
+    char pad_020[0x6];
     int f_026;
     char pad_028[0x1e];
     int f_046;

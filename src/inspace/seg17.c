@@ -54,7 +54,6 @@ extern REC_AD g_96f0[];
 extern int g_3824[][8];
 extern int g_9646;
 extern HWND g_948c;
-extern long g_1898;
 extern int g_5000;
 extern int g_5002;
 extern int g_6084;
@@ -97,6 +96,10 @@ extern int g_9466;
 extern int g_9468;
 extern DWORD g_1e50;
 extern long g_189c;
+extern long g_1890;
+extern long g_1894;
+extern int g_6088;
+extern long g_1898;
 extern LPSTR g_6078;
 extern int g_9004;
 extern int g_9144;
@@ -106,14 +109,15 @@ void far fn_07_2206(void);
 void far fn_17_0000(int a, int b);
 void far fn_17_65da(void);
 void far fn_17_30b0(int a, int b, int c);
-void far fn_17_2c5a(int a, int b);
+int far fn_17_2c5a(int a, int b);
+void far fn_17_458e(void);
+void far fn_17_51b0(void);
 void far fn_17_5008(void);
 void far fn_17_8572(HWND hDlg);
 void far fn_17_8874(HWND hDlg, int ok);
 void far fn_17_84ee(int id, LPARAM lParam);
 HBITMAP far world_map(int w, int h, int a, int b, int c, int d, int e);
-void far fn_10_a332(LPSTR text, char *cls, int a, int b, int c, int d, int e,
-                    int f, int g, int h, int i, int j, int k, int l);
+void far fn_10_a332(LPSTR text, char *cls, int a, ...);
 void far fn_09_955c(int id, LPSTR buf);
 int far fn_10_5586(int i);
 void far fn_06_0f1a(int v, LPSTR buf);
@@ -235,6 +239,112 @@ void far fn_17_7614(int i)
                g_4d92[g_4ed4[i]].f10 + 10000, id);
 }
 
+/* @addr 17:108c */
+int far fn_17_108c(int reset)
+{
+    int unused;
+
+    if (reset)
+        g_1890 = 0;
+    if (g_1890) {
+        if (g_1890 < g_1e50)
+            return 1;
+        return 0;
+    }
+    switch (g_9462) {
+    case 0:
+        g_9462++;
+        g_5000 = g_6084 + 20;
+        g_5002 = g_608a - 40;
+        fn_17_30b0(g_93aa, 4500, 0);
+        fn_17_458e();
+        break;
+    case 1:
+        if (g_9460 && g_9474) {
+            g_9474 = 0;
+            g_5000 = g_6084 + 20;
+        g_5002 = g_608a - 40;
+            fn_17_458e();
+            fn_17_2c5a(1, 1);
+        } else if (fn_17_2c5a(0, 0) == 2 && !g_9460)
+            g_9462++;
+        break;
+    case 2:
+        g_1890 = g_1e50 + 1000;
+        break;
+    }
+    g_9474 = 0;
+    return 0;
+}
+
+/* @addr 17:1174 */
+int far fn_17_1174(int reset)
+{
+    int unused;
+
+    if (reset)
+        g_1894 = 0;
+    if (g_1894) {
+        if (g_1894 < g_1e50)
+            return 1;
+        return 0;
+    }
+    switch (g_9462) {
+    case 0:
+        g_9462++;
+        g_5000 = g_6088 - 280;
+        g_5002 = g_6086 + 60;
+        fn_17_30b0(g_9468 + 305, 4500, 0);
+        fn_17_51b0();
+        break;
+    case 1:
+        if (g_9460 && g_9474) {
+            g_9474 = 0;
+            g_5000 = g_6088 - 280;
+        g_5002 = g_6086 + 60;
+            fn_17_51b0();
+            fn_17_2c5a(1, 1);
+        } else if (fn_17_2c5a(0, 0) == 2 && !g_9460)
+            g_9462++;
+        break;
+    case 2:
+        g_1894 = g_1e50 + 1000;
+        break;
+    }
+    g_9474 = 0;
+    return 0;
+}
+
+/* @addr 17:4204 */
+void far fn_17_4204(void)
+{
+    char name[60];
+    int i;
+    int cnt[3];
+    int j;
+    int k;
+    int v;
+
+    k = g_96f0[g_7092[g_9646].f_04c].f1a;
+    for (i = 0; i < 3; i++)
+        cnt[i] = 0;
+    for (i = 0; i < 8; i++) {
+        j = i;
+        if (k == j)
+            continue;
+        v = g_3824[j][k];
+        if (v < -80)
+            cnt[0]++;
+        else if (v < 80)
+            cnt[1]++;
+        else
+            cnt[2]++;
+    }
+    fn_13_218a(g_96f0[g_7092[g_9646].f_04c].f1a, name);
+    fn_10_a332(g_6078, "", 1, (LPSTR)name, !cnt[0], cnt[0], cnt[0], 0x9dd,
+               !cnt[2], cnt[2], cnt[2], 0x9de, cnt[1], cnt[1], 0x9d8);
+}
+
 /* @addr 17:12f6 */
 int far fn_17_12f6(int reset)
 {
@@ -243,7 +353,6 @@ int far fn_17_12f6(int reset)
     if (reset)
         g_189c = 0;
     if (g_189c) {
-        /* Same CL 8.00c /G3 32-bit compare as in fn_17_1260. */
         if (g_189c < g_1e50)
             return 1;
         return 0;
@@ -462,10 +571,7 @@ int far fn_17_1260(int reset)
     if (reset)
         g_1898 = 0;
     if (g_1898) {
-        /* CL 8.00c /G3 emits this 32-bit compare as cmp g_1898,g_1e50;
-         * jae (taken when g_1898 >= g_1e50): the game's behaviour is
-         * "return 1 while g_1898 < g_1e50". */
-        if (g_1898 > g_1e50)
+        if (g_1898 < g_1e50)
             return 1;
         return 0;
     }
@@ -600,7 +706,18 @@ void far fn_17_30b0(int a, int b, int c)
 }
 
 /* Not yet decompiled: stub so calls to it compile as near calls. */
-void far fn_17_2c5a(int a, int b)
+int far fn_17_2c5a(int a, int b)
+{
+    return 0;
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_17_458e(void)
+{
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_17_51b0(void)
 {
 }
 

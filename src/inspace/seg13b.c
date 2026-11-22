@@ -8,14 +8,19 @@
  * lowest offset accessed with an index * 0x15a]. Fields named by offset
  * in the record. Generated layout; keep in sync between seg13.c/seg14.c. */
 typedef struct {
-    char pad_000[0xe];
+    char pad_000[0x4];
+    int f_004;    /* DS:7096 */
+    char pad_006[0x8];
     int f_00e;    /* DS:70a0 */
     char pad_010[0x20];
     int f_030;    /* DS:70c2 */
     int f_032;    /* DS:70c4 */
     char pad_034[0x2];
     int f_036;    /* DS:70c8 */
-    char pad_038[0x14];
+    char pad_038[0x4];
+    int f_03c;    /* DS:70ce */
+    int f_03e;    /* DS:70d0 */
+    char pad_040[0xc];
     int f_04c;    /* DS:70de */
     char pad_04e[0x2];
     int f_050;    /* DS:70e2 */
@@ -30,7 +35,7 @@ typedef struct {
     int f_080;    /* DS:7112 */
     char pad_082[0x10];
     long f_092;    /* DS:7124 */
-    long f_096;    /* DS:7128 */
+    unsigned long f_096;    /* DS:7128 */
     unsigned long f_09a;    /* DS:712c */
     char pad_09e[0x36];
     int f_0d4;    /* DS:7166 */
@@ -38,7 +43,12 @@ typedef struct {
     char f_0e9;    /* DS:717b */
     char f_0ea;    /* DS:717c */
     char f_0eb;    /* DS:717d */
-    char pad_0ec[0x68];
+    char pad_0ec[0x8];
+    char f_0f4[9][9];    /* DS:7186 */
+    char pad_145[0x1];
+    char f_146;    /* DS:71d8 */
+    char f_147;    /* DS:71d9 */
+    char pad_148[0xc];
     long f_154;    /* DS:71e6 */
     char pad_158[0x2];
 } OBJ15A;
@@ -52,7 +62,10 @@ typedef struct {
     int f_00e;
     char pad_010[0x8];
     int f_018;
-    char pad_01a[0xc];
+    int f_01a;
+    char pad_01c[0x2];
+    int f_01e;
+    char pad_020[0x6];
     int f_026;
     char pad_028[0x1e];
     int f_046;
@@ -97,6 +110,32 @@ extern PAIR g_6e52;               /* = g_6e3e[0].f_14/f_16 in seg13.c */
 extern int g_9316;
 extern int g_9318;
 extern long g_2384;
+extern char g_a14d[];
+extern char g_a157[];
+extern char g_a161;
+extern char g_a163;
+extern RECAD g_970a[];
+extern REC70 far *g_1df8[];
+extern REC70 far *g_1e00;
+extern int g_9406[];
+extern int g_940a;
+
+/* 0x24-byte records at DS:52ec [inferred base]. */
+typedef struct {
+    int f_00;                       /* DS:52ec */
+    int f_02;
+    char pad_04[0x0a - 0x04];
+    int f_0a;                       /* DS:52f6 */
+    char pad_0c[0x12 - 0x0c];
+    int f_12;                       /* DS:52fe */
+    char pad_14[0x18 - 0x14];
+    int f_18;                       /* DS:5304 */
+    int f_1a;
+    int f_1c;
+    int f_1e;
+    char pad_20[0x24 - 0x20];
+} REC24;
+extern REC24 g_52ec[];
 extern int g_9646;
 extern int g_964e;
 extern int g_9650;
@@ -106,6 +145,7 @@ extern int g_9654;
 void far fn_03_06ec(int, int, int, int);
 int far fn_04_8346(int n, int x, int y, int v);
 void far fn_10_7480(int a, int b);
+void far fn_10_754a(int a, int b, int c, int d);
 int far pascal fn_08_285a(int far *py, int far *px, POINT a, POINT b);
 void far fn_13_2714(int, int, int, int, int, int);
 
@@ -299,13 +339,15 @@ int far fn_13_ae68(int a, int b, int c)
 
 /* Summon with music [inferred, HANDOFF: report_crime, the enforcer order
  * and escalation call this rather than ae68]. */
+/* Falls off the end without a return value after the music part (the
+ * game's callers test the result anyway: fn_13_b93a). */
 /* @addr 13:adbe */
-void far fn_13_adbe(int a, int b, int c)
+int far fn_13_adbe(int a, int b, int c)
 {
     int u, r;
 
     if (!fn_13_ae68(a, b, c))
-        return;
+        return 0;
     r = 2;
     switch (b) {
     case 3:
@@ -336,5 +378,105 @@ void far fn_13_adbe(int a, int b, int c)
     if (r != -1) {
         fn_10_7480(r, 0);
         g_2384 = g_1e50 + 12000;
+    }
+}
+
+/* @addr 13:b93a */
+void far fn_13_b93a(void)
+{
+    int i, k, s1, s2;
+
+    for (i = 0; i <= g_9316; i++) {
+        if (g_7092[i].f_0ea && g_1e30[i].f_018 == 0
+            && g_970a[g_7092[i].f_04c].f_000 == 7 && g_7092[i].f_05c > 1
+            && g_1e30[i].f_01a != 0) {
+            s1 = 0;
+            s2 = 0;
+            for (k = 0; k < 10; k++) {
+                if (k != 9) {
+                    s1 += g_a14d[k];
+                    s2 += g_a157[k];
+                }
+            }
+            if (s2 < s1) {
+                if (fn_13_adbe(g_9646, 0x15, -1)) {
+                    fn_03_06ec(g_9646, 14, i, 0xae);
+                    g_a163 = g_a161;
+                }
+                return;
+            }
+        }
+    }
+}
+
+/* @addr 13:9a18 */
+void far fn_13_9a18(int a, int s, int k)
+{
+    int i, u, best;
+
+    if (k < 0 || k >= g_9406[s] || g_1df8[s][k].f_018 != 0)
+        return;
+    best = -1;
+    for (i = 0; i < g_940a; i++) {
+        if (g_52ec[i].f_18 == 14 && g_52ec[i].f_1a == a
+            && (g_52ec[i].f_1c != s || g_52ec[i].f_1e != k
+                || g_52ec[i].f_12 != 15)
+            && g_1e00[i].f_018 == 0) {
+            g_52ec[i].f_12 = 15;
+            g_52ec[i].f_1c = s;
+            g_52ec[i].f_1e = k;
+            g_52ec[i].f_0a = 0;
+            best = i;
+        }
+    }
+    if (best >= 0)
+        fn_10_754a(0x15, 2, best, 1);
+}
+
+/* @addr 13:9ae8 */
+void far fn_13_9ae8(int a)
+{
+    int i, best;
+
+    best = -1;
+    for (i = 0; i < g_940a; i++) {
+        if (g_52ec[i].f_18 == 14 && g_52ec[i].f_1a == a
+            && g_52ec[i].f_12 == 15) {
+            g_52ec[i].f_12 = 0;
+            g_52ec[i].f_00 = g_1e00[i].f_004.x
+                - g_1df8[g_52ec[i].f_18][g_52ec[i].f_1a].f_004.x;
+            g_52ec[i].f_02 = g_1e00[i].f_004.y
+                - g_1df8[g_52ec[i].f_18][g_52ec[i].f_1a].f_004.y;
+            g_1e00[i].f_01e = 0;
+            best = i;
+        }
+    }
+    if (best >= 0)
+        fn_10_754a(0x15, 2, best, 1);
+}
+
+/* @addr 13:9f3e */
+void far fn_13_9f3e(int i)
+{
+    int u1, u2, u3, t, cls, m, z;
+
+    cls = g_970a[g_7092[i].f_04c].f_000;
+    m = g_7092[i].f_03c;
+    t = g_7092[i].f_03e;
+    z = 0;
+    if (m != 14 || g_970a[g_7092[t].f_04c].f_000 != cls) {
+        t = -1;
+        fn_03_06ec(i, 7, 0, 0x32);
+    } else if (g_7092[t].f_050 != 0 && g_7092[t].f_050 != 7
+               && g_7092[t].f_096 > g_1e50 && g_7092[t].f_05b > 1) {
+        fn_03_06ec(i, 14, t, 0x31);
+    } else if (g_970a[g_7092[t].f_04c].f_000 == 7) {
+        fn_03_06ec(i, 14, t, 0x40);
+    } else {
+        if (g_7092[t].f_050 != 0)
+            fn_03_06ec(g_7092[t].f_056, m, t, 0x13);
+        g_7092[t].f_050 = 10;
+        g_7092[t].f_092 = g_1e50;
+        fn_03_06ec(t, 14, i, 2);
     }
 }

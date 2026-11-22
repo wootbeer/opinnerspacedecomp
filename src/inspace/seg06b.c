@@ -196,7 +196,7 @@ int far fn_06_8dfe(int i)
     lstrcpy(path, g_900a);
     lstrcat(path, g_a12c[i]);
     lstrcat(path, ".rac");
-    hf = OpenFile(path, &of, OF_CREATE | OF_WRITE);
+    hf = OpenFile(path, &of, OF_CREATE | OF_READWRITE);
     if (hf == -1)
         return 0;
     size = g_94c8 * 0x42;

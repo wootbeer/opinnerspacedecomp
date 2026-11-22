@@ -14,11 +14,38 @@ int far fn_06_5260(char far *s);
 void far fn_06_5318(void);
 
 extern HWND g_0d1e;
+extern int g_0010;
+extern int g_90ea;
+extern int g_94ac;
+extern int flow_interactive;        /* DS:95bc */
+
+void far fn_10_7480(int a, int b);
+void far fn_15_6558(int n, char far *buf);
+void far fn_10_94c4(int a, int b, long color, int x, int y, LPSTR s);
 extern DWORD g_1e50;
 extern long g_1c34;
 extern int g_0d26;
 extern int g_94b4;
 extern int g_94b6;
+
+/* @addr 6:1d9a */
+void far fn_06_1d9a(void)
+{
+    char str[100];
+    char buf[80];
+    char unused[46];
+
+    fn_10_7480(-1, 1);
+    LoadString(g_9212, 0x85d, str, 100);
+    fn_15_6558(g_94ac, buf);
+    lstrcat(str, buf);
+    lstrcat(str, "...");
+    fn_10_94c4(0, 6, RGB(0, 255, 0), g_90ea / 2, g_0010 / 2 - 40, str);
+    if (!flow_interactive) {
+        LoadString(g_9212, 0x85e, str, 100);
+        fn_10_94c4(0, 6, RGB(0, 255, 0), g_90ea / 2, g_0010 / 2, str);
+    }
+}
 
 /* @addr 6:1e68 */
 void far fn_06_1e68(int start)

@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "inspace.h"
 #include <shellapi.h>
+#include <dos.h>
 
 /* Records reached through far pointers or DGROUP arrays; only the fields
  * this file uses are named (offset in the name). */
@@ -78,7 +79,8 @@ extern long g_1e78;
 extern long g_1e88;
 extern REC_70 far *g_1df8[16];
 extern int g_3a02;
-extern char g_3966[];
+extern char g_38c8[];                /* directory path [inferred] */
+extern struct _find_t g_3948;       /* name at DS:3966 */
 extern HGDIOBJ g_4e94[32];
 extern REC_23 g_57a8[];
 extern void far *g_4fcc;
@@ -92,6 +94,9 @@ extern int g_9200;
 extern int g_9202;
 extern int g_9204;
 extern int g_9206;
+extern int g_91fa;
+extern int g_91fc;
+extern int g_91fe;
 extern HINSTANCE g_8e66;
 extern int g_92e6;
 extern int g_9316;
@@ -126,10 +131,48 @@ int far fn_09_094c(void);
 int far fn_09_08da(int x, int y);
 int far fn_09_0ac4(int n, int count);
 void far fn_09_0278(UINT kind, int slot);
+void far pascal fn_09_0156(LPSTR file);
 void far fn_09_0352(HDC hdc, int x, int flags, int w, int h, LPSTR name);
 void far fn_09_09b0(int slot);
 int far fn_09_955c(UINT id, LPSTR buf);
 void far fn_09_95ba(UINT id);
+
+/* @addr 9:0000 */
+void far fn_09_0000(int max)
+{
+    char path[128];
+    int r;
+
+    g_9204 = max;
+    g_9206 = g_9200 = g_9202 = 0;
+    g_69f4[g_94a2].f1d0 = 2;
+    lstrcpy(path, g_38c8);
+    lstrcat(path, "*.exe");
+    r = _dos_findfirst(path, _A_RDONLY, &g_3948);
+    while (r == 0) {
+        if (g_9206 > 9)
+            break;
+        lstrcpy(path, g_38c8);
+        lstrcat(path, g_3948.name);
+        fn_09_0156(path);
+        r = _dos_findnext(&g_3948);
+    }
+    lstrcpy(path, g_38c8);
+    lstrcat(path, "*.dll");
+    r = _dos_findfirst(path, _A_RDONLY, &g_3948);
+    while (r == 0) {
+        if (g_9206 > 9)
+            break;
+        lstrcpy(path, g_38c8);
+        lstrcat(path, g_3948.name);
+        fn_09_0156(path);
+        r = _dos_findnext(&g_3948);
+    }
+    if (g_9202 && g_69f4[g_94a2].f1d0 != 1)
+        g_69f4[g_94a2].f1d0 = 0;
+    g_91fe = g_91fc = g_91fa = min(g_9206, g_9204);
+    g_9204 = 8;
+}
 
 /* @addr 9:0156 */
 void far pascal fn_09_0156(LPSTR file)
@@ -188,7 +231,7 @@ void far fn_09_0278(UINT kind, int slot)
 
     w = 32;
     h = 6;
-    lstrcpy(name, g_3966);
+    lstrcpy(name, g_3948.name);
     lstrcpy(ext, ".DLL");
     ok = 1;
     for (i = 0; i < 4; i++) {
@@ -266,7 +309,7 @@ void far fn_09_09b0(int slot)
             g_69f4[g_94a2].f1d2[slot] = 0;
         g_1df8[0][slot].f1e = g_69f4[g_94a2].f1d2[slot];
         g_57a8[slot].f06 = g_9200 - 1;
-        lstrcpy(g_57a8[slot].f0c, g_3966);
+        lstrcpy(g_57a8[slot].f0c, g_3948.name);
         g_1df8[0][slot].f18 = 0;
         fn_10_0736(slot);
         g_1df8[0][slot].f0c = rand() % 60 - 30;
