@@ -61,3 +61,27 @@ more modules match than with large model. Memory model: `/AM` `[inferred]`.
     likely. FACTORY/BACKUP have some 32-bit code too.
   - `push imm8` (6A) everywhere: at least `/G1`.
   - Memory model: far calls between segments, near data: medium or large.
+
+## Toolchain confirmed: Visual C++ 1.5x, CL 8.00c
+
+- All four files' startup modules (`crt0`, `crt0dat`, `crt0msg`, `crt0fp`)
+  match the VC++ 1.5x libraries byte for byte (`MLIBCEW` for the EXEs,
+  `MDLLCEW` for ISPACE.DLL: medium model, emulator floating point), with the
+  prologue byte masked.
+- **Compile flags for INSPACE.EXE: `cl /c /AM /G3 /Gw /Gs /Os`.** `/Gw` gives
+  exactly the game's frame (`mov ax,ds; nop; inc bp; push bp; mov bp,sp;
+  push ds; mov ds,ax` ... `lea sp,[bp-2]; pop ds; pop bp; dec bp; retf`);
+  the linker then rewrote `mov ax,ds` (8C D8) to `mov ax,ss` (8C D0) in every
+  EXE far prologue. `/Os` is the only optimization setting that reproduced
+  the pilot; `/Od`, default, `/Ot`, `/Ox`, `/Oe`, `/Ol`, `/Og` did not.
+- The compiler itself turns far calls to functions defined later in the same
+  file into `push cs; call near`, so such calls show which functions shared a
+  source file.
+- Pilot: 3 of 3 functions match byte for byte (`src/inspace/*.c`,
+  `tools/match.py`): 10:01fe (switch + calls), 9:88ba (abs), 13:4eca
+  (OutputDebugString wrapper). Code shape follows the source closely:
+  `x >= 0 ? x : -x` gives different code from `if (x >= 0) return x;
+  return -x;`.
+- Running the compiler: DOSBox (`apt-get install dosbox`), headless with
+  `SDL_VIDEODRIVER=dummy`; CL 8.00c runs under its own DOSXNT extender.
+  `tools/match.py` does this.

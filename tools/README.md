@@ -60,3 +60,10 @@ Verified: `optl_lz.py` matches the original routine byte for byte on all 21
 streams of FACTORY.EXE, BACKUP.EXE and ISPACE.DLL; every tail parses
 exactly; every chain ends in 0xFFFF inside its segment; all but one far
 pointer fixup per file sit right after a `call far` (9A) opcode.
+
+## Matching
+
+`tools/match.py SRC.C...` compiles with CL 8.00c in DOSBox (`MSVC_DIR`, default
+`/home/user/toolchain/msvc`; flags `CFLAGS`, default `/AM /G3 /Gw /Gs /Os`) and
+compares every function tagged `/* @addr SEG:OFF */` with the game. Needs
+`dosbox` and the MSVC 1.5x `BIN`, `LIB`, `INCLUDE` (not in git).

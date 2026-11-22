@@ -97,9 +97,13 @@ def modules(lib):
                     b0 = body[q]
                     if not b0 & 0x80:               # THREAD
                         method = (b0 >> 2) & 7
+                        if not b0 & 0x40:           # target thread: T0-T3
+                            method &= 3
                         q += 1
                         if method < 3:
                             _, q = _index(body, q)
+                        elif method == 3:
+                            q += 2
                         continue
                     locat = (b0 << 8) | body[q + 1]
                     q += 2
