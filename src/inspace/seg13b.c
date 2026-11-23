@@ -33,7 +33,7 @@ typedef struct {
     int f_032;    /* DS:70c4 */
     int f_034;    /* DS:70c6 */
     int f_036;    /* DS:70c8 */
-    char pad_038[0x2];
+    int f_038;    /* DS:70ca */
     int f_03a;    /* DS:70cc */
     int f_03c;    /* DS:70ce */
     int f_03e;    /* DS:70d0 */
@@ -116,7 +116,9 @@ typedef struct {
     char f_02e;
     char pad_02f[0x3];
     int f_032;
-    char pad_034[0x6];
+    int f_034;
+    int f_036;
+    int f_038;
     int f_03a;
     int f_03c;
     char pad_03e[0x4];
@@ -270,6 +272,34 @@ void far fn_13_4eec(int i, int d);
 extern int g_9208;
 extern int g_0992;
 extern int g_932a;
+extern int g_92e8;
+extern int g_9e49;
+extern int g_952e;
+extern int g_9418;
+extern REC70 far *g_1e1c;
+void far fn_16_0b4e(int n);
+int far fn_13_9970(int i);
+int far fn_13_9bb8(int i, int b);
+int far fn_13_81c2(int n);
+extern int g_0a62;
+extern int g_8e00;
+extern int g_8e04;
+extern int g_9680;
+extern int g_9682;
+/* 0x1c-byte records at DS:66e4. */
+typedef struct {
+    int f_00;
+    char pad_02[0x1a];
+} REC1C;
+extern REC1C g_66e4[];
+extern int g_9412;
+extern REC70 far *g_1e10;
+extern char g_a154;
+extern long g_a147;
+extern int g_a14b;
+extern char g_a162;
+void far pascal fn_04_584c(int s, int n, int t);
+int far fn_13_adbe(int a, int b, int c);
 
 /* @addr 13:910a */
 int far fn_13_910a(int n)
@@ -1297,6 +1327,155 @@ int far fn_13_78b8(int a, int b)
     return -1;
 }
 
+/* Object n reacts to the ones attacking it: counts them, then flees,
+ * fights back or asks for help [inferred]. */
+/* @addr 13:7ba2 */
+void far fn_13_7ba2(int n)
+{
+    int i, cnt, j, best, bestj, u1, t, u2, flag;
+
+    cnt = 0;
+    if (n == g_9646 && flow_interactive)
+        return;
+    if (g_92e8 || g_9320 == 7 || CLS(n) == 7)
+        return;
+    t = -1;
+    if (g_1e30[n].f_032 == 14)
+        t = g_1e30[n].f_034;
+    flag = 0;
+    if ((g_7092[n].f_050 == 1 || g_7092[n].f_050 == 5)
+        && g_7092[n].f_0b6[g_7092[n].f_054 + 10] == 0)
+        flag = 1;
+    best = 20000;
+    bestj = -1;
+    if (g_7092[n].f_050 != 0 && g_7092[n].f_050 != 7
+        && g_7092[n].f_096 > g_1e50)
+        return;
+    for (i = 0; i <= g_9316; i++) {
+        if (g_1e30[i].f_018 == 0 && g_7092[i].f_030 == 14
+            && g_7092[i].f_032 == n && g_7092[i].f_036 == 1
+            && g_7092[i].f_0ea) {
+            u1 = fn_04_5d9c(n, i);
+            if (u1 < best) {
+                best = u1;
+                bestj = i;
+            }
+            cnt++;
+        }
+    }
+    for (i = 0; i < g_940a; i++) {
+        if (g_1e00[i].f_018 == 0 && g_52ec[i].f_1c == 14
+            && g_52ec[i].f_1e == n && g_52ec[i].f_12 == 10)
+            cnt++;
+    }
+    if (t != -1) {
+        bestj = t;
+        cnt++;
+    }
+    if (cnt) {
+        if (bestj != -1 && g_7092[n].f_0f4[8][bestj] < -1)
+            cnt++;
+        if (flag && g_7092[n].f_024 > 320 && t == -1)
+            return;
+        if (g_7092[n].f_036 != 4
+            && (g_7092[n].f_050 != 3 || g_7092[n].f_024 < 20)
+            && (g_7092[n].f_05c * cnt * 6 + 15 > g_7092[n].f_024
+                || g_7092[n].f_05c * cnt * 6 + 17 > g_7092[n].f_026)
+            && (g_7092[n].f_050 == 0
+                || g_7092[n].f_096 - 7000 < g_1e50)) {
+            if ((cnt * 20 + 35 > best
+                 || 15 * g_7092[n].f_05c + 20 > g_7092[n].f_024)
+                && bestj != -1 && g_7092[n].f_0f4[8][bestj] < -1) {
+                g_7092[n].f_004 = g_7092[n].f_030 = 14;
+                g_7092[n].f_006 = g_7092[n].f_032 = bestj;
+                g_7092[n].f_03a = 5;
+                g_7092[n].f_038 = 5;
+                g_7092[n].f_036 = 4;
+                g_7092[n].f_034 = 4;
+                g_7092[n].f_050 = 7;
+                g_7092[n].f_092 = g_1e50 + 4000;
+                fn_03_06ec(bestj, 14, n, 0x47);
+            } else if (g_7092[n].f_028 < 50
+                       && g_7092[n].f_05c * 8 + 35 > g_7092[n].f_024) {
+                g_7092[n].f_050 = 13;
+                g_7092[n].f_056 = n;
+                g_7092[n].f_092 = g_7092[n].f_096 = g_1e50 + 1000;
+                g_7092[n].f_0eb = 0;
+                if (g_7092[n].f_050 >= 2 && g_7092[n].f_050 <= 4) {
+                    if (g_7092[n].f_052 == 14 && g_7092[n].f_056 == n)
+                        fn_03_06ec(g_7092[n].f_054, 14, n, 0x8a);
+                    else
+                        fn_03_06ec(g_7092[n].f_056, 14, n, 0x73);
+                    g_7092[n].f_0f4[8][g_7092[n].f_054] = 0;
+                    g_7092[n].f_0b6[g_7092[n].f_054 + 10] = -1;
+                }
+                if (g_7092[n].f_050 == 1 || g_7092[n].f_050 == 2) {
+                    fn_03_06ec(g_7092[n].f_054, 14, n, 0x13);
+                    fn_03_06ec(g_7092[n].f_056, 14, n, 0x13);
+                }
+            }
+        } else if (g_7092[n].f_036 == 4 && cnt * 20 + 35 < best) {
+            g_7092[n].f_036 = 1;
+            g_7092[n].f_034 = 1;
+            fn_04_8346(n, g_7092[n].f_030, g_7092[n].f_032, 0x10);
+        }
+        if (fn_13_9bb8(n, cnt))
+            fn_16_0b4e(n);
+        if (g_7092[n].f_024 < cnt * 20 + 25 && bestj != -1) {
+            for (j = 0; j <= g_9316; j++) {
+                if (g_1e30[j].f_018 == 0 && g_7092[j].f_0ea && j != n
+                    && g_7092[j].f_050 == 1 && g_7092[j].f_054 == n
+                    && j != g_9646)
+                    return;
+            }
+            if (!fn_13_81c2(n))
+                g_7092[n].f_09a = 1;
+        } else if (cnt && bestj != -1
+                   && (cnt > 1 || best < 78
+                       || (g_7092[n].f_032 == g_952e
+                           && g_7092[n].f_030 == 14 && g_9e49 != 10))) {
+            fn_03_00f4(n, 14, bestj);
+            if (!fn_13_9970(n))
+                g_7092[n].f_09a = 1;
+        }
+        if (CLS(n) == 2 && cnt && bestj != -1) {
+            for (j = 0; j <= g_9316; j++) {
+                if (g_1e30[j].f_018 == 0 && g_7092[j].f_0ea && j != n
+                    && g_7092[j].f_050 == 1 && g_7092[j].f_054 == n
+                    && j != g_9646)
+                    return;
+            }
+            if (!fn_13_81c2(n))
+                g_7092[n].f_09a = 1;
+        }
+    }
+    if ((cnt == 0 || best > 60) && g_7092[n].f_036 == 4) {
+        g_7092[n].f_034 = 3;
+        g_7092[n].f_036 = 3;
+        g_7092[n].f_050 = 0;
+        g_7092[n].f_092 = g_1e50;
+    }
+    if (fn_13_9bb8(n, cnt))
+        fn_16_0b4e(n);
+    if (g_7092[n].f_036 == 1 && g_7092[n].f_030 == 14
+        && g_7092[n].f_0f4[8][g_7092[n].f_032] < -2
+        && fn_13_2688(n, g_7092[n].f_032) < -150 && g_7092[n].f_0ea) {
+        fn_03_00f4(n, 14, g_7092[n].f_032);
+        if (!fn_13_9970(n))
+            g_7092[n].f_09a = 1;
+    }
+    if (g_9418 > 1 && g_7092[n].f_030 != 14 && rand() % 3 == 0
+        && g_7092[n].f_09a < g_1e50) {
+        for (j = 0; j < g_9418; j++) {
+            if (g_1e1c[j].f_018 == 0) {
+                fn_03_00f4(n, 9, j);
+                fn_13_9970(n);
+                break;
+            }
+        }
+    }
+}
+
 /* Object n looks for a helper among the others (like fn_13_8570) [inferred].
  * Returns 1 if one joined, 0 if none, -1 when n asked too recently. */
 /* @addr 13:81c2 */
@@ -1368,4 +1547,371 @@ int far fn_13_81c2(int n)
                 fn_03_06ec(n, 7, 0, 6);
     }
     return 0;
+}
+
+/* Object n is asked to fight k: decides whether to accept the duel and
+ * sets both up for it [inferred]. */
+/* @addr 13:915c */
+void far fn_13_915c(int n)
+{
+    int u1, s, k, rel, dist, sc, t, u2, d, res, range;
+
+    u1 = res = 0;
+    s = g_7092[n].f_03c;
+    k = g_7092[n].f_03e;
+    g_7092[n].f_09a = g_1e50 + 5000;
+    if (s != 14)
+        fn_03_06ec(n, 7, 0, 0x14);
+    else if (CLS(k) == 7)
+        fn_03_06ec(n, 14, k, 0x40);
+    else if (g_96ea[g_7092[k].f_04c].f_006 / 10 > g_7092[k].f_01c)
+        fn_03_06ec(n, 14, k, 0xbc);
+    else if (g_7092[k].f_050 == 1)
+        fn_03_06ec(n, 14, k, 0xbd);
+    else if ((n == g_9646 && (!g_9134 || flow_interactive))
+             || g_7092[n].f_09a <= g_1e50 || g_7092[n].f_0b6[k + 10] >= 4) {
+        range = 0;
+        d = fn_04_5d9c(n, k);
+        if (d > 500 || d < 20) {
+            if (g_7092[k].f_05c > 0 && k != g_9646) {
+                if (d > 500) {
+                    fn_03_06ec(n, 14, k, 0x4c);
+                    fn_13_81c2(k);
+                    return;
+                }
+                fn_03_06ec(n, 14, k, 0x4e);
+                goto out;
+            }
+            if (d < 20)
+                range = 1;
+            if (d > 500)
+                range = 2;
+        }
+        if (g_7092[k].f_052 == 14 && g_7092[k].f_054 == n
+            && g_7092[k].f_050 >= 2 && g_7092[k].f_050 <= 4
+            && g_7092[k].f_056 == k
+            && g_7092[n].f_052 == 14 && g_7092[n].f_054 == k
+            && g_7092[n].f_050 >= 2 && g_7092[n].f_050 <= 4
+            && g_7092[n].f_056 == n) {
+            fn_03_06ec(n, 14, k, 0x74);
+            return;
+        }
+        if (!g_1e30[k].f_018 && g_7092[k].f_0ea) {
+            dist = fn_04_5d9c(n, k);
+            t = 30 * g_7092[k].f_05c;
+            rel = fn_13_2688(k, n);
+            sc = 0;
+            if (g_7092[n].f_0b6[k + 10] > 2)
+                sc = 30 * g_7092[n].f_0b6[k + 10];
+            if (rel > 50) {
+                sc += 20 * g_7092[k].f_05b;
+                sc += rel / -5 - abs(100 - dist) * 2;
+                sc += 15 * g_7092[n].f_0b6[k + 10];
+                if (g_7092[n].f_0b6[k + 10] == -1)
+                    sc -= 100;
+                if (range
+                    || (sc > -70
+                        && (g_7092[k].f_050 == 0 || g_7092[k].f_050 == 7
+                            || g_7092[k].f_096 < g_1e50 || k == g_9646)))
+                    res = 2;
+                else if (n != g_9646 || flow_interactive) {
+                    if (g_7092[k].f_050 != 0 && g_7092[k].f_096 > g_1e50)
+                        fn_03_06ec(n, 14, k, 0x10);
+                    else
+                        fn_03_06ec(n, 14, k, 0xe);
+                }
+            } else {
+                if (g_7092[k].f_050 != 0 && g_7092[k].f_050 != 7
+                    && g_7092[k].f_096 > g_1e50)
+                    sc = -110;
+                else
+                    sc = -30;
+                sc += 25 * g_7092[n].f_0b6[k + 10] - rel / 5 - t + dist;
+                if (g_7092[n].f_0b6[k + 10] == -1)
+                    sc -= 140;
+                if (range)
+                    res = 1;
+                else if (sc > -90)
+                    res = 1;
+                else if (n != g_9646 || flow_interactive) {
+                    if (g_7092[k].f_050 != 0 && g_7092[k].f_050 != 7
+                        && g_7092[k].f_096 > g_1e50)
+                        fn_03_06ec(n, 14, k, 0x10);
+                    else
+                        fn_03_06ec(n, 14, k, 0xf);
+                }
+            }
+            if (res == 0) {
+                g_7092[n].f_0b6[k + 10] = -1;
+                return;
+            }
+            g_7092[n].f_0b6[k + 10] = 21;
+            g_7092[k].f_0b6[n + 10] = 20;
+            if (g_7092[k].f_050)
+                fn_03_06ec(g_7092[k].f_056, 14, n, 0x13);
+            if (g_7092[n].f_050)
+                fn_03_06ec(g_7092[n].f_056, 14, n, 0x13);
+            if (k == g_9646 && g_9134 && flow_interactive) {
+                if (g_1e50 - 15000 > g_8858) {
+                    g_964e = 11;
+                    g_9650 = 14;
+                    g_9652 = g_9654 = n;
+                    g_8858 = g_1e50;
+                }
+            } else {
+                g_7092[k].f_050 = 2;
+                g_7092[k].f_092 = g_1e50 + 200;
+                g_7092[k].f_096 = g_1e50 + 40000;
+                g_7092[k].f_09a = g_1e50 + 8000;
+                g_7092[k].f_052 = 14;
+                g_7092[k].f_054 = n;
+                g_7092[k].f_056 = k;
+                g_7092[k].f_0eb = 1;
+                g_7092[k].f_030 = 14;
+                g_7092[k].f_032 = n;
+                g_7092[k].f_036 = 1;
+                g_7092[k].f_0a2 = g_1e50 - g_7092[k].f_05c * 2000 + 8000;
+                fn_04_8346(k, 14, n, 0x15);
+                if (k == g_9646)
+                    g_0a62 = 1;
+                g_7092[n].f_050 = 2;
+                g_7092[n].f_092 = g_1e50 + 200;
+                g_7092[n].f_096 = g_1e50 + 40000;
+                g_7092[n].f_09a = g_1e50 + 8000;
+                g_7092[n].f_052 = 14;
+                g_7092[n].f_054 = k;
+                g_7092[n].f_056 = n;
+                g_7092[n].f_0eb = 0;
+                g_7092[n].f_036 = 1;
+                if (n != g_9646)
+                    fn_03_00f4(n, 14, k);
+                g_7092[n].f_030 = 14;
+                g_7092[n].f_032 = k;
+                g_7092[n].f_0a2 = g_1e50 - g_7092[n].f_05c * 2000 + 8000;
+                if (res == 1 && (CLS(n) == 4 || CLS(n) == 0))
+                    g_7092[n].f_050 = 3;
+                fn_04_8346(n, 14, k, 0x14);
+                if (g_9320 != 7)
+                    g_8e00 = g_8e04 = g_9680 = g_9682 = 0;
+                if (res) {
+                    g_7092[n].f_0f4[8][k] = 0;
+                    g_7092[k].f_0f4[8][n] = 0;
+                    if (n == g_9646 && g_9134 == 1)
+                        fn_03_33b4(3);
+                }
+                fn_13_2714(g_7092[n].f_03e, n, -12, -55, 1, -1);
+            }
+            if (range == 1) {
+                fn_03_06ec(k, 14, n, 0x4b);
+                fn_03_06ec(n, 14, k, 0x4d);
+            } else if (range == 2) {
+                fn_03_06ec(k, 14, n, 0x4d);
+                fn_03_06ec(n, 14, k, 0x4b);
+            } else if (g_7092[n].f_050 == 3) {
+                fn_03_06ec(k, 14, n, 0x82);
+                fn_03_06ec(n, 14, k, 0x12);
+            } else if (res == 1) {
+                fn_03_06ec(n, 14, k, 0x12);
+                fn_03_06ec(k, 14, n, 0x16);
+            } else if (res == 2) {
+                fn_03_06ec(n, 14, k, 0x11);
+                fn_03_06ec(k, 14, n, 0x15);
+            }
+        }
+    }
+out:;
+}
+
+/* Object n in duel states 0x14-0x17 (approach, challenge, fight) [inferred]. */
+/* @addr 13:a6bc */
+void far pascal fn_13_a6bc(int n)
+{
+    int i, j, k, d, y, x, c, u2, flag, cnt;
+
+    g_7092[n].f_092 = g_1e50 + 750;
+    if (g_9412 && g_1e30[n].f_036 == -1) {
+        for (i = 0; i < g_9412; i++) {
+            if (g_66e4[i].f_00 == 0x10 && g_1e10[i].f_018 == 0) {
+                g_7092[n].f_004 = 6;
+                g_7092[n].f_006 = i;
+                g_7092[n].f_038 = 2;
+                g_7092[n].f_034 = 2;
+                if (g_1e30[n].f_036 != 14)
+                    return;
+                for (j = 0; j <= g_7092[n].f_0c9; j++) {
+                    if (g_7092[n].f_0b6[j] == 15) {
+                        fn_04_584c(j, n, 0);
+                        break;
+                    }
+                }
+                return;
+            }
+        }
+    }
+    if (g_7092[n].f_050 == 0x14) {
+        flag = 0;
+        if (g_1df8[g_7092[n].f_052][g_7092[n].f_054].f_018)
+            flag = 1;
+        if (!g_7092[g_7092[n].f_054].f_0ea)
+            flag = 1;
+        if ((g_7092[g_7092[n].f_054].f_036 != 1 && g_7092[n].f_096 < g_1e50)
+            || g_7092[n].f_096 < g_1e50 + 5000)
+            flag = 1;
+        if (flag) {
+            k = g_7092[n].f_054;
+            for (i = 0; i <= g_9316; i++) {
+                if (++k > g_9316)
+                    k = 0;
+                if (g_1e30[k].f_018 == 0 && g_7092[k].f_0ea && CLS(k) != 7)
+                    break;
+            }
+            g_7092[n].f_052 = 14;
+            g_7092[n].f_054 = k;
+            g_7092[n].f_096 = g_1e50 + 13000;
+            if (g_1e30[k].f_018 || !g_7092[k].f_0ea || CLS(k) == 7) {
+                fn_03_06ec(g_9646, 14, n, 0xb7);
+                g_7092[n].f_004 = 12;
+                g_7092[n].f_006 = 0;
+                g_7092[n].f_038 = 2;
+                g_7092[n].f_034 = 2;
+                return;
+            }
+        }
+        g_7092[n].f_004 = g_7092[n].f_052;
+        g_7092[n].f_006 = g_7092[n].f_054;
+        g_7092[n].f_038 = 2;
+        g_7092[n].f_034 = 3;
+        if (g_7092[g_7092[n].f_054].f_030 == 14
+            && g_7092[g_7092[n].f_054].f_032 == n
+            && g_7092[g_7092[n].f_054].f_036 == 1) {
+            g_7092[n].f_034 = 1;
+            fn_04_8346(n, 14, g_7092[n].f_054, 0x12);
+        }
+    } else if (g_7092[n].f_050 == 0x15) {
+        if (g_7092[n].f_0eb == 1) {
+            fn_03_06ec(g_7092[n].f_054, 14, n, 0x3b);
+            g_7092[n].f_0eb = 0;
+        } else {
+            g_7092[n].f_050 = 0x14;
+            g_7092[n].f_096 = g_1e50 + 5000;
+        }
+        g_7092[n].f_092 = g_1e50 + 2000;
+    } else if (g_7092[n].f_050 == 0x16) {
+        if (g_1df8[g_7092[n].f_052][g_7092[n].f_054].f_018 == 0
+            && g_7092[g_7092[n].f_054].f_0ea) {
+            k = g_7092[n].f_054;
+            if (g_7092[k].f_036 == 1 && g_7092[k].f_030 == 14
+                && g_7092[k].f_032 == n && g_7092[n].f_096 < g_1e50) {
+                cnt = 0;
+                for (i = 0; i < 5; i++)
+                    if ((&g_7092[n].f_042)[i])
+                        cnt++;
+                if (cnt > 1) {
+                    if (k == g_9646)
+                        g_a154++;
+                    g_7092[n].f_050 = 0x17;
+                    if (g_7092[n].f_0eb == 2 || g_7092[n].f_0eb == -1)
+                        g_7092[n].f_0eb = 2;
+                    else
+                        g_7092[n].f_0eb = 1;
+                    g_7092[n].f_096 = g_1e50 + 20000;
+                    g_7092[n].f_092 = g_1e50;
+                    return;
+                }
+            }
+            if (g_7092[n].f_0eb > 0) {
+                g_7092[n].f_004 = 14;
+                g_7092[n].f_006 = k;
+                g_7092[n].f_038 = 2;
+                g_7092[n].f_034 = 3;
+                d = fn_08_285a(&y, &x, g_1e30[n].f_004, g_1e30[k].f_004);
+                if (d < 250) {
+                    if (g_7092[n].f_0eb == 1) {
+                        fn_03_06ec(k, 14, n, 0x3d);
+                        g_7092[n].f_0eb = 0;
+                        g_a147 = g_1e68;
+                        g_a14b = g_91f8;
+                        g_a161 = g_a163;
+                        g_a162 = (char)n;
+                    } else {
+                        fn_03_06ec(k, 14, n, 0x57);
+                        g_7092[n].f_0eb = -1;
+                    }
+                    if (g_7092[k].f_05c > 0 && (k != g_9646 || !flow_interactive)) {
+                        if ((c = CLS(k)) != 3 && c != 6 && c != 1) {
+                            g_7092[k].f_050 = 10;
+                            g_7092[k].f_096 = g_1e50 + 500;
+                            g_7092[k].f_056 = n;
+                        } else {
+                            g_7092[k].f_050 = 2;
+                            g_7092[k].f_052 = 14;
+                            g_7092[k].f_054 = n;
+                            g_7092[k].f_056 = k;
+                            fn_04_8346(k, 14, n, 10);
+                        }
+                    }
+                    for (i = 0; i <= g_7092[n].f_0c9; i++) {
+                        if (g_7092[n].f_0b6[i] == 15) {
+                            fn_04_584c(i, n, 0);
+                            break;
+                        }
+                    }
+                }
+            } else {
+                g_7092[n].f_004 = 12;
+                g_7092[n].f_006 = 0;
+                g_7092[n].f_038 = 2;
+                g_7092[n].f_034 = 2;
+            }
+        } else {
+            g_7092[n].f_004 = 12;
+            g_7092[n].f_006 = 0;
+            g_7092[n].f_038 = 2;
+            g_7092[n].f_034 = 2;
+        }
+        if (g_7092[n].f_0eb < 1 && g_1e30[n].f_036 != 10
+            && (g_1e30[n].f_036 != 14 || g_1e30[n].f_038 != k))
+            g_7092[n].f_0eb = 1;
+    } else {
+        g_7092[n].f_050 = 0x17;
+        k = g_7092[n].f_054;
+        if (g_7092[n].f_0eb != 0) {
+            if (g_7092[n].f_0eb == 2
+                || (g_7092[n].f_0f4[k][1] > 2 && g_7092[n].f_0f4[8][k] < -2
+                    && g_7092[n].f_024 < 55)) {
+                fn_03_06ec(g_9646, 14, n, 0xb7);
+                g_7092[n].f_004 = 12;
+                g_7092[n].f_006 = 0;
+                g_7092[n].f_038 = 2;
+                g_7092[n].f_034 = 2;
+                g_7092[n].f_0eb = 0;
+                fn_13_adbe(k, 20, 0x58);
+                return;
+            }
+            fn_03_06ec(k, 14, n, 0x3e);
+            g_7092[n].f_0eb = 0;
+            fn_03_00f4(n, g_7092[n].f_052, g_7092[n].f_054);
+            fn_04_8346(n, 14, g_7092[n].f_054, 0x13);
+        }
+        if (g_7092[n].f_096 < g_1e50 && g_7092[n].f_05c == 1) {
+            g_7092[n].f_050 = 0x16;
+            g_7092[n].f_0eb = 2;
+            g_7092[n].f_092 = g_1e50;
+            g_7092[n].f_096 = g_1e50 + 5000;
+            return;
+        }
+        if (g_1e30[k].f_018 || !g_7092[k].f_0ea) {
+            fn_03_06ec(g_9646, 14, n, 0xb7);
+            g_7092[n].f_004 = 12;
+            g_7092[n].f_006 = 0;
+            g_7092[n].f_038 = 2;
+            g_7092[n].f_034 = 2;
+            return;
+        }
+        fn_03_00f4(n, g_7092[n].f_052, g_7092[n].f_054);
+        g_7092[n].f_004 = 14;
+        g_7092[n].f_006 = k;
+        g_7092[n].f_038 = 2;
+        g_7092[n].f_034 = 1;
+    }
 }

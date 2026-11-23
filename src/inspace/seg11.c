@@ -3531,8 +3531,7 @@ void far pascal fn_11_63b4(int n, int a)
 }
 
 /* Race HUD: lap count, position line, lap times and the start countdown [inferred]. */
-/* near-match 99.8%: 11:41bc (game builds the lstrcat args after the second
- * fn_11_4928 call in cx/dx instead of ax) */
+/* @addr 11:41bc */
 void far fn_11_41bc(HDC dc, int a, int b)
 {
     char buf1[240];
@@ -3616,6 +3615,7 @@ void far fn_11_41bc(HDC dc, int a, int b)
         lstrcat(buf1, buf2);
         fn_09_9580(0x898, buf1);
         fn_11_4928(0, tm, buf2);
+    l_reset:    /* bare label: resets register tracking */
         lstrcat(buf1, buf2);
         TextOut(dc, 1, 60, buf1, lstrlen(buf1));
         if (g_1df8[14][g_9646].f51 == 0) {
