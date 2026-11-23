@@ -288,3 +288,11 @@ Conventions
   g_3974 (old bitmap), g_3ad0 (bitmap), g_3a5c (palette).
 - More types: g_88c4 is a POINT; fn_18_1934 is int far pascal (key, unused,
   HDC); fn_08_3aec and fn_08_3fbe are pascal; fn_10_804c returns long.
+- An 8-byte copy done as two dwords, high half first, comes from two POINT
+  assignments (+4 first, then +0), not one struct copy.
+- `if (a) s /= 3; else if (b) s /= 3;` reproduces a shared block another
+  test jumps back into.
+- A retf size that differs at the very end: the function is pascal; reverse
+  the parameter order.
+- More types: g_5224 is POINT[]; g_9e60/9e70/9e80/9e90, g_1c3e, g_05c0 are
+  DWORD; abs32 is long abs32(long); fn_11_63b4 is pascal (n, a).

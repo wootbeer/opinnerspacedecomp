@@ -6,7 +6,9 @@
 typedef struct {
     int f00;                    /* +00 */
     int f02;                    /* +02 */
-    char p004[0x0a - 4];
+    char p004[0x06 - 4];
+    int f06;                    /* +06 */
+    int f08;                    /* +08 */
     int f0a;                    /* +0a */
     int f0c;                    /* +0c */
     int f0e;                    /* +0e */
@@ -14,7 +16,8 @@ typedef struct {
     int f12;                    /* +12 */
     char p014[0x18 - 0x14];
     int f18;                    /* +18 */
-    char p01a[0x1e - 0x1a];
+    char p01a[0x1c - 0x1a];
+    int f1c;                    /* +1c */
     int f1e;                    /* +1e */
     int f20;                    /* +20 */
     int f22;                    /* +22 */
@@ -27,13 +30,16 @@ typedef struct {
     int f34;                    /* +34 */
     char p036[0x38 - 0x36];
     int f38;                    /* +38 */
-    char p03a[0x4e - 0x3a];
+    int f3a;                    /* +3a */
+    char p03c[0x4e - 0x3c];
     int f4e;                    /* +4e */
     char p050[0x52 - 0x50];
     int f52;                    /* +52 */
     int f54;                    /* +54 */
     int f56;                    /* +56 */
-    char p058[0x84 - 0x58];
+    char p058[0x60 - 0x58];
+    char f60;                   /* +60 */
+    char p061[0x84 - 0x61];
     unsigned long f84;          /* +84 */
     char p088[0x8c - 0x88];
     long f8c;                   /* +8c */
@@ -45,11 +51,15 @@ typedef struct {
     char fcb;                   /* +cb */
     char p0cc[0xce - 0xcc];
     int fce;                    /* +ce */
-    char p0d0[0xda - 0xd0];
+    char p0d0[0xd6 - 0xd0];
+    int fd6;                    /* +d6 */
+    char p0d8[0xda - 0xd8];
     int fda;                    /* +da */
     char p0dc[0xe2 - 0xdc];
     char fe2;                   /* +e2 */
-    char p0e3[0xe7 - 0xe3];
+    char p0e3[0xe4 - 0xe3];
+    char fe4;                   /* +e4 */
+    char p0e5[0xe7 - 0xe5];
     char fe7;                   /* +e7 */
     char fe8;                   /* +e8 */
     char fe9;                   /* +e9 */
@@ -76,7 +86,8 @@ typedef struct {
     int f0e;                    /* +0e */
     char p10[0x18 - 0x10];
     int f18;                    /* +18 */
-    char p1a[0x20 - 0x1a];
+    int f1a;                    /* +1a */
+    char p1c[0x20 - 0x1c];
     int f20;                    /* +20 */
     int f22;                    /* +22 */
     int f24;                    /* +24 */
@@ -84,13 +95,15 @@ typedef struct {
     int f28;                    /* +28 */
     char p2a[0x2e - 0x2a];
     char f2e;                   /* +2e */
-    char p2f[0x44 - 0x2f];
+    char f2f;                   /* +2f */
+    char p30[0x44 - 0x30];
     int f44;                    /* +44 */
     int f46;                    /* +46 */
     char p48[0x4c - 0x48];
     COLORREF f4c;               /* +4c */
     char f50;                   /* +50 */
-    char p51[0x54 - 0x51];
+    char f51;                   /* +51 */
+    char p52[0x54 - 0x52];
     char f54;                   /* +54 */
     char p55[0x62 - 0x55];
     void (far pascal *f62)(int type, int n, HDC dc);   /* +62: draw [inferred] */
@@ -299,7 +312,9 @@ extern int g_9416;
 extern DWORD g_8e30;
 typedef struct {                /* 0x34-byte records, field at DS:3d54 */
     long f00;
-    char p04[0x34 - 4];
+    int f04;
+    int f06;                    /* +06 */
+    char p08[0x34 - 8];
 } REC_34;
 extern REC_34 g_3d54[];
 extern HBITMAP g_5042;
@@ -332,7 +347,9 @@ typedef struct {
     int f20;                    /* +20 */
     char p22[0x34 - 0x22];
     int f34;                    /* +34 */
-    char p36[0x6c - 0x36];
+    char p36[0x38 - 0x36];
+    POINT f38[5];               /* +38: cell offsets [inferred] */
+    char p4c[0x6c - 0x4c];
     char f6c[0x91 - 0x6c];      /* +6c: name [inferred] */
     long f91;                   /* +91 */
     char p95[0xad - 0x95];
@@ -471,17 +488,90 @@ extern int g_9150;
 extern int g_9158;
 extern int g_90ec;
 
+/* 20-byte records at DS:1e90 (as seg07.c) [inferred]. */
+typedef struct {
+    int f0, f2, f4, f6, f8, fa, fc, fe;
+    long f10;
+} REC_14B;
+extern REC_14B g_1e90[];
+extern POINT g_5170[];
+extern POINT g_5224[];
+extern int g_9430;
+extern int g_9434;
+long far pascal fn_08_1290(long n, long g);
+#define SC(n) ((n) << g_9156 >> 1)
+
+
+/* 0x94-byte records at DS:6098 (as seg08c.c) [inferred]. */
+typedef struct {
+    int x0[2][6];               /* +00 */
+    int y0[2][6];               /* +18 */
+    int x1[2][6];               /* +30 */
+    int y1[2][6];               /* +48 */
+    char p60[0x70 - 0x60];
+    int f70;                    /* +70 */
+    int f72;                    /* +72 */
+    char p74[0x88 - 0x74];
+    int f88;                    /* +88 */
+    int f8a;                    /* +8a */
+    char p8c[0x90 - 0x8c];
+    long f90;                   /* +90 */
+} REC_94;
+extern REC_94 g_6098[];
+extern char g_9eb5;
+extern char g_9ec2[][40];
+extern long g_05cc;
+int far fn_08_35d0(long a, long b);
+long far abs32(long x);
+
+/* 0x16-byte records at DS:5b28 (as seg07.c) [inferred]. */
+typedef struct {
+    POINT p;                    /* +0 */
+    POINT q;                    /* +4 */
+    POINT r;                    /* +8 */
+    int age;                    /* +c */
+    int vx;                     /* +e */
+    int vy;                     /* +10 */
+    POINT s;                    /* +12 */
+} REC_16;
+extern REC_16 g_5b28[][4];
+extern POINT g_1050[];
+extern DWORD g_1c3e;
+extern int g_9510;
+extern int g_9512;
+extern int g_9514;
+extern int g_952a;
+extern char g_8630[];
+extern int g_058c;
+extern DWORD g_05c0;
+void far fn_13_6716(int n);
+void far pascal fn_11_b09c(int n, int a);
+
+extern char g_38c8[];
+extern int g_9684;
+extern int g_186a;
+extern DWORD g_9e60[];
+extern DWORD g_9e70[];
+extern DWORD g_9e80[];
+extern DWORD g_9e90[];
+void far fn_09_9580(UINT id, LPSTR dst);
+int far fn_09_955c(UINT id, LPSTR buf);
+void far fn_17_7ba6(int a, LPSTR buf);
+void far race_position(void);
+void far fn_11_4928(int mode, DWORD t, LPSTR out);
+void far race_radar_background(int a);
+
 /* Not yet decompiled: stubs so calls to them compile as near calls. */
 void far fn_11_05fe(int a) { }
 void far pascal fn_11_4e0a(int a) { }
-void far fn_11_41bc(HDC dc, int a, int b) { }
+void far fn_11_41bc(HDC dc, int a, int b);
 void far pascal fn_11_6b64(int msg, int wparam, long lparam) { }
 void far pascal fn_11_7c12(int k, int type, int n) { }
-void far pascal fn_11_b09c(int n, int a) { }
+void far pascal fn_11_b09c(int n, int a);
 void far fn_11_0afe(void) { }
-void far fn_11_8a42(int type, int n) { }
+void far fn_11_8a42(int type, int n);
 void far fn_11_947a(int type, int n, int k) { }
-void far fn_11_a4a6(POINT a, POINT b, int type) { }
+void far fn_11_a4a6(POINT a, POINT b, int type);
 
 /* @addr 11:2120 */
 int far fn_11_2120(void)
@@ -2493,6 +2583,192 @@ void far fn_11_a9ea(int a)
         g_1036 = g_1016 = 0;
 }
 
+/* Spawns rings of 20-byte effect records around object n [inferred]. */
+/* @addr 11:8a42 */
+void far fn_11_8a42(int type, int n)
+{
+    int w;
+    int m;
+    int j;
+    int i;
+    int k;
+    int sk;
+    int r;
+    int sr;
+    int k8;
+    int r8;
+    int step;
+    int delay;
+    struct { POINT a, b; } rc;
+    int ok;
+
+    w = 0x50;
+    delay = 0x1e;
+    ok = j = 0;
+    if (type == g_9324) {
+        for (j = 1; j < g_7090[n].fcb; j++)
+            if (g_7090[n].fb8[j] == 1) {
+                if (g_7090[n].f1e > 70)
+                    ok = 1;
+                break;
+            }
+    } else
+        ok = 1;
+    if (!ok)
+        return;
+    if (type == g_9324)
+        g_7090[n].f1e += -70L * g_1df8[14][n].f44 / 250;
+    rc.b = g_1df8[type][n].f04;
+    rc.a = *(POINT far *)&g_1df8[type][n].f00;
+    for (k = 11, step = 0; k < w * 10 / 14; k += 21, step++) {
+        r = fn_08_1290((long)(w * w - k * k), (long)(w - k / 4));
+        k8 = k * 8;
+        sk = SC(k);
+        r8 = r * 8;
+        sr = SC(r);
+        for (i = j; i < 45; i++)
+            if (g_1e90[i].f0 == -1) {
+                g_5224[i].x = rc.b.x + k8;
+                g_5170[i].x = rc.a.x + sk;
+                g_5224[i].y = rc.b.y - r8;
+                g_5170[i].y = rc.a.y - sr;
+                g_1e90[i].f0 = g_1e90[i].fa = 1;
+                g_1e90[i].f2 = 10;
+                g_1e90[i].f10 = delay * step + g_1e50;
+                g_1e90[i].f6 = type;
+                g_1e90[i].f8 = n;
+                g_9430++;
+                break;
+            }
+        j = i + 1;
+        for (i = j; i < 45; i++)
+            if (g_1e90[i].f0 == -1) {
+                g_5224[i].x = rc.b.x + r8;
+                g_5170[i].x = rc.a.x + sr;
+                g_5224[i].y = rc.b.y - k8;
+                g_5170[i].y = rc.a.y - sk;
+                g_1e90[i].f0 = g_1e90[i].fa = 1;
+                g_1e90[i].f2 = 10;
+                g_1e90[i].f10 = (5 - step) * delay + g_1e50;
+                g_1e90[i].f6 = type;
+                g_1e90[i].f8 = n;
+                g_9430++;
+                break;
+            }
+        j = i + 1;
+        for (i = j; i < 45; i++)
+            if (g_1e90[i].f0 == -1) {
+                g_5224[i].x = rc.b.x + r8;
+                g_5170[i].x = rc.a.x + sr;
+                g_5224[i].y = rc.b.y + k8;
+                g_5170[i].y = rc.a.y + sk;
+                g_1e90[i].f0 = g_1e90[i].fa = 1;
+                g_1e90[i].f2 = 10;
+                g_1e90[i].f10 = (step + 5) * delay + g_1e50;
+                g_1e90[i].f6 = type;
+                g_1e90[i].f8 = n;
+                g_9430++;
+                break;
+            }
+        j = i + 1;
+        for (i = j; i < 45; i++)
+            if (g_1e90[i].f0 == -1) {
+                g_5224[i].x = rc.b.x + k8;
+                g_5170[i].x = rc.a.x + sk;
+                g_5224[i].y = rc.b.y + r8;
+                g_5170[i].y = rc.a.y + sr;
+                g_1e90[i].f0 = g_1e90[i].fa = 1;
+                g_1e90[i].f2 = 10;
+                g_1e90[i].f10 = (10 - step) * delay + g_1e50;
+                g_1e90[i].f6 = type;
+                g_1e90[i].f8 = n;
+                g_9430++;
+                break;
+            }
+        j = i + 1;
+        for (i = j; i < 45; i++)
+            if (g_1e90[i].f0 == -1) {
+                g_5224[i].x = rc.b.x - k8;
+                g_5170[i].x = rc.a.x - sk;
+                g_5224[i].y = rc.b.y - r8;
+                g_5170[i].y = rc.a.y - sr;
+                g_1e90[i].f0 = g_1e90[i].fa = 1;
+                g_1e90[i].f2 = 10;
+                g_1e90[i].f10 = (20 - step) * delay + g_1e50;
+                g_1e90[i].f6 = type;
+                g_1e90[i].f8 = n;
+                g_9430++;
+                break;
+            }
+        j = i + 1;
+        for (i = j; i < 45; i++)
+            if (g_1e90[i].f0 == -1) {
+                g_5224[i].x = rc.b.x - r8;
+                g_5170[i].x = rc.a.x - sr;
+                g_5224[i].y = rc.b.y - k8;
+                g_5170[i].y = rc.a.y - sk;
+                g_1e90[i].f0 = g_1e90[i].fa = 1;
+                g_1e90[i].f2 = 10;
+                g_1e90[i].f10 = (step + 15) * delay + g_1e50;
+                g_1e90[i].f6 = type;
+                g_1e90[i].f8 = n;
+                g_9430++;
+                break;
+            }
+        j = i + 1;
+        for (i = j; i < 45; i++)
+            if (g_1e90[i].f0 == -1) {
+                g_5224[i].x = rc.b.x - r8;
+                g_5170[i].x = rc.a.x - sr;
+                g_5224[i].y = rc.b.y + k8;
+                g_5170[i].y = rc.a.y + sk;
+                g_1e90[i].f0 = g_1e90[i].fa = 1;
+                g_1e90[i].f2 = 10;
+                g_1e90[i].f10 = (15 - step) * delay + g_1e50;
+                g_1e90[i].f6 = type;
+                g_1e90[i].f8 = n;
+                g_9430++;
+                break;
+            }
+        j = i + 1;
+        for (i = j; i < 45; i++)
+            if (g_1e90[i].f0 == -1) {
+                g_5224[i].x = rc.b.x - k8;
+                g_5170[i].x = rc.a.x - sk;
+                g_5224[i].y = rc.b.y + r8;
+                g_5170[i].y = rc.a.y + sr;
+                g_1e90[i].f0 = g_1e90[i].fa = 1;
+                g_1e90[i].f2 = 10;
+                g_1e90[i].f10 = (step + 10) * delay + g_1e50;
+                g_1e90[i].f6 = type;
+                g_1e90[i].f8 = n;
+                g_9430++;
+                break;
+            }
+        j = i + 1;
+    }
+    for (m = 0; m < 2; m++) {
+        for (i = j; i < 45; i++)
+            if (g_1e90[i].f0 == -1) {
+                g_5224[i].x = rc.b.x;
+                g_5170[i].x = rc.a.x;
+                g_5224[i].y = rc.b.y;
+                g_5170[i].y = rc.a.y;
+                g_1e90[i].fa = -250;
+                if (i > g_9434)
+                    g_9434 = i;
+                g_1e90[i].f6 = type;
+                g_1e90[i].f8 = n;
+                g_1e90[i].f0 = 1;
+                g_1e90[i].f2 = 13;
+                g_1e90[i].f10 = (15 - step) * delay * m + g_1e50;
+                g_9430++;
+                break;
+            }
+        j = i + 1;
+    }
+}
+
 /* Turns nearby 0x1c-records into kind 0x1b and builds its bitmap
  * [inferred]. */
 /* @addr 11:9078 */
@@ -2941,5 +3217,473 @@ void far fn_11_a234(int type, int n, int tt, int tn)
     if (type == g_9324 && g_96ea[g_7090[n].f4e].f20 == 7) {
         g_1df8[tt][tn].f50 = 0;
         g_1df8[type][n].f50 = 0;
+    }
+}
+
+/* Blits the 16 cells of object n's ring sprite (a: second row) [inferred]. */
+/* @addr 11:b09c */
+void far pascal fn_11_b09c(int n, int a)
+{
+    int i;
+    int h;
+    int g;
+    int x;
+    int y;
+    int cls;
+    int idx;
+    int unused;
+    int off;
+    int sz;
+    int flag;
+    int unused2;
+
+    flag = 1;
+    cls = g_7090[n].f4e;
+    g = g_1df8[g_9324][n].f24;
+    h = g_1df8[g_9324][n].f22;
+    if (a)
+        g_1df8[g_9324][n].f2f = g_7090[n].f0c / 20;
+    else
+        g_1df8[g_9324][n].f2f = 0;
+    if (g_7090[n].f10 > 0 && g_7090[n].f10 < 7)
+        flag = 0;
+    if (g_7090[n].fe4) {
+        if (g_9130)
+            sz = g_9156 * 6 + 3;
+        else
+            sz = SC(9);
+        for (i = 0; i < 16; i++) {
+            if (flag || g_1df8[g_9324][n].f28 == i) {
+                if (i < 5) {
+                    x = g_96ea[cls].f38[i].x;
+                    y = g_96ea[cls].f38[i].y;
+                } else if (i < 9) {
+                    x = g_96ea[cls].f38[8 - i].x;
+                    y = h - g_96ea[cls].f38[8 - i].y - sz;
+                } else if (i < 12) {
+                    x = h - g_96ea[cls].f38[i - 8].x - sz;
+                    y = h - g_96ea[cls].f38[i - 8].y - sz;
+                } else {
+                    x = h - g_96ea[cls].f38[16 - i].x - sz;
+                    y = g_96ea[cls].f38[16 - i].y;
+                }
+                idx = n + 40;
+                if (g_7090[n].f10 > 3)
+                    off = g + h;
+                else
+                    off = 0;
+                if (flag == 0) {
+                    BitBlt(g_39e8[idx], h * 16 + g * 17 + x, y + g, sz, sz,
+                           g_39e8[34], sz * i, (n * 2 + a) * sz, SRCCOPY);
+                    BitBlt(g_39e8[idx], h * 16 + g * 17 + x, g * 2 + y + h, sz, sz,
+                           g_39e8[34], sz * i, (n * 2 + a) * sz, SRCCOPY);
+                } else
+                    BitBlt(g_39e8[idx], (g + h) * i + x + g, off + y + g, sz, sz,
+                           g_39e8[34], sz * i, (n * 2 + a) * sz, SRCCOPY);
+            }
+        }
+    }
+}
+
+/* Builds and draws a random lightning bolt from a to b with side branches (type 9: green) [inferred]. */
+/* @addr 11:a4a6 */
+void far fn_11_a4a6(POINT a, POINT b, int type)
+{
+    POINT d;
+    POINT p;
+    int i;
+    int len;
+    int seg;
+    int j;
+    int k;
+    HGDIOBJ old;
+    int unused;
+
+    srand((unsigned)GetCurrentTime());
+    g_9526 = g_9528 = 0;
+    seg = 30;
+    p.x = -(d.y = b.y - a.y);
+    p.y = d.x = b.x - a.x;
+    len = fn_08_1290((long)d.y * d.y + (long)d.x * d.x,
+                     (long)(fn_09_88ba(d.x) + fn_09_88ba(d.y)));
+    if (len / seg > 22) {
+        seg = 50;
+        if (len / seg > 22)
+            return;
+    }
+    for (i = 0; i < len / seg; i++) {
+        if (i > 0) {
+            g_6b5c[i].x = (long)(rand() % 10 + (i + 1) * seg - 5) * d.x / len
+                        + (long)(rand() % 26 - 13) * p.x / len + a.x;
+            g_6b5c[i].y = (long)(rand() % 10 + (i + 1) * seg - 5) * d.y / len
+                        + (long)(rand() % 26 - 13) * p.y / len + a.y;
+        } else
+            g_6b5c[0] = a;
+        if (rand() % 3 == 0) {
+            g_6bbc[g_9526][0] = g_6b5c[i];
+            for (j = 1; j < 5; j++) {
+                g_6bbc[g_9526][j].x = (long)((i % 2 * 32 - 16) * j + rand() % 24 - 12) * p.x / len
+                    + (long)(rand() % 15 + j * 15) * d.x / len + g_6b5c[i].x;
+                g_6bbc[g_9526][j].y = (long)(rand() % 24 + (i % 2 * 32 - 16) * j - 12) * p.y / len
+                    + (long)(rand() % 15 + j * 15) * d.y / len + g_6b5c[i].y;
+            }
+            g_9526++;
+            if (g_9526 > 16)
+                return;
+            if (rand() % 5 <= 3) {
+                g_6cfc[g_9528][0] = g_6bbc[g_9526 - 1][2];
+                for (k = 1; k < 3; k++) {
+                    g_6cfc[g_9528][k].x = (long)(((k + 2) * (i % 2) * 2 - k) * 12 + rand() % 16 - 32) * p.x / len
+                        + (long)(rand() % 15 + (k + 2) * 15) * d.x / len + g_6cfc[g_9528][0].x;
+                    g_6cfc[g_9528][k].y = (long)(rand() % 16 + ((k + 2) * (i % 2) * 2 - k) * 12 - 32) * p.y / len
+                        + (long)(rand() % 15 + (k + 2) * 15) * d.y / len + g_6cfc[g_9528][0].y;
+                }
+                g_9528++;
+            }
+        }
+    }
+    g_6b5c[i] = b;
+    if (type == 9)
+        old = SelectObject(g_13dc, CreatePen(PS_SOLID, 2, RGB(0, 255, 0)));
+    else
+        old = SelectObject(g_13dc, CreatePen(PS_SOLID, 2, RGB(195, 255, 255)));
+    for (j = 1; j < i + 1; j++)
+        fn_12_7256(g_13dc, g_6b5c[j - 1], g_6b5c[j]);
+    DeleteObject(SelectObject(g_13dc, old));
+    if (type == 9)
+        old = SelectObject(g_13dc, CreatePen(PS_SOLID, 1, RGB(0, 255, 0)));
+    else
+        old = SelectObject(g_13dc, CreatePen(PS_SOLID, 1, RGB(195, 255, 255)));
+    for (j = 0; j < g_9526; j++)
+        for (k = 1; k < 5; k++)
+            fn_12_7256(g_13dc, g_6bbc[j][k - 1], g_6bbc[j][k]);
+    for (j = 0; j < g_9528; j++)
+        for (k = 1; k < 3; k++)
+            fn_12_7256(g_13dc, g_6cfc[j][k - 1], g_6cfc[j][k]);
+    DeleteObject(SelectObject(g_13dc, old));
+    g_1016 = i + 1;
+}
+
+/* Finds the earliest crossing of ship i's path with a link segment (best time into f90) and reflects its velocity into f88/f8a [inferred]. */
+/* @addr 11:5626 */
+void far fn_11_5626(int i)
+{
+    long A;
+    long B;
+    long C;
+    long D;
+    long E;
+    long F;
+    long G;
+    long dummy;
+    long t;
+    long H;
+    long best;
+    long den;
+    long u;
+    int j;
+    int unused;
+
+    best = 50000L;
+    if (g_9320 != 6 || g_9eb5 != 0)
+        return;
+    C = (long)g_6098[i].f70;
+    D = (long)g_6098[i].f72;
+    if (C == 0)
+        C = 1;
+    if (D == 0)
+        D = 1;
+    dummy = fn_08_35d0(C, D);
+    for (j = 0; j < g_9eb9[g_9322]; j++) {
+        if (g_9ec2[g_9322][j] != j) {
+            A = (long)(g_1df8[8][j + 2].f04.x - g_6098[i].x1[0][0] + 56);
+            B = (long)(g_1df8[8][j + 2].f04.y - g_6098[i].y1[0][0] + 56);
+            E = (long)(g_1df8[8][g_9ec2[g_9322][j] + 2].f04.x - g_1df8[8][j + 2].f04.x + 56);
+            F = (long)(g_1df8[8][g_9ec2[g_9322][j] + 2].f04.y - g_1df8[8][j + 2].f04.y + 56);
+            G = (long)fn_08_35d0(E, F);
+            den = E * D - F * C;
+            if (den == 0)
+                den = 1;
+            H = (C * B - D * A) / 20 * G / den * 20;
+            if (H >= 0 && H <= G) {
+                if (abs32(D) < abs32(C))
+                    t = (H * E / G + A) / C;
+                else
+                    t = (H * F / G + B) / D;
+                if (t >= 0 && t < best) {
+                    best = t;
+                    u = (F * C - E * D) / G;
+                    g_6098[i].f88 = C - u * F * 2 / G;
+                    g_6098[i].f8a = u * E * 2 / G + D;
+                }
+            }
+        }
+    }
+    if (best != 50000L)
+        g_6098[i].f90 = best + g_05cc;
+}
+
+/* Ship n's thrust step: afterburner on Ctrl (a != 1 also applies thrust to the velocity and checks for a hard turn) [inferred]. */
+/* @addr 11:63b4 */
+void far pascal fn_11_63b4(int n, int a)
+{
+    int u1;
+    int u2;
+    int j;
+    int k;
+    int key;
+    int e;
+    int p;
+    int m;
+    int s;
+    int t;
+    POINT v;
+    POINT dv;
+    char buf[40];
+    long len;
+    long cr;
+    long tq;
+
+    if (g_9e49 >= 1 && g_9e49 <= 6 && n == g_952e && g_9130 == 0)
+        return;
+    if (g_7090[n].f90 < g_1e50) {
+        g_7090[n].f90 = g_1e50 + 250;
+        if (g_7090[n].f02 == 0) {
+            fn_11_b09c(n, g_7090[n].f02 = 1);
+            g_1df8[g_9324][n].f26 = 0;
+            g_7090[n].f12 = 0;
+            fn_13_6716(n);
+        }
+    }
+    if (g_9134)
+        key = 0;
+    else
+        key = GetAsyncKeyState(VK_CONTROL);
+    if (n == g_9646 && g_103e)
+        g_952a = 1;
+    if (g_7090[n].f60 < 4) {
+        if (((key & 0x8000) && n == g_9646 || g_952a) && g_7090[n].f1e >= 30) {
+            if (g_1df8[g_9324][n].f1a != 0) {
+                fn_10_754a(0x29, g_9324, n, 1);
+                for (j = 0; j < 10; j++)
+                    for (k = 0; k < 4; k++) {
+                        g_5b28[j][k].age = 0;
+                        g_5b28[j][k].q.x = g_5b28[j][k].q.y = -100;
+                    }
+                g_9512 = g_9324;
+                g_9514 = n;
+                g_9510 = 0;
+                if (g_9134 != 0 && g_9134 != 2 && n == g_9646 && g_7090[n].f3a == 5
+                    && g_7090[n].f06 == 8 && g_3d54[g_7090[n].f08].f06 == -3) {
+                    LoadString(g_9212, 0x203, buf, 40);
+                    lstrcpy(g_8630, buf);
+                    LoadString(g_9212, 0x204, buf, 40);
+                    lstrcat(g_8630, buf);
+                    g_058c = 1;
+                    g_05c0 = g_1e50 + 1200;
+                }
+                if (g_7090[n].f60 && (n != g_9646 || g_9134))
+                    g_7090[n].f60 = 0x1c;
+                else
+                    g_7090[n].f60 = 8;
+            }
+            g_7090[n].f1c = 5;
+            g_7090[n].f1e -= 25;
+        }
+    }
+    if (a != 1) {
+        e = g_1df8[g_9324][n].f28;
+        m = g_1df8[g_9324][n].f44;
+        p = g_7090[n].f1c;
+        if (p > 1 && g_7090[n].f3a == 5)
+            p += 2;
+        s = g_7090[n].f0c;
+        if (g_7090[n].fd6 != -1)
+            s = (long)((g_6e24[g_7090[n].fd6].f33 + 10) * 10) * s / 100;
+        if (g_7090[n].f26[2] == 0)
+            s /= 3;
+        else if (g_7090[n].f1e == 0)
+            s /= 3;
+        else if (g_7090[n].f26[2] < 35)
+            s -= (40 - g_7090[n].f26[2]) * s >> 6;
+        if (s < 1)
+            s = 1;
+        t = g_7090[n].f0e;
+        v = *(POINT far *)&g_1df8[g_9324][n].f0c;
+        dv.x = (g_1050[e].x * s * p - t * v.x) / m;
+        dv.y = (g_1050[e].y * s * p - t * v.y) / m;
+        g_1df8[g_9324][n].f0c += dv.x;
+        g_1df8[g_9324][n].f0e += dv.y;
+        if (g_9320 == 6 && g_1c3e < g_1e50 && g_9eb5 == 0) {
+            len = fn_08_35d0((long)v.x, (long)v.y);
+            cr = ((long)dv.y * v.x - (long)dv.x * v.y) / len;
+            tq = cr * g_1df8[14][n].f44;
+            if (p > 2)
+                tq /= 3;
+            if (abs32(tq) > 2950 && abs32(cr * 5) < len) {
+                if (rand() % 1000 + 3100 < abs32(tq))
+                    fn_10_754a(0x28, 0xe, n, 1);
+                g_1c3e = g_1e50 + 1500;
+            }
+        }
+    }
+    g_1df8[g_9324][n].f2f = s * p / 20;
+}
+
+/* Race HUD: lap count, position line, lap times and the start countdown [inferred]. */
+/* near-match 99.8%: 11:41bc (game builds the lstrcat args after the second
+ * fn_11_4928 call in cx/dx instead of ax) */
+void far fn_11_41bc(HDC dc, int a, int b)
+{
+    char buf1[240];
+    char buf2[200];
+    int i;
+    int rank;
+    int left;
+    int laps;
+    DWORD tm;
+    long col;
+    POINT pt;
+    char buf3[6];
+
+    if (b) {
+        if (a)
+            SetBkMode(dc, TRANSPARENT);
+        else
+            SetBkMode(dc, OPAQUE);
+        if (a) {
+            fn_06_0f1a(g_9ea0, buf1);
+            fn_09_9580(0x892, buf1);
+            lstrcat(buf1, g_38c8);
+            for (i = lstrlen(g_38c8) - 1; i > 2; i--)
+                if (g_38c8[i] == '-') {
+                    g_38c8[i - 1] = 0;
+                    break;
+                }
+            TextOut(dc, 1, 0, buf1, lstrlen(buf1));
+        }
+        SetTextColor(dc, RGB(255, 255, 0));
+        race_position();
+        fn_17_7ba6(g_9684, buf1);
+        fn_09_9580(0x893, buf1);
+        if (g_9eb4 == 0)
+            rank = 1;
+        else if (g_7090[g_9646].fda < 0)
+            rank = -g_7090[g_9646].fda;
+        else
+            rank = g_7090[g_9646].fda + 1;
+        left = g_9ea0 - rank + 1;
+        if (left != 0 && g_1df8[14][g_9646].f51 == 0) {
+            lstrcat(buf1, " ");
+            if (left == 1)
+                fn_09_9580(0x894, buf1);
+            else {
+                fn_06_0f1a(left, buf2);
+                lstrcat(buf1, buf2);
+                fn_09_9580(0x895, buf1);
+            }
+        }
+        if (lstrcmp(g_9628, buf1) != 0) {
+            buf1[30] = 0;
+            lstrcpy(g_9628, buf1);
+            PatBlt(dc, 1, 18, 270, 14, BLACKNESS);
+        }
+        TextOut(dc, 1, 18, g_9628, lstrlen(g_9628));
+        SetTextColor(dc, RGB(0, 255, 0));
+    }
+    if (g_9eb4 != 0 && b != 0) {
+        if (g_9e90[g_9646] != 0) {
+            LoadString(g_9212, 0x896, buf1, 240);
+            fn_11_4928(0, g_9e90[g_9646], buf2);
+            lstrcat(buf1, buf2);
+            TextOut(dc, 1, 32, buf1, lstrlen(buf1));
+        }
+        if (g_1df8[14][g_9646].f51)
+            laps = g_9ea0;
+        else if (g_7090[g_9646].fda < 0)
+            laps = -g_7090[g_9646].fda;
+        else
+            laps = g_7090[g_9646].fda + 1;
+        if (g_9e70[g_9646] + 140 > g_1e68 && g_9e90[g_9646] != 0
+            || g_1df8[14][g_9646].f51 != 0) {
+            if (g_1df8[14][g_9646].f51 == 0)
+                laps--;
+            tm = g_9e70[g_9646] - g_9e80[g_9646];
+        } else
+            tm = g_1e68 - g_9e70[g_9646];
+        fn_09_955c(0x897, buf1);
+        fn_06_0f1a(laps, buf2);
+        lstrcat(buf1, buf2);
+        fn_09_9580(0x898, buf1);
+        fn_11_4928(0, tm, buf2);
+        lstrcat(buf1, buf2);
+        TextOut(dc, 1, 60, buf1, lstrlen(buf1));
+        if (g_1df8[14][g_9646].f51 == 0) {
+            fn_09_955c(0x899, buf1);
+            fn_11_4928(0, g_1e68 - g_9e60[g_9646], buf2);
+            lstrcat(buf1, buf2);
+            TextOut(dc, 1, 46, buf1, lstrlen(buf1));
+        } else {
+            fn_09_955c(0x89a, buf1);
+            fn_11_4928(0, g_9e60[g_9646], buf2);
+            lstrcat(buf1, buf2);
+            TextOut(dc, 1, 46, buf1, lstrlen(buf1));
+        }
+    } else if (g_9eb4 == 0) {
+        if (b) {
+            fn_09_955c(0x89b, buf1);
+            TextOut(dc, 1, 46, buf1, lstrlen(buf1));
+        }
+        if (g_1df8[14][g_9316].f28 == 4) {
+            if (g_13dc)
+                g_186a++;
+            if (g_9eb5) {
+                fn_10_744c(20);
+                race_radar_background(1);
+            }
+            g_9eb5 = 0;
+            if (g_186a == 5 || g_186a == 9 || g_186a == 13 || g_186a == 16
+                || g_186a == 17) {
+                fn_10_744c(110);
+                col = RGB(255, 0, 0);
+                pt.x = ((g_1df8[12][1].f04.x - g_1df8[14][g_9646].f04.x) >> 4 << g_9156)
+                     + g_1df8[14][g_9646].f00 + (25 << g_9156);
+                pt.y = g_1df8[14][g_9646].f22 / 4 + g_1df8[14][g_9646].f02;
+                switch (g_186a) {
+                case 5:
+                    fn_10_754a(0x75, -80, g_90ec / 2, 4);
+                    lstrcpy(buf3, "3");
+                    fn_10_94c4(1, 0, col, pt.x, pt.y, buf3);
+                    break;
+                case 9:
+                    fn_10_754a(0x75, g_90ea + 40, g_90ec / 2, 4);
+                    lstrcpy(buf3, "2");
+                    fn_10_94c4(1, 0, col, pt.x, pt.y, buf3);
+                    break;
+                case 13:
+                    fn_10_754a(0x75, g_90ea / 2, g_90ec / 2, 4);
+                    lstrcpy(buf3, "1");
+                    fn_10_94c4(1, 0, col = RGB(255, 128, 0), pt.x, pt.y, buf3);
+                    break;
+                case 16:
+                    LoadString(g_9212, 0x89c, buf3, 5);
+                    fn_10_94c4(1, 0, col = RGB(128, 255, 0), pt.x, pt.y, buf3);
+                    break;
+                case 17:
+                    PatBlt(g_13dc, pt.x, pt.y, 50, 30, BLACKNESS);
+                    break;
+                }
+            }
+            if (g_186a == 17) {
+                fn_10_7480(4, 1);
+                fn_10_744c(31);
+                g_9eb4 = 1;
+                for (i = 0; i <= g_9316; i++) {
+                    g_9e80[i] = g_9e70[i] = g_9e60[i] = g_1e68;
+                    g_9e90[i] = 0;
+                }
+            }
+        } else
+            g_186a = 0;
     }
 }
