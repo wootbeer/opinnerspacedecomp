@@ -70,20 +70,25 @@ typedef struct {
     char p08[4];
     int f0c;                    /* +0c */
     int f0e;                    /* +0e */
-    char p10[8];
+    int f10;                    /* +10 */
+    int f12;                    /* +12 */
+    char p14[4];
     int f18;                    /* +18 */
     int f1a;                    /* +1a */
     char p1c[2];
     int f1e;                    /* +1e */
     int f20;                    /* +20 */
     int f22;                    /* +22 */
-    char p24[0x28 - 0x24];
+    int f24;                    /* +24 */
+    char p26[2];
     int f28;                    /* +28 */
     char p2a[0x2e - 0x2a];
     char f2e;                   /* +2e */
     char p2f[0x32 - 0x2f];
     int f32;                    /* +32 */
-    char p34[0x54 - 0x34];
+    char p34[0x44 - 0x34];
+    int f44;                    /* +44 */
+    char p46[0x54 - 0x46];
     char f54;                   /* +54 */
     char p55[0x70 - 0x55];
 } REC_70;
@@ -96,15 +101,16 @@ typedef struct { int a, b; } PAIR;      /* [inferred: kind + index] */
 
 /* 0x24-byte records at DS:52ec [inferred]. */
 typedef struct {
-    long d00;                   /* +00 */
+    union { long l; POINT p; } f00;     /* +00: offset to the target */
     char p04[4];
     int f08;                    /* +08 */
     int f0a;                    /* +0a */
-    char p0c[4];
+    char p0c[2];
+    int f0e;                    /* +0e */
     int f10;                    /* +10 */
     int f12;                    /* +12 */
     int f14;                    /* +14 */
-    char p16[2];
+    int f16;                    /* +16 */
     PAIR f18;                   /* +18 */
     PAIR f1c;                   /* +1c */
     long f20;                   /* +20 */
@@ -119,7 +125,9 @@ typedef struct {
     int f1a;                    /* +1a */
     char p1c[0xca - 0x1c];
     char fca;                   /* +ca */
-    char pcb[0x12c - 0xcb];
+    char pcb[0xce - 0xcb];
+    char fce;                   /* +ce */
+    char pcf[0x12c - 0xcf];
     int f12c;                   /* +12c */
     int f12e;                   /* +12e */
     char p130[0x15a - 0x130];
@@ -131,8 +139,8 @@ extern int g_1048;
 extern int g_9406;
 extern int g_940a;
 extern int g_914e;
-extern long g_1e50;
-extern long g_57a0;
+extern DWORD g_1e50;
+extern DWORD g_57a0;
 extern int g_9334;
 extern int g_92f0;
 extern int g_9152;
@@ -190,7 +198,9 @@ extern int g_9006;
 extern int g_9328;
 void far pascal fn_08_1e32(int type, int idx);
 int far fn_09_88ba(int x);
-long far abs32(long x);
+/* abs32 returns long, but this file declared it int: 8:8256 adds only the
+ * low words of two results [inferred from the code]. */
+int far abs32(long x);
 void far fn_08_9028();       /* old-style: callers pass ints or a PAIR */
 int far fn_10_754a(int a, int b, int c, int d);
 int far pascal fn_08_285a(int far *p, int far *q, POINT a, POINT b);
@@ -363,7 +373,7 @@ void far fn_08_9464(void)
             for (j = i; j < g_92f0; j += g_9406) {
                 if (g_1df8[2][j].f18 != 0) {
                     fn_10_754a(0x18, 0, i, 1);
-                    g_52ec[j].d00 = 0xff10ffd0L;
+                    g_52ec[j].f00.l = 0xff10ffd0L;
                     g_1df8[2][j].f0c = 0x46;
                     g_1df8[2][j].f0e = -0x82;
                     g_1df8[2][j].f18 = 0;
@@ -533,4 +543,291 @@ void far fn_08_9694(int a, int type, int idx)
             }
         }
     }
+}
+
+extern int g_9452;
+extern DWORD g_186c;
+extern int g_1874;
+extern DWORD g_1870;
+extern DWORD g_579c;
+extern int g_0b6a;
+extern int g_0b6c;
+extern int g_9646;
+extern int g_6e52;
+extern int g_6e54;
+extern int g_92ec[];
+extern int g_9498;
+extern HBRUSH g_576c[20];
+extern HDC g_39e8[];
+extern int g_943a;
+extern int g_943c;
+extern int g_5794;
+extern int g_5796;
+#pragma pack(1)
+typedef struct {
+    int f00;
+    int f02;                    /* +02 */
+    char p04[0x23 - 0x04];
+} REC_23;
+#pragma pack()
+extern REC_23 g_57a8[];
+int far pascal fn_08_0b76(WORD ref, int mode, HDC dc, int c);
+void far pascal fn_08_1b54(WORD r, int n);
+int far pascal fn_08_50aa(WORD r);
+int far pascal fn_08_546c(WORD ref, int far *pvx, int far *pvy, int m1, int m0);
+int far fn_08_5df2(int type, int idx, int stype, int sidx, int dmg);
+long far pascal fn_08_1290(long n, long g);
+
+/* Move, steer and draw the type-2 objects (j indexes g_52ec) [inferred]. */
+/* @addr 8:8256 */
+void far fn_08_8256(void)
+{
+    POINT v;
+    POINT pp;
+    POINT pt;
+    long l1;
+    long l2;
+    long l3;
+    long l4;
+    long l5;
+    int flag;
+    int j;
+    int d;
+    int t;
+    int q;
+    int sy;
+    int sx;
+    int h;
+    int w;
+    int dx;
+    int dy;
+    int d2;
+    HBRUSH old;
+    WORD r;
+
+    w = g_1df8[2][0].f24;
+    h = g_1df8[2][0].f22;
+    g_9452 = 0;
+    if (g_186c < g_1e50) {
+        t = (55 - g_91f8) * 4;
+        g_186c = (t < 110 ? 110 : t) + g_1e50;
+        g_9452 = 1;
+    }
+    if (g_1874 >= 4)
+        g_1874 = 0;
+    else
+        g_1874++;
+    if (g_1e50 - 60 > g_579c) {
+        g_579c = g_1e50;
+        g_0b6a += g_0b6c;
+        if (g_0b6a > 3 || g_0b6a < 1)
+            g_0b6c = -g_0b6c;
+    }
+    for (j = 0; j < g_940a; j++) {
+        if (g_52ec[j].f18.a == 14 && g_52ec[j].f18.b == g_9646 || g_6e54 == 2 && j == g_6e52)
+            if (g_1e50 - 2000 > g_1870)
+                g_1870 = g_1e50;
+        if (g_1df8[2][j].f1a && g_52ec[j].f12 != 15 && g_52ec[j].f20 < g_1e50)
+            g_1df8[2][j].f28 = fn_08_19b0(g_1df8[2][j].f0c, g_1df8[2][j].f0e);
+        flag = 1;
+        if (g_1df8[2][j].f18)
+            continue;
+        if (g_52ec[j].f12 == 15) {
+            if (g_92ec[g_52ec[j].f1c.a] < g_52ec[j].f1c.b) {
+                g_9498++;
+                *(long *)&g_52ec[j].f1c = 0x1000c;
+            }
+            if (g_1df8[g_52ec[j].f1c.a][g_52ec[j].f1c.b].f18) {
+                g_52ec[j].f1c.a = 12;
+                g_52ec[j].f1c.b = 1;
+            }
+            if (g_9452 && g_52ec[j].f20 < g_1e50) {
+                if (g_52ec[j].f1c.a == 14 && g_70ae[g_52ec[j].f1c.b].fca) {
+                    pt.x = g_70ae[g_52ec[j].f1c.b].f12c;
+                    pt.y = g_70ae[g_52ec[j].f1c.b].f12e;
+                } else
+                    pt = g_1df8[g_52ec[j].f1c.a][g_52ec[j].f1c.b].f04;
+                d = max(4, fn_08_285a(&dx, &dy, g_1df8[2][j].f04, pt));
+                if (d == 0)
+                    d = 1;
+                if (g_52ec[j].f0a == 0) {
+                    v.x = dx * -100 / d;
+                    v.y = dy * -100 / d;
+                    if (d > 220)
+                        g_52ec[j].f0a = 1;
+                } else {
+                    v.x = (dx << 3) / (d >> 2);
+                    v.y = (dy << 3) / (d >> 2);
+                    g_1df8[2][j].f0c += v.x;
+                    g_1df8[2][j].f0e += v.y;
+                    g_1df8[2][j].f28 = fn_08_19b0(v.x, v.y);
+                    if (g_1df8[2][j].f0c > 70)
+                        g_1df8[2][j].f0c = 70;
+                    if (g_1df8[2][j].f0e > 70)
+                        g_1df8[2][j].f0e = 70;
+                    if (g_1df8[2][j].f0c < -70)
+                        g_1df8[2][j].f0c = -70;
+                    if (g_1df8[2][j].f0e < -70)
+                        g_1df8[2][j].f0e = -70;
+                }
+            } else if (g_52ec[j].f20 > g_1e50) {
+                g_1df8[2][j].f28++;
+                if (g_1df8[2][j].f28 > 15)
+                    g_1df8[2][j].f28 = 0;
+            }
+            if (g_1df8[2][j].f1a) {
+                sy = 0;
+                old = SelectObject(g_13dc, g_576c[g_52ec[j].f12 + g_0b6a]);
+                g_1df8[2][j].f10 = g_1df8[2][j].f28 * (w + h) + w;
+                g_1df8[2][j].f12 = g_52ec[j].f14 * (w + h) + w;
+                fn_08_0b76((char)j | 0x200, 3, g_39e8[0], 1);
+                SelectObject(g_13dc, old);
+                if (g_0b6a == 4 && g_9452)
+                    fn_08_90fa(j);
+            }
+            if (g_0b6a == 4 && g_9452 && g_52ec[j].f1c.a == 14 && rand() % 6 == 1
+                && g_52ec[j].f18.a == 0
+                && g_1df8[g_52ec[j].f18.a][g_52ec[j].f18.b].f18 == 0
+                && (g_70ae[g_52ec[j].f1c.b].f14.a != g_52ec[j].f18.a
+                    || g_70ae[g_52ec[j].f1c.b].f14.b != g_52ec[j].f18.b)) {
+                g_52ec[j].f12 = 10;
+                g_52ec[j].f00.p.x = g_1df8[2][j].f04.x - g_1df8[g_52ec[j].f18.a][g_52ec[j].f18.b].f04.x;
+                g_52ec[j].f00.p.y = g_1df8[2][j].f04.y - g_1df8[g_52ec[j].f18.a][g_52ec[j].f18.b].f04.y;
+            }
+            if (g_52ec[j].f18.a == 14 && g_1df8[14][g_52ec[j].f18.b].f18
+                && g_70ae[g_52ec[j].f18.b].fce)
+                fn_08_9028(j, 15, 12, 1);
+            fn_08_1b54((char)j | 0x200, 1);
+            if (g_1df8[2][j].f1a) {
+                g_943a = 2;
+                g_943c = j;
+                r = fn_08_50aa((char)j | 0x200);
+                if (r != -1) {
+                    fn_08_5df2(2, j, HIBYTE(r), LOBYTE(r),
+                               fn_08_546c(r, &g_1df8[2][j].f0c, &g_1df8[2][j].f0e,
+                                          g_1df8[2][j].f22 + 2, g_1df8[2][j].f44));
+                    if (HIBYTE(r) == 0 && g_57a8[LOBYTE(r)].f02)
+                        fn_08_5df2(2, j, HIBYTE(r), LOBYTE(r), 180);
+                }
+            }
+        } else if (flag) {
+            if (g_1df8[g_52ec[j].f18.a][g_52ec[j].f18.b].f18) {
+                g_52ec[j].f12 = 15;
+                *(long *)&g_52ec[j].f1c = 0x1000c;
+            }
+            if (g_57a0 && g_57a0 < g_1e50) {
+                l1 = g_52ec[j].f00.p.x;
+                l2 = g_52ec[j].f00.p.y;
+                l3 = g_1df8[2][j].f0c - g_1df8[g_52ec[j].f18.a][g_52ec[j].f18.b].f0c;
+                l4 = g_1df8[2][j].f0e - g_1df8[g_52ec[j].f18.a][g_52ec[j].f18.b].f0e;
+                l5 = l1 * l4 - l2 * l3;
+                if (l5 > 0) {
+                    g_1df8[2][j].f0c = -g_1df8[2][j].f0c;
+                    g_1df8[2][j].f0e = -g_1df8[2][j].f0e;
+                }
+            }
+            g_1df8[2][j].f04.x = g_1df8[g_52ec[j].f18.a][g_52ec[j].f18.b].f04.x + g_52ec[j].f00.p.x;
+            g_1df8[2][j].f04.y = g_1df8[g_52ec[j].f18.a][g_52ec[j].f18.b].f04.y + g_52ec[j].f00.p.y;
+            if (g_1df8[2][j].f04.x < 0)
+                g_1df8[2][j].f04.x += G_05A0_INT * 8;
+            if (g_1df8[2][j].f04.x > G_05A0_INT * 8)
+                g_1df8[2][j].f04.x -= G_05A0_INT * 8;
+            if (g_1df8[2][j].f04.y < 0)
+                g_1df8[2][j].f04.y += g_05a2 * 8;
+            if (g_1df8[2][j].f04.y > g_05a2 * 8)
+                g_1df8[2][j].f04.y -= g_05a2 * 8;
+            if (g_1df8[2][j].f1a) {
+                old = SelectObject(g_13dc, g_576c[g_52ec[j].f12 + g_0b6a]);
+                sx = g_1df8[2][j].f28 * (w + h);
+                g_1df8[2][j].f10 = sx + w;
+                sy = 0;
+                g_1df8[2][j].f12 = g_52ec[j].f14 * (w + h) + w;
+                fn_08_0b76((char)j | 0x200, 3, g_39e8[0], 1);
+                SelectObject(g_13dc, old);
+            }
+            g_5794 = g_1df8[2][j].f0c + g_52ec[j].f00.p.x;
+            g_5796 = g_1df8[2][j].f0e + g_52ec[j].f00.p.y;
+            if ((g_1874 == 0 || g_1df8[2][j].f1a) && g_52ec[j].f20 < g_1e50) {
+                pp.x = g_52ec[j].f00.p.x;
+                pp.y = g_52ec[j].f00.p.y;
+                l1 = -pp.x;
+                l2 = -pp.y;
+                d = (int)fn_08_1290(l1 * l1 + l2 * l2, abs32(l1) + abs32(l2));
+                if (g_1df8[2][j].f1a == 0) {
+                    g_1df8[2][j].f0c += (int)(l1 * g_52ec[j].f16 * 4 / d);
+                    g_1df8[2][j].f0e += (int)(l2 * g_52ec[j].f16 * 4 / d);
+                } else {
+                    g_1df8[2][j].f0c += (int)(l1 * g_52ec[j].f16 / d);
+                    g_1df8[2][j].f0e += (int)(l2 * g_52ec[j].f16 / d);
+                }
+                pp.x += g_1df8[2][j].f0c;
+                pp.y += g_1df8[2][j].f0e;
+                if (d < 600 && g_1df8[2][j].f1a) {
+                    l1 = g_52ec[j].f00.p.x;
+                    l2 = g_52ec[j].f00.p.y;
+                    l3 = g_1df8[2][j].f0c - g_1df8[g_52ec[j].f18.a][g_52ec[j].f18.b].f0c;
+                    l4 = g_1df8[2][j].f0e - g_1df8[g_52ec[j].f18.a][g_52ec[j].f18.b].f0e;
+                    l5 = l1 * l3 + l2 * l4;
+                    if (l5 < 0) {
+                        d = (int)fn_08_1290(l1 * l1 + l2 * l2, abs32(l1) + abs32(l2));
+                        d2 = (int)fn_08_1290(l3 * l3 + l4 * l4, abs32(l3) + abs32(l4));
+                        if (d2 == 0)
+                            d2 = 1;
+                        if (d == 0)
+                            d = 1;
+                        if (l5 * 100 / ((long)d * d2) < -70) {
+                            g_1df8[2][j].f0c = (int)(l2 * 100 / d);
+                            g_1df8[2][j].f0e = (int)(l1 * -100 / d);
+                        }
+                    }
+                }
+                if (g_1df8[2][j].f0c > 120)
+                    g_1df8[2][j].f0c = 120;
+                if (g_1df8[2][j].f0e > 120)
+                    g_1df8[2][j].f0e = 120;
+                if (g_1df8[2][j].f0c < -120)
+                    g_1df8[2][j].f0c = -120;
+                if (g_1df8[2][j].f0e < -120)
+                    g_1df8[2][j].f0e = -120;
+            } else if (g_52ec[j].f20 > g_1e50) {
+                g_1df8[2][j].f28++;
+                if (g_1df8[2][j].f28 > 15)
+                    g_1df8[2][j].f28 = 0;
+            }
+            fn_08_1b54((char)j | 0x200, 1);
+            if (g_52ec[j].f00.p.x < 0 && g_1df8[2][j].f0c < 0
+                || g_52ec[j].f00.p.x > 0 && g_1df8[2][j].f0c > 0)
+                g_52ec[j].f0e = 100;
+            else
+                g_52ec[j].f0e = 50;
+            if (g_52ec[j].f12 >= 10) {
+                if (g_0b6a == 4 && g_9452)
+                    fn_08_90fa(j);
+                if (g_0b6a == 4 && g_9452 && g_91f8 > 4 && g_52ec[j].f1c.a == 14
+                    && g_70ae[g_52ec[j].f1c.b].f14.a == g_52ec[j].f18.a
+                    && g_70ae[g_52ec[j].f1c.b].f14.b == g_52ec[j].f18.b
+                    && g_70ae[g_52ec[j].f1c.b].f1a == 1) {
+                    g_52ec[j].f12 = 15;
+                    g_52ec[j].f0e = 50;
+                }
+            }
+            if (g_1df8[2][j].f1a) {
+                g_943a = 2;
+                g_943c = j;
+                r = fn_08_50aa((char)j | 0x200);
+                if (r != -1) {
+                    q = fn_08_546c(r, &g_1df8[2][j].f0c, &g_1df8[2][j].f0e,
+                                   g_1df8[2][j].f22 + 2, 55);
+                    if (HIBYTE(r) == 0 && g_57a8[LOBYTE(r)].f02)
+                        fn_08_5df2(2, j, HIBYTE(r), LOBYTE(r), 180);
+                    else if (HIBYTE(r))
+                        fn_08_5df2(2, j, HIBYTE(r), LOBYTE(r), q);
+                }
+            }
+            g_52ec[j].f00.p.x = g_5794;
+            g_52ec[j].f00.p.y = g_5796;
+        }
+    }
+    if (g_57a0 && g_57a0 < g_1e50)
+        g_57a0 = 0;
 }

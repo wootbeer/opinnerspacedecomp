@@ -776,9 +776,265 @@ int far fn_06_84fc(int a, int x, int y, int dx, int dy, int w, int h,
     return 0;
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+#pragma pack(1)
+typedef struct {                /* 0x31-byte champion candidates [inferred] */
+    long f00;                   /* signature */
+    char f04[0x18 - 0x04];      /* name */
+    char f18;
+    char f19;
+    char f1a;
+    char f1b;
+    char f1c;
+    char f1d;
+    long f1e;                   /* score */
+    int f22;
+    int f24;
+    char f26[10];               /* file name without extension */
+    char f30;                   /* 0 = .sav, 1 = .ded, 2 = .don */
+} REC_31;
+#pragma pack()
+#define CH ((REC_31 far *)g_6af8)
+typedef struct { char p00[0x0a]; char name[0x41 - 0x0a]; } REC_41;
+extern REC_41 far *g_6e20;
+extern int g_94c6;
+extern HWND g_9488;
+extern int g_95aa;
+extern HINSTANCE g_9212;
+void far fn_14_3eda(void);
+int far fn_14_455c(int n);
+void far fn_14_4074(void);
+
+/* Builds the champions list from the save files (*.sav, *.ded, *.don),
+ * best score first, and fills the list box g_9488 or the table at
+ * g_6b04 [inferred]. */
+/* @addr 6:6576 */
 void far fn_06_6576(void)
 {
+    int k;
+    int i;
+    HFILE hf;
+    int r;
+    int n;
+    int m;
+    int start;
+    long t;
+    DWORD size;
+    int unused1;
+    int unused2;
+    int v;
+    struct find_t ft;
+    HGLOBAL h;
+    REC_31 far *p;
+    char path[110];
+    char line[110];
+    OFSTRUCT of;
+
+    fn_14_3eda();
+    if (!g_6af8) {
+        g_94de = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, 0x31L);
+        g_6af8 = GlobalLock(g_94de);
+        g_94c6 = 0;
+        h = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, 0x31L);
+        p = (REC_31 far *)GlobalLock(h);
+        p->f1e = g_1e58;
+        p->f00 = g_939a;
+        p->f22 = ((REC_7CB far *)g_6e24)[g_931c].f00;
+        p->f24 = g_91f8;
+        v = g_939e;
+        p->f18 = v >> 8;
+        p->f19 = v;
+        p->f1a = g_93a0;
+        t = fn_10_804c(0);
+        v = (int)t;
+        p->f1b = v >> 8;
+        p->f1c = v;
+        p->f1d = LOBYTE(HIWORD(t));
+        lstrcpy(p->f04, g_380c);
+        lstrcpy(p->f26, "--");
+        p->f30 = 0;
+        n = 1;
+        for (i = 0; i < 3; i++) {
+            lstrcpy(path, g_9078);
+            if (i == 0) {
+                lstrcat(path, g_96b8);
+                lstrcat(path, "*.sav");
+            } else {
+                lstrcat(path, g_96c5);
+                if (i == 2)
+                    lstrcat(path, "*.don");
+                else
+                    lstrcat(path, "*.ded");
+            }
+            r = _dos_findfirst(path, _A_RDONLY, &ft);
+            while (r == 0) {
+                n++;
+                lstrcpy(path, g_9078);
+                if (i == 0)
+                    lstrcat(path, g_96b8);
+                else
+                    lstrcat(path, g_96c5);
+                lstrcat(path, ft.name);
+                GlobalUnlock(h);
+                h = GlobalReAlloc(h, size = (unsigned)((n + 1) * 0x31), GMEM_MOVEABLE | GMEM_ZEROINIT);
+                p = (REC_31 far *)GlobalLock(h);
+                if ((hf = OpenFile(path, &of, OF_READ)) == -1)
+                    return;
+                if (fn_14_4006(hf, (char huge *)&p[n - 1], 0x26L) == 0)
+                    return;
+                if (p[n - 1].f00 == g_939a && p[n - 1].f1e <= g_1e58)
+                    p[n - 1].f00 = 0;
+                lstrcpy(path, ft.name);
+                for (k = 0; k < 4; k++)
+                    path[lstrlen(path) - 1] = 0;
+                lstrcpy(p[n - 1].f26, path);
+                p[n - 1].f30 = i;
+                _lclose(hf);
+                r = _dos_findnext(&ft);
+            }
+        }
+        for (i = 0; i < n; i++) {
+            int best;
+            long bestval;
+            long sig;
+
+            best = -1;
+            bestval = -1;
+            for (k = 0; k < n; k++) {
+                if (!p[k].f00 || p[k].f1e < 0)
+                    continue;
+                if (p[k].f1e <= bestval)
+                    continue;
+                bestval = p[k].f1e;
+                best = k;
+            }
+            if (best == -1)
+                break;
+            if (best == 0)
+                g_93a2 = i + 1;
+            sig = p[best].f00;
+            if (best == 0)
+                start = 0;
+            else
+                start = 1;
+            for (k = start; k < n; k++)
+                if (p[k].f00 == sig && p[k].f1e >= 0)
+                    p[k].f1e = -1 - p[k].f1e;
+        }
+        for (k = 0; k < n; k++)
+            if (p[k].f1e < 0)
+                p[k].f1e = -1 - p[k].f1e;
+        for (i = m = 0; i < n; i++) {
+            long bestval;
+            int best;
+            long sig;
+
+            best = -1;
+            bestval = -1;
+            for (k = 0; k < n; k++) {
+                if (!p[k].f00)
+                    continue;
+                if (p[k].f1e <= bestval)
+                    continue;
+                bestval = p[k].f1e;
+                best = k;
+            }
+            if (best == -1)
+                break;
+            size = (unsigned)((g_94c6 + 1) * 0x31);
+            GlobalUnlock(g_94de);
+            g_94de = GlobalReAlloc(g_94de, size, GMEM_MOVEABLE | GMEM_ZEROINIT);
+            g_6af8 = GlobalLock(g_94de);
+            CH[g_94c6].f1e = p[best].f1e;
+            CH[g_94c6].f00 = p[best].f00;
+            CH[g_94c6].f22 = p[best].f22;
+            if (p[best].f22 > g_95aa - 1 || !fn_14_455c(p[best].f22)) {
+                p[best].f22 = 0;
+                CH[g_94c6].f22 = 0;
+            }
+            CH[g_94c6].f24 = p[best].f24;
+            CH[g_94c6].f18 = p[best].f18;
+            CH[g_94c6].f19 = p[best].f19;
+            CH[g_94c6].f1a = p[best].f1a;
+            CH[g_94c6].f1b = p[best].f1b;
+            CH[g_94c6].f1c = p[best].f1c;
+            CH[g_94c6].f1d = p[best].f1d;
+            lstrcpy(CH[g_94c6].f04, p[best].f04);
+            lstrcpy(CH[g_94c6].f26, p[best].f26);
+            CH[g_94c6].f30 = p[best].f30;
+            g_94c6++;
+            sig = p[best].f00;
+            if (best == 0)
+                start = 0;
+            else
+                start = 1;
+            for (k = start; k < n; k++)
+                if (p[k].f00 == sig)
+                    p[k].f00 = 0;
+        }
+        GlobalUnlock(h);
+        GlobalFree(h);
+    }
+    for (i = 0; i < g_94c6; i++) {
+        if (g_9488) {
+            lstrcpy(line, "");
+            fn_06_0f1a(i + 1, path);
+            lstrcat(line, path);
+            lstrcat(line, " - ");
+            lstrcat(line, CH[i].f04);
+            lstrcat(line, " - ");
+            lstrcat(line, g_6e20[CH[i].f22].name);
+            lstrcat(line, "\t230");
+            fn_06_0eb8(CH[i].f1e, path);
+            lstrcat(line, path);
+            lstrcat(line, "\t292");
+            fn_06_0f1a(CH[i].f18 + 1, path);
+            lstrcat(line, path);
+            lstrcat(line, "/");
+            fn_06_0f1a(CH[i].f19, path);
+            lstrcat(line, path);
+            lstrcat(line, "/");
+            fn_06_0f1a(CH[i].f1a, path);
+            lstrcat(line, path);
+            lstrcat(line, " - ");
+            fn_06_0f1a(CH[i].f1b + 1, path);
+            lstrcat(line, path);
+            lstrcat(line, "/");
+            fn_06_0f1a(CH[i].f1c, path);
+            lstrcat(line, path);
+            lstrcat(line, "/");
+            fn_06_0f1a(CH[i].f1d, path);
+            lstrcat(line, path);
+            lstrcat(line, "\t415");
+            switch (CH[i].f30) {
+            case 0:
+                LoadString(g_9212, 0x839, path, 40);
+                break;
+            case 1:
+                LoadString(g_9212, 0x83a, path, 40);
+                break;
+            case 2:
+                LoadString(g_9212, 0x83b, path, 40);
+                break;
+            }
+            lstrcat(line, path);
+            lstrcat(line, "\t475");
+            lstrcat(line, "(");
+            lstrcat(line, CH[i].f26);
+            lstrcat(line, ")");
+            SendMessage(g_9488, 0x401, 0, (LPARAM)(LPSTR)line);
+        } else if (g_90f4 == 5) {
+            if (g_93a2 < 8 && i < 10 || i < 3
+                || i > g_93a2 - 5 && i < g_93a2 + 3) {
+                g_6b04[m].f2c = i + 1;
+                g_6b04[m].f28 = CH[i].f1e;
+                lstrcpy(g_6b04[m].name, CH[i].f04);
+                lstrcat(g_6b04[m].name, " - ");
+                lstrcat(g_6b04[m].name, g_6e20[CH[i].f22].name);
+                m++;
+            }
+        }
+    }
+    fn_14_4074();
 }
 
 /* Fills the save summary record [inferred]. */

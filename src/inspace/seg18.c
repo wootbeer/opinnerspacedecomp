@@ -2030,9 +2030,218 @@ void far fn_18_03d6(void)
     }
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+extern POINT g_8924[15][4];        /* beam points, world [inferred] */
+extern POINT g_8a14[15][4][3];     /* beam points on screen, with 2 old copies */
+extern REC_70 far *g_1e30;
+extern int g_13ae[];
+extern int g_90f0;
+extern int g_9208;
+extern int g_1ca0;
+extern signed char g_9150;
+int far fn_08_35d0(long a, long b);
+void far fn_12_2556(int a, int b);
+
+/* Moves and draws the 15 x 4 particle beam (tractor/teleport effect)
+ * [inferred]. */
+/* @addr 18:0d94 */
 void far fn_18_0d94(void)
 {
+    int a;
+    int b;
+    int k;
+    int c3;
+    int dist;
+    int cnt;
+    int bi;
+    int sh;
+    int level;
+    POINT d;
+    int unused1;
+    int unused2;
+    HGDIOBJ old;
+    DWORD color;
+    int vis;
+
+    if (!g_9666)
+        for (a = 0; a < 15; a++)
+            for (b = 0; b < 4; b++)
+                g_8924[a][b].x = g_8924[a][b].y = 0;
+    g_9666++;
+    cnt = g_9664;
+    if (g_9674)
+        cnt = g_9208 * 2 + 9;
+    for (b = 0; b < cnt; b++)
+        for (a = 0; a < 4; a++) {
+            if (a < 3) {
+                d.x = g_8924[b][a + 1].x - g_8924[b][a].x;
+                d.y = g_8924[b][a + 1].y - g_8924[b][a].y;
+            } else {
+                d.x = g_8924[b][0].x - g_8924[b][a].x;
+                d.y = g_8924[b][0].y - g_8924[b][a].y;
+            }
+            if (a == 0)
+                dist = fn_08_35d0(d.x, d.y);
+            if (dist == 0)
+                dist = 1;
+            if (g_913a)
+                level = 2;
+            else if (g_913c)
+                level = 1;
+            else
+                level = 0;
+            if (!g_9130 || ((long)g_1e34->f22 << 13) / g_88c0 - 250 < dist
+                || g_93a6 && dist > 50) {
+                if ((0x708 >> level) > dist)
+                    SetPixel(g_13dc, g_8a14[b][a][2].x, g_8a14[b][a][2].y, PALETTEINDEX(0));
+                else
+                    PatBlt(g_13dc, g_8a14[b][a][2].x, g_8a14[b][a][2].y, 2, 2, BLACKNESS);
+            }
+            if (g_9130)
+                sh = 6;
+            else if (g_913a)
+                sh = 4;
+            else
+                sh = 5;
+            if (g_913c) {
+                g_8924[b][a].x -= ((long)d.x << sh) / dist;
+                g_8924[b][a].y -= ((long)d.y << sh) / dist;
+            } else {
+                g_8924[b][a].x += ((long)d.x << sh) / dist;
+                g_8924[b][a].y += ((long)d.y << sh) / dist;
+            }
+            g_8a14[b][a][0] = fn_08_29ea(g_8924[b][a]);
+            if (g_9130) {
+                g_8a14[b][a][0].x += g_2390;
+                g_8a14[b][a][0].y += g_2392;
+            }
+            vis = 1;
+            if (g_9130 && g_1318 < 2
+                && (g_8a14[b][a][0].x < g_9678 || g_8a14[b][a][0].x > g_88c0 - g_9678)
+                && (g_8a14[b][a][0].y < g_9678 || g_8a14[b][a][0].y > g_88c2 - g_9678))
+                vis = 0;
+            for (k = 2; k > 0; k--) {
+                g_8a14[b][a][k].x = g_8a14[b][a][k - 1].x;
+                g_8a14[b][a][k].y = g_8a14[b][a][k - 1].y;
+            }
+            if ((!g_9130 || ((long)g_1e34->f22 << 13) / g_88c0 < dist
+                 || g_93a6 && dist > 100) && vis) {
+                if ((0x898 >> level) > dist) {
+                    if (g_90f0)
+                        color = PALETTEINDEX(g_13ae[a]);
+                    else
+                        switch (a) {
+                        case 0:
+                            color = RGB(191, 0, 0);
+                            break;
+                        case 1:
+                            color = RGB(191, 191, 0);
+                            break;
+                        case 2:
+                            color = RGB(0, 191, 191);
+                            break;
+                        case 3:
+                            color = RGB(191, 191, 191);
+                            break;
+                        }
+                    SetPixel(g_13dc, g_8a14[b][a][0].x, g_8a14[b][a][0].y, color);
+                } else {
+                    bi = a * 2;
+                    if ((0xdac >> level) > dist)
+                        bi++;
+                    old = SelectObject(g_13dc, g_88d8[bi]);
+                    PatBlt(g_13dc, g_8a14[b][a][0].x, g_8a14[b][a][0].y, 2, 2, PATCOPY);
+                    SelectObject(g_13dc, old);
+                }
+            }
+        }
+    if (g_9666 % (13 - g_9208 * 2) == 0) {
+        POINT c;
+        POINT d2;
+        int spd;
+        int lim;
+
+        if (++g_9664 >= g_9208 * 2 + 9) {
+            g_9664 = 0;
+            if (g_913c)
+                g_9664 = (g_9208 + 5) * 2;
+            g_9674 = 1;
+        }
+        g_1ca0++;
+        if (g_9130) {
+            c.x = (int)(g_88cc >> 1);
+            c.y = (int)(g_88c2 * g_88cc / (g_88c0 * 2));
+            g_8924[g_9664][0].x = c.x + (g_1050[g_1ca0 & 15].x << 8);
+            g_8924[g_9664][0].y = c.y + (g_1050[g_1ca0 & 15].y << 8);
+            g_8924[g_9664][1].x = c.x + (g_1050[g_1ca0 + 4 & 15].x << 8);
+            g_8924[g_9664][1].y = c.y + (g_1050[g_1ca0 + 4 & 15].y << 8);
+            g_8924[g_9664][2].x = c.x + (g_1050[g_1ca0 + 8 & 15].x << 8);
+            g_8924[g_9664][2].y = c.y + (g_1050[g_1ca0 + 8 & 15].y << 8);
+            g_8924[g_9664][3].x = c.x + (g_1050[g_1ca0 - 4 & 15].x << 8);
+            g_8924[g_9664][3].y = c.y + (g_1050[g_1ca0 - 4 & 15].y << 8);
+            for (a = 0; a < 4; a++)
+                for (b = 0; b < 3; b++)
+                    g_8a14[g_9664][a][b].x = g_8a14[g_9664][a][b].y = -100;
+        } else if (g_913a) {
+            /* c assigned inside the first two sums: reproduces the store order */
+            g_8924[g_9664][0].x = (g_1050[g_1ca0 & 15].x << 6) + (c.x = g_88c8.x);
+            g_8924[g_9664][0].y = (g_1050[g_1ca0 & 15].y << 6) + (c.y = g_88c8.y);
+            g_8924[g_9664][1].x = (g_1050[g_1ca0 + 4 & 15].x << 6) + c.x;
+            g_8924[g_9664][1].y = (g_1050[g_1ca0 + 4 & 15].y << 6) + c.y;
+            g_8924[g_9664][2].x = (g_1050[g_1ca0 + 8 & 15].x << 6) + g_88c8.x;
+            g_8924[g_9664][2].y = (g_1050[g_1ca0 + 8 & 15].y << 6) + g_88c8.y;
+            g_8924[g_9664][3].x = (g_1050[g_1ca0 - 4 & 15].x << 6) + g_88c8.x;
+            g_8924[g_9664][3].y = (g_1050[g_1ca0 - 4 & 15].y << 6) + g_88c8.y;
+            d2 = fn_08_29ea(c);
+            d.x = g_1e30[g_9646].f22 / 2 + g_1e30[g_9646].f00 - d2.x << g_9150;
+            d.y = g_1e30[g_9646].f22 / 2 + g_1e30[g_9646].f02 - d2.y << g_9150;
+            dist = fn_08_35d0(d.x, d.y);
+            if (dist == 0)
+                dist = 1;
+            if (dist < 200)
+                g_913a = 0;
+            g_1e30[g_9646].f0c -= (long)d.x * (g_9666 / 20) / dist;
+            g_1e30[g_9646].f0e -= (long)d.y * (g_9666 / 20) / dist;
+            spd = fn_08_35d0(g_1e30[g_9646].f0c, g_1e30[g_9646].f0e);
+            lim = 150;
+            if (dist < 2000)
+                lim = dist / 20 + 50;
+            if (dist < 1200 && g_913a == 1) {
+                fn_10_744c(0x23);
+                g_913a = 2;
+                fn_12_2556(0xe, g_9646);
+            }
+            if (lim < spd) {
+                g_1e30[g_9646].f0c = (long)g_1e30[g_9646].f0c * lim / spd;
+                g_1e30[g_9646].f0e = (long)g_1e30[g_9646].f0e * lim / spd;
+            }
+        } else if (g_913c) {
+            if (g_9664 < 16) {
+                g_8924[g_9664][0].x = (g_1050[g_1ca0 & 15].x << 1) + (c.x = g_88c8.x);
+                g_8924[g_9664][0].y = (g_1050[g_1ca0 & 15].y << 1) + (c.y = g_88c8.y);
+                g_8924[g_9664][1].x = (g_1050[g_1ca0 + 4 & 15].x << 1) + c.x;
+                g_8924[g_9664][1].y = (g_1050[g_1ca0 + 4 & 15].y << 1) + c.y;
+                g_8924[g_9664][2].x = (g_1050[g_1ca0 + 8 & 15].x << 1) + g_88c8.x;
+                g_8924[g_9664][2].y = (g_1050[g_1ca0 + 8 & 15].y << 1) + g_88c8.y;
+                g_8924[g_9664][3].x = (g_1050[g_1ca0 - 4 & 15].x << 1) + g_88c8.x;
+                g_8924[g_9664][3].y = (g_1050[g_1ca0 - 4 & 15].y << 1) + g_88c8.y;
+                if ((g_9208 + 4) * 2 == g_9664 && g_913c == 1) {
+                    fn_10_744c(0x23);
+                    g_1e30[g_9646].f18 = 0;
+                    g_913c = 2;
+                    fn_12_2556(0xe, g_9646);
+                }
+            }
+            if (g_9666 > 200) {
+                g_913c = 0;
+                for (a = 0; a < 15; a++)
+                    for (b = 0; b < 4; b++)
+                        for (c3 = 0; c3 < 3; c3++)
+                            PatBlt(g_13dc, g_8a14[a][b][c3].x, g_8a14[a][b][c3].y, 2, 2,
+                                   BLACKNESS);
+                fn_18_0ba0();
+            }
+        }
+    }
 }
 
 extern int g_1ca6;
