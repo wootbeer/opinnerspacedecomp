@@ -52,7 +52,9 @@ extern int g_94a4;
 int far fn_16_5f0e(char far *a, char far *b);
 #pragma pack(1)
 typedef struct {                /* 0x297 bytes, far array at DS:69f4 */
-    char p000[0x152];
+    char p000[0x14e];
+    int f14e;
+    int f150;
     char f152[0x1c0 - 0x152];
     char f1c0[0x10];
     char f1d0;
@@ -65,6 +67,8 @@ extern HGDIOBJ g_6aee;
 extern int g_94a6;
 extern int g_94c0;
 extern int g_94c2;
+extern char g_09ee[];
+void far fn_10_a332(LPSTR buf, int id, int n, ...);
 extern HINSTANCE g_9210;
 void far fn_09_0352(HDC hdc, int x, int flags, int w, int h, LPSTR name);
 extern HGDIOBJ g_90fe;
@@ -1188,9 +1192,157 @@ void far fn_06_5318(void)
     SetFocus(GetDlgItem(g_0d1e, 0x65));
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Shows the description of the selected directory (special racing, duel
+ * and scenario folders or a program folder) in the text g_6a24 and enables
+ * the OK button [inferred]. */
+/* @addr 6:5524 */
 void far fn_06_5524(void)
 {
+    int i;
+    int nexe;
+    int idx;
+    int ndll;
+    int notfound;
+    int race;
+    int duel;
+    char buf[400];
+    char str[60];
+
+    g_94c2 = g_94c0 = g_94a6 = 0;
+    lstrcpy(g_6a24, "");
+    notfound = 1;
+    for (i = 0; i < g_94a4; i++)
+        if (!lstrcmp(g_69f4[i].f152, g_6990)) {
+            idx = i;
+            notfound = 0;
+            break;
+        }
+    lstrcpy(buf, g_6990);
+    buf[lstrlen(buf) - 1] = 0;
+    LoadString(g_9212, 0x2f8, str, 40);
+    if (fn_16_5f0e(buf, str)) {
+        int r;
+        char path[100];
+
+        fn_06_2dba(0);
+        LoadString(g_9212, 0x2f9, buf, 40);
+        lstrcat(buf, " ");
+        lstrcpy(path, g_6990);
+        path[1] = ' ';
+        if ((r = fn_06_3f4c(path)) == 3)
+            LoadString(g_9212, 0x913, str, 60);
+        else
+            LoadString(g_9212, 0x2fa, str, 40);
+        lstrcat(buf, str);
+        lstrcpy(g_6a24, buf);
+        fn_06_4368("S", "");
+        fn_06_5b4c(0, 0);
+        EnableWindow(GetDlgItem(g_0d1e, 1), 1);
+    } else {
+        duel = race = 0;
+        LoadString(g_9212, 0x2e3, str, 40);
+        if (fn_16_5f0e(buf, str))
+            race = 1;
+        if (race) {
+            int r;
+            char path[100];
+
+            fn_06_2dba(1);
+            LoadString(g_9212, 0x2fb, buf, 40);
+            lstrcat(buf, g_09ee);
+            lstrcpy(path, g_6990);
+            path[1] = ' ';
+            if ((r = fn_06_3f4c(path)) == 3)
+                LoadString(g_9212, 0x913, str, 60);
+            else
+                LoadString(g_9212, 0x2fc, str, 40);
+            lstrcat(buf, str);
+            lstrcpy(g_6a24, buf);
+            fn_06_4368("R", "");
+            fn_06_5b4c(0, 0);
+            EnableWindow(GetDlgItem(g_0d1e, 1), 1);
+        } else {
+            LoadString(g_9212, 0x2e0, str, 40);
+            if (fn_16_5f0e(buf, str))
+                duel = 1;
+            if (duel) {
+                int r;
+                char path[100];
+
+                fn_06_2dba(2);
+                LoadString(g_9212, 0x2fe, buf, 40);
+                lstrcat(buf, g_09ee);
+                lstrcpy(path, g_6990);
+                path[1] = ' ';
+                if ((r = fn_06_3f4c(path)) == 3)
+                    LoadString(g_9212, 0x913, str, 60);
+                else
+                    LoadString(g_9212, 0x2ff, str, 40);
+                lstrcat(buf, str);
+                lstrcpy(g_6a24, buf);
+                fn_06_4368("D", "");
+                fn_06_5b4c(0, 0);
+                EnableWindow(GetDlgItem(g_0d1e, 1), 1);
+            } else {
+                fn_06_2dba(0);
+                nexe = fn_06_420a(g_6990, "*.exe");
+                ndll = fn_06_420a(g_6990, "*.dll");
+                fn_06_4368("", "");
+                if (nexe == 0) {
+                    char tmp[100];
+                    int r;
+
+                    LoadString(g_9212, 0x3aa, str, 60);
+                    lstrcpy(buf, str);
+                    LoadString(g_9212, 0x3ae, str, 60);
+                    lstrcat(buf, str);
+                    lstrcat(buf, g_09ee);
+                    LoadString(g_9212, 0x3ab, str, 60);
+                    lstrcat(buf, str);
+                    lstrcpy(g_6a24, buf);
+                    fn_06_5b4c(0, 0);
+                    /* tmp receives the selected list entry */
+                    if ((r = fn_06_5260(tmp)) == 1 || r == 2)
+                        return;
+                    EnableWindow(GetDlgItem(g_0d1e, 1), 0);
+                } else {
+                    nexe += ndll;
+                    if (!notfound && (g_69f4[idx].f1d0 == 2 ||
+                                      g_69f4[idx].f14e + g_69f4[idx].f150 > g_94a6)) {
+                        LoadString(g_9212, 0x2fd, buf, 400);
+                        lstrcat(buf, g_09ee);
+                        if (g_69f4[idx].f1d0 != 2) {
+                            HWND h;
+                            int k;
+                            char text[120];
+
+                            h = GetDlgItem(g_0d1e, 0x65);
+                            g_69f4[idx].f1d0 = 2;
+                            SendMessage(h, LB_GETTEXT, k = (int)SendMessage(h, LB_GETCURSEL, 0, 0L),
+                                        (LPARAM)(LPSTR)text);
+                            text[lstrlen(text) - 1] = '2';
+                            SendMessage(h, LB_DELETESTRING, k, 0L);
+                            SendMessage(h, LB_INSERTSTRING, k, (LPARAM)(LPSTR)text);
+                        }
+                        EnableWindow(GetDlgItem(g_0d1e, 1), 0);
+                    } else {
+                        EnableWindow(GetDlgItem(g_0d1e, 1), 1);
+                        fn_10_a332(buf, 0xbd4, 1, g_94a6 == 1, 0x808, 0x807, g_94a6, 0x9d3,
+                                   nexe, 0x3ad);
+                    }
+                    if (notfound) {
+                        LoadString(g_9212, 0x3af, str, 60);
+                        lstrcat(buf, str);
+                        lstrcat(buf, g_09ee);
+                    } else
+                        fn_10_a332(buf, 0xbd5, 0, g_69f4[idx].f150, 0x9ca,
+                                   g_69f4[idx].f14e, 0x9ca);
+                    lstrcpy(g_6a24, buf);
+                    fn_06_5b4c(0, 0);
+                }
+            }
+        }
+    }
 }
 
 extern int g_94b8;

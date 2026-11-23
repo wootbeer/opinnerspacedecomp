@@ -38,7 +38,9 @@ typedef struct {                /* 0x15a bytes, DGROUP array at DS:70ae */
     char f3d;
     char p3e[0x42 - 0x3e];
     char f42;
-    char p43[0x8e - 0x43];
+    char p43[0x66 - 0x43];
+    DWORD f66;
+    char p6a[0x8e - 0x6a];
     char f8e;
     char f8f;
     char p90[0x9a - 0x90];
@@ -120,6 +122,8 @@ typedef struct {                /* far pointer at DS:1e34 */
     int f24;
     char p26[0x28 - 0x26];
     int f28;
+    char p2a[0x44 - 0x2a];
+    int f44;
 } REC_1E34;
 extern REC_1E34 far *g_1e34;
 extern int g_88c0;
@@ -2031,9 +2035,161 @@ void far fn_18_0d94(void)
 {
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+extern int g_1ca6;
+extern int g_1ca8;
+extern POINT g_1caa;               /* g_1caa, g_1cac */
+extern int g_9334;
+extern int g_943a;
+extern int g_943c;
+int far pascal steer_toward_direction(int y2, int x2, int y1, int x1, int cur,
+                                      int mode, int obj, int a, int b, int c);
+void far pascal fn_08_1b54(WORD r, int n);
+void far pascal fn_12_2db6(int type, int idx, int c, int d, int kind);
+int far pascal fn_08_50aa(WORD r);
+int far pascal fn_08_546c(WORD ref, int far *pvx, int far *pvy, int m1, int m0);
+void far fn_08_5df2(int a, int b, int c, int d, int e);
+void far fn_18_66e0(void);
+void far fn_18_591c(void);
+void far repulsive_force_weapon(int type, int idx);
+void far attractive_force_weapon(int type, int idx);
+void far fn_11_9daa(int a, int b);
+
+/* Per-frame update of the Demon (object 15:0): turns toward the player and
+ * shoots, grows into view while g_1318 counts down, collides, and spins
+ * the four gate gauges [inferred]. */
+/* @addr 18:37d8 */
 void far fn_18_37d8(void)
 {
+    int obj;                    /* assigned, never read */
+    int i;
+    int old;
+    WORD r;
+    int mode;
+    int dir;
+    int target;
+    int ty;
+    POINT s;                    /* s, t, rc as structs: CL then recomputes */
+    POINT t;                    /* f22 / 2 like the game; t.y unused */
+    RECT rc;                    /* the Demon's previous screen rect */
+
+    if (g_90f4 == 6 && g_1318 > 1)
+        return;
+    g_1ca6++;
+    g_9676 = g_9676 - 1 < 0 ? 0 : g_9676 - 1;
+    if (g_90f4 == 1) {
+        if (g_1ca6 % (12 - g_a198) == 0)
+            mode = 1;
+        else
+            mode = 0;
+        if (g_1318 >= 30)
+            mode = 2;
+    } else {
+        if (g_1ca6 % max(18 - g_a198, 5) == 0)
+            mode = 1;
+        else
+            mode = 0;
+    }
+    g_1e34->f0e = 0;
+    g_1e34->f0c = g_1e34->f0e;
+    fn_08_1b54(0xf00, 1);
+    if (mode && g_70ae[g_9646].fce && !g_9676) {
+        target = g_9324;
+        obj = g_9646;
+        if (mode == 1) {
+            dir = g_1e34->f28;
+            s.x = g_1e34->f22 / 2 + g_1e34->f04;
+            s.y = g_1e34->f22 / 2 + g_1e34->f06;
+            t.x = g_1df8[g_9324][g_9646].f22 / 2 + g_1df8[g_9324][g_9646].f04;
+            g_1e34->f28 = steer_toward_direction(s.y, s.x,
+                    ty = g_1df8[g_9324][g_9646].f06 + g_1df8[g_9324][g_9646].f22 / 2, t.x,
+                    g_1e34->f28, 5, -1, g_9324, g_9646, 0);
+            if (g_70ae[g_9646].f66 < g_1e50 && g_1318 < 2 && g_1e34->f28 == dir &&
+                target == g_9324) {
+                if ((g_90f4 == 1 && rand() % 9 < g_a198 + 3) ||
+                    (g_90f4 == 6 && rand() % 27 < g_a198 + 7))
+                    fn_12_2db6(15, 0, (g_1e34->f28 + 8) % 16, (g_a198 + 9) * 2, 5);
+                else if (g_90f4 == 1) {
+                    if (g_70ae[g_9646].f08[0] < 50) {
+                        if (rand() % 6 < g_a198)
+                            fn_18_66e0();
+                    } else if (rand() % 13 < g_a198)
+                        fn_18_66e0();
+                } else {
+                    if (g_70ae[g_9646].f08[0] < 50) {
+                        if (rand() % 10 < g_a198 - 1)
+                            fn_18_66e0();
+                    } else if (rand() % 18 < g_a198 - 1)
+                        fn_18_66e0();
+                }
+            }
+        } else
+            g_1e34->f28 = (g_1e34->f28 + 1) % 16;
+        g_1e34->f10 = (g_1e34->f22 + g_1e34->f24) * g_1e34->f28 + g_1e34->f24;
+        g_1e34->f12 = g_1e34->f24;
+        if (mode == 1)
+            fn_18_1934(0xf00, 1, g_3a36);
+        else {
+            if (g_1318 == 30)
+                g_1ca8 = 0;
+            rc.right = g_1e34->f22 - g_1e34->f22 / 2 + g_1ca8 / 2 + g_88c0 / 2 - g_1ca8 + g_88c4.x;
+            rc.top = g_1ca8 / 2 - g_1e34->f22 / 2 + g_88c2 / 2 + g_88c4.y;
+            rc.bottom = g_1e34->f22 - g_1ca8 + rc.top;
+            g_88c0 = g_6da4->f02 + (g_8d14 - (long)g_6da4->f02) * ((long)g_1318 - 30) / 59;
+            g_88c2 = g_6da4->f04 + (g_8d16 - (long)g_6da4->f04) * ((long)g_1318 - 30) / 59;
+            g_88c4.x = (int)(g_8d18 * ((long)g_1318 - 30) / 59);
+            g_88c4.y = (int)(g_8d1a * ((long)g_1318 - 30) / 59);
+            SetStretchBltMode(g_13dc, 3);
+            g_1ca8 = g_1e34->f22 * (g_1318 - 30) / 59;
+            g_1caa.x = g_1ca8 / 2 - g_1e34->f22 / 2 + g_88c0 / 2 + g_88c4.x;
+            g_1caa.y = g_1ca8 / 2 - g_1e34->f22 / 2 + g_88c2 / 2 + g_88c4.y;
+            *(POINT far *)&g_1e34->f00 = g_1caa;
+            StretchBlt(g_13dc, g_1caa.x, g_1caa.y, g_1e34->f22 - g_1ca8, g_1e34->f22 - g_1ca8,
+                       g_3a36, g_1e34->f10, g_1e34->f12, g_1e34->f22, g_1e34->f22, SRCCOPY);
+            rc.left = g_1e34->f22 - g_1ca8 + g_1caa.x;
+            PatBlt(g_13dc, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, BLACKNESS);
+            PatBlt(g_13dc, g_1caa.x, rc.top, g_1e34->f22 - g_1ca8, g_1caa.y - rc.top, BLACKNESS);
+            PatBlt(g_13dc, g_1caa.x, g_1e34->f22 - g_1ca8 + g_1caa.y, g_1e34->f22 - g_1ca8,
+                   rc.bottom - (g_1e34->f22 - g_1ca8 + g_1caa.y), BLACKNESS);
+        }
+    }
+    if (g_1318 > 5)
+        return;
+    g_943a = 15;
+    g_943c = 0;
+    r = fn_08_50aa(0xf00);
+    if (HIBYTE(r) == g_9324 && g_1318 == 1 && g_90f4 != 6)
+        fn_18_5f74();
+    if (r != 0xffff)
+        fn_08_5df2(15, 0, HIBYTE(r), LOBYTE(r),
+                   fn_08_546c(r, &g_1e34->f0c, &g_1e34->f0e, g_1e34->f22 + 1, g_1e34->f44));
+    if (g_1318 > 1)
+        return;
+    for (i = 0; i < 4; i++) {
+        old = g_a16a[i] / 40;
+        g_a16a[i] = (((unsigned char)g_a17b[i] >> 1) + g_a16a[i]) % 360;
+        if (g_a16a[i] / 40 == old || mode) {
+            BitBlt(g_966a, (-7 << g_9156 * 2) + g_9678, (-7 << g_9156 * 2) + g_9678,
+                   7 << g_9156 * 2, 7 << g_9156 * 2, g_966a, g_8914[i].x, g_8914[i].y, SRCCOPY);
+            if (g_a18f[i])
+                BitBlt(g_966a, (-7 << g_9156 * 2) + g_9678, (-7 << g_9156 * 2) + g_9678,
+                       7 << g_9156 * 2, 7 << g_9156 * 2, g_9656,
+                       g_a16a[i] / 40 * 7 << g_9156 * 2, 0, SRCPAINT);
+            BitBlt(g_13dc, g_8904[i].x, g_8904[i].y, 7 << g_9156 * 2, 7 << g_9156 * 2,
+                   g_966a, (-7 << g_9156 * 2) + g_9678, (-7 << g_9156 * 2) + g_9678, SRCCOPY);
+        }
+    }
+    if (g_90f4 == 1)
+        repulsive_force_weapon(15, 0);
+    fn_18_591c();
+    if (g_90f4 == 1) {
+        if (!g_9676 && rand() % 26000 < (g_a198 + 2) * 2 + g_9334 / 2)
+            fn_11_9daa(15, 0);
+    } else {
+        if (!g_9676 && rand() % 4000 < g_a198 - 2)
+            fn_11_9daa(15, 0);
+    }
+    if (g_1ca6 % 7 == 0)
+        attractive_force_weapon(15, 0);
 }
 
 /* Not yet decompiled: stub so calls to it compile as near calls. */
