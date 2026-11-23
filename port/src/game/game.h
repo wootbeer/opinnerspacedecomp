@@ -16,13 +16,14 @@
 #define LO8(v) (((char *)&(v))[0])
 #define HI8(v) (((char *)&(v))[1])
 #define VIEW(T, field, off) (*(T *)((uint8_t *)&(field) + (off)))
+#define VIEWP(PT, field, off) ((PT)((uint8_t *)&(field) + (off)))
 
-/* 0x4 bytes; used in seg08.c, seg08c.c, seg13b.c. */
+/* 0x4 bytes; records at DS:104c. */
 #pragma pack(push, 2)
 typedef struct {
     int16_t a;
     int16_t b;
-} PAIR_seg08;
+} PAIR;
 #pragma pack(pop)
 
 /* 0x24 bytes; records at DS:52ec. */
@@ -41,8 +42,8 @@ typedef struct {
     int16_t f_12;
     int16_t f_14;
     int16_t f_16;
-    PAIR_seg08 f_18;
-    PAIR_seg08 f_1c;
+    PAIR f_18;
+    PAIR f_1c;
     int32_t f_20;
 } REC_24;
 #pragma pack(pop)
@@ -113,7 +114,7 @@ typedef struct {
     int16_t f_024;
     int16_t f_026[5];
     int16_t f_030;
-    PAIR_seg08 f_032;
+    PAIR f_032;
     int16_t f_036;
     int16_t f_038;
     int16_t f_03a;
@@ -425,7 +426,7 @@ typedef struct {
     int16_t f_12;
     int16_t f_14;
     POINT f_16;
-    PAIR_seg08 f_1a;
+    PAIR f_1a;
 } REC_1E;
 #pragma pack(pop)
 
@@ -515,23 +516,6 @@ typedef struct {
 } SURF_22;
 #pragma pack(pop)
 
-/* 0x4 bytes; records at DS:104c. */
-#pragma pack(push, 2)
-typedef struct {
-    int16_t a;
-    int16_t b;
-} PAIR_104C;
-#pragma pack(pop)
-
-/* 0x4 bytes; records at DS:9f40. */
-#pragma pack(push, 2)
-typedef struct {
-    POINT f_00[][0x28];
-    uint8_t pad_00[0x2];
-    int16_t b;
-} PAIR_9F40;
-#pragma pack(pop)
-
 /* 0x10 bytes; records at DS:4f2c. */
 #pragma pack(push, 2)
 typedef struct {
@@ -575,13 +559,6 @@ typedef struct {
 } REC_6_38A4;
 #pragma pack(pop)
 
-/* 0x2 bytes; records at DS:3c10. */
-#pragma pack(push, 2)
-typedef struct {
-    int16_t x;
-} utimbuf;
-#pragma pack(pop)
-
 /* 0x18 bytes; records at DS:8870. */
 #pragma pack(push, 2)
 typedef struct {
@@ -594,10 +571,7 @@ typedef struct {
 #pragma pack(push, 1)
 typedef struct {
     POINT f_00;
-    union {
-        int32_t l;
-        POINT pt;
-    } f_04;
+    POINT f_04;
     POINT f_08;
     int16_t f_0c;
     int16_t f_0e;
@@ -643,7 +617,7 @@ typedef struct {
     int16_t (*f_5e)(int16_t type, int16_t idx);
     void (*f_62)(void);
     void (*f_66)(int16_t type, int16_t idx);
-    void *f_6a;
+    DWORD f_6a;
     HPALETTE rest;
 } REC_70;
 #pragma pack(pop)
@@ -863,14 +837,6 @@ typedef struct {
 } OBJREF;
 #pragma pack(pop)
 
-/* 0x4 bytes; used in seg10.c. */
-#pragma pack(push, 2)
-typedef struct {
-    int16_t f_00;
-    int16_t f_02;
-} PAIR_seg10;
-#pragma pack(pop)
-
 /* 0x1a9 bytes; used in seg16.c, seg16b.c. */
 #pragma pack(push, 1)
 typedef struct {
@@ -1077,6 +1043,13 @@ typedef struct {
 } REC_SAVE_seg06b;
 #pragma pack(pop)
 
+typedef int16_t (*FP7I)(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t);
+typedef int16_t (*FP3C5C)(int16_t, POINT, int16_t, int16_t, int16_t, int32_t, DWORD, LPCSTR);
+typedef void (*FNV)(void);
+typedef void (*FNPTR)(int16_t, int16_t);
+typedef int16_t (*FNSPLIT)(int16_t, int16_t);
+typedef void (*FNVOID)(void);
+
 /* DGROUP globals, by DS offset. */
 extern int16_t g_0010; /* DS:0010 */
 extern HRGN g_0012; /* DS:0012 */
@@ -1200,9 +1173,9 @@ extern int16_t g_1040; /* DS:1040 */
 extern int16_t g_1042; /* DS:1042 */
 extern int16_t g_1044; /* DS:1044 */
 extern int16_t g_1046; /* DS:1046 */
-extern int16_t g_1048; /* DS:1048 */
+extern int16_t g_1048; /* DS:1048 new_defenders_enabled [inferred] */
 extern int16_t g_104a; /* DS:104a */
-extern PAIR_104C g_104c[1]; /* DS:104c */
+extern PAIR g_104c[1]; /* DS:104c cheat_invulnerable [inferred] */
 extern POINT g_1050[]; /* DS:1050 */
 extern char g_111a[]; /* DS:111a */
 extern int16_t g_111e; /* DS:111e */
@@ -1461,10 +1434,7 @@ extern int16_t g_3824[8][8]; /* DS:3824 */
 extern REC_6_38A4 g_38a4[6]; /* DS:38a4 */
 extern char g_38c8[]; /* DS:38c8 */
 extern char g_38c9; /* DS:38c9 */
-extern struct {
-        int16_t x;
-    } g_3948; /* DS:3948 */
-extern char g_3966[]; /* DS:3966 */
+extern struct _find_t g_3948; /* DS:3948 */
 extern HBITMAP g_3974[]; /* DS:3974 */
 extern HGDIOBJ g_3990[8]; /* DS:3990 */
 extern HBITMAP g_39c4[]; /* DS:39c4 */
@@ -1495,7 +1465,7 @@ extern HBRUSH g_3b88[6]; /* DS:3b88 */
 extern DWORD g_3b94; /* DS:3b94 */
 extern POINT g_3b98; /* DS:3b98 */
 extern int16_t g_3b9c[]; /* DS:3b9c */
-extern utimbuf g_3c10[3]; /* DS:3c10 */
+extern struct utimbuf g_3c10[3]; /* DS:3c10 */
 extern int16_t (*g_fp_3c28)(int16_t, int16_t, char *, int16_t, int16_t, int16_t); /* DS:3c28 */
 extern int16_t (*g_fp_3c2c)(LPCSTR); /* DS:3c2c */
 extern int16_t (*g_fp_3c30)(int16_t, int16_t, int32_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, char, char, char, int16_t); /* DS:3c30 */
@@ -1630,9 +1600,7 @@ extern int32_t g_6988; /* DS:6988 */
 extern uint32_t g_698c; /* DS:698c */
 extern char g_6990[]; /* DS:6990 */
 extern REC_297 *g_69f4; /* DS:69f4 */
-extern struct {
-        int16_t x;
-    } g_69f8; /* DS:69f8 */
+extern struct find_t g_69f8; /* DS:69f8 */
 extern char g_6a24[]; /* DS:6a24 */
 extern HGDIOBJ g_6aec[2]; /* DS:6aec */
 extern RECT g_6af0; /* DS:6af0 */
@@ -1839,15 +1807,9 @@ extern int16_t g_9226; /* DS:9226 */
 extern int16_t g_9228; /* DS:9228 */
 extern int16_t g_922a; /* DS:922a */
 extern int16_t g_922c; /* DS:922c */
-extern struct {
-        int16_t x;
-    } g_922e; /* DS:922e */
-extern struct {
-        int16_t x;
-    } g_924c; /* DS:924c */
-extern struct {
-        int16_t x;
-    } g_926a; /* DS:926a */
+extern struct stat g_922e; /* DS:922e */
+extern struct stat g_924c; /* DS:924c */
+extern struct stat g_926a; /* DS:926a */
 extern HDC g_9288; /* DS:9288 */
 extern int16_t g_928a; /* DS:928a */
 extern int16_t g_928c; /* DS:928c */
@@ -1889,7 +1851,7 @@ extern HGLOBAL g_92e0; /* DS:92e0 */
 extern int16_t g_92e2; /* DS:92e2 */
 extern int16_t g_92e4; /* DS:92e4 */
 extern int16_t g_92e6; /* DS:92e6 */
-extern int16_t g_92e8; /* DS:92e8 */
+extern int16_t g_92e8; /* DS:92e8 in_demons_gate [inferred] */
 extern int16_t g_92ea; /* DS:92ea */
 extern int16_t g_92ec[15]; /* DS:92ec */
 extern int16_t g_930a; /* DS:930a */
@@ -1901,7 +1863,7 @@ extern int16_t g_9318; /* DS:9318 */
 extern int16_t g_931a; /* DS:931a */
 extern int16_t g_931c; /* DS:931c */
 extern int16_t g_931e; /* DS:931e */
-extern int16_t g_9320; /* DS:9320 */
+extern int16_t g_9320; /* DS:9320 wave_type [inferred] */
 extern int16_t g_9322; /* DS:9322 */
 extern int16_t g_9324; /* DS:9324 */
 extern int16_t g_9326; /* DS:9326 */
@@ -2228,7 +2190,7 @@ extern char g_9ebc[3]; /* DS:9ebc */
 extern char g_9ebf[3]; /* DS:9ebf */
 extern char g_9ec2[3][0x28]; /* DS:9ec2 */
 extern char g_9f3a[3][2]; /* DS:9f3a */
-extern PAIR_9F40 g_9f40[][0x28]; /* DS:9f40 */
+extern PAIR g_9f40[3][0x28]; /* DS:9f40 */
 extern POINT g_a120[3]; /* DS:a120 */
 extern char g_a12c[3][9]; /* DS:a12c */
 extern int32_t g_a147; /* DS:a147 */
@@ -2536,7 +2498,7 @@ void fn_09_0df6(int16_t n);
 void fn_09_1092(void);
 void fn_09_10d4(void);
 void fn_09_2012(void);
-PAIR_104C fn_09_225a(int16_t a);
+PAIR fn_09_225a(int16_t a);
 void fn_09_22b4(int16_t a);
 void fn_09_27da(int16_t a);
 void fn_09_2828(void);

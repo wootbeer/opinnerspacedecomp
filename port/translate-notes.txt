@@ -1,0 +1,409 @@
+seg09.c:1756: view g_5b2c of a 2-D table at +4
+seg09.c:1757: view g_5b2c of a 2-D table at +4
+seg09.c:1758: view g_5b2c of a 2-D table at +4
+seg16.c:1277: field f2c lies in the next record
+VIEW: 413
+alias kept: 8
+alias resolved: 228
+== table length (15)
+  g_52ec: 32 records of 0x24 up to next global 576c
+  g_3d50: 80 records of 0x34 up to next global 4d90
+  g_8560: 4 records of 0x34 up to next global 8630
+  g_7090: 8 records of 0x15a up to next global 7b60
+  g_96d2: 11 records of 0xad up to next global 9e41
+  g_4d90: 13 records of 0x14 up to next global 4e94
+  g_5a4c: 11 records of 0x14 up to next global 5b28
+  g_57a8: 7 records of 0x23 up to next global 58bc (+31 bytes)
+  g_65cc: 5 records of 0x20 up to next global 666c
+  g_915c: 3 records of 0x22 up to next global 91c2
+  g_104c: 1 records of 0x4 up to next global 1050
+  g_4f2c: 10 records of 0x10 up to next global 4fcc
+  g_6938: 5 records of 0x10 up to next global 6988
+  g_381a: 1 records of 0x6 up to next global 3820
+  g_8870: 3 records of 0x18 up to next global 88c0 (+8 bytes)
+== struct overlays on globals (10)
+  seg09b.c (RACEV *)&g_9ea2
+  seg09b.c (RACEV *)&g_9ea2
+  seg09b.c (RACEV *)&g_9ea2
+  seg09b.c (RACEV *)&g_9ea2
+  seg09b.c (RACEV *)&g_9ea2
+  seg09b.c (RACEV *)&g_9ea2
+  seg09b.c (RACEV *)&g_9ea2
+  seg09b.c (RACEV *)&g_9ea2
+  seg09b.c (RACEV *)&g_9ea2
+  seg09b.c (RACEV *)&g_9ea2
+== matched by name (10)
+  seg06b.c REC_7C -> ('ptr', 28196)
+  seg06b.c REC_31 -> ('ptr', 27384)
+  seg08.c PAIR -> ('table', 4172)
+  seg08c.c PAIR -> ('table', 4172)
+  seg10.c PAIR -> ('table', 4172)
+  seg13.c REC41 -> ('ptr', 28192)
+  seg13.c REC2C -> ('ptr', 28188)
+  seg13b.c REC41 -> ('ptr', 28192)
+  seg13b.c REC2C -> ('ptr', 28188)
+  seg13b.c PAIR -> ('table', 4172)
+== field types (271)
+  ('table', 21228)+0: long, struct anon15 -> struct anon15
+  ('table', 21228)+18: struct PAIR overlaps 18:rest char[0xc]; 18:rest char[0xc]
+  ('table', 21228)+1c: struct PAIR overlaps 1c:rest char[0x8]; 1c:rest char[0x8]; 18:rest char[0xc]; 18:rest char[0xc]
+  ('table', 21228)+20: long overlaps 1c:rest char[0x8]; 1c:rest char[0x8]; 18:rest char[0xc]; 18:rest char[0xc]
+  ('table', 15696)+0: long, ulong -> ulong
+  ('table', 15696)+4: DWORD, long, ulong -> DWORD
+  ('table', 15696)+32: char[0x2], int -> int
+  ('table', 28816)+c2: fc2 char[0x2a] cut to char[0x8]
+  ('table', 28816)+32: long, struct PAIR -> struct PAIR
+  ('table', 28816)+5d: char, schar -> char
+  ('table', 28816)+5e: char, schar -> char
+  ('table', 28816)+62: int[0x10] overlaps 62:f62 int[0x19]
+  ('table', 28816)+82: int overlaps 62:f62 int[0x19]
+  ('table', 28816)+84: DWORD, long, ulong -> DWORD
+  ('table', 28816)+84: DWORD overlaps 62:f62 int[0x19]
+  ('table', 28816)+88: DWORD, long -> DWORD
+  ('table', 28816)+88: DWORD overlaps 62:f62 int[0x19]
+  ('table', 28816)+8c: long overlaps 62:f62 int[0x19]
+  ('table', 28816)+90: DWORD overlaps 62:f62 int[0x19]
+  ('table', 28816)+94: DWORD, long -> DWORD
+  ('table', 28816)+98: DWORD, long, ulong -> DWORD
+  ('table', 28816)+9c: DWORD, ulong -> DWORD
+  ('table', 28816)+a4: DWORD, long -> DWORD
+  ('table', 28816)+ae: char[0xa], schar[0xa] -> char[0xa]
+  ('table', 28816)+b8: char[0xa], schar[0xa] -> char[0xa]
+  ('table', 28816)+b8: char[0xa] overlaps b8:fb8 char[0x13]; b8:fb8 char[0x13]; b8:fb8 char[0x13]; b8:fb6 char[0x13]; b8:f_0b6 char[0x10]; b8:f_0b6 char[0x10]; b8:f_0b6 char[0x10]; b8:f9a char[0x13]; b8:f9a char[0x13]; b8:f9a schar[0x13]; b8:list char[0x13]
+  ('table', 28816)+c2: char[0x8] overlaps c2:fc2 char[0x2a]; c2:fc2 char[0x9]; b8:fb8 char[0x13]; b8:fb8 char[0x13]; b8:fb8 char[0x13]; b8:fb6 char[0x13]; b8:f_0b6 char[0x10]; b8:f_0b6 char[0x10]; b8:f_0b6 char[0x10]; b8:f9a char[0x13]; b8:f9a char[0x13]; b8:f9a schar[0x13]; b8:list char[0x13]
+  ('table', 28816)+ca: char overlaps c2:fc2 char[0x2a]; c2:fc2 char[0x9]; b8:fb8 char[0x13]; b8:fb8 char[0x13]; b8:fb8 char[0x13]; b8:fb6 char[0x13]; b8:f9a char[0x13]; b8:f9a char[0x13]; b8:f9a schar[0x13]; b8:list char[0x13]
+  ('table', 28816)+cb: char, schar -> char
+  ('table', 28816)+cb: char overlaps c2:fc2 char[0x2a]
+  ('table', 28816)+cc: char overlaps c2:fc2 char[0x2a]
+  ('table', 28816)+cd: char overlaps c2:fc2 char[0x2a]
+  ('table', 28816)+ce: int overlaps c2:fc2 char[0x2a]
+  ('table', 28816)+d0: int overlaps c2:fc2 char[0x2a]
+  ('table', 28816)+d2: int overlaps c2:fc2 char[0x2a]
+  ('table', 28816)+d4: int overlaps c2:fc2 char[0x2a]
+  ('table', 28816)+d6: int overlaps c2:fc2 char[0x2a]
+  ('table', 28816)+d8: int overlaps c2:fc2 char[0x2a]; d8:rest char[0x82]
+  ('table', 28816)+da: int overlaps c2:fc2 char[0x2a]; d8:rest char[0x82]
+  ('table', 28816)+dc: long overlaps c2:fc2 char[0x2a]; d8:rest char[0x82]
+  ('table', 28816)+e0: char overlaps c2:fc2 char[0x2a]; d8:rest char[0x82]
+  ('table', 28816)+e1: char overlaps c2:fc2 char[0x2a]; d8:rest char[0x82]
+  ('table', 28816)+e2: char overlaps c2:fc2 char[0x2a]; d8:rest char[0x82]
+  ('table', 28816)+e3: char overlaps c2:fc2 char[0x2a]; d8:rest char[0x82]
+  ('table', 28816)+e4: char overlaps c2:fc2 char[0x2a]; d8:rest char[0x82]
+  ('table', 28816)+e5: char overlaps c2:fc2 char[0x2a]; d8:rest char[0x82]; e5:rest char[0x75]
+  ('table', 28816)+e6: char overlaps c2:fc2 char[0x2a]; d8:rest char[0x82]; e5:rest char[0x75]
+  ('table', 28816)+e7: char overlaps c2:fc2 char[0x2a]; d8:rest char[0x82]; e5:rest char[0x75]
+  ('table', 28816)+e8: char overlaps c2:fc2 char[0x2a]; d8:rest char[0x82]; e5:rest char[0x75]
+  ('table', 28816)+e9: char overlaps c2:fc2 char[0x2a]; d8:rest char[0x82]; e5:rest char[0x75]
+  ('table', 28816)+ea: char overlaps c2:fc2 char[0x2a]; d8:rest char[0x82]; e5:rest char[0x75]
+  ('table', 28816)+eb: char overlaps c2:fc2 char[0x2a]; d8:rest char[0x82]; e5:rest char[0x75]
+  ('table', 28816)+ec: char overlaps d8:rest char[0x82]; e5:rest char[0x75]
+  ('table', 28816)+ed: char overlaps d8:rest char[0x82]; e5:rest char[0x75]; ed:rest char[0x6d]
+  ('table', 28816)+ee: char[0x8] overlaps ee:fee char[0x50]; ee:fee char[0x58]; ee:fee char[0x50]; d8:rest char[0x82]; e5:rest char[0x75]; ed:rest char[0x6d]
+  ('table', 28816)+f6: char[0x9][0x8] overlaps ee:fee char[0x50]; ee:fee char[0x58]; ee:fee char[0x50]; d8:rest char[0x82]; f6:f_0f4 char[0x9][0x9]; f6:f_0f4 char[0x9][0x9]; f6:f_0f4 char[0x9][0x9]; e5:rest char[0x75]; ed:rest char[0x6d]
+  ('table', 28816)+13e: char[0x8] overlaps 13e:f13e char[0x18]; ee:fee char[0x58]; d8:rest char[0x82]; f6:f_0f4 char[0x9][0x9]; f6:f_0f4 char[0x9][0x9]; f6:f_0f4 char[0x9][0x9]; e5:rest char[0x75]; ed:rest char[0x6d]
+  ('table', 28816)+146: char overlaps 13e:f13e char[0x18]; d8:rest char[0x82]; f6:f_0f4 char[0x9][0x9]; f6:f_0f4 char[0x9][0x9]; f6:f_0f4 char[0x9][0x9]; e5:rest char[0x75]; ed:rest char[0x6d]
+  ('table', 28816)+147: char overlaps 13e:f13e char[0x18]; d8:rest char[0x82]; e5:rest char[0x75]; ed:rest char[0x6d]
+  ('table', 28816)+148: char overlaps 13e:f13e char[0x18]; d8:rest char[0x82]; e5:rest char[0x75]; ed:rest char[0x6d]
+  ('table', 28816)+149: char overlaps 13e:f13e char[0x18]; d8:rest char[0x82]; e5:rest char[0x75]; ed:rest char[0x6d]
+  ('table', 28816)+14a: POINT overlaps 13e:f13e char[0x18]; d8:rest char[0x82]; e5:rest char[0x75]; ed:rest char[0x6d]
+  ('table', 28816)+14e: DWORD, long -> DWORD
+  ('table', 28816)+14e: DWORD overlaps 13e:f13e char[0x18]; d8:rest char[0x82]; e5:rest char[0x75]; ed:rest char[0x6d]
+  ('table', 28816)+152: ulong overlaps 13e:f13e char[0x18]; d8:rest char[0x82]; e5:rest char[0x75]; ed:rest char[0x6d]
+  ('table', 28816)+156: DWORD, long, ulong -> DWORD
+  ('table', 28816)+156: DWORD overlaps d8:rest char[0x82]; e5:rest char[0x75]; ed:rest char[0x6d]
+  ('table', 38610)+6: char[0x2] overlaps 6:pad_m12 char[0x22]
+  ('table', 38610)+8: int overlaps 6:pad_m12 char[0x22]; 8:f00 int[0x4]
+  ('table', 38610)+a: int overlaps 6:pad_m12 char[0x22]; 8:f00 int[0x4]
+  ('table', 38610)+c: int overlaps 6:pad_m12 char[0x22]; 8:f00 int[0x4]
+  ('table', 38610)+e: int overlaps 6:pad_m12 char[0x22]; 8:f00 int[0x4]
+  ('table', 38610)+10: int overlaps 6:pad_m12 char[0x22]; 10:f08 int[0x4]
+  ('table', 38610)+12: int overlaps 6:pad_m12 char[0x22]; 10:f08 int[0x4]
+  ('table', 38610)+14: int overlaps 6:pad_m12 char[0x22]; 10:f08 int[0x4]
+  ('table', 38610)+16: int overlaps 6:pad_m12 char[0x22]; 10:f08 int[0x4]
+  ('table', 38610)+18: int overlaps 6:pad_m12 char[0x22]
+  ('table', 38610)+1a: int overlaps 6:pad_m12 char[0x22]
+  ('table', 38610)+1e: int overlaps 6:pad_m12 char[0x22]
+  ('table', 38610)+20: int overlaps 6:pad_m12 char[0x22]
+  ('table', 38610)+22: int overlaps 6:pad_m12 char[0x22]; 22:f0a int[0x4]; 22:f04 int[0x3]
+  ('table', 38610)+24: int overlaps 6:pad_m12 char[0x22]; 22:f0a int[0x4]; 22:f04 int[0x3]
+  ('table', 38610)+26: int overlaps 6:pad_m12 char[0x22]; 22:f0a int[0x4]; 22:f04 int[0x3]
+  ('table', 38610)+28: int overlaps 22:f0a int[0x4]
+  ('table', 38610)+64: int overlaps 64:rest char[0x49]
+  ('table', 38610)+66: int overlaps 64:rest char[0x49]
+  ('table', 38610)+68: int overlaps 64:rest char[0x49]; 68:f68 POINT[0x2]
+  ('table', 38610)+6a: int overlaps 64:rest char[0x49]; 68:f68 POINT[0x2]
+  ('table', 38610)+6c: int overlaps 64:rest char[0x49]; 68:f68 POINT[0x2]
+  ('table', 38610)+6e: int overlaps 64:rest char[0x49]; 68:f68 POINT[0x2]
+  ('table', 38610)+70: char[0x14] overlaps 64:rest char[0x49]; 70:rest char[0x3d]; 70:f58 char[0x3d]; 70:f52 char[0x3d]; 70:f52 char[0x3d]; 70:f52 char[0x36]
+  ('table', 38610)+84: char[0xf] overlaps 64:rest char[0x49]; 70:rest char[0x3d]; 84:f80 char[0x25]; 70:f58 char[0x3d]; 84:f6c char[0x25]; 84:f_06c char[0x25]; 84:f_06c char[0x25]; 84:f_06c char[0x25]; 84:f6c char[0x29]; 70:f52 char[0x3d]; 70:f52 char[0x3d]; 70:f52 char[0x36]
+  ('table', 38610)+93: char[0xf] overlaps 64:rest char[0x49]; 70:rest char[0x3d]; 84:f80 char[0x25]; 93:f8b char[0x1a]; 70:f58 char[0x3d]; 84:f6c char[0x25]; 84:f_06c char[0x25]; 84:f_06c char[0x25]; 84:f_06c char[0x25]; 84:f6c char[0x29]; 70:f52 char[0x3d]; 70:f52 char[0x3d]; 70:f52 char[0x36]
+  ('table', 38610)+a2: char overlaps 64:rest char[0x49]; 70:rest char[0x3d]; 84:f80 char[0x25]; 93:f8b char[0x1a]; 70:f58 char[0x3d]; 84:f6c char[0x25]; 84:f_06c char[0x25]; 84:f_06c char[0x25]; 84:f_06c char[0x25]; 84:f6c char[0x29]; 70:f52 char[0x3d]; 70:f52 char[0x3d]; 70:f52 char[0x36]
+  ('table', 38610)+a3: char overlaps 64:rest char[0x49]; 70:rest char[0x3d]; 84:f80 char[0x25]; 93:f8b char[0x1a]; 70:f58 char[0x3d]; 84:f6c char[0x25]; 84:f_06c char[0x25]; 84:f_06c char[0x25]; 84:f_06c char[0x25]; 84:f6c char[0x29]; 70:f52 char[0x3d]; 70:f52 char[0x3d]; 70:f52 char[0x36]
+  ('table', 38610)+a4: char[0x2] overlaps 64:rest char[0x49]; 70:rest char[0x3d]; 84:f80 char[0x25]; 93:f8b char[0x1a]; 70:f58 char[0x3d]; 84:f6c char[0x25]; 84:f_06c char[0x25]; 84:f_06c char[0x25]; 84:f_06c char[0x25]; 84:f6c char[0x29]; 70:f52 char[0x3d]; 70:f52 char[0x3d]; 70:f52 char[0x36]
+  ('table', 38610)+a6: char, schar -> char
+  ('table', 38610)+a6: char overlaps 64:rest char[0x49]; 70:rest char[0x3d]; 84:f80 char[0x25]; 93:f8b char[0x1a]; 70:f58 char[0x3d]; 84:f6c char[0x25]; 84:f_06c char[0x25]; 84:f_06c char[0x25]; 84:f_06c char[0x25]; 84:f6c char[0x29]; 70:f52 char[0x3d]; 70:f52 char[0x3d]
+  ('table', 38610)+a7: int overlaps 64:rest char[0x49]; 70:rest char[0x3d]; 84:f80 char[0x25]; 93:f8b char[0x1a]; 70:f58 char[0x3d]; 84:f6c char[0x25]; 84:f_06c char[0x25]; 84:f_06c char[0x25]; 84:f_06c char[0x25]; 84:f6c char[0x29]; 70:f52 char[0x3d]; 70:f52 char[0x3d]
+  ('table', 38610)+a9: long overlaps 64:rest char[0x49]; 70:rest char[0x3d]; 93:f8b char[0x1a]; 70:f58 char[0x3d]; 84:f6c char[0x29]; 70:f52 char[0x3d]; 70:f52 char[0x3d]
+  ('table', 19856)+a: int overlaps a:rest char[0xa]
+  ('table', 19856)+c: int overlaps a:rest char[0xa]
+  ('table', 19856)+e: int overlaps a:rest char[0xa]
+  ('table', 19856)+10: int overlaps a:rest char[0xa]
+  ('table', 19856)+12: int overlaps a:rest char[0xa]
+  ('table', 22716)+c: int overlaps c:rest char[0x8]; c:rest char[0x8]
+  ('table', 22716)+e: int overlaps c:rest char[0x8]; c:rest char[0x8]
+  ('table', 22716)+10: int overlaps c:rest char[0x8]; c:rest char[0x8]
+  ('table', 22716)+12: int overlaps c:rest char[0x8]; c:rest char[0x8]
+  ('table', 12108)+30: int overlaps 30:rest char[0x20]
+  ('table', 12108)+32: int overlaps 30:rest char[0x20]
+  ('table', 12108)+34: int overlaps 30:rest char[0x20]
+  ('table', 12108)+36: int overlaps 30:rest char[0x20]
+  ('table', 12108)+38: int overlaps 30:rest char[0x20]
+  ('table', 12108)+3a: int overlaps 30:rest char[0x20]
+  ('table', 12108)+3c: int overlaps 30:rest char[0x20]
+  ('table', 12108)+3e: int overlaps 30:rest char[0x20]
+  ('table', 12108)+40: int overlaps 30:rest char[0x20]
+  ('table', 12108)+42: int overlaps 30:rest char[0x20]
+  ('table', 12108)+44: int overlaps 30:rest char[0x20]
+  ('table', 12108)+46: int overlaps 30:rest char[0x20]
+  ('table', 12108)+48: int overlaps 30:rest char[0x20]
+  ('table', 12108)+4a: int overlaps 30:rest char[0x20]
+  ('table', 12108)+4c: int overlaps 30:rest char[0x20]
+  ('table', 12108)+4e: int overlaps 30:rest char[0x20]
+  ('table', 22440)+c: char[0xd] overlaps c:rest char[0x17]; c:None char[0x17]; c:None char[0x17]
+  ('table', 22440)+19: int overlaps c:rest char[0x17]; c:None char[0x17]; c:None char[0x17]
+  ('table', 22440)+1b: char[0x4] overlaps c:rest char[0x17]; c:None char[0x17]; c:None char[0x17]
+  ('table', 22440)+1f: DWORD overlaps c:rest char[0x17]; c:None char[0x17]; c:None char[0x17]
+  ('table', 28216)+0: int overlaps 0:rest char[0x16]; 0:rest char[0x16]
+  ('table', 28216)+2: int overlaps 0:rest char[0x16]; 0:rest char[0x16]
+  ('table', 28216)+4: int overlaps 4:rest char[0x16]; 4:rest char[0x16]; 0:rest char[0x16]; 0:rest char[0x16]
+  ('table', 28216)+6: int overlaps 4:rest char[0x16]; 4:rest char[0x16]; 0:rest char[0x16]; 0:rest char[0x16]
+  ('table', 28216)+8: long overlaps 4:rest char[0x16]; 4:rest char[0x16]; 0:rest char[0x16]; 0:rest char[0x16]
+  ('table', 28216)+c: COLORREF, long -> COLORREF
+  ('table', 28216)+c: COLORREF overlaps 4:rest char[0x16]; 4:rest char[0x16]; 0:rest char[0x16]; 0:rest char[0x16]
+  ('table', 28216)+10: int overlaps 4:rest char[0x16]; 4:rest char[0x16]; 0:rest char[0x16]; 0:rest char[0x16]
+  ('table', 28216)+12: int overlaps 4:rest char[0x16]; 4:rest char[0x16]; 0:rest char[0x16]; 0:rest char[0x16]
+  ('table', 28216)+14: int overlaps 4:rest char[0x16]; 4:rest char[0x16]; 0:rest char[0x16]; 0:rest char[0x16]
+  ('table', 28216)+16: POINT overlaps 4:rest char[0x16]; 4:rest char[0x16]
+  ('table', 24728)+30: int[0x6][0x2], int[0xc] -> int[0x6][0x2]
+  ('table', 24728)+48: int[0x6][0x2], int[0xc] -> int[0x6][0x2]
+  ('table', 24728)+7a: int overlaps 7a:rest char[0x1a]
+  ('table', 24728)+7c: int overlaps 7a:rest char[0x1a]
+  ('table', 24728)+7e: int overlaps 7a:rest char[0x1a]
+  ('table', 24728)+80: int overlaps 7a:rest char[0x1a]
+  ('table', 24728)+82: int overlaps 7a:rest char[0x1a]
+  ('table', 24728)+84: int overlaps 7a:rest char[0x1a]; 84:f84 int[0x2]; 84:f84 int[0x2]
+  ('table', 24728)+86: int overlaps 7a:rest char[0x1a]; 84:f84 int[0x2]; 86:rest char[0xe]; 84:f84 int[0x2]
+  ('table', 24728)+88: int overlaps 7a:rest char[0x1a]; 86:rest char[0xe]
+  ('table', 24728)+8a: int overlaps 7a:rest char[0x1a]; 86:rest char[0xe]
+  ('table', 24728)+90: long overlaps 7a:rest char[0x1a]; 86:rest char[0xe]
+  ('table', 37212)+1a: int overlaps 1a:rest char[0x8]; 1a:rest char[0x8]
+  ('table', 37212)+1c: int overlaps 1a:rest char[0x8]; 1a:rest char[0x8]
+  ('table', 37212)+1e: int overlaps 1a:rest char[0x8]; 1a:rest char[0x8]
+  ('ptr', 7672)+4: POINT, long, struct anon13 -> POINT
+  ('ptr', 7672)+4: POINT overlaps 4:rest char[0x6c]
+  ('ptr', 7672)+8: POINT overlaps 4:rest char[0x6c]
+  ('ptr', 7672)+c: int overlaps 4:rest char[0x6c]
+  ('ptr', 7672)+e: int overlaps 4:rest char[0x6c]
+  ('ptr', 7672)+10: int overlaps 4:rest char[0x6c]
+  ('ptr', 7672)+12: int overlaps 4:rest char[0x6c]
+  ('ptr', 7672)+14: int overlaps 4:rest char[0x6c]
+  ('ptr', 7672)+16: int overlaps 4:rest char[0x6c]
+  ('ptr', 7672)+18: int overlaps 4:rest char[0x6c]
+  ('ptr', 7672)+1a: int overlaps 4:rest char[0x6c]; 1a:rest char[0x56]
+  ('ptr', 7672)+1c: int overlaps 4:rest char[0x6c]; 1a:rest char[0x56]
+  ('ptr', 7672)+1e: int overlaps 4:rest char[0x6c]; 1a:rest char[0x56]
+  ('ptr', 7672)+20: int overlaps 4:rest char[0x6c]; 1a:rest char[0x56]
+  ('ptr', 7672)+22: int overlaps 4:rest char[0x6c]; 1a:rest char[0x56]
+  ('ptr', 7672)+24: int overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 1a:rest char[0x56]
+  ('ptr', 7672)+26: int overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
+  ('ptr', 7672)+28: int overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
+  ('ptr', 7672)+2a: int overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
+  ('ptr', 7672)+2c: int overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
+  ('ptr', 7672)+2e: char, schar -> char
+  ('ptr', 7672)+2e: char overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
+  ('ptr', 7672)+2f: char, schar -> char
+  ('ptr', 7672)+2f: char overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
+  ('ptr', 7672)+30: char overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
+  ('ptr', 7672)+31: char overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
+  ('ptr', 7672)+32: int overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
+  ('ptr', 7672)+34: int overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
+  ('ptr', 7672)+36: int overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
+  ('ptr', 7672)+38: int overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
+  ('ptr', 7672)+3a: HDC, int -> HDC
+  ('ptr', 7672)+3a: HDC overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
+  ('ptr', 7672)+3c: HDC, int -> HDC
+  ('ptr', 7672)+3c: HDC overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
+  ('ptr', 7672)+3e: HBITMAP overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
+  ('ptr', 7672)+40: HBITMAP overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
+  ('ptr', 7672)+42: int overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
+  ('ptr', 7672)+44: int overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
+  ('ptr', 7672)+46: int overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
+  ('ptr', 7672)+48: int overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
+  ('ptr', 7672)+4a: int overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
+  ('ptr', 7672)+4c: COLORREF, DWORD, long, ulong -> DWORD
+  ('ptr', 7672)+4c: DWORD overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
+  ('ptr', 7672)+50: char overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
+  ('ptr', 7672)+51: char overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
+  ('ptr', 7672)+52: char overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
+  ('ptr', 7672)+53: char overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
+  ('ptr', 7672)+54: char overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
+  ('ptr', 7672)+55: char[0x9] overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
+  ('ptr', 7672)+5e: fn()->void *, fn(int, int)->int *, fn(int, int, int)->int * -> fn(int, int)->int *
+  ('ptr', 7672)+5e: fn(int, int)->int * overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
+  ('ptr', 7672)+62: fn()->void *, fn(int, int, HDC)->void * -> fn()->void *
+  ('ptr', 7672)+62: fn()->void * overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
+  ('ptr', 7672)+66: fn()->void *, fn(int, int)->void * -> fn(int, int)->void *
+  ('ptr', 7672)+66: fn(int, int)->void * overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
+  ('ptr', 7672)+6a: DWORD, ulong, void far * -> DWORD
+  ('ptr', 7672)+6a: DWORD overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
+  ('ptr', 7672)+6e: HPALETTE, char[0x2] -> HPALETTE
+  ('ptr', 7672)+6e: HPALETTE overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
+  ('ptr', 27124)+1e2: uchar[0x50] overlaps 1e2:f1e2 uchar[0xb5]; 1e2:f1e2 uchar[0xb5]; 1e2:f1e2 uchar[0xb5]; 1e2:f1e2 uchar[0xb5]
+  ('ptr', 27124)+232: char[0xa] overlaps 1e2:f1e2 uchar[0xb5]; 1e2:f1e2 uchar[0xb5]; 1e2:f1e2 uchar[0xb5]; 1e2:f1e2 uchar[0xb5]
+  ('ptr', 27124)+23c: char[0xa] overlaps 1e2:f1e2 uchar[0xb5]; 1e2:f1e2 uchar[0xb5]; 1e2:f1e2 uchar[0xb5]; 1e2:f1e2 uchar[0xb5]
+  ('ptr', 27124)+246: char[0xa] overlaps 1e2:f1e2 uchar[0xb5]; 1e2:f1e2 uchar[0xb5]; 1e2:f1e2 uchar[0xb5]; 1e2:f1e2 uchar[0xb5]
+  ('ptr', 27124)+250: char[0xa] overlaps 1e2:f1e2 uchar[0xb5]; 1e2:f1e2 uchar[0xb5]; 1e2:f1e2 uchar[0xb5]; 1e2:f1e2 uchar[0xb5]
+  ('ptr', 27124)+25a: char[0xa] overlaps 1e2:f1e2 uchar[0xb5]; 1e2:f1e2 uchar[0xb5]; 1e2:f1e2 uchar[0xb5]; 1e2:f1e2 uchar[0xb5]
+  ('ptr', 27124)+264: char overlaps 1e2:f1e2 uchar[0xb5]; 1e2:f1e2 uchar[0xb5]; 1e2:f1e2 uchar[0xb5]; 1e2:f1e2 uchar[0xb5]
+  ('ptr', 27124)+265: char[0xa] overlaps 1e2:f1e2 uchar[0xb5]; 1e2:f1e2 uchar[0xb5]; 1e2:f1e2 uchar[0xb5]; 1e2:f1e2 uchar[0xb5]
+  ('ptr', 27124)+26f: POINT[0xa] overlaps 1e2:f1e2 uchar[0xb5]; 1e2:f1e2 uchar[0xb5]; 1e2:f1e2 uchar[0xb5]; 1e2:f1e2 uchar[0xb5]
+  ('ptr', 27384)+4: char[0x14] overlaps 4:name char[0x1e]
+  ('ptr', 27384)+18: char overlaps 4:name char[0x1e]
+  ('ptr', 27384)+19: char overlaps 4:name char[0x1e]
+  ('ptr', 27384)+1a: char overlaps 4:name char[0x1e]
+  ('ptr', 27384)+1b: char overlaps 4:name char[0x1e]
+  ('ptr', 27384)+1c: char overlaps 4:name char[0x1e]
+  ('ptr', 27384)+1d: char overlaps 4:name char[0x1e]
+  ('ptr', 27384)+1e: long overlaps 4:name char[0x1e]
+  ('ptr', 27384)+30: char, schar -> schar
+  ('ptr', 27388)+32: WORD[0x2][0x4], uint[0x2][0x4] -> uint[0x2][0x4]
+  ('ptr', 28068)+0: HWND, int -> HWND
+  ('ptr', 28188)+1a: char, schar -> char
+  ('ptr', 28188)+1e: char, schar -> char
+  ('ptr', 28188)+1f: char, schar -> char
+  ('ptr', 28192)+a: char[0x15] overlaps a:name char[0x37]; a:name char[0x37]; a:name char[0x37]; a:f0a char[0x17]; a:f0a char[0x37]; a:name char[0x37]
+  ('ptr', 28192)+1f: int overlaps a:name char[0x37]; a:name char[0x37]; a:name char[0x37]; a:f0a char[0x17]; a:f0a char[0x37]; a:name char[0x37]
+  ('ptr', 28192)+21: int overlaps a:name char[0x37]; a:name char[0x37]; a:name char[0x37]; a:f0a char[0x37]; a:name char[0x37]
+  ('ptr', 28192)+38: char[0x9] overlaps a:name char[0x37]; a:name char[0x37]; a:name char[0x37]; a:f0a char[0x37]; a:name char[0x37]
+  ('ptr', 28196)+28: f28 char[0x10] cut to char[0xa]
+  ('ptr', 28196)+1c: char, uchar -> uchar
+  ('ptr', 28196)+28: char[0xa] overlaps 30:f30 char[0x8]; 28:f28 char[0x10]; 28:f28 char[0x10]
+  ('ptr', 28196)+32: char overlaps 30:f30 char[0x8]; 28:f28 char[0x10]; 32:f32 schar[0x40]; 28:f28 char[0x10]
+  ('ptr', 28196)+33: char, schar -> char
+  ('ptr', 28196)+33: char overlaps 30:f30 char[0x8]; 28:f28 char[0x10]; 32:f32 schar[0x40]; 28:f28 char[0x10]
+  ('ptr', 28196)+34: char, schar -> char
+  ('ptr', 28196)+34: char overlaps 30:f30 char[0x8]; 28:f28 char[0x10]; 32:f32 schar[0x40]; 28:f28 char[0x10]
+  ('ptr', 28196)+35: char, schar -> char
+  ('ptr', 28196)+35: char overlaps 30:f30 char[0x8]; 28:f28 char[0x10]; 32:f32 schar[0x40]; 28:f28 char[0x10]
+  ('ptr', 28196)+36: char, schar -> char
+  ('ptr', 28196)+36: char overlaps 30:f30 char[0x8]; 28:f28 char[0x10]; 32:f32 schar[0x40]; 28:f28 char[0x10]
+  ('ptr', 28196)+37: char, schar -> char
+  ('ptr', 28196)+37: char overlaps 30:f30 char[0x8]; 28:f28 char[0x10]; 32:f32 schar[0x40]; 28:f28 char[0x10]
+  ('ptr', 28196)+38: char[0x4], schar[0x4] -> char[0x4]
+  ('ptr', 28196)+38: char[0x4] overlaps 32:f32 schar[0x40]
+  ('ptr', 28196)+3c: char[0x28] overlaps 32:f32 schar[0x40]
+  ('ptr', 28196)+64: char overlaps 32:f32 schar[0x40]
+  ('ptr', 28196)+65: char[0xd] overlaps 32:f32 schar[0x40]; 65:name char[0x12]
+  ('ptr', 28196)+72: char, schar -> char
+  ('ptr', 28196)+72: char overlaps 65:name char[0x12]
+  ('ptr', 28196)+73: char, schar -> char
+  ('ptr', 28196)+73: char overlaps 65:name char[0x12]
+  ('ptr', 28196)+74: char, schar -> char
+  ('ptr', 28196)+74: char overlaps 65:name char[0x12]
+  ('ptr', 28196)+75: char overlaps 65:name char[0x12]
+  ('ptr', 28196)+76: char overlaps 65:name char[0x12]
+  ('ptr', 28196)+77: char, schar -> char
+  ('ptr', 28196)+7a: char, schar -> char
+  ('ptr', 28196)+7b: char, schar -> char
+== global types (89)
+  DS+9bc: g_09bc long[0xc] cut to long[0x6]
+  DS+3c8c: g_3c8c POINT[0x4] cut to POINT[0x3]
+  DS+6db8: ambulance_line char[0x5a] cut to char[0x50]
+  DS+5a8: DWORD, long -> DWORD
+  DS+5c0: DWORD, long -> DWORD
+  DS+5c4: DWORD, long -> DWORD
+  DS+5c8: DWORD, long -> DWORD
+  DS+5cc: DWORD, long -> DWORD
+  DS+9bc: long[0x6] overlaps 9bc:g_09bc long[0xc]; 9bc:g_09bc long[0xc]; 9bc:g_09bc long[0xc]
+  DS+9d6: char[] overlaps 9bc:g_09bc long[0xc]; 9bc:g_09bc long[0xc]; 9bc:g_09bc long[0xc]
+  DS+a7c: HWND, int -> HWND
+  DS+d1e: HWND, int -> HWND
+  DS+120e: DWORD, long -> DWORD
+  DS+1d40: DWORD, long -> DWORD
+  DS+1df8: struct REC70 far *[0x15], struct REC_70 far *[0x15], struct REC_70S far *[0x15], void far *[0x15] -> struct REC70 far *[0x15]
+  DS+1e50: DWORD, long, ulong -> DWORD
+  DS+1e68: DWORD, long, ulong -> DWORD
+  DS+1e6c: DWORD, long -> DWORD
+  DS+1e70: DWORD, long -> DWORD
+  DS+1e74: DWORD, long -> DWORD
+  DS+1e78: DWORD, long -> DWORD
+  DS+1e80: DWORD, long -> DWORD
+  DS+1e84: DWORD, long -> DWORD
+  DS+1e88: DWORD, long -> DWORD
+  DS+2384: DWORD, long -> DWORD
+  DS+39e8: HDC[], int[] -> HDC[]
+  DS+39e8: HDC[] overlaps 39e8:g_39e8 int
+  DS+3a02: HDC, int -> HDC
+  DS+3a28: HDC, int -> HDC
+  DS+3a38: HDC[], int[] -> HDC[]
+  DS+3a38: HDC[] overlaps 3a38:g_3a38 int
+  DS+3b44: HGDIOBJ[0x4], HPEN[0x4] -> HPEN[0x4]
+  DS+3b4c: HBRUSH[0x14], HGDIOBJ[0x14] -> HGDIOBJ[0x14]
+  DS+3b74: HBRUSH[0xa], HGDIOBJ[0xa] -> HBRUSH[0xa]
+  DS+3b88: HBRUSH[0x6], HGDIOBJ[0x6] -> HBRUSH[0x6]
+  DS+3b98: POINT, long -> POINT
+  DS+3c8c: POINT[0x3] overlaps 3c8c:g_3c8c POINT[0x4]
+  DS+3c9a: int overlaps 3c8c:g_3c8c POINT[0x4]
+  DS+3d4c: DWORD far *, void far * -> DWORD far *
+  DS+4e94: HBITMAP[0x20], HGDIOBJ[0x20], int[0x20] -> HGDIOBJ[0x20]
+  DS+4fcc: char far *, void far * -> char far *
+  DS+500a: HBRUSH, int -> HBRUSH
+  DS+5014: long, ulong -> ulong
+  DS+5224: POINT[0x2d], long[0x2d] -> POINT[0x2d]
+  DS+576c: HBRUSH[0x14], HGDIOBJ[0x14] -> HBRUSH[0x14]
+  DS+57a0: DWORD, long -> DWORD
+  DS+5ea8: HBRUSH[0x2], HGDIOBJ[0x2] -> HBRUSH[0x2]
+  DS+69f4: struct REC297 far *, struct REC_297 far *, void far * -> struct REC_297 far *
+  DS+6af8: struct REC_31 far *, void far * -> struct REC_31 far *
+  DS+6b50: POINT, long -> POINT
+  DS+6da8: DWORD, long -> DWORD
+  DS+6db8: char[0x50] overlaps 6db8:ambulance_line char[0x5a]; 6db8:g_6db8 char[0x5a]
+  DS+6e08: RECT overlaps 6db8:ambulance_line char[0x5a]; 6db8:g_6db8 char[0x5a]
+  DS+6e10: DWORD overlaps 6db8:ambulance_line char[0x5a]; 6db8:g_6db8 char[0x5a]
+  DS+6e1c: struct REC2C far *, struct REC_2C far * -> struct REC_2C far *
+  DS+6e20: struct REC41 far *, struct REC_41 far * -> struct REC_41 far *
+  DS+6e24: struct REC7C far *, struct REC_7C far *, void far * -> struct REC_7C far *
+  DS+8710: long, ulong -> ulong
+  DS+8714: DWORD, long, ulong -> DWORD
+  DS+88c0: POINT, long -> POINT
+  DS+8e2c: DWORD, long, ulong -> DWORD
+  DS+90fa: HMENU, int -> HMENU
+  DS+90fe: HFONT, HGDIOBJ -> HFONT
+  DS+912c: HGDIOBJ, int -> HGDIOBJ
+  DS+9210: HINSTANCE, int -> HINSTANCE
+  DS+9294: HBITMAP, int -> HBITMAP
+  DS+9296: HBITMAP, HGDIOBJ -> HBITMAP
+  DS+92b6: HDC, int -> HDC
+  DS+933a: int[] overlaps 933a:g_933a int
+  DS+93ca: HBITMAP, HGDIOBJ -> HGDIOBJ
+  DS+9460: HWND, int -> HWND
+  DS+94c8: int, uint -> uint
+  DS+953a: HBITMAP, int -> HBITMAP
+  DS+953c: HBITMAP, int -> HBITMAP
+  DS+9580: HDC, int -> HDC
+  DS+9582: HPALETTE, int -> HPALETTE
+  DS+9584: HBITMAP, int -> HBITMAP
+  DS+9586: HBITMAP, int -> HBITMAP
+  DS+95a6: HGLOBAL, int -> HGLOBAL
+  DS+95c0: HBITMAP, HGDIOBJ -> HBITMAP
+  DS+9666: int, uint -> uint
+  DS+9e41: struct anon26 overlaps 9e41:g_9e41 int[0x5]
+  DS+9e45: int overlaps 9e41:g_9e41 int[0x5]
+  DS+9e47: int overlaps 9e41:g_9e41 int[0x5]
+  DS+9e49: int overlaps 9e41:g_9e41 int[0x5]
+  DS+9e60: DWORD[], ulong[] -> DWORD[]
+  DS+9e90: DWORD[], ulong[] -> DWORD[]
+  DS+9f40: POINT[0x28][0x3], struct PAIR[0x28][0x3] -> struct PAIR[0x28][0x3]
+  DS+a198: char, schar -> char
+== api calls not found in the headers (0)
+== identifiers not found in the headers (0)

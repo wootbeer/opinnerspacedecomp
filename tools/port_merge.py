@@ -335,8 +335,9 @@ WIN_TYPES = {
 }
 
 PRELUDE = ''.join('typedef int %s;\n' % n for n in WIN_TYPES) + \
-    'struct find_t { int x; }; struct _find_t { int x; }; struct stat { int x; };\n' \
-    'struct tm { int x; }; struct utimbuf { int x; };\n'
+    'struct find_t { char x[43]; }; struct _find_t { char x[43]; }; struct stat { char x[30]; };\n' \
+    'struct tm { char x[18]; }; struct utimbuf { char x[8]; };\n'
+CRT_STRUCTS = {'find_t', '_find_t', 'stat', 'tm', 'utimbuf'}
 PRELUDE_LINES = PRELUDE.count('\n')
 
 
@@ -447,7 +448,8 @@ class Arr(Type):
         self.of, self.n = of, n
 
     def size(self):
-        return self.of.size() * (self.n or 0)
+        es = self.of.size if isinstance(self.of.size, int) else self.of.size()
+        return es * (self.n or 0)
 
     def align(self):
         return self.of.align()
@@ -942,7 +944,7 @@ def strip_arr(t):
 def type_rank(t):
     """Higher = more specific (preferred as the merged type)."""
     if isinstance(t, Struct):
-        return 90
+        return 80 if getattr(t, 'anon', False) or t.name.startswith('anon') else 90
     if isinstance(t, Win):
         if t.name in ('POINT', 'RECT', 'SIZE'):
             return 85
@@ -957,7 +959,7 @@ def type_rank(t):
         if isinstance(t.to, Func):
             return 78
         if isinstance(t.to, Prim) and t.to.name == 'void':
-            return 72
+            return 55
         return 75
     if isinstance(t, Arr):
         return 40 + type_rank(t.of) // 10
@@ -1182,7 +1184,7 @@ class Merge:
             while isinstance(t, Arr):
                 dims.append(t.n)
                 t = t.of
-            if isinstance(t, Struct) and dims:
+            if isinstance(t, Struct) and dims and t.name not in CRT_STRUCTS:
                 views[t.size()].append((g.addr, t, m.fn, dims, g))
             elif len(dims) >= 2 and isinstance(t, Prim):
                 rows.append((g.addr, g.type.of, m.fn, g))
@@ -1195,6 +1197,13 @@ class Merge:
                     st.row = True
                     views[size].append((addr, st, fn, [None], g))
                     break
+        plain = set()
+        for m, g in self.all_decls():
+            t = strip_arr(g.type)
+            if g.addr is not None and isinstance(g.type, Arr) and isinstance(t, Win) and t.name in Win.FIELDS:
+                plain.add((g.addr, t.size()))
+        for size in list(views):
+            views[size] = [v for v in views[size] if (v[0], size) not in plain]
         for size, vs in views.items():
             vs.sort(key=lambda v: v[0])
             clusters = []
@@ -1395,6 +1404,11 @@ class Merge:
                     if isinstance(strip_arr(ft), Ptr):
                         k.has_ptr = True
             k.fields = merge_items(items, S, k.fmt, self.report['field types'], str(k.key))
+            for a, b in zip(k.fields, k.fields[1:] + [None]):
+                if isinstance(a.type, Arr) and a.type.n is None:
+                    end = b.off if b is not None else S
+                    es = a.type.of.size() or 1
+                    a.type = Arr(a.type.of, max(1, (end - a.off) // es))
             seen = defaultdict(int)
             for f in k.fields:
                 seen[f.name] += 1
@@ -1541,6 +1555,8 @@ class Speller:
             return PRIM_PORT[t.name]
         if isinstance(t, Win):
             return t.name
+        if isinstance(t, Struct) and t.name in CRT_STRUCTS:
+            return 'struct %s' % t.name
         if isinstance(t, Struct):
             k = self.kind_of(t)
             if k is not None:
@@ -1619,6 +1635,7 @@ def emit_game_h(mg, path):
     w('#define LO8(v) (((char *)&(v))[0])')
     w('#define HI8(v) (((char *)&(v))[1])')
     w('#define VIEW(T, field, off) (*(T *)((uint8_t *)&(field) + (off)))')
+    w('#define VIEWP(PT, field, off) ((PT)((uint8_t *)&(field) + (off)))')
     w('')
     # kinds in dependency order
     used = [k for k in mg.kinds if k.fields or k.views]
@@ -1662,6 +1679,16 @@ def emit_game_h(mg, path):
         w('} %s;' % k.name)
         w('#pragma pack(pop)')
         w('')
+    # other typedefs (function pointer types and the like)
+    seen = {}
+    for m in mg.models:
+        for name, (t, node) in m.typedefs.items():
+            if isinstance(t, Struct) or name in seen:
+                continue
+            d = sp.decl(t, name)
+            seen[name] = d
+            w('typedef %s;' % d)
+    w('')
     # globals
     w('/* DGROUP globals, by DS offset. */')
     for a in sorted(mg.globals):
@@ -1728,3 +1755,296 @@ if __name__ == '__main__' and (len(sys.argv) == 1 or sys.argv[1] == '--emit'):
     os.makedirs(OUT, exist_ok=True)
     emit_game_h(mg, os.path.join(OUT, 'game.h'))
     print('wrote', os.path.join(OUT, 'game.h'))
+
+
+# ---------------------------------------------------------------------------
+# win16api.h: the Windows and runtime calls the game makes, declared with
+# fixed-width types (implementations come later)
+# ---------------------------------------------------------------------------
+
+MSVC_INC = os.path.join(os.environ.get('MSVC_DIR', '/home/user/toolchain/msvc'), 'INCLUDE')
+API_HEADERS = ['WINDOWS.H', 'MMSYSTEM.H', 'SHELLAPI.H', 'DOS.H', 'IO.H', 'DIRECT.H',
+               'SYS/STAT.H', 'SYS/UTIME.H', 'SYS/TYPES.H', 'STDLIB.H', 'STRING.H', 'TIME.H',
+               'MALLOC.H', 'MEMORY.H', 'STDIO.H', 'CTYPE.H', 'MATH.H']
+
+# Standard C functions: taken from the host's libc headers.
+STD_FUNCS = {
+    'string.h': 'strlen strcpy strcat strcmp strncpy strncmp strchr strrchr strstr memcpy memset '
+                'memcmp memmove strncat',
+    'stdlib.h': 'rand srand atoi atol abs labs malloc free calloc realloc qsort exit',
+    'stdio.h': 'sprintf printf fopen fclose fread fwrite fprintf sscanf',
+    'time.h': 'time localtime mktime',
+    'ctype.h': 'toupper tolower isdigit isalpha isspace isupper islower',
+    'stdarg.h': '',
+}
+STD_OF = {f: h for h, fs in STD_FUNCS.items() for f in fs.split()}
+
+HAND_MACROS = r'''
+#define LOBYTE(w) ((BYTE)((WORD)(w) & 0xff))
+#define HIBYTE(w) ((BYTE)((WORD)(w) >> 8))
+#define LOWORD(l) ((WORD)((DWORD)(l) & 0xffff))
+#define HIWORD(l) ((WORD)((DWORD)(l) >> 16))
+#define MAKELONG(lo, hi) ((LONG)(((WORD)(lo)) | (((DWORD)(WORD)(hi)) << 16)))
+#define MAKELPARAM(lo, hi) ((LPARAM)MAKELONG(lo, hi))
+#define RGB(r, g, b) ((COLORREF)(((BYTE)(r) | ((WORD)((BYTE)(g)) << 8)) | (((DWORD)(BYTE)(b)) << 16)))
+#define PALETTERGB(r, g, b) (0x02000000UL | RGB(r, g, b))
+#define PALETTEINDEX(i) ((COLORREF)(0x01000000UL | (DWORD)(WORD)(i)))
+#define GetRValue(rgb) ((BYTE)(rgb))
+#define GetGValue(rgb) ((BYTE)(((WORD)(rgb)) >> 8))
+#define GetBValue(rgb) ((BYTE)((rgb) >> 16))
+#define MAKEINTRESOURCE(i) ((LPCSTR)(uintptr_t)(WORD)(i))
+#define MAKEPOINT(l) (*(POINT *)&(l))
+#ifndef min
+#define min(a, b) (((a) < (b)) ? (a) : (b))
+#define max(a, b) (((a) > (b)) ? (a) : (b))
+#endif
+'''
+
+BASIC_TYPES = r'''
+typedef int16_t BOOL;
+typedef uint8_t BYTE;
+typedef uint16_t WORD;
+typedef uint32_t DWORD;
+typedef uint16_t UINT;
+typedef int32_t LONG;
+typedef uint16_t WPARAM;
+typedef int32_t LPARAM;
+typedef int32_t LRESULT;
+typedef uint32_t COLORREF;
+typedef int16_t HFILE;
+typedef uint16_t ATOM;
+typedef char *LPSTR;
+typedef const char *LPCSTR;
+typedef char *PSTR;
+typedef void *LPVOID;
+typedef uint8_t *LPBYTE;
+typedef WORD *LPWORD;
+typedef DWORD *LPDWORD;
+typedef int16_t *LPINT;
+#define TRUE 1
+#define FALSE 0
+typedef int16_t _dev_t;
+typedef uint16_t _ino_t;
+typedef int32_t _off_t;
+'''
+
+
+def _clean_header(text):
+    text = re.sub(r'/\*.*?\*/', ' ', text, flags=re.S)
+    text = re.sub(r'//[^\n]*', ' ', text)
+    return text
+
+
+HDR_DROP = {'FAR', 'NEAR', '_far', '__far', '_near', '__near', 'far', 'near', 'WINAPI', 'CALLBACK',
+            'PASCAL', '_pascal', '__pascal', '__cdecl', '_cdecl', 'cdecl', '_export', '__export',
+            '_loadds', '__loadds', 'huge', '_huge', '__huge', '_FAR_', '_CRTAPI1', '_CRTAPI2',
+            '__interrupt', '_interrupt', 'pascal', 'VFWAPI', 'STDAPI', '_based', 'APIENTRY',
+            'CDECL', '_CDECL', '__CDECL'}
+
+
+def port_c_types(text):
+    """Map 16-bit C type words in a declaration fragment to fixed width."""
+    toks = re.findall(r'[A-Za-z_]\w*|\d\w*|\S', text)
+    out = []
+    i = 0
+    while i < len(toks):
+        t = toks[i]
+        if t in HDR_DROP:
+            i += 1
+            continue
+        if t in ('unsigned', 'signed', 'int', 'long', 'short', 'char'):
+            words = []
+            while i < len(toks) and toks[i] in ('unsigned', 'signed', 'int', 'long', 'short', 'char'):
+                words.append(toks[i])
+                i += 1
+            if 'char' in words:
+                out.append('uint8_t' if 'unsigned' in words else 'char')
+            elif 'long' in words:
+                out.append('uint32_t' if 'unsigned' in words else 'int32_t')
+            else:
+                out.append('uint16_t' if 'unsigned' in words else 'int16_t')
+            continue
+        out.append(t)
+        i += 1
+    s = ''
+    for t in out:
+        if s and (re.match(r'\w', t) and re.match(r'(?s).*\w$', s)):
+            s += ' '
+        elif t == '*' and s and s[-1] not in '(*':
+            s += ' '
+        elif s and s[-1] == ',':
+            s += ' '
+        s += t
+    return s
+
+
+def read_headers():
+    protos, defines, structs, typedefs = {}, {}, {}, {}
+    for h in API_HEADERS:
+        p = os.path.join(MSVC_INC, h)
+        if not os.path.exists(p):
+            continue
+        with open(p, encoding='latin-1') as f:
+            text = _clean_header(f.read())
+        text = re.sub(r'\\\n', ' ', text)
+        for m in re.finditer(r'^[ \t]*#[ \t]*define[ \t]+(\w+)[ \t]+([^\n]+)$', text, re.M):
+            defines.setdefault(m.group(1), (m.group(2).strip(), h))
+        body = re.sub(r'^[ \t]*#[^\n]*$', ' ', text, flags=re.M)
+        for m in re.finditer(r'typedef\s+struct\s+(\w+)?\s*\{([^{}]*)\}\s*([^;]*);', body):
+            names = [n.strip() for n in m.group(3).split(',')]
+            for n in names:
+                n2 = n.replace('FAR', '').replace('NEAR', '').replace('*', '').strip()
+                if '*' in n:
+                    typedefs.setdefault(n2, ('ptr', names[0].strip()))
+                elif n2:
+                    structs.setdefault(n2, (m.group(1), m.group(2), h))
+        for m in re.finditer(r'struct\s+(\w+)\s*\{([^{}]*)\}\s*;', body):
+            structs.setdefault('struct ' + m.group(1), (m.group(1), m.group(2), h))
+        for m in re.finditer(r'typedef\s+([\w\s]+?)\s*(?:FAR|NEAR)?\s*\*\s*(\w+)\s*;', body):
+            typedefs.setdefault(m.group(2), ('ptr', m.group(1).replace('FAR', '').strip()))
+        for chunk in re.split(r'[;{}]', body):
+            m = re.fullmatch(r'\s*([A-Za-z_][\w\s\*]*?)\b(\w+)\s*\(([^()]*)\)\s*', chunk)
+            if not m:
+                continue
+            name = m.group(2)
+            ret = m.group(1)
+            if 'typedef' in ret or name in ('if', 'while', 'return', 'sizeof'):
+                continue
+            protos.setdefault(name, (ret.strip(), m.group(3).strip(), h))
+    return protos, defines, structs, typedefs
+
+
+def used_externals(models, mg):
+    declared = set(mg.functions)
+    calls, ids = set(), set()
+    local_names = set()
+    for m in models:
+        declared |= set(m.globals) | {g.name for g in m.block_externs} | set(m.funcs)
+        for fd in m.funcdefs:
+            for n in walk(fd):
+                if isinstance(n, c_ast.Decl) and n.name:
+                    local_names.add(n.name)
+                if isinstance(n, c_ast.FuncCall) and isinstance(n.name, c_ast.ID):
+                    calls.add(n.name.name)
+                elif isinstance(n, c_ast.ID):
+                    ids.add(n.name)
+        for name in m.protos:
+            if name not in m.funcs and name not in mg.functions:
+                calls.add(name) if False else None
+    calls -= declared
+    ids -= declared | local_names | calls
+    return calls, ids
+
+
+def emit_win16api_h(mg, path):
+    protos, defines, structs, typedefs = read_headers()
+    calls, ids = used_externals(mg.models, mg)
+    calls -= {'va_start', 'va_end', 'va_arg', 'SC', 'GETPROC'}
+    out = []
+    w = out.append
+    w('/* Windows 3.1 and C runtime calls made by the game, with fixed-width')
+    w(' * types (int is 16 bits, long 32 bits in the original).  Generated by')
+    w(' * tools/port_merge.py from the MSVC 1.5x headers; the implementations are')
+    w(' * native and come later. */')
+    w('#ifndef WIN16API_H')
+    w('#define WIN16API_H')
+    w('')
+    w('#include <stdint.h>')
+    w('#include <stddef.h>')
+    w('#include <stdarg.h>')
+    std_h = sorted({STD_OF[c] for c in calls if c in STD_OF})
+    for h in std_h:
+        w('#include <%s>' % h)
+    w(BASIC_TYPES)
+    handles = sorted(n for n in WIN_TYPES if n.startswith('H') and n not in ('HFILE',))
+    for h in handles:
+        w('typedef uint16_t %s;' % h)
+    w('typedef HANDLE HGLOBAL_;')
+    w('typedef int16_t (*FARPROC)(void);')
+    w('typedef LRESULT (*WNDPROC)(HWND, UINT, WPARAM, LPARAM);')
+    w('typedef BOOL (*DLGPROC)(HWND, UINT, WPARAM, LPARAM);')
+    w('typedef void (*TIMERPROC)(HWND, UINT, UINT, DWORD);')
+    w('')
+    # structs used by name
+    want = [n for n in WIN_TYPES if WIN_TYPES[n][1] == n and n in structs]
+    for alias, real in (('struct stat', 'struct _stat'), ('struct utimbuf', 'struct _utimbuf')):
+        if real in structs:
+            structs[alias] = (alias.split()[1],) + structs[real][1:]
+    want += ['struct _find_t', 'struct stat', 'struct utimbuf']
+    if 'time.h' not in std_h:
+        want.append('struct tm')
+    emitted = set()
+    lines = []
+
+    def emit_struct(n):
+        if n in emitted or n not in structs:
+            return
+        emitted.add(n)
+        tag, body, h = structs[n]
+        # dependencies
+        for dep in re.findall(r'\b([A-Z][A-Z0-9_]+)\b', body):
+            if dep in structs and dep != n:
+                emit_struct(dep)
+        fields = [port_c_types(x.strip()) + ';' for x in body.split(';') if x.strip()]
+        if n.startswith('struct '):
+            lines.append('%s {' % n)
+            lines.extend('    ' + f for f in fields)
+            lines.append('};')
+        else:
+            lines.append('typedef struct {')
+            lines.extend('    ' + f for f in fields)
+            lines.append('} %s;' % n)
+        lines.append('')
+    for n in want:
+        emit_struct(n)
+    out.extend(lines)
+    w('#define find_t _find_t')
+    for n in sorted(emitted):
+        if not n.startswith('struct ') and ('LP' + n) in typedefs:
+            w('typedef %s *LP%s;' % (n, n))
+    w('typedef POINT *LPPOINT;') if 'LPPOINT' not in ['LP' + n for n in emitted] else None
+    w('')
+    w(HAND_MACROS)
+    # constants
+    consts = []
+    seen = set()
+
+    def add_const(n, depth=0):
+        if n in seen or n not in defines or depth > 4 or n in ('NULL', 'TRUE', 'FALSE'):
+            return
+        seen.add(n)
+        val, h = defines[n]
+        for dep in re.findall(r'\b([A-Z_][A-Z0-9_]+)\b', val):
+            if dep in defines and dep not in BASIC_TYPES and dep not in WIN_TYPES:
+                add_const(dep, depth + 1)
+        val = port_c_types(val) if re.search(r'\b(int|long|unsigned)\b', val) else val
+        consts.append('#define %s %s' % (n, val))
+    missing = []
+    for n in sorted(ids):
+        if n in defines:
+            add_const(n)
+        elif re.match(r'^[A-Z][A-Z0-9_]+$', n):
+            missing.append(n)
+    w('/* Constants. */')
+    out.extend(c for c in consts if not re.search(r'\b(min|max|RGB|LOWORD|HIWORD|MAKELONG|LOBYTE|HIBYTE|'
+                                                    r'MAKEINTRESOURCE|MAKEPOINT|PALETTERGB|PALETTEINDEX|'
+                                                    r'MAKELPARAM)\b', c.split()[1]))
+    w('')
+    w('/* Functions. */')
+    unknown = []
+    for c in sorted(calls):
+        if c in STD_OF or c in ('min', 'max') or c in HAND_MACROS:
+            continue
+        if c in protos:
+            ret, params, h = protos[c]
+            ret = port_c_types(ret)
+            params = port_c_types(params) if params else 'void'
+            w('%s %s(%s);' % (ret, c, params))
+        else:
+            unknown.append(c)
+    w('')
+    w('#endif')
+    with open(path, 'w') as f:
+        f.write('\n'.join(out) + '\n')
+    mg.report['api calls not found in the headers'] = unknown
+    mg.report['identifiers not found in the headers'] = missing
