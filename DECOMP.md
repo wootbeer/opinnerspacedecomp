@@ -389,3 +389,8 @@ Conventions
 - `switch (st) { default: break; case 0: ... }` (default first) gives
   `mov ax,st; or ax,ax; jne` and out-of-line placement.
 - A value in di used twice can be an expression written twice, not a local.
+- CL keeps dead stores to locals inside loops (and in functions with
+  loops); outside loops it drops them.
+- An if/else-if chain on a local gives "store result, dec ax, compare slot";
+  a switch keeps the value in ax.
+- fn_02_1a5a's result is used (returns int, whatever g_fp_1d5c leaves).
