@@ -359,14 +359,14 @@ int far fn_06_301a(void)
                 fn_06_0f1a(sel, str);
                 WritePrivateProfileString(g_9690, "RaceLaps", str, g_96a9);
                 switch (sel) {
-                case 2:
-                    g_9ea0 = 10;
+                case 0:
+                    g_9ea0 = 1;
                     break;
                 case 1:
                     g_9ea0 = 5;
                     break;
-                case 0:
-                    g_9ea0 = 1;
+                case 2:
+                    g_9ea0 = 10;
                     break;
                 }
             }
@@ -1505,7 +1505,210 @@ void far fn_06_23d4(void)
     }
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+extern int g_94bc;
+extern int g_94b2;
+extern int g_94be;
+
+/* Fills the drive/track list box of the load window [inferred]. */
+/* @addr 6:37ca */
 void far fn_06_37ca(void)
 {
+    int i;
+    int j;
+    int n;
+    int r;
+    int a;
+    int b;
+    int cnt;
+    int lim;
+    char buf[110];
+    char s[110];
+    HWND list;
+    int found;
+    int unused;
+
+    g_0950 = g_094e = 0;
+    g_94bc = GetPrivateProfileInt(g_9690, "Tree", 0, g_96a9);
+    if (g_920c != -1 && g_920c != 2)
+        g_94b2 = 0;
+    else
+        g_94b2 = 1;
+    g_94b6 = 0;
+    list = GetDlgItem(g_0d1e, 0x65);
+    SendMessage(list, WM_SETREDRAW, 0, 0L);
+    SendMessage(list, LB_RESETCONTENT, 0, (LPARAM)(LPSTR)"");
+    lstrcpy(buf, "");
+    lstrcat(buf, g_0d18);
+    found = fn_06_45be(buf);
+    a = 0;
+    if (fn_06_4748(buf) && fn_06_4650(buf))
+        a = 1;
+    if (!found)
+        b = 2;
+    else
+        b = fn_06_3f4c(buf);
+    if (b < 2)
+        g_94b2 = 0;
+    fn_06_4118(buf, 1, a, b);
+    lstrcpy(s, " ");
+    lstrcat(s, buf);
+    SendMessage(list, LB_ADDSTRING, 0, (LPARAM)(LPSTR)s);
+    g_94b6++;
+    lstrcpy(buf, g_0d18);
+    lstrcat(buf, "*.*");
+    r = _dos_findfirst(buf, _A_RDONLY | _A_SYSTEM | _A_SUBDIR, &g_69f8);
+    do {
+        if ((g_69f8.attrib & _A_SUBDIR) && g_69f8.name[0] != '.') {
+            lstrcpy(buf, g_0d18);
+            lstrcat(buf, g_69f8.name);
+            if (!g_94bc || fn_06_45be(buf)) {
+                a = 0;
+                if (fn_06_4748(buf) && (!g_94bc || fn_06_4650(buf)))
+                    a = 1;
+                if ((b = fn_06_3f4c(buf)) < 2)
+                    g_94b2 = 0;
+                lstrcpy(buf, g_69f8.name);
+                fn_06_4118(buf, 1, a, b);
+                SendMessage(list, LB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
+                g_94b6++;
+            }
+        }
+    } while (!_dos_findnext(&g_69f8));
+    LoadString(g_9212, 0x2f8, buf, 40);
+    b = a = 0;
+    if (g_920c != -1 && g_920c != 2)
+        b = 3;
+    fn_06_4118(buf, 1, a, b);
+    SendMessage(list, LB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
+    g_94b6++;
+    if (g_920c == 3)
+        lim = 1;
+    else
+        lim = 3;
+    for (i = 0; i < lim; i++) {
+        LoadString(g_9212, 0x2e4 + i, s, 40);
+        lstrcpy(buf, s);
+        LoadString(g_9212, 0x2e3, s, 40);
+        lstrcat(buf, s);
+        b = a = 0;
+        if (!g_920c && i > 0 && flow_interactive)
+            b = 3;
+        fn_06_4118(buf, 1, a, b);
+        SendMessage(list, LB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
+        g_94b6++;
+    }
+    for (i = 0; i < 1; i++) {
+        LoadString(g_9212, 0x2ee + i, s, 40);
+        lstrcpy(buf, s);
+        LoadString(g_9212, 0x2e0, s, 40);
+        lstrcat(buf, s);
+        b = a = 0;
+        if (!g_920c && flow_interactive)
+            b = 3;
+        fn_06_4118(buf, 1, a, b);
+        SendMessage(list, LB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
+        g_94b6++;
+    }
+    SendMessage(list, WM_SETREDRAW, 1, 0L);
+    cnt = 0;
+    if (g_91f8) {
+        lstrcpy(g_6990, g_69f4[g_94a2].f152);
+        if (g_6990[1] != ':') {
+            lstrcpy(s, g_6990);
+            lstrcpy(g_6990, g_0d18);
+            lstrcat(g_6990, s);
+        }
+    } else {
+        g_94be = 0;
+        if (g_90f8) {
+            switch (g_95ba) {
+            case 0x208:
+                lstrcpy(g_6990, g_0d18);
+                break;
+            case 0x209:
+            case 0x20a:
+                g_94be = 1;
+                break;
+            }
+            if (g_94be) {
+                GetPrivateProfileString(g_9690, "Track", "", g_6990, 0x6d, g_96a9);
+                switch (g_95ba) {
+                case 0x209:
+                    for (i = 0; i < 3; i++) {
+                        LoadString(g_9212, 0x2e4 + i, s, 40);
+                        if (!lstrcmp(s, g_6990))
+                            g_094e = (i << 2) + 1;
+                    }
+                    break;
+                case 0x20a:
+                    lstrcpy(g_6990, "Dodge City");
+                    for (i = 0; i < 1; i++) {
+                        LoadString(g_9212, 0x2ee + i, s, 40);
+                        if (!lstrcmp(s, g_6990))
+                            g_0950 = (i << 2) + 1;
+                    }
+                    break;
+                }
+                switch (g_95ba) {
+                case 0x209:
+                    LoadString(g_9212, 0x2e3, s, 40);
+                    break;
+                case 0x20a:
+                    LoadString(g_9212, 0x2e0, s, 40);
+                    break;
+                }
+                lstrcat(g_6990, s);
+                lstrcpy(buf, g_6990);
+            }
+        } else
+            lstrcpy(g_6990, g_0d18);
+    }
+    if (lstrlen(g_6990) < 4) {
+        if (!flow_interactive)
+            g_94b4 = 0;
+        else
+            g_94b4 = 1;
+    } else {
+        if (!g_94be) {
+            for (j = 0, i = 3; i < lstrlen(g_6990); j++, i++) {
+                if (!cnt)
+                    buf[j] = g_6990[i];
+                if (g_6990[i] == '\\') {
+                    if (!cnt)
+                        buf[j] = 0;
+                    cnt++;
+                }
+            }
+            buf[j] = 0;
+        }
+        g_94b4 = SendMessage(list, LB_FINDSTRINGEXACT, -1, (LPARAM)(LPSTR)buf);
+        if (g_94b4 == -1)
+            g_94b4 = SendMessage(list, LB_FINDSTRING, -1, (LPARAM)(LPSTR)buf);
+        if (g_94b4 < 0) {
+            g_94b4 = 0;
+            lstrcat(g_6990, g_0d18);
+        }
+    }
+    SendMessage(list, LB_SETCURSEL, g_94b4, 0L);
+    if (cnt > 1) {
+        lstrcpy(s, g_6990);
+        j = n = 0;
+        for (i = 3; i < lstrlen(s); i++) {
+            if ((g_6990[i] = buf[j] = s[i]) == '\\') {
+                g_6990[i + 1] = buf[j] = 0;
+                if (n) {
+                    g_94b4 = SendMessage(list, LB_FINDSTRINGEXACT, g_94b4, (LPARAM)(LPSTR)buf);
+                    if (g_94b4 == -1)
+                        g_94b4 = SendMessage(list, LB_FINDSTRING, -1, (LPARAM)(LPSTR)buf);
+                    SendMessage(list, LB_SETCURSEL, g_94b4, 0L);
+                }
+                n++;
+                if ((a = fn_06_5260(buf)) == 1)
+                    fn_06_4f46();
+                j = 0;
+            } else
+                j++;
+        }
+        lstrcpy(g_6990, s);
+    }
 }
