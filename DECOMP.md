@@ -316,3 +316,11 @@ Conventions
 - `CFLAGS='... /Fc'` with match.py --keep gives listings with symbol names.
 - fn_13_1076 is int far pascal (int type, int n). DS:9406 and DS:92ec are
   int[15] per-type tables.
+- A bare label right after a call stops CL keeping a record index in si
+  across it, and stops it sinking an earlier constant store into a push.
+- Two adjacent globals stored as one dword (`mov dword [x], imm`) must be
+  one object: `extern struct { int a, b; } g_x;`.
+- Fields below a record base: declare a second view of the array at the
+  lower base (the reference check works on the 16-bit sum).
+- A frame one slot too big: a block-scoped local shares its slot with a
+  compiler temp.

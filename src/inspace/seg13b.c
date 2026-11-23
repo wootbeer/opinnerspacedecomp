@@ -5,6 +5,8 @@
 
 /* BEGIN STRUCTS */
 typedef void (far *FNPTR)(int, int);  /* REC70 handler [inferred] */
+typedef int (far *FNSPLIT)(int, int); /* REC70 +5e, e.g. fn_07_570a */
+typedef void (far *FNVOID)(void);     /* REC70 +62, e.g. fn_11_3914 */
 #pragma pack(1)
 /* Object records: array of 0x15a-byte records at DS:7092 [inferred base:
  * lowest offset accessed with an index * 0x15a]. Fields named by offset
@@ -19,7 +21,8 @@ typedef struct {
     int f_00e;    /* DS:70a0 */
     char pad_010[0x2];
     int f_012;    /* DS:70a4 */
-    char pad_014[0x8];
+    int f_014;    /* DS:70a6 */
+    char pad_016[0x6];
     int f_01c;    /* DS:70ae */
     char pad_01e[0x6];
     int f_024;    /* DS:70b6 */
@@ -82,7 +85,7 @@ typedef struct {
     char f_0eb;    /* DS:717d */
     char f_0ec[8];    /* DS:717e */
     char f_0f4[9][9];    /* DS:7186 */
-    char pad_145[0x1];
+    char f_145;    /* DS:71d7 */
     char f_146;    /* DS:71d8 */
     char f_147;    /* DS:71d9 */
     char pad_148[0xc];
@@ -109,26 +112,35 @@ typedef struct {
     int f_024;
     int f_026;
     int f_028;
-    char pad_02a[0x10];
+    char pad_02a[0x4];
+    char f_02e;
+    char pad_02f[0x3];
+    int f_032;
+    char pad_034[0x6];
     int f_03a;
     int f_03c;
-    char pad_03e[0x6];
+    char pad_03e[0x4];
+    int f_042;
     int f_044;
     int f_046;
     char pad_048[0x2];
     int f_04a;
-    char pad_04c[0x5];
+    unsigned long f_04c;
+    char pad_050[0x1];
     char f_051;
     char f_052;
     char f_053;
-    char pad_054[0x12];
+    char f_054;
+    char pad_055[0x9];
+    FNSPLIT f_05e;
+    FNVOID f_062;
     FNPTR f_066;
     char pad_06a[0x6];
 } REC70;
 
 /* 0x41-byte records through the far pointer at DS:6e20 [inferred]. */
 typedef struct {
-    char pad_000[0x1];
+    char f_000;
     char f_001;
     char f_002;
     char f_003;
@@ -254,6 +266,10 @@ extern int g_934e;
 extern int g_9432;
 void far fn_13_4eec(int i, int d);
 #define CLS(i) g_96ea[g_7092[i].f_04c].f_020   /* class of object i */
+
+extern int g_9208;
+extern int g_0992;
+extern int g_932a;
 
 /* @addr 13:910a */
 int far fn_13_910a(int n)
@@ -1160,9 +1176,10 @@ int far fn_13_9ce0(int a)
     return 0;
 }
 
-/* near-match 38%: 13:8e98 (the game stores done = 1 right after f_050 = 5
- * and reloads the record index after each call; CL sinks the store and
- * keeps the index in si) */
+/* Object a asks the others to join its attack on k [inferred]. The bare
+ * label l1 (no goto) is needed to match: it resets CL's register
+ * tracking after the first call. */
+/* @addr 13:8e98 */
 void far fn_13_8e98(int a)
 {
     int i, u, s, k, done;
@@ -1202,6 +1219,7 @@ void far fn_13_8e98(int a)
                 g_7092[i].f_050 = 5;
                 done = 1;
                 fn_03_06ec(g_7092[i].f_056, 14, a, 0x13);
+            l1:
                 g_7092[i].f_092 = g_1e50 + 200;
                 g_7092[i].f_096 = g_1e50 + 20000;
                 g_7092[a].f_09a = g_1e50 + 15000;
@@ -1211,7 +1229,7 @@ void far fn_13_8e98(int a)
                 fn_03_06ec(i, 14, a, 2);
                 g_7092[i].f_056 = a;
                 fn_13_2714(g_7092[a].f_03e, a, 15, 0x32, 1, -1);
-                break;
+                return;
             }
         }
     }
@@ -1277,4 +1295,77 @@ int far fn_13_78b8(int a, int b)
         }
     }
     return -1;
+}
+
+/* Object n looks for a helper among the others (like fn_13_8570) [inferred].
+ * Returns 1 if one joined, 0 if none, -1 when n asked too recently. */
+/* @addr 13:81c2 */
+int far fn_13_81c2(int n)
+{
+    int j, u, sc, found;
+
+    u = found = 0;
+    if ((n != g_9646 || g_9134 != 0) && g_7092[n].f_09a > g_1e50)
+        return -1;
+    g_7092[n].f_09a = g_1e50 + 5000;
+    fn_13_4eec(n, 15);
+    for (j = 0; j <= g_9316; j++) {
+        if (g_1e30[j].f_018 == 0 && g_7092[j].f_0ea && j != n
+            && (g_7092[j].f_050 == 0 || g_7092[j].f_050 == 7
+                || g_7092[j].f_096 < g_1e50 || g_7092[j].f_056 == n
+                || (flow_interactive && n == g_9646))) {
+            sc = fn_13_2688(n, j) + g_7092[j].f_05b * -100;
+            if (g_7092[j].f_024 < 40)
+                sc -= 100;
+            if (CLS(j) == CLS(n))
+                sc += 100;
+            if ((g_7092[j].f_030 == 14 && g_7092[j].f_032 == n && g_7092[j].f_036 == 1)
+                || (g_7092[n].f_030 == 14 && g_7092[n].f_032 == j && g_7092[n].f_036 == 1))
+                sc -= 800;
+            if (CLS(j) == 0 && CLS(n) == 2)
+                sc += 350;
+            if (g_96ea[g_7092[n].f_04c].f_006 / 10 > g_7092[n].f_01c)
+                sc -= 1000;
+            if (sc > -150) {
+                fn_13_4eec(n, 20);
+                if (n == g_9646)
+                    fn_13_4eec(j, 40);
+                if (j == g_9646 && g_9134 && flow_interactive) {
+                    if (g_1e50 - 15000 > g_8858) {
+                        g_964e = 1;
+                        g_9652 = g_9654 = n;
+                        g_8858 = g_1e50;
+                        fn_03_06ec(g_9646, g_9650 = 14, n, 0x34);
+                    }
+                } else if (CLS(j) != 7) {
+                    if (g_7092[j].f_050)
+                        fn_03_06ec(g_7092[j].f_056, 14, n, 0x13);
+                    if (n == g_9646 && g_9134 == 1)
+                        fn_03_33b4(1);
+                    g_7092[j].f_092 = g_1e50 + 200;
+                    found = g_7092[j].f_050 = 1;
+                    g_7092[j].f_052 = 14;
+                    g_7092[j].f_054 = n;
+                    g_7092[n].f_09a = g_7092[j].f_096 = g_1e50 + 15000;
+                    g_7092[j].f_056 = n;
+                    fn_03_00f4(j, 14, n);
+                    g_7092[j].f_0eb = 1;
+                    g_7092[j].f_0a2 = g_1e50 - g_7092[j].f_05b * 2000 + 8000;
+                    fn_03_06ec(j, 14, n, 2);
+                    if (n != g_9646)
+                        fn_13_2714(n, j, 15, 0x23, 0, -1);
+                    else
+                        fn_13_2714(n, j, 15, 15, 0, -1);
+                    return 1;
+                }
+            }
+        }
+    }
+    if (!found) {
+        if (n == g_9646 || rand() % 14 < 12 - g_9208
+            || (g_0992 + 20 < g_932a && !fn_13_adbe(n, 4, 0x68)))
+            if (n != g_9646 || flow_interactive)
+                fn_03_06ec(n, 7, 0, 6);
+    }
+    return 0;
 }

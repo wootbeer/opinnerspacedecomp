@@ -1,7 +1,7 @@
 # INSPACE.EXE decomp progress
 
-- Functions matched byte for byte: **721 / 886** (81.38%)
-- Code bytes in matched functions: **256198 / 522732** (49.01%)
+- Functions matched byte for byte: **732 / 886** (82.62%)
+- Code bytes in matched functions: **265573 / 522732** (50.80%)
 - C runtime functions (from MLIBCEW.LIB, not counted): 48
 - Functions in source, not yet matching: 1
 
