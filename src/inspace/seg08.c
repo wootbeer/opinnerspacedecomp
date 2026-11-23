@@ -67,12 +67,21 @@ typedef struct {
     int f28;                    /* +28: direction */
     char p2a[0x2e - 0x2a];
     char f2e;                   /* +2e */
-    char p2f[0x32 - 0x2f];
-    int f32;                    /* +32 */
-    char p34[0x3a - 0x34];
+    char p2f;
+    char f30;                   /* +30: tether index */
+    char p31;
+    int f32;                    /* +32: towed object type */
+    int f34;                    /* +34: towed object index */
+    int f36;                    /* +36 */
+    char p38[0x3a - 0x38];
     HDC f3a;                    /* +3a */
     HDC f3c;                    /* +3c */
-    char p3e[0x54 - 0x3e];
+    char p3e[0x44 - 0x3e];
+    int f44;                    /* +44: mass [inferred] */
+    char p46[0x50 - 0x46];
+    char f50;                   /* +50 */
+    char p51[0x53 - 0x51];
+    char f53;                   /* +53 */
     char f54;                   /* +54 */
     char p55[0x70 - 0x55];
 } REC_70;
@@ -102,7 +111,8 @@ extern REC_24 g_52ec[];
 
 /* 0x15a-byte records at DS:70ae (as in seg09.c). */
 typedef struct {
-    char p00[0x14];
+    int f00;                    /* +00 */
+    char p02[0x14 - 0x02];
     PAIR f14;                   /* +14 */
     int f18;                    /* +18 */
     int f1a;                    /* +1a */
@@ -168,6 +178,38 @@ extern int g_2392;
 extern int g_2394;
 extern int g_2396;
 extern int g_951a;
+/* 0x20-byte tether records at DS:65cc [inferred] (seg09.c: REC_20). */
+typedef struct {
+    int f00;                    /* +00 */
+    char p02[2];
+    int f04;                    /* +04: towed object type */
+    int f06;                    /* +06: towed object index */
+    char p08[2];
+    int f0a;                    /* +0a: 2 = heavy */
+    char p0c[2];
+    int f0e;                    /* +0e: spin direction */
+    POINT f10;                  /* +10: screen end, this frame */
+    POINT f14;                  /* +14: screen end, last frame */
+    POINT f18;                  /* +18: towed end, this frame */
+    POINT f1c;                  /* +1c: towed end, last frame */
+} REC_20;
+extern REC_20 g_65cc[];
+/* Second view of the 0x15a-byte records at their lowest base, DS:7092. */
+typedef struct {
+    int f00;                    /* +00 */
+    char p02[0xe0 - 0x02];
+    char fe0;                   /* +e0 */
+    char pe1[0x15a - 0xe1];
+} REC_15A_LO;
+extern REC_15A_LO g_7092[];
+extern int g_915a;
+extern DWORD g_1e68;
+extern int g_17bc;
+extern int g_17be;
+extern int g_8ff2;
+extern HPEN g_3b44[];
+void far fn_12_7256(HDC dc, POINT a, POINT b);
+void far fn_11_a234(int type, int idx, int t2, int i2);
 /* 0x7c-, 0x41-, 0x2c- and 0xad-byte records (see seg03.c/seg04.c). */
 typedef struct { int f00; char p02[0x7c - 0x02]; } REC_7C;
 typedef struct { char p00[0x1a]; char f1a; char p1b[0x2c - 0x1b]; } REC_2C;
@@ -832,7 +874,9 @@ void far fn_08_2cd8(int a, int b)
 
 /* Clamp an object's velocity to [-v, v] [inferred]. */
 /* @addr 8:1cbe */
-void far pascal fn_08_1cbe(OBJREF r, int v)
+void far pascal fn_08_1cbe(r, v)
+OBJREF r;
+int v;
 {
     int type;
     int idx;
@@ -953,10 +997,169 @@ void far pascal fn_08_1b54(WORD r, int n)
         g_9006 = saved;
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Tether physics for object (type, idx) towing object f32/f34: spring
+ * forces, break-off, and redraw of the tether line [inferred]. */
+/* near-match 99%: 8:1e32 (only compiler temp slots differ: the original
+ * puts the cx/bx spills at bp-44/-42 and the POINT return temps at bp-48
+ * and bp-4c; here the return temps come first). pad keeps per at bp-48. */
 void far pascal fn_08_1e32(int type, int idx)
 {
-    g_9006 = type + idx;
+    POINT c;
+    POINT dv;
+    POINT dp;
+    HPEN old;
+    int dist;
+    int t2;
+    int i2;
+    int bi;
+    int len;
+    int u;
+    int w;
+    int m1;
+    int m2;
+    int f1;
+    int f2;
+    int px;
+    int py;
+    int rest;
+    int heavy;
+    int k;
+    long dot;
+    long a;
+    long b;
+    int force;
+    int j;
+
+    g_915a++;
+    if (g_915a > 3)
+        g_915a = 0;
+    bi = g_1df8[type][idx].f30;
+    if (g_65cc[bi].f0a == 2)
+        heavy = 1;
+    else
+        heavy = 0;
+    g_1df8[type][idx].f04.x -= g_1df8[type][idx].f0c;
+    g_1df8[type][idx].f04.y -= g_1df8[type][idx].f0e;
+    t2 = g_1df8[type][idx].f32;
+    i2 = g_1df8[type][idx].f34;
+    /* bare label: resets CL's register tracking (layout only) */
+lbl:
+    k = 0;
+    j = i2;
+    rest = 300;
+    c.x = g_1df8[t2][i2].f20 / 2 + g_1df8[t2][i2].f04.x;
+    c.y = g_1df8[t2][i2].f20 / 2 + g_1df8[t2][i2].f04.y;
+    g_65cc[bi].f10 = fn_08_29ea(g_1df8[type][idx].f04);
+    g_65cc[bi].f18 = fn_08_29ea(g_1df8[t2][i2].f04);
+    dist = fn_08_285a(&px, &py, g_1df8[type][idx].f04, c);
+    if (dist == 0)
+        dist = 1;
+    if (t2 == 14) {
+        int m;
+        int pad;
+        int per;
+
+        m = g_1df8[type][idx].f44;
+        per = m / -200 + 8 < 3 ? 3 : m / -200 + 8;
+        if (g_1e68 % per == 0) {
+            g_70ae[i2].f00 -= 3;
+            if (g_70ae[i2].f00 <= 0)
+                dist = 1000;
+        }
+    }
+    if (heavy * 100 + 350 < dist
+        || g_1df8[g_1df8[type][idx].f32][g_1df8[type][idx].f34].f18 != 0
+        || type == 7) {
+        g_1df8[type][idx].f32 = -1;
+        g_1df8[g_65cc[bi].f04][g_65cc[bi].f06].f36 = -1;
+        g_65cc[bi].f00 = -1;
+        g_65cc[bi].f04 = -1;
+        old = SelectObject(g_13dc, GetStockObject(BLACK_PEN));
+        fn_12_7256(g_13dc, g_65cc[bi].f1c, g_65cc[bi].f14);
+        fn_12_7256(g_13dc, g_65cc[bi].f18, g_65cc[bi].f10);
+        SelectObject(g_13dc, old);
+        fn_07_2080(10, -1);
+        fn_10_744c(0x69);
+        fn_10_754a(0x14, type, idx, 1);
+    }
+    if (dist > 40) {
+        if (heavy == 0) {
+            if (rest < dist) {
+                dv.x = g_1df8[type][idx].f0c - g_1df8[t2][i2].f0c;
+                dv.y = g_1df8[type][idx].f0e - g_1df8[t2][i2].f0e;
+                len = (int)fn_08_1290((long)(dv.x * dv.x + dv.y * dv.y),
+                                      (long)(fn_09_88ba(dv.x) + fn_09_88ba(dv.y)));
+                dp.x = g_65cc[bi].f18.x - g_65cc[bi].f10.x;
+                dp.y = g_65cc[bi].f18.y - g_65cc[bi].f10.y;
+                a = (long)dp.x * dv.x;
+                b = (long)dp.y * dv.y;
+                dot = a + b;
+                if (len == 0)
+                    len = 1;
+                u = (int)((w = (int)(dot * -100 / ((long)dist * len))) * (long)len / 100);
+                force = min(dist - rest, 60) * 50;
+                m1 = g_1df8[type][idx].f44;
+                m2 = g_1df8[t2][i2].f44;
+                if (k != 0)
+                    m1 /= 3;
+                if (rest < 300)
+                    m1 /= 3;
+                if (force > 3000 && rest >= 300)
+                    u = -50;
+                if (force > 1800 && rest < 300 && type == g_9324
+                    && g_7092[idx].fe0 == 0 && g_7092[idx].f00 != 0) {
+                    g_1df8[g_9324][i2].f50 = 60;
+                    fn_11_a234(g_9324, i2, type, idx);
+                }
+                if (dot < 0) {
+                    f1 = (int)((long)u * 100 / ((long)m1 * 100 / m2 + 100));
+                    f2 = u - f1;
+                } else
+                    f1 = f2 = 0;
+                f1 += force / m1;
+                g_1df8[type][idx].f0c += (g_17bc / 3 + f1) * dp.x / dist;
+                g_1df8[type][idx].f0e += (g_17bc / 3 + f1) * dp.y / dist;
+                f2 += force / m2;
+                g_1df8[t2][i2].f0c -= (g_17be / 3 + f2) * dp.x / dist;
+                g_1df8[t2][i2].f0e -= (g_17be / 3 + f2) * dp.y / dist;
+                g_17bc = f1;
+                g_17be = f2;
+                if (rest < 300)
+                    fn_08_1cbe((char)idx | type << 8, 80);
+            }
+        } else if (g_1df8[type][idx].f53 == 1) {
+            g_1df8[type][idx].f0c += px >> 2;
+            g_1df8[type][idx].f0e += py >> 2;
+        } else if (g_65cc[bi].f0e != 0) {
+            g_1df8[type][idx].f0c = (int)(180L * py / dist) + (px << 3) / dist;
+            g_1df8[type][idx].f0e = (int)(-180L * px / dist) + (py << 3) / dist;
+        } else {
+            g_1df8[type][idx].f0c = (int)(-180L * py / dist) + (px << 3) / dist;
+            g_1df8[type][idx].f0e = (int)(180L * px / dist) + (py << 3) / dist;
+        }
+    }
+    g_1df8[type][idx].f04.x += g_1df8[type][idx].f0c;
+    g_1df8[type][idx].f04.y += g_1df8[type][idx].f0e;
+    fn_07_1208();
+    old = SelectObject(g_13dc, GetStockObject(BLACK_PEN));
+    fn_12_7256(g_13dc, g_65cc[bi].f1c, g_65cc[bi].f14);
+    SelectObject(g_13dc, old);
+    if (g_1df8[type][idx].f32 != -1) {
+        g_65cc[bi].f10 = fn_08_29ea(g_1df8[type][idx].f04);
+        g_65cc[bi].f10.x += (g_1df8[type][idx].f0c >> g_9150) + g_1df8[type][idx].f22 / 2;
+        g_65cc[bi].f10.y += (g_1df8[type][idx].f0e >> g_9150) + g_1df8[type][idx].f22 / 2;
+        g_65cc[bi].f18 = fn_08_29ea(g_1df8[t2][i2].f04);
+        g_65cc[bi].f18.x += g_1df8[t2][i2].f22 / 2;
+        g_65cc[bi].f18.y += g_1df8[t2][i2].f22 / 2;
+        if (g_8ff2 != 0)
+            old = SelectObject(g_13dc, GetStockObject(WHITE_PEN));
+        else
+            old = SelectObject(g_13dc, g_3b44[g_915a]);
+        fn_12_7256(g_13dc, g_65cc[bi].f18, g_65cc[bi].f10);
+        SelectObject(g_13dc, old);
+    }
+    g_65cc[bi].f14 = g_65cc[bi].f10;
+    g_65cc[bi].f1c = g_65cc[bi].f18;
 }
 
 /* Slow an object down by one unit per axis once |vx|+|vy| reaches v
@@ -1344,8 +1547,8 @@ POINT far pascal fn_08_29ea(POINT pt)
 
 /* Integer square root, one Newton step from guess g [inferred]. The loop
  * after the return is dead code in the original. */
-/* near-match 47%: 8:1290 (the dead loop's update compiles to an add-to-memory;
- * the original adds in registers and stores) */
+/* near-match 99%: 8:1290 (one instruction: the dead loop's g < 3 test
+ * compares the low word as cmp ax,3; the original reloads it from memory) */
 long far pascal fn_08_1290(long n, long g)
 {
     int i;
@@ -1358,7 +1561,8 @@ long far pascal fn_08_1290(long n, long g)
     do {
         if (g < 3)
             g = 3;
-        g = (n - g * g) / (2 * g) + g;
+        b = (n - g * g) / (2 * g) + g;
+        g = b;
         i++;
     } while (i < 1);
 }

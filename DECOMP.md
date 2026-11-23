@@ -409,3 +409,9 @@ Conventions
 - A value compared with `cmp ax,0xffff` then pushed from ax is WORD.
 - More types: g_9e41 is int[] (9e41..9e53); g_88c0 is copied as a POINT;
   g_a157 is char[10]; g_1050 POINT[]; g_116a int[]; g_6e10 DWORD.
+- A ternary inside an array index that adds a frame temp: write the whole
+  assignment in both arms of an if/else (cross-jumped tail, no temp).
+- Two adjacent zero stores to separate int globals as `mov dword [x],0`:
+  `*(long *)&g_x = 0;`.
+- Early `return 1`/`return 0` compiled as jumps to shared return blocks at
+  the end: `goto done;` with labels on the final returns.
