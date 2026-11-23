@@ -475,8 +475,15 @@ void far fn_07_1f38(void);
 void far fn_07_2128(void);
 void far fn_07_2206(void);
 
-/* Main per-tick dispatcher on the game state g_90f4 [inferred]. */
-/* @addr 7:0000 */
+/* Main per-tick dispatcher on the game state g_90f4 [inferred].
+ * Remaining difference: the original places the flow_interactive arm of
+ * the g_1e80 timer test (9134 clamp, g_1e84 = g_1e50 / fn_09_6bc2) after
+ * the g_1e84 block instead of right after the other arm; no source form
+ * tried (if/else, gotos, if (0) blocks, while/break) reproduces it.
+ * The `goto ret` exits of cases 6, 8, 9 and of case 0's last call are
+ * layout-only: they make CL keep case 0's `pop bx; jmp` tail as the
+ * shared copy, as the original does. */
+/* near-match 48%: 7:0000 (one block placed differently, same instructions) */
 void far fn_07_0000(void)
 {
     int i;
@@ -488,8 +495,10 @@ void far fn_07_0000(void)
     char text[144];
     char title[30];
 
-    if (g_001a)
+    if (g_001a) {
+    ret:                        /* layout-only, see above */
         return;
+    }
     g_0022 = 1;
     g_1e50 = GetCurrentTime();
     if (g_1e50 > g_1e54 && !g_9132) {
@@ -529,37 +538,37 @@ void far fn_07_0000(void)
         }
         g_9144++;
         if (skip)
-            return;
+            goto ret;
         if (g_9144 < g_9004)
-            return;
+            goto ret;
         fn_07_2206();
         g_2218 = g_2214;
         g_9144 = 0;
         fn_16_0cfe(0);
-        return;
+        goto ret;
     case 8:
         g_0022 = 0;
         g_9144++;
         if (g_9144 < g_9004)
-            return;
+            goto ret;
         fn_07_2206();
         g_9144 = 0;
         fn_16_6928(0);
-        return;
+        goto ret;
     case 9:
         g_0022 = 0;
         if (g_1e84 && g_1e84 <= g_1e50) {
             g_1e84 = 0;
             fn_06_5d58();
-            return;
+            goto ret;
         }
         g_9144++;
         if (g_9144 < g_9004)
-            return;
+            goto ret;
         fn_07_2206();
         g_9144 = 0;
         fn_16_7210(0);
-        return;
+        goto ret;
     case 0:
         if (g_9294)
             g_0022 = 0;
@@ -586,7 +595,7 @@ void far fn_07_0000(void)
         g_2218 = g_2214;
         g_9144 = 0;
         fn_15_5962(0);
-        return;
+        goto ret;
     case 3:
         if (g_05ac && g_05ac <= g_1e50) {
             g_05ac = 0;

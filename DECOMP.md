@@ -586,3 +586,12 @@ Conventions
   layout often falls into place.
 - `for (i = a = b = 0; ...)` stores lower address first without a dword merge
   when the game shows that.
+- Constant stores ending switch cases that go to the same place are merged:
+  CL keeps the first copy when cases end in `return`, the last when they end
+  in `break`; `goto` to a label on an existing return lets a middle copy win.
+- long and int locals in a block get slots in different orders; sibling
+  blocks with identical declarations can need different orders.
+- CL moves a block reached only by a goto right after the jump (also inside
+  `if (0) { label: ... }`); a goto cannot push a block further down.
+- `volatile` stops value reuse but not which operand is loaded first.
+- `(unsigned)r >> 8` on an int crashed CL (C1001) in 13:0000; HIBYTE works.
