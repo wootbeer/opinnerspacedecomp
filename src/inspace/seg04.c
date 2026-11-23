@@ -1469,28 +1469,31 @@ void far pascal fn_04_4fc8(int n)
     }
 }
 
-/* near-match 97.5%: 4:5514 (only the first g_1df8[6][n] address differs: the
- * game does `add bx,[off]; mov es,[seg]`, this gives `mov es; add bx`).
- * Sets g_66e8[n].f0c from the side of the targeted object [inferred]. */
+/* Sets g_66e8[n].f0c from the side of the targeted object [inferred]. */
+/* @addr 4:5514 */
 void far pascal fn_04_5514(int n)
 {
+    extern REC_1C g_66e4[];     /* same records seen from DS:66e4: makes CL
+                                 * load f08 first in the compare [layout-only] */
     long dx;
     long dy;
     long ex;
     long ey;
-    REC_70 far *p;
+    int size;                   /* never read: its load puts the record
+                                 * address add before the es load */
+    int unused3;                /* frame filler [inferred] */
     long l;
     char unused[10];           /* frame filler [inferred] */
     long v;
     char unused2[16];
 
-    p = &g_1df8[6][n];
-    if (p->f1a) {
+    size = g_1df8[6][n].f22;
+    if (g_1df8[6][n].f1a) {
         v = l = fn_13_1076(6, n);
         if (l != -1) {
             g_66e8[n].f08 = HIBYTE(l);
             g_66e8[n].f0a = LOBYTE(l);
-            if (g_66e8[n].f08 != g_66e8[n].f00 || g_66e8[n].f02 != g_66e8[n].f0a) {
+            if (((int *)&g_66e4[n])[2] != g_66e8[n].f08 || g_66e8[n].f02 != g_66e8[n].f0a) {
                 dx = g_1df8[HIBYTE(v)][LOBYTE(v)].f04.x - g_1df8[6][n].f04.x;
                 dy = g_1df8[HIBYTE(v)][LOBYTE(v)].f04.y - g_1df8[6][n].f04.y;
                 ex = g_1df8[HIBYTE(v)][LOBYTE(v)].f0c - g_1df8[6][n].f0c;

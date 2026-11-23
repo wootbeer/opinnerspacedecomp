@@ -553,3 +553,8 @@ Conventions
   local keeps the store; a bare expression statement is dropped.
 - `x = fn(c ? A : B)` with POINT arms adds a frame temp; `if (c) x = fn(A);
   else x = fn(B);` gives branch-specific pushes then one call.
+- A function that takes a local's address (including CL's hidden struct-
+  return temporary) keeps dead local stores, so never-read-local tricks
+  leave a store there.
+- `!(BYTE arr[i] & char mask)` gives `mov cl,[arr]; and cl,al; sub ch,ch;
+  cmp cx,1`.

@@ -57,7 +57,7 @@ extern int g_95c8;
 extern int g_95ca;
 extern int g_95d4;
 extern int g_95de;
-extern char g_95e0[18];
+extern BYTE g_95e0[18];
 typedef struct { char p00[0x0a]; char name[0x41 - 0x0a]; } REC_41;
 extern REC_41 far *g_6e20;
 void far fn_15_10be(void);
@@ -1141,18 +1141,18 @@ void far fn_15_5e22(int a)
 /* @addr 15:6cdc */
 void far fn_15_6cdc(void)
 {
-    int u1;
+    int u1;                     /* u1-u6 never used: frame layout */
     int u2;
     int u3;
     int u4;
     int u5;
-    int v;
+    int v;                      /* fade level, stored but never read */
     int flag;
     int u6;
     int k;
     int pix;
     int ok;
-    BYTE mask;
+    char mask;
     int bit;
     int idx;
     HGDIOBJ oldfont;
