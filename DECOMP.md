@@ -267,3 +267,15 @@ Conventions
   original): call through a cast, keep it.
 - Pushed constants that sit inside a dword table are ints, not strings;
   strings defined in other files: declare as `g_XXXX[]`.
+- One `volatile` access changes code generation for the whole function
+  (constants pushed as immediates everywhere); use `*(int *)&g` for a single
+  plain access instead.
+- A dead `les bx,[g]` comes from a dead store to an existing unused local
+  (`j = g_1e1c->f00;`).
+- A final switch whose cases return puts its test chain at the top of the
+  function.
+- CL merges adjacent word arguments into one `push dword`.
+- Block-scope locals in sibling switch cases share slots; declaration order
+  decides which gets which.
+- More types: g_13dc is an HDC (unsigned); g_fp_3c54 returns int; g_9210 is
+  an HINSTANCE.
