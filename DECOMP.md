@@ -548,3 +548,8 @@ Conventions
 - The library matcher accepts the linker's prologue rewrite (8C D8 -> 8C D0);
   functions inside a matched runtime module (internal labels) count as
   library code. 16:085e is the runtime's ___ExportedStub.
+- A value computed into dx:ax and never stored: `if (cond) x = 2; else x =
+  2;` (CL drops the test, keeps the operand computation). A dead store to a
+  local keeps the store; a bare expression statement is dropped.
+- `x = fn(c ? A : B)` with POINT arms adds a frame temp; `if (c) x = fn(A);
+  else x = fn(B);` gives branch-specific pushes then one call.

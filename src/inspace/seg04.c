@@ -375,6 +375,17 @@ int far pascal fn_04_5654(int n);
 void far pascal fn_04_4d00(int n);
 void far fn_04_79ae(int n);
 void far pascal fn_04_485c(int n, int unused);
+extern int g_9406[];
+extern int g_8e34[];
+extern char g_9eb4;
+extern long g_1cca[];
+extern int g_9348;
+extern char g_9ebc[];
+extern char g_9eb9[];         /* after g_9ebc: load order in 4:144c */
+extern char g_9ebf[];
+extern char g_9ec2[][40];
+extern POINT g_1050[];
+
 
 /* @addr 4:0000 */
 void far pascal fn_04_0000(int n)
@@ -737,9 +748,302 @@ void far pascal fn_04_0078(int n)
     }
 }
 
-/* Not yet decompiled: 4:144c */
+/* Current waypoint record of racer n [inferred]. */
+#define RACE_WP(n) g_1df8[8][g_7090[n].f148 + g_9318 * 2]
+
+/* Race AI: steer racer n along the track's waypoints [inferred]. */
+/* @addr 4:144c */
 void far fn_04_144c(int n, int flag)
 {
+    POINT pos;
+    POINT d1;
+    POINT wp;
+    POINT vel;
+    POINT next;
+    POINT prev;
+    POINT d2;
+    long unused;                /* never used; keeps the frame size */
+    long dist2;
+    long spd;
+    long dist;
+    long r1;
+    long r3;
+    long r2;
+    int i;
+    int turn;
+
+    if (g_7090[n].f148 < 0) {
+        if (g_7090[n].f148 == -2) {
+            if (g_7090[n].f32 == 0) {
+                if (g_1df8[0][g_7090[n].f34].f18) {
+                    for (i = 0; i < g_9406[0]; i++)
+                        if (g_1df8[0][i].f18 == 0) {
+                            g_7090[n].f34 = i;
+                            break;
+                        }
+                    if (g_1df8[0][g_7090[n].f34].f18) {
+                        g_7090[n].f32 = 12;
+                        g_7090[n].f34 = 0;
+                    }
+                }
+            } else {
+                g_7090[n].f32 = 12;
+                g_7090[n].f34 = 0;
+            }
+            g_7090[n].f38 = 2;
+            g_7090[n].f3c = 2;
+            return;
+        }
+        g_7090[n].f148 = 0;
+        g_7090[n].fda = 0;
+    }
+    pos = fn_08_29ea(g_1df8[14][n].f04);
+    pos.x += g_1df8[14][n].f22 / 2;
+    pos.y += g_1df8[14][n].f22 / 2;
+    if (g_8e34[n] != -1)
+        wp = fn_08_29ea(g_1df8[4][g_8e34[n]].f04);
+    else
+        wp = fn_08_29ea(RACE_WP(n).f04);
+    wp.x += 7 << g_9156;
+    wp.y += 7 << g_9156;
+    if (g_7090[n].f148 < g_9ea2 - 1)
+        next = fn_08_29ea(g_1df8[8][g_7090[n].f148 + g_9318 * 2 + 1].f04);
+    else
+        next = fn_08_29ea(g_1df8[8][g_9318 * 2].f04);
+    if (g_7090[n].f148 > 0)
+        prev = fn_08_29ea(g_1df8[8][g_7090[n].f148 + g_9318 * 2 - 1].f04);
+    else
+        prev = fn_08_29ea(g_1df8[8][g_9318 * 2 + g_9ea2 - 1].f04);
+    vel = *(POINT far *)&g_1df8[14][n].f0c;
+    g_8e48[n] = dist = fn_08_35d0(d1.x = (pos.x - wp.x) * 2 >> g_9156,
+                                  d1.y = (pos.y - wp.y) * 2 >> g_9156);
+    spd = fn_08_35d0(vel.x, vel.y);
+    r1 = -((((long)vel.x * d1.x + (long)vel.y * d1.y) << 7) / (dist * spd));
+    r2 = (((long)vel.y * d1.x - (long)vel.x * d1.y) << 7) / (dist * spd);
+    turn = 0;
+    if (flag) {
+        if (g_9eb4) {
+            if (!RACE_WP(n).f52 && r2 < 0 || RACE_WP(n).f52 && r2 > 0) {
+                /* both arms equal: CL drops the test but keeps the
+                 * operand's (dead) computation, as the game does */
+                if (dist < (spd + 250) * 2)
+                    turn = 2;
+                else
+                    turn = 2;
+                if (!RACE_WP(n).f52 && r2 < -35 || RACE_WP(n).f52 && r2 > 35)
+                    turn = 3;
+                if ((!RACE_WP(n).f52 && dist / -7 + 5 > r2 || RACE_WP(n).f52 && dist / 7 - 5 < r2)
+                    && dist < 400) {
+                    turn = 4;
+                    g_1df8[14][n].f0c = g_1df8[14][n].f0c * 5 / 6;
+                    g_1df8[14][n].f0e = g_1df8[14][n].f0e * 5 / 6;
+                }
+            } else {
+                turn = 0;
+                if ((!RACE_WP(n).f52 && 1000 / dist + g_8e3c[n] * 6 + 14 > r2
+                     || RACE_WP(n).f52 && -1000 / dist - g_8e3c[n] * 6 - 14 < r2) && dist < 800)
+                    turn = 2;
+                else if ((!RACE_WP(n).f52 && g_8e3c[n] * 6 + 40 > r2
+                          || RACE_WP(n).f52 && -40 - g_8e3c[n] * 6 < r2) && dist < 1000)
+                    turn = 1;
+                if ((!RACE_WP(n).f52 && g_8e3c[n] * 6 + 52 < r2
+                     || RACE_WP(n).f52 && -52 - g_8e3c[n] * 6 > r2) && dist > 70)
+                    turn = -1;
+                if ((!RACE_WP(n).f52 && g_8e3c[n] * 6 + 65 < r2
+                     || RACE_WP(n).f52 && -65 - g_8e3c[n] * 6 > r2) && dist > 70)
+                    turn = -2;
+            }
+        }
+        if (dist / 4 - g_8e3c[n] * 7 + 80 < r1 && 140 - spd / 2 > dist && g_8e34[n] == -1) {
+            if (RACE_WP(n).f52)
+                g_7090[n].f3c = 3;
+            else
+                g_7090[n].f3c = 4;
+            g_7090[n].f149 = 0;
+        } else {
+            if (turn) {             /* f3c in both arms: shared tail */
+                g_7090[n].f149 = turn;
+                g_7090[n].f3c = 2;
+            } else {
+                g_7090[n].f149 = 0;
+                g_7090[n].f3c = 2;
+            }
+        }
+        if (g_8e34[n] != -1) {
+            wp = fn_08_29ea(RACE_WP(n).f04);
+            g_8e48[n] = dist = fn_08_35d0(d1.x = (pos.x - wp.x) * 2 >> g_9156,
+                                          d1.y = (pos.y - wp.y) * 2 >> g_9156);
+            if (g_1df8[4][g_8e34[n]].f18)
+                g_8e34[n] = -1;
+            if (r1 < 0 && (long)g_7090[n].f1e * 100 / g_96f0[g_7090[n].f4e].f00 > 20)
+                g_8e34[n] = -1;
+        }
+        if (g_8e34[n] != -1) {
+            g_7090[n].f32 = 4;
+            g_7090[n].f34 = g_8e34[n];
+        } else {
+            g_7090[n].f32 = 8;
+            g_7090[n].f34 = g_7090[n].f148 + g_9318 * 2;
+        }
+        g_7090[n].f38 = 2;
+        if (spd / 3 - g_8e3c[n] * 5 + 37 < r1 && g_7090[n].f3c == 2
+            && g_8e3c[n] * 15 + 130 > dist && g_8e34[n] == -1)
+            g_7090[n].f38 = 5;
+    }
+    if ((dist < 350 || rand() % 5 == 0) && g_8e34[n] == -1) {
+        dist2 = fn_08_35d0(d2.x = (prev.x - wp.x) * 2 >> g_9156,
+                           d2.y = (prev.y - wp.y) * 2 >> g_9156);
+        r1 = (((long)d2.x * d1.x + (long)d2.y * d1.y) << 7) / (dist * dist2);
+        if (r1 < g_8e3c[n] - 2) {
+            dist2 = fn_08_35d0(d2.x = (next.x - wp.x) * 2 >> g_9156,
+                               d2.y = (next.y - wp.y) * 2 >> g_9156);
+            r3 = (((long)d2.x * d1.x + (long)d2.y * d1.y) << 7) / (dist * dist2);
+            r2 = (((long)d2.y * d1.x - (long)d2.x * d1.y) << 7) / (dist * dist2);
+            if (r3 > spd / -24 + r1 - 2) {
+                fn_10_754a(2, 8, g_7090[n].f148 + g_9318 * 2, 1);
+                if (g_1df8[14][n].f51 == 0) {
+                    int v;
+
+                    if (g_7090[n].fda < 0)
+                        v = -1 - g_7090[n].fda;
+                    else
+                        v = g_7090[n].fda;
+                    g_3d4c[(n * g_9ea0 + v) * g_9ea2 + g_7090[n].f148 + 1] = g_1e68;
+                    if (n == g_9646) {
+                        for (i = 0; i <= g_9316; i++)
+                            if (g_1df8[14][i].f18 == 0 && i != n
+                                && g_3d4c[(i * g_9ea0 + v) * g_9ea2 + g_7090[n].f148 + 1] != 0)
+                                g_8e08[i] = g_3d4c[(i * g_9ea0 + v) * g_9ea2 + g_7090[n].f148 + 1]
+                                    - g_3d4c[(n * g_9ea0 + v) * g_9ea2 + g_7090[n].f148 + 1];
+                            else if (g_8e08[i] < 0)
+                                g_8e08[i] = 50000;
+                    } else if (g_3d4c[(g_9646 * g_9ea0 + v) * g_9ea2 + g_7090[n].f148 + 1] != 0)
+                        g_8e08[n] = g_3d4c[(n * g_9ea0 + v) * g_9ea2 + g_7090[n].f148 + 1]
+                            - g_3d4c[(g_9646 * g_9ea0 + v) * g_9ea2 + g_7090[n].f148 + 1];
+                    else if (g_8e08[n] > 0)
+                        g_8e08[n] = -50000;
+                    if (flow_interactive == 0)
+                        g_8e3c[n] = 0;
+                    else if (g_8e08[n] < -210)
+                        g_8e3c[n] = g_9348 + 3;
+                    else if (g_8e08[n] < -90)
+                        g_8e3c[n] = g_9348 + 2;
+                    else if (g_8e08[n] < -10)
+                        g_8e3c[n] = g_9348 + 1;
+                    else if (g_8e08[n] > 40)
+                        g_8e3c[n] = g_9348 - 1;
+                    else if (g_8e08[n] > 100)
+                        g_8e3c[n] = g_9348 - 2 < 0 ? 0 : g_9348 - 2;
+                    else
+                        g_8e3c[n] = g_9348;
+                }
+                if (g_7090[n].f148 < g_9ea2 - 1) {
+                    g_7090[n].f148++;
+                    g_7090[n].f32 = 8;
+                    g_7090[n].f34 = g_7090[n].f148 + g_9318 * 2;
+                } else {
+                    g_7090[n].f148 = 0;
+                    g_7090[n].f32 = 8;
+                    g_7090[n].f34 = g_9318 * 2;
+                    g_7090[n].fda = -1 - g_7090[n].fda;
+                }
+                dist = fn_08_35d0(d1.x = (pos.x - next.x) * 2 >> g_9156,
+                                  d1.y = (pos.y - next.y) * 2 >> g_9156);
+                if (g_8e3c[n] * 40 + 700 < dist
+                    && (int)((long)g_7090[n].f1e * 100 / g_96f0[g_7090[n].f4e].f00) > rand() % 110) {
+                    dist = fn_08_35d0(d1.x = (wp.x - pos.x) * 2 >> g_9156,
+                                      d1.y = (wp.y - pos.y) * 2 >> g_9156);
+                    r1 = ((long)g_1050[g_1df8[14][n].f28].y * d1.y
+                          + (long)g_1050[g_1df8[14][n].f28].x * d1.x) * 10 / (dist * 8 / 5);
+                    r3 = ((long)g_1df8[14][n].f0e * d1.y + (long)g_1df8[14][n].f0c * d1.x) * 10
+                         / (dist * spd / 10);
+                    if (g_1df8[14][n].f51 == 0 && g_7090[n].f1e > 200
+                        && r1 < (8 - g_8e3c[n]) * 7 && r3 < 38 - g_8e3c[n] * 5)
+                        fn_11_5ab6(n, 2);
+                }
+                g_8e34[n] = -1;
+                if ((long)g_7090[n].f1e * 100 / g_96f0[g_7090[n].f4e].f00 < rand() % 27 + 20)
+                    for (i = 0; i < g_9ebf[g_9322]; i++)
+                        if (g_1df8[4][i].f18 == 0
+                            && g_9ec2[g_9322][g_9eb9[g_9322] + g_9ebc[g_9322] + i] == g_7090[n].f148)
+                            g_8e34[n] = i;
+            }
+            g_1cca[n] = r2;
+        }
+    }
+    if (n == g_9646 && g_1df8[14][n].f51 && g_1e68 - g_9e70[n] > 600)
+        g_7090[n].fda = -1 - g_9ea0;
+    if (g_7090[n].fda < 0) {
+        if (g_1df8[14][n].f04.x + g_1df8[14][n].f20 > g_1df8[12][1].f04.x + 350
+            && g_1df8[14][n].f04.x < g_1df8[12][1].f04.x + 2000
+            && g_1df8[14][n].f04.y + g_1df8[14][n].f20 > g_9ea8[g_9322].x
+            && g_1df8[14][n].f04.y < g_9ea8[g_9322].y
+            && (g_1df8[14][n].f0c > 0 || g_7090[n].fda + g_9ea0 == -1)) {
+            fn_10_754a(0x72, 14, n, 1);
+            if (g_1df8[14][n].f51 == 0) {
+                g_9e80[n] = g_9e70[n];
+                g_9e70[n] = g_1e68;
+                if (g_9e90[n] == 0 || g_1e68 - g_9e80[n] < g_9e90[n])
+                    g_9e90[n] = g_9e70[n] - g_9e80[n];
+            }
+            g_7090[n].fda = -g_7090[n].fda;
+            if (g_7090[n].fda >= g_9ea0 && g_9eb5 == 0) {
+                g_9eb5 = 1;
+                for (i = 0; i <= g_9316; i++)
+                    if (g_1df8[14][i].f18 == 0) {
+                        int v;
+
+                        if (g_7090[i].fda < 0)
+                            v = -1 - g_7090[i].fda;
+                        else
+                            v = g_7090[i].fda;
+                        if (v < g_9ea0)
+                            g_9eb5 = 0;
+                    }
+                if (n == g_9646) {
+                    if (g_7090[n].fda - g_9ea0 == 1)
+                        g_9eb5 = 1;
+                    else {
+                        if (g_9684 == 1)
+                            fn_10_744c(0x74);
+                        else
+                            fn_10_744c(0x42);
+                        g_9e60[n] = g_1e68 - g_9e60[n];
+                    }
+                } else if (g_7090[n].fda == g_9ea0) {
+                    fn_10_744c(0x69);
+                    fn_10_754a(0x42, 14, n, 1);
+                    g_9e60[n] = g_1e68 - g_9e60[n];
+                }
+                if (g_91fc) {
+                    g_7090[n].f148 = -2;
+                    g_7090[n].f32 = 0;
+                    g_7090[n].f34 = 0;
+                    g_7090[n].f38 = 2;
+                    g_7090[n].f3c = 2;
+                    g_9eb5 = 1;
+                }
+                g_1df8[14][n].f51 = 2;
+                if (g_9eb5) {
+                    fn_10_744c(0x14);
+                    race_radar_background(0);
+                    for (i = g_9318 * 2; i < g_9318 * 2 + g_9ea2 + g_9ea4; i++)
+                        fn_12_3e98(i);
+                    for (i = 0; i <= g_9316; i++)
+                        if (i != n || g_7090[i].f32 != 0) {
+                            g_7090[i].f148 = -2;
+                            g_7090[i].f32 = 12;
+                            g_7090[i].f34 = 0;
+                            g_7090[i].f38 = 2;
+                            g_7090[i].f3c = 2;
+                            if (g_1df8[14][i].f51 == 0)
+                                g_1df8[14][i].f51 = 1;
+                        }
+                }
+            }
+        }
+    }
+    g_7090[n].f94 = g_1e50 + 60;
 }
 
 /* Not yet decompiled: 4:2f98 */
