@@ -41,3 +41,15 @@ or the folder in `INSPACE_DATA`; it is not part of the repository.
 Original behaviour is the default. Crashes and memory-safety bugs are fixed;
 bugs whose fix would change gameplay noticeably stay as in the original,
 with the fix available as a setting. Each is listed in `QUIRKS.md` (to come).
+
+## File-name case
+
+C identifiers are case-sensitive everywhere, so names in code are not an
+issue. File names are: Windows ignores case, Linux and Android do not.
+- Source and include file names in `port/` are lowercase, and `#include`s
+  match them exactly.
+- The platform module opens data files case-insensitively (the original
+  files are uppercase; a user's copy may not be).
+- Folder scanning matches DOS-style patterns (`*.EXE`) case-insensitively;
+  name comparisons the game makes (it ran on uppercase DOS names) are
+  case-insensitive too. Names are shown upper-case where the original did.
