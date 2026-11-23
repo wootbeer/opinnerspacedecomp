@@ -66,7 +66,8 @@ typedef struct {                /* 0xad bytes, DGROUP array at DS:96f0 */
     int f0a;
     char p0c[0x1a - 0x0c];
     int f1a;
-    char p1c[0x88 - 0x1c];
+    char p1c[0x52 - 0x1c];
+    char f52[0x88 - 0x52];      /* name [inferred] */
     signed char f88;
     char p89[0xad - 0x89];
 } REC_AD;
@@ -345,6 +346,10 @@ int far fn_06_8cb2(int unused, int n, unsigned v, int j, int k);
 int far fn_06_8dfe(int i);
 void far fn_06_8eb4(void);
 void far fn_11_4928(int mode, DWORD t, LPSTR out);
+extern int g_9476;
+extern HWND g_9486;
+int far fn_02_1a7a(int a);
+void far fn_10_320a(void);
 extern REC_70 far *g_1df8[16];
 extern DWORD g_18b6;
 extern int g_18ba;
@@ -1189,9 +1194,247 @@ void far fn_17_65da(void)
     SendMessage(g_9482, CB_SETCURSEL, 0, 0L);
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Handles a selection change in the list combo box [inferred]. */
+/* @addr 17:67e6 */
 void far fn_17_67e6(void)
 {
+    int i;
+    int j;
+    int r;
+    int unused;
+    int sel;
+    int unused2;
+    char buf[258];
+    char text[110];
+
+    if (g_9468 == 0) {
+        if (IsWindowEnabled(g_947a[0])) {
+            if (GetFocus() == g_947a[0])
+                SetFocus(g_9482);
+            EnableWindow(g_947a[0], 0);
+        }
+    } else if (!IsWindowEnabled(g_947a[0]))
+        EnableWindow(g_947a[0], 1);
+    if (g_946a - g_9468 == 1) {
+        if (IsWindowEnabled(g_947a[2])) {
+            if (GetFocus() == g_947a[2])
+                SetFocus(g_9482);
+            EnableWindow(g_947a[2], 0);
+        }
+    } else if (!IsWindowEnabled(g_947a[2]))
+        EnableWindow(g_947a[2], 1);
+    g_9462 = -2;
+    SendMessage(g_9482, CB_GETLBTEXT, g_9468, (LPARAM)(LPSTR)text);
+    fn_11_3fd4(text, 1);
+    switch (g_9466) {
+    case 0:
+        for (i = j = 0; i <= g_9316; i++) {
+            if (g_1e30[i].f18 == 0 && g_7092[i].f_0ea != 0) {
+                if (g_9468 / 2 == j) {
+                    g_9464 = i;
+                    break;
+                }
+                j++;
+            }
+        }
+        g_93aa = 11;
+        g_9462 = -3;
+        break;
+    case 1:
+        switch (g_9468) {
+        case 0:
+            g_93aa = 1;
+            break;
+        case 1:
+            g_93aa = 3;
+            break;
+        }
+        break;
+    case 2:
+        fn_09_955c(0x27a9, buf);
+        fn_11_3fd4(buf, 1);
+        if (lstrcmp(buf, text) == 0) {
+            g_93aa = 4;
+            break;
+        }
+        fn_09_955c(0x27ba, buf);
+        fn_11_3fd4(buf, 1);
+        if (lstrcmp(buf, text) == 0) {
+            g_93aa = 6;
+            break;
+        }
+        if (g_4ee0[0]) {
+            fn_10_a332(buf, (char *)g_4d92[g_4ed4[0]].f10, 1);
+            if (lstrcmp(buf, text) == 0)
+                g_93aa = 8;
+            else
+                g_93aa = 9;
+        }
+        break;
+    case 3:
+        switch (g_9468) {
+        case 0:
+            g_93aa = 5;
+            break;
+        case 1:
+            g_93aa = 7;
+            break;
+        }
+        break;
+    case 4:
+        switch (g_9468) {
+        case 0:
+            g_93aa = 12;
+            break;
+        default:
+            g_93aa = 13;
+            break;
+        }
+        break;
+    case 5:
+        g_93aa = 14;
+        break;
+    case 6:
+        g_93aa = 15;
+        break;
+    case 7:
+        switch (g_9468) {
+        case 0:
+            g_93aa = 17;
+            break;
+        default:
+            g_93aa = 2;
+            break;
+        }
+        break;
+    case 8:
+        g_93aa = 16;
+        break;
+    case 9:
+        for (i = 1; i < 27; i++) {
+            fn_09_955c(i + 0xba, buf);
+            if (lstrcmp(buf, text) == 0) {
+                g_93aa = 10;
+                g_9472 = i;
+                break;
+            }
+        }
+        break;
+    }
+    if ((r = fn_17_7088(g_9476 = 0)) != 0)
+        g_9476 = 1;
+    if (g_9484) {
+        DestroyWindow(g_9484);
+        g_9484 = 0;
+    }
+    if (g_9486) {
+        DestroyWindow(g_9486);
+        g_9486 = 0;
+    }
+    if (g_9488) {
+        DestroyWindow(g_9488);
+        g_9488 = 0;
+    }
+    if (g_9466 == 8) {
+        if (g_9468 == 0) {
+            g_9488 = CreateWindow("listbox", "", 0x40a30151L, 0x2e, 0x5c, 0x23a, 0xc0,
+                                  g_9460, (HMENU)0x6c, g_8e66, NULL);
+            fn_02_1a7a(g_9488);
+        }
+        fn_06_6576();
+        if (g_9468 == 0)
+            SendMessage(g_9488, 0x407, g_93a2 - 1, 0L);
+    } else if (g_9466 == 7) {
+        fn_10_320a();
+        if ((g_9468 + 1) & 1) {
+            unsigned best;
+            int bi;
+
+            g_9488 = CreateWindow("listbox", "", 0x40a30151L, 0x1b, 0x5c, 0x241, 0xc0,
+                                  g_9460, (HMENU)0x6c, g_8e66, NULL);
+            fn_02_1a7a(g_9488);
+            fn_06_8b90((g_9468 - 1) / 2);
+            fn_06_8cb2((g_9468 - 1) / 2, g_9646, 0, 0, 1);
+            sel = -1;
+            for (j = 0; j < g_94c8; j++) {
+                best = 60000;
+                bi = -1;
+                for (i = 0; i < g_94c8; i++) {
+                    if (g_6afc[i].f32[0][1] > 1 && g_6afc[i].f32[0][1] < best) {
+                        bi = i;
+                        best = g_6afc[i].f32[0][1];
+                    } else if (g_6afc[i].f32[0][1] == 0 && best == 60000) {
+                        best = 59999;
+                        bi = i;
+                    }
+                }
+                if (bi >= 0) {
+                    if (lstrcmp(g_96f0[g_7092[g_9646].f_04c].f52, g_6afc[bi].name) == 0)
+                        sel = j;
+                    fn_17_7ba6(j + 1, buf);
+                    lstrcat(buf, "\t050");
+                    lstrcat(buf, g_6afc[bi].name);
+                    lstrcat(buf, "\t185");
+                    fn_11_4928(2, g_6afc[bi].f32[0][1], text);
+                    lstrcat(buf, text);
+                    lstrcat(buf, "\t250");
+                    fn_11_4928(2, g_6afc[bi].f32[0][0], text);
+                    lstrcat(buf, text);
+                    lstrcat(buf, "\t310");
+                    fn_11_4928(0, g_6afc[bi].f32[1][1], text);
+                    lstrcat(buf, text);
+                    lstrcat(buf, "\t370");
+                    fn_11_4928(0, g_6afc[bi].f32[1][0], text);
+                    lstrcat(buf, text);
+                    lstrcat(buf, "\t450");
+                    fn_11_4928(0, g_6afc[bi].f32[2][1], text);
+                    lstrcat(buf, text);
+                    lstrcat(buf, "\t510");
+                    fn_11_4928(0, g_6afc[bi].f32[2][0], text);
+                    lstrcat(buf, text);
+                    lstrcat(buf, "\t250");
+                    lstrcat(buf, g_6afc[bi].f14[0]);
+                    lstrcat(buf, "\t370");
+                    lstrcat(buf, g_6afc[bi].f14[1]);
+                    lstrcat(buf, "\t510");
+                    lstrcat(buf, g_6afc[bi].f14[2]);
+                    SendMessage(g_9488, 0x401, 0, (LPARAM)(LPSTR)buf);
+                    g_6afc[bi].f32[0][1] = 1;
+                }
+            }
+            if (sel < 0)
+                sel = 0;
+            SendMessage(g_9488, 0x407, sel, 0L);
+            fn_06_8eb4();
+        }
+    }
+    if (g_9476) {
+        int h;
+        HFONT old;
+        char s[] = "Test";
+        RECT rc;
+
+        GetClientRect(g_9460, &rc);
+        g_13dc = GetDC(g_9460);
+        old = SelectObject(g_13dc, g_6094[0]);
+        h = HIWORD(GetTextExtent(g_13dc, s, 4));
+        SelectObject(g_13dc, old);
+        ReleaseDC(g_9460, g_13dc);
+        g_13dc = 0;
+        g_9484 = CreateWindow("combobox", "", 0x50210003L, rc.right - 0xb4, rc.bottom - 0x3c,
+                              0xaa, h * r + 0x1e, g_9460, (HMENU)0x6a, g_8e66, NULL);
+        SendMessage(g_9484, WM_SETFONT, g_6094[0], 1L);
+        fn_09_955c(0x88e, buf);
+        g_9486 = CreateWindow("button", buf, 0x50010000L, rc.right - 0x104, rc.bottom - 0x3f,
+                              0x4b, 0x17, g_9460, (HMENU)0x6b, g_8e66, NULL);
+        SendMessage(g_9486, WM_SETFONT, g_6094[1], 1L);
+        fn_17_7088(r);
+        SendMessage(g_9484, 0x40e, 0, 0L);
+    }
+    if (g_9466 == 0)
+        SendMessage(g_9482, 0x40e, g_9468 / 2, 0L);
+    else
+        SendMessage(g_9482, 0x40e, g_9468, 0L);
 }
 
 /* Types the briefing text g_6078 a few characters per call [inferred]. */

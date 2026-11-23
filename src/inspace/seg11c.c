@@ -85,8 +85,8 @@ extern int g_9646;
 extern int g_968e;
 extern char g_9eb4;
 extern char g_9eb5;
-extern int g_9ea2;
 extern int g_9ea4;
+extern int g_9ea2;
 
 void far fn_10_744c(int a);
 void far race_radar_background(int a);
@@ -170,6 +170,8 @@ void far fn_11_7798(int code, unsigned pos)
 }
 
 /* Key handler for game mode 1 (g_90f4 == 1) [inferred]. */
+/* Unused locals keep the frame size; u4 is never read (it only fixes the
+ * load order of fdc + fce). */
 /* @addr 11:6b64 */
 void far pascal fn_11_6b64(int msg, WPARAM wparam, long lparam)
 {
@@ -262,9 +264,8 @@ void far pascal fn_11_6b64(int msg, WPARAM wparam, long lparam)
     case WM_KEYDOWN:
     case 0x99b:
     case 0x99e:
-        if (!g_95bc && wparam != VK_ADD && wparam != VK_SUBTRACT
-            && wparam != 'W' && wparam != 0xbd && wparam != 0xbb)
-            break;
+        if (g_95bc || wparam == VK_ADD || wparam == VK_SUBTRACT
+            || wparam == 'W' || wparam == 0xbd || wparam == 0xbb)
         switch (wparam) {
         case VK_DELETE:
             if (g_920c == 2 || g_920c == -1) {
@@ -283,9 +284,8 @@ void far pascal fn_11_6b64(int msg, WPARAM wparam, long lparam)
                 fn_13_a4f4();
             break;
         case 'X':
-            if (ctrl)
-                if (alt)
-                    self_destruct_ship(g_9324, g_9646);
+            if (ctrl && alt)
+                self_destruct_ship(g_9324, g_9646);
             break;
         case VK_RETURN:
         case 'Z':
@@ -300,7 +300,7 @@ void far pascal fn_11_6b64(int msg, WPARAM wparam, long lparam)
             else if (!ctrl && g_95bc) {
                 if (fn_16_0b4e(g_9646))
                     fn_03_06ec(g_9646, 7, 0, 7);
-                else if (g_7090[g_9646].fdc + g_7090[g_9646].fce < -300)
+                else if ((u4 = g_7090[g_9646].fdc) + g_7090[g_9646].fce < -300)
                     fn_03_06ec(g_9646, 7, 0, 0x84);
                 else
                     fn_03_06ec(g_9646, 7, 0, 8);
