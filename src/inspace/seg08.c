@@ -175,6 +175,7 @@ void far fn_08_92a0(int type, int idx);
 void far fn_12_2288(int type, int idx);
 void far fn_07_2080(int a, int b);
 int far fn_08_35d0(long a, long b);
+long far pascal fn_08_1290(long n, long g);
 
 /* @addr 8:0764 */
 void far pascal fn_08_0764(int a, int b)
@@ -812,4 +813,41 @@ POINT far pascal fn_08_2bbe(POINT pt)
     r.x = (int)((pt.x - g_88c4) * g_88cc / g_88c0);
     r.y = (int)((pt.y - g_88c6) * g_88cc / g_88c0);
     return r;
+}
+
+/* Direction to aim from object (t1, i1) at the moving object (t2, i2):
+ * a lead from the target's velocity and the shooter's speed [inferred]. */
+/* @addr 8:2658 */
+int far pascal fn_08_2658(int t1, int i1, int t2, int i2)
+{
+    long u4;
+    long u8;
+    long uc;
+    long side;
+    long speed;
+    long diff;
+    long e2;
+    long e1;
+    long f1;
+    long f2;
+    long sq;
+    int dist;
+    int dx;
+    int dy;
+    int r;
+
+    dist = fn_08_285a(&dx, &dy, g_1df8[t1][i1].f04, g_1df8[t2][i2].f04);
+    side = (long)g_1df8[t2][i2].f0c * dy / dist - (long)g_1df8[t2][i2].f0e * dx / dist;
+    speed = fn_08_35d0(g_1df8[t1][i1].f0c, g_1df8[t1][i1].f0e);
+    if (speed < 30)
+        speed = 50;
+    if (speed < side)
+        return fn_08_19b0(dx, dy);
+    sq = speed * speed - side * side;
+    r = (int)fn_08_1290(sq, diff = abs32(speed) - abs32(side));
+    e1 = (long)r * dx / dist;
+    e2 = (long)dy * side / dist;
+    f1 = -((long)dx * side / dist);
+    f2 = (long)r * dy / dist;
+    return fn_08_19b0((int)(e2 + e1), (int)(f1 + f2));
 }

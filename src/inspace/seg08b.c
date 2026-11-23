@@ -16,9 +16,16 @@ typedef struct {
     int f18;                    /* +18 */
     int f1a;                    /* +1a */
     int f1c;                    /* +1c */
-    char p1e[0x2f - 0x1e];
+    char p1e[2];
+    int f20;                    /* +20 */
+    int f22;                    /* +22 */
+    char p24[0x2e - 0x24];
+    char f2e;                   /* +2e */
     char f2f;                   /* +2f */
-    char p30[0x44 - 0x30];
+    char p30[2];
+    int f32;                    /* +32 */
+    int f34;                    /* +34 */
+    char p36[0x44 - 0x36];
     int f44;                    /* +44 */
     char p46[0x48 - 0x46];
     int f48;                    /* +48 */
@@ -38,7 +45,9 @@ extern int g_52e0;
 extern int g_52e2;
 /* 0x15a-byte records at DS:70ae (as in seg09.c). */
 typedef struct {
-    char p00[0xba];
+    char p00[0x10];
+    int f10;                    /* +10 */
+    char p12[0xba - 0x12];
     int fba;                    /* +ba */
     char pbc[0xc5 - 0xbc];
     char fc5;                   /* +c5 */
@@ -103,6 +112,37 @@ extern int g_944e;
 extern int g_9450;
 
 void far fn_08_5df2(int a, int b, int c, int d, int e);
+/* 0x1c-byte records at DS:66e4 [inferred]. */
+typedef struct {
+    int f00;                    /* +00 */
+    int f02;                    /* +02 */
+    int f04;                    /* +04 */
+    int f06;                    /* +06 */
+    int f08;                    /* +08 */
+    char p0a[0x1c - 0x0a];
+} REC_1C;
+extern REC_1C g_66e4[];
+extern RECT g_5148;
+extern RECT g_5150;
+extern RECT g_5158;
+extern RECT g_5160;
+extern POINT g_52e4;
+extern POINT g_52e8;
+extern int object_sizes[2];     /* DS:9442 */
+extern int object_masses[2];    /* DS:9446 */
+POINT far pascal fn_08_29ea(POINT pt);
+extern int g_9320;
+extern int g_9208;
+extern int g_9316;
+extern int g_9156;
+extern int g_88c0;
+extern int g_88c2;
+extern int g_88c4;
+extern int g_88c6;
+extern POINT far *g_1e38;
+void far fn_18_2c1e(int type, int idx);
+int far pascal fn_08_6afa(WORD a, WORD b);
+#define SC(n) ((n) << g_9156 >> 1)
 void far fn_08_7be8(int a, int b, int c, int d);
 
 /* Not yet decompiled: stub so calls to it compile as near calls. */
@@ -383,10 +423,9 @@ int far fn_09_88ba(int x);
  * *p3/*p4 with velocities (*p5 - *p7)... [inferred]; returns 0 when they
  * move apart too fast, else nothing defined (no return, as in the
  * original). */
-/* near-match 44%: 8:7d70 (only the > 15 test differs: the original
- * computes the dot product into bx:cx before the (long)d2 * d1 divisor;
- * here it is computed after pushing 100, so everything after shifts by
- * 4 bytes) */
+/* The ratio goes through the dead local u14: that keeps the dot product
+ * evaluated before the divisor. */
+/* @addr 8:7d70 */
 int far pascal fn_08_7d70(int far *p8, int far *p7, int far *p6, int far *p5,
                           int far *p4, int far *p3, int far *p2, int far *p1,
                           int b, int a)
@@ -425,7 +464,7 @@ int far pascal fn_08_7d70(int far *p8, int far *p7, int far *p6, int far *p5,
     if (d2 == 0)
         d2 = 1;
     l = (long)vx * dx + (long)vy * dy;
-    if ((int)(l * 100 / ((long)d2 * d1)) > 15)
+    if ((u14 = (int)(l * 100 / ((long)d2 * d1))) > 15)
         return 0;
     c = sum;
     ux = vx * 100 / d2;
@@ -444,7 +483,7 @@ int far pascal fn_08_7d70(int far *p8, int far *p7, int far *p6, int far *p5,
             / (1 > fn_09_88ba(ux) ? 1 : fn_09_88ba(ux));
     k = fn_09_88ba(r1) > fn_09_88ba(r2) ? r2 : r1;
     /* dead stores: only their loads remain */
-    l = (long)a + (long)b;
+    l = (long)b - (long)a;
     u14 = *p3;
     *p4 += k * ux / -100;
     *p3 += k * uy / -100;
@@ -528,4 +567,188 @@ void far pascal fn_08_5ab0(int j)
             }
         }
     }
+}
+
+/* Collision test of objects a and b, each (type << 8) | index [inferred]:
+ * 0 if they cannot or do not touch, else sets up the collision globals
+ * and returns 1. The SetRect sits inside the || chain. flag is
+ * uninitialised unless one of the four tests sets it (as in the
+ * original). */
+/* @addr 8:6afa */
+int far pascal fn_08_6afa(WORD a, WORD b)
+{
+    int u4;
+    int u6;
+    int u8;
+    int ua;
+    int flag;
+    int t1;
+    int i1;
+    int t2;
+    int i2;
+
+    t1 = HIBYTE(a);
+    i1 = LOBYTE(a);
+    t2 = HIBYTE(b);
+    i2 = LOBYTE(b);
+    if (g_1df8[t1][i1].f54 != 0 && g_1df8[t2][i2].f54 != 0)
+        return 0;
+    if (g_1df8[t1][i1].f18 != 0 || !PtInRect(&g_5148, g_1df8[t1][i1].f00)
+        || (SetRect(&g_5150, g_1df8[t1][i1].f00.x, g_1df8[t1][i1].f00.y,
+                g_1df8[t1][i1].f00.x + g_1df8[t1][i1].f22,
+                g_1df8[t1][i1].f00.y + g_1df8[t1][i1].f22), 0)
+        || !IntersectRect(&g_5158, &g_5160, &g_5150)
+        || t1 == 10 && g_1df8[t1][i1].f32 == t2 && g_1df8[t1][i1].f34 == i2)
+        return 0;
+    if (t2 == 10 && g_1df8[t2][i2].f32 == t1 && g_1df8[t2][i2].f34 == i1)
+        return 0;
+    if (g_1df8[t1][i1].f2e != 0 && (t1 != g_9324 || g_70ae[i1].f10 != 2))
+        return 0;
+    if (g_1df8[t2][i2].f2e != 0 && (t2 != g_9324 || g_70ae[i2].f10 != 2))
+        return 0;
+    if (t1 == 6 && g_66e4[i1].f08 < 10 && g_66e4[i1].f04 == t2 && g_66e4[i1].f06 == i2)
+        return 0;
+    if (t2 == 6 && g_66e4[i2].f08 < 10 && g_66e4[i2].f04 == t1 && g_66e4[i2].f06 == i1)
+        return 0;
+    if ((t2 == 7 || t1 == 7) && g_9e49 == 1)
+        g_9e49 = 0;
+    g_1df8[t1][i1].f1c = 1;
+    g_1df8[t2][i2].f1c = g_1df8[t1][i1].f1c;
+    if (t1 == g_9324 && i1 == g_9646)
+        flag = 1;
+    if (t2 == g_9324 && i2 == g_9646)
+        flag = 0;
+    if (g_1df8[t1][i1].f54 != 0)
+        flag = 1;
+    if (g_1df8[t2][i2].f54 != 0)
+        flag = 0;
+    if (flag) {
+        g_52e0 = g_1df8[t1][i1].f0c;
+        g_52e2 = g_1df8[t1][i1].f0e;
+        if (g_1df8[t1][i1].f1a)
+            g_52e4 = g_1df8[t1][i1].f00;
+        else
+            g_52e4 = fn_08_29ea(g_1df8[t1][i1].f04);
+        g_944c = t2;
+        g_9450 = i2;
+        g_944a = t1;
+        g_944e = i1;
+        if (subgame_active == 0) {
+            object_sizes[1] = g_1df8[t2][i2].f20 + 2;
+            object_sizes[0] = g_1df8[t1][i1].f20 + 2;
+        } else {
+            object_sizes[1] = g_1df8[t2][i2].f22;
+            object_sizes[0] = g_1df8[t1][i1].f22;
+        }
+        object_masses[0] = g_1df8[t1][i1].f44;
+    } else {
+        g_52dc = g_1df8[t1][i1].f0c;
+        g_52de = g_1df8[t1][i1].f0e;
+        if (g_1df8[t1][i1].f1a)
+            g_52e8 = g_1df8[t1][i1].f00;
+        else
+            g_52e8 = fn_08_29ea(g_1df8[t1][i1].f04);
+        g_944c = t1;
+        g_9450 = i1;
+        g_944a = t2;
+        g_944e = i2;
+        if (subgame_active == 0) {
+            object_sizes[1] = g_1df8[t1][i1].f20 + 2;
+            object_sizes[0] = g_1df8[t2][i2].f20 + 2;
+        } else {
+            object_sizes[1] = g_1df8[t1][i1].f22;
+            object_sizes[0] = g_1df8[t2][i2].f22;
+        }
+        object_masses[1] = g_1df8[t1][i1].f44;
+    }
+    return 1;
+}
+
+/* Find an object that collides with r ((type << 8) | index) [inferred]:
+ * returns its reference, 0x1000 for the sub-game border, or -1. */
+/* @addr 8:50aa */
+int far pascal fn_08_50aa(WORD r)
+{
+    int i;
+    int u6;
+    int t;
+    int idx;
+    WORD res;
+
+    t = HIBYTE(r);
+    idx = LOBYTE(r);
+    if (g_1df8[t][idx].f1c == 0) {
+        if (g_9320 == 6 && g_1df8[t][idx].f1a == 0 && g_9208 > 1) {
+            g_1df8[t][idx].f00 = fn_08_29ea(g_1df8[t][idx].f04);
+            SetRect(&g_5160, g_1df8[t][idx].f00.x, g_1df8[t][idx].f00.y,
+                g_1df8[t][idx].f00.x + g_1df8[t][idx].f22,
+                g_1df8[t][idx].f00.y + g_1df8[t][idx].f22);
+            SetRect(&g_5148, g_1df8[t][idx].f00.x - SC(70), g_1df8[t][idx].f00.y - SC(70),
+                g_1df8[t][idx].f00.x + g_1df8[t][idx].f22 + SC(15),
+                g_1df8[t][idx].f00.y + g_1df8[t][idx].f22 + SC(15));
+            for (i = 0; i <= g_9316; i++) {
+                if (g_1df8[14][i].f1a == 0 && g_1df8[14][i].f18 == 0
+                    && (t != 14 || idx != i)) {
+                    g_1df8[14][i].f00 = fn_08_29ea(g_1df8[14][i].f04);
+                    res = (char)i | 0xe00;
+                    if (fn_08_6afa(res, r))
+                        return res;
+                }
+            }
+        } else {
+            SetRect(&g_5160, g_1df8[t][idx].f00.x, g_1df8[t][idx].f00.y,
+                g_1df8[t][idx].f00.x + g_1df8[t][idx].f22,
+                g_1df8[t][idx].f00.y + g_1df8[t][idx].f22);
+            SetRect(&g_5148, g_1df8[t][idx].f00.x - SC(70), g_1df8[t][idx].f00.y - SC(70),
+                g_1df8[t][idx].f00.x + g_1df8[t][idx].f22 + SC(15),
+                g_1df8[t][idx].f00.y + g_1df8[t][idx].f22 + SC(15));
+            for (i = 0; i < g_9146; i++) {
+                if (!(g_507c[i] < t || g_507c[i] <= t && g_50e0[i] == idx)) {
+                    if (g_1df8[g_507c[i]][g_50e0[i]].f1c == 0) {
+                        res = g_50e0[i] | g_507c[i] << 8;
+                        if (fn_08_6afa(res, r))
+                            return res;
+                    }
+                }
+            }
+        }
+    }
+    if (subgame_active != 0) {
+        int flag;
+
+        flag = 0;
+        if (g_1df8[t][idx].f00.x <= g_88c4) {
+            g_1e38->x = g_88c4 - g_1df8[t][idx].f22;
+            g_1e38->y = g_1df8[t][idx].f00.y + g_88c6;
+            flag = 1;
+        } else if (g_88c4 - g_1df8[t][idx].f22 + g_88c0 < g_1df8[t][idx].f00.x) {
+            g_1e38->x = g_88c4 + g_88c0;
+            g_1e38->y = g_1df8[t][idx].f00.y + g_88c6;
+            flag = 1;
+        } else if (g_1df8[t][idx].f00.y <= g_88c6) {
+            g_1e38->y = g_88c6 - g_1df8[t][idx].f22;
+            g_1e38->x = g_1df8[t][idx].f00.x + g_88c4;
+            flag = 1;
+        } else if (g_88c6 - g_1df8[t][idx].f22 + g_88c2 < g_1df8[t][idx].f00.y) {
+            g_1e38->y = g_88c6 + g_88c2;
+            g_1e38->x = g_1df8[t][idx].f00.x + g_88c4;
+            flag = 1;
+        } else {
+            fn_18_2c1e(t, idx);
+        }
+        if (flag != 0) {
+            g_52e0 = 0;
+            g_52e2 = 0;
+            g_52e4 = *g_1e38;
+            g_944c = t;
+            g_9450 = idx;
+            g_944a = 16;
+            g_944e = 0;
+            object_sizes[1] = g_1df8[t][idx].f22;
+            object_sizes[0] = g_1df8[t][idx].f22;
+            object_masses[0] = 20000;
+            return res = 0x1000;
+        }
+    }
+    return -1;
 }

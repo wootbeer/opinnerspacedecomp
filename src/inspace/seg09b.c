@@ -1,6 +1,11 @@
 /* INSPACE.EXE segment 9 (selector 1040), 9:0b2a-5be0: one source file
  * (functions near-call each other) [inferred]. */
+/* Declared before inspace.h: CL's register choice in 9:0df6 depends on
+ * declaration order (g_90ea/g_90ec before g_05a0). */
+extern int g_90ea;
+extern int g_90ec;
 #include <stdlib.h>
+
 #include "inspace.h"
 
 /* Records reached through far pointers or DGROUP arrays; only the fields
@@ -263,11 +268,11 @@ extern int g_9300;
 extern int g_9302;
 extern int g_9306;
 extern int g_933a;
-extern int g_933c;
 extern int g_940c;
 extern int g_92f2;
-extern int g_933e;
 extern int g_9342;
+extern int g_933e;
+extern int g_933c;
 extern int g_9416;
 extern int g_92fc;
 extern int g_9340;
@@ -572,9 +577,8 @@ void far fn_09_2012(void)
     }
 }
 
-/* near-match 99%: 9:0df6 (SetRect right/bottom: the original adds into the
- * world-half register (add si,bx), this adds into the other one) */
 /* Places object n of type 4 at a random spot outside the centre rect [inferred]. */
+/* @addr 9:0df6 */
 void far fn_09_0df6(int n)
 {
     int i;
@@ -622,11 +626,9 @@ void far fn_09_0df6(int n)
     }
 }
 
-/* Not yet decompiled. */
 /* End-of-wave bookkeeping: music cues, racer records (DS:6e24), ratings
- * and the wave summary in DS:69f4 [inferred].
- * near-match 58%: 9:2828 (one byte short: the game recomputes
- * g_7090[n] for the test after the f76 store; this keeps it in cx). */
+ * and the wave summary in DS:69f4 [inferred]. */
+/* @addr 9:2828 */
 void far fn_09_2828(void)
 {
     int n;
@@ -773,6 +775,7 @@ void far fn_09_2828(void)
                     break;
                 }
             g_6e24[g_7090[n].fd6].f76 = rank;
+        lbl:    /* bare label: resets register tracking (recompute g_7090[n]) */
             u0e = g_9646;
             if (g_7090[n].fec == 0 || g_7090[n].f82 < 0 || n == u0e) {
                 for (k = 0; k < 8; k++)
@@ -862,9 +865,10 @@ void far fn_09_3202(void)
 
 /* Sets up a level: display scale from the INI file, object tables and the
  * per-type builders, with progress steps (fn_09_27da) [inferred]. */
-/* near-match 56%: 9:22b4 (the zero stores after g_9406 = 8 come out grouped
- * after the constant stores, and g_940a/g_940c are not merged into one dword
- * store; rest of the body lines up) */
+/* DS:9406 and DS:92ec are int[15] per-type tables [inferred]; written as
+ * arrays so CL does not sink the zero stores past them. */
+#define CNT(k) ((&g_9406)[k])   /* DS:9406: int[15], per-type counts [inferred] */
+/* @addr 9:22b4 */
 void far fn_09_22b4(int a)
 {
     int i;
@@ -887,7 +891,7 @@ void far fn_09_22b4(int a)
         fn_10_94c4(2, 6, 0x200ff00L, g_90ea / 2, g_0010 * 3 / 4 + 20, buf);
         if (g_90f8 && g_8e5e) {
             cur = g_9156;
-            v = GetPrivateProfileInt(g_96a9, "DScale", 0, g_9690);
+            v = GetPrivateProfileInt(g_9690, "DScale", 0, g_96a9);
             if (v == 0) {
                 if ((rand() & 1) || g_9156 == 2) {
                     cur = rand() % 3;
@@ -900,11 +904,11 @@ void far fn_09_22b4(int a)
                 g_92e2 = 1;
                 g_9156 = cur;
                 fn_06_0f1a(cur, buf2);
-                WritePrivateProfileString(g_96a9, "Size", buf2, g_9690);
+                WritePrivateProfileString(g_9690, "Size", buf2, g_96a9);
             }
         }
         if (g_92e2) {
-            g_9156 = GetPrivateProfileInt(g_96a9, "Size", 1, g_9690);
+            g_9156 = GetPrivateProfileInt(g_9690, "Size", 1, g_96a9);
             g_9150 = 4 - g_9156;
             fn_10_0522(1);
             fn_10_5c42();
@@ -926,36 +930,38 @@ void far fn_09_22b4(int a)
         g_9432 = g_9432 * 7 / 10;
     else
         g_9432 = g_9432 * 9 / 10;
-    g_9406 = 8;
-    (&g_9406)[g_9328] = g_940a = g_9408 = 0;
+    CNT(0) = 8;
+    CNT(g_9328) = CNT(2) = CNT(1) = 0;
     g_92ea = 14;
     g_92ec[0] = 8;
     g_92ec[1] = 2;
-    g_92f0 = g_932e * 8;
-    g_92ec[g_9328] = g_9420 = g_941c = g_941a = g_9414 = g_9412 = 0;
-    g_92fa = g_92f8 = 1;
-    g_9302 = g_9300 = 3;
-    g_9306 = 0;
-    g_92f2 = g_940c = g_933c + g_933a;
-    g_92fc = g_9416 = g_933e + g_9342;
-    g_92fe = g_9418 = g_9340;
+    g_92ec[2] = g_932e * 8;
+    g_92ec[g_9328] = CNT(13) = CNT(11) = CNT(10) = CNT(7) = CNT(6) = 0;
+    g_92ec[7] = g_92ec[6] = 1;
+    g_92ec[11] = g_92ec[10] = 3;
+    g_92ec[13] = 0;
+    g_92ec[3] = CNT(3) = g_933c + g_933a;
+    g_92ec[8] = CNT(8) = g_933e + g_9342;
+    g_92ec[9] = CNT(9) = g_9340;
     g_92ea = g_933a;
-    if (g_940c > 127) {
-        g_940c = 120;
-        g_92f2 = 920;
+    if (CNT(3) > 127) {
+        CNT(3) = 120;
+        g_92ec[3] = 920;
         g_933c = g_933a = 60;
     }
-    g_9416 += g_9318 * 2;
-    g_9304 = g_941e = g_9318 * 2;
-    g_92fc += g_9318 * 2;
-    if (g_92fc > 80)
-        g_92fc = g_9416 = 80;
+    CNT(8) += g_9318 * 2;
+    g_92ec[12] = CNT(12) = g_9318 * 2;
+    g_92ec[8] += g_9318 * 2;
+    if (g_92ec[8] > 80)
+        g_92ec[8] = CNT(8) = 80;
     if (g_92e8) {
         g_9326 = 1;
-        g_9338 = session_helper_groups = g_940c = 0;
+        g_9338 = session_helper_groups = CNT(3) = 0;
     }
     if (g_9320 == 6) {
-        g_92f0 = g_940c = g_940a = 0;
+        CNT(3) = 0;
+        CNT(2) = 0;
+        g_92ec[2] = 0;
         if (g_9000 == 2 || (g_9000 == 1 && g_9334 > 8))
             g_9348 = 1;
         else if ((g_9000 == 0 && g_9334 > 3) || g_9334 < 4)

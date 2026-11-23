@@ -986,21 +986,22 @@ void far pascal fn_12_2db6(int type, int idx, int c, int d, int kind)
 /* Turn direction cur (0..15) one step toward the direction from a to b
  * on the wrapping map [inferred]. dir stays uninitialised when mode is
  * neither 2 nor 5 (as in the original). */
-/* near-match 25%: 12:67e8 (only the - case of the wrap differs: the original
- * computes it as neg(W*8 - b.x)) */
+/* w is a dead temporary; it makes CL compute b.x - w as neg(w - b.x). */
+/* @addr 12:67e8 */
 int far pascal fn_12_67e8(POINT a, POINT b, int mode, int cur)
 {
     int dx;
     int dy;
     int dir;
-    int unused[6];
+    int w;
+    int unused[5];
 
     dx = b.x - a.x;
     if (fn_09_88ba(dx) > (G_05A0_INT >> 1 << 3))
-        dx = (0 > dx ? G_05A0_INT * 8 + b.x : b.x - G_05A0_INT * 8) - a.x;
+        dx = (0 > dx ? G_05A0_INT * 8 + b.x : b.x - (w = G_05A0_INT * 8)) - a.x;
     dy = b.y - a.y;
     if (fn_09_88ba(dy) > (g_05a2 >> 1 << 3))
-        dy = (0 > dy ? g_05a2 * 8 + b.y : b.y - g_05a2 * 8) - a.y;
+        dy = (0 > dy ? g_05a2 * 8 + b.y : b.y - (w = g_05a2 * 8)) - a.y;
     if (mode == 2)
         dir = fn_08_19b0(dx, dy);
     else if (mode == 5)

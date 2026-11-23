@@ -203,7 +203,7 @@ void far race_radar_background(int a);
 void far fn_12_3e98(int i);
 int far fn_04_6a78(int n, int i);
 int far fn_13_2688(int n, int m);
-int far fn_13_1076(int n, int type);
+int far pascal fn_13_1076(int type, int n);   /* pascal (retf 4) */
 void far pascal fn_11_7c12(int k, int type, int n);
 void far fn_11_8a42(int type, int n);
 void far fn_11_9078(int type, int n);
@@ -400,36 +400,40 @@ void far fn_04_474c(int n, int kind, int m, int ev)
     }
 }
 
-/* near-match 22%: 4:5514 (control flow right; register/temp allocation and the
- * cwd before the -1 test differ) */
+/* near-match 97.5%: 4:5514 (only the first g_1df8[6][n] address differs: the
+ * game does `add bx,[off]; mov es,[seg]`, this gives `mov es; add bx`).
+ * Sets g_66e8[n].f0c from the side of the targeted object [inferred]. */
 void far pascal fn_04_5514(int n)
 {
-    char unused[36];
-    int v;
-    long ax_;
-    long ay;
-    long bx_;
-    long by;
+    long dx;
+    long dy;
+    long ex;
+    long ey;
+    REC_70 far *p;
+    long l;
+    char unused[10];           /* frame filler [inferred] */
+    long v;
+    char unused2[16];
 
-    if (g_1df8[6][n].f1a == 0)
-        goto none;
-    v = fn_13_1076(n, 6);
-    if (v == -1L)
-        goto none;
-    g_66e8[n].f08 = HIBYTE(v);
-    g_66e8[n].f0a = LOBYTE(v);
-    if (g_66e8[n].f00 == g_66e8[n].f08 && g_66e8[n].f02 == g_66e8[n].f0a)
-        goto none;
-    ax_ = g_1df8[HIBYTE(v)][LOBYTE(v)].f04.x - g_1df8[6][n].f04.x;
-    ay = g_1df8[HIBYTE(v)][LOBYTE(v)].f04.y - g_1df8[6][n].f04.y;
-    bx_ = g_1df8[HIBYTE(v)][LOBYTE(v)].f0c - g_1df8[6][n].f0c;
-    by = g_1df8[HIBYTE(v)][LOBYTE(v)].f0e - g_1df8[6][n].f0e;
-    if (ax_ * by - ay * bx_ > 0)
-        g_66e8[n].f0c = 4;
-    else
-        g_66e8[n].f0c = 3;
-    return;
-none:
+    p = &g_1df8[6][n];
+    if (p->f1a) {
+        v = l = fn_13_1076(6, n);
+        if (l != -1) {
+            g_66e8[n].f08 = HIBYTE(l);
+            g_66e8[n].f0a = LOBYTE(l);
+            if (g_66e8[n].f08 != g_66e8[n].f00 || g_66e8[n].f02 != g_66e8[n].f0a) {
+                dx = g_1df8[HIBYTE(v)][LOBYTE(v)].f04.x - g_1df8[6][n].f04.x;
+                dy = g_1df8[HIBYTE(v)][LOBYTE(v)].f04.y - g_1df8[6][n].f04.y;
+                ex = g_1df8[HIBYTE(v)][LOBYTE(v)].f0c - g_1df8[6][n].f0c;
+                ey = g_1df8[HIBYTE(v)][LOBYTE(v)].f0e - g_1df8[6][n].f0e;
+                if (dx * ey - dy * ex > 0)
+                    g_66e8[n].f0c = 4;
+                else
+                    g_66e8[n].f0c = 3;
+                return;
+            }
+        }
+    }
     g_66e8[n].f0c = 2;
 }
 
@@ -604,8 +608,7 @@ int far fn_04_6a78(int n, int s)
     return score;
 }
 
-/* near-match 18%: 4:6e70 (control flow and layout right; the original indexes
- * fae[i]/fb8[i] as (row + i) in bx, this picks bx+si) */
+/* @addr 4:6e70 */
 void far fn_04_6e70(int n)
 {
     int i;
@@ -621,17 +624,18 @@ void far fn_04_6e70(int n)
     if (g_7090[n].fcb <= 1)
         return;
     for (i = 1; i < g_7090[n].fcb; i++) {
-        if (g_7090[n].fae[i] <= 0)
-            continue;
-        if (g_7090[n].f32 == 0 && g_1df8[0][g_7090[n].f34].f2f < 0 && g_7090[n].fb8[i] == 5)
-            v = 10000;
-        else
-            v = fn_04_6a78(n, i);
-        if (v > best) {
-            sel = i;
-            best = v;
+        if (g_7090[n].fae[i] > 0) {
+            if (g_7090[n].f32 == 0 && g_1df8[0][g_7090[n].f34].f2f < 0 && g_7090[n].fb8[i] == 5)
+                v = 10000;
+            else
+                v = fn_04_6a78(n, i);
+            if (v > best) {
+                sel = i;
+                best = v;
+            }
         }
     }
+
     if (best > 0) {
         if (g_2f58[g_7090[n].fb8[sel]].f00 == 2)
             g_7090[n].f5f = 2;
@@ -643,14 +647,13 @@ void far fn_04_6e70(int n)
     } else if (best == -100) {
         best = 100;
         for (j = 1; j < g_7090[n].fcb; j++) {
-            if (g_7090[n].fae[j] < 0)
-                continue;
-            if (g_2f58[g_7090[n].fb8[j]].f2a < g_7090[n].f1e
+            if (g_7090[n].fae[j] >= 0 && g_2f58[g_7090[n].fb8[j]].f2a < g_7090[n].f1e
                 && g_2f58[g_7090[n].fb8[j]].f28 < best) {
                 best = g_2f58[g_7090[n].fb8[j]].f28;
                 sel = j;
             }
         }
+
         if (best < 100) {
             if (g_2f58[g_7090[n].fb8[sel]].f00 == 2)
                 g_7090[n].f5f = 2;
@@ -828,8 +831,7 @@ int far fn_04_702e(int n)
     return 0;
 }
 
-/* near-match 99.6%: 4:7e2a (the game sets i = 0 for the last loop with
- * xor ax,ax + store; this gives an immediate store). */
+/* @addr 4:7e2a */
 void far fn_04_7e2a(void)
 {
     int i;
@@ -939,7 +941,7 @@ void far fn_04_7e2a(void)
     }
     if (g_9208 / 2 + 4 > g_9316 && g_964a > 6 && g_9648 > 4 && g_9208 > 0) {
         f = 1;
-        for (i = 0; i <= g_9316; i++)
+        for (i = c8 = 0; i <= g_9316; i++)
             if (g_96f0[g_7090[i].f4e].f1a == 7)
                 f = 0;
         chance = g_964a / 2 + g_3824[7][g_96f0[g_7090[g_9646].f4e].f1a] / -140 + g_9334 / 2;
