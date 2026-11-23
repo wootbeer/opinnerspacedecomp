@@ -573,3 +573,9 @@ Conventions
 - Diffs that ignore jump targets (sd.py) can hide real logic differences
   (8:5df2's old draft nested a condition chain wrongly): always confirm with
   match.py.
+- Single-use register locals as separate statements can force evaluation
+  order (12:2db6: `t = (g_9208 + 2) * 2; lim = min(t * ..., 10);`).
+- `@cflags` in a file overrides the CFLAGS variable: for /Fc listings of
+  such files, add /Fc to a copy's @cflags line.
+- Segment 5 is entirely C runtime; its last pieces are QuickWin stubs from
+  windows\noqwin.asm (__wcinit, __wopen) and long-shift helpers.

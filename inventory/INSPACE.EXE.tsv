@@ -85,7 +85,8 @@
 5:01aa	1020:01aa	160	lib	__aFlrem	lib	
 5:024a	1020:024a	106	lib	__aFulrem	lib	
 5:02b4	1020:02b4	95	lib	__aFuldiv	lib	gap1
-5:0314	1020:0314	50	lib	__aFulmul	lib	gap12
+5:0314	1020:0314	50	lib	__aFulmul	lib	
+5:0346	1020:0346	11	lib	__aFlshr	lib	gap1
 5:0352	1020:0352	18	lib	__dos_findnext	lib	
 5:0364	1020:0364	122	lib	__dos_findfirst	lib	
 5:03de	1020:03de	225	lib	__utime	lib	
@@ -93,7 +94,9 @@
 5:05be	1020:05be	145	lib	_time	lib	gap1
 5:0650	1020:0650	187	lib	_dtoxmode	lib	
 5:070c	1020:070c	373	lib	__stat	lib	
-5:0882	1020:0882	62	lib	_ValidDrive	lib	gap24
+5:0882	1020:0882	62	lib	_ValidDrive	lib	
+5:08c0	1020:08c0	11	lib	__aFlshl	lib	gap1
+5:08cc	1020:08cc	11	lib	__aFulshr	lib	gap1
 5:08d8	1020:08d8	153	lib	__filelength	lib	
 5:0972	1020:0972	35	lib	__FF_MSGBANNER	lib	gap1
 5:0996	1020:0996	223	lib	__cinit	lib	
@@ -103,8 +106,8 @@
 5:0aa3	1020:0aa3	112	lib	__c_exit	lib	
 5:0b13	1020:0b13	41	lib	__ctermsub	lib	
 5:0b3c	1020:0b3c	19	lib	dos\crt0dat.asm+1a6	lib	gap1
-5:0b50	1020:0b50	5	near			
-5:0b55	1020:0b55	6	near			gap1
+5:0b50	1020:0b50	5	lib	__wcinit	lib	
+5:0b55	1020:0b55	6	lib	__wopen	lib	gap1
 5:0b5c	1020:0b5c	5	lib	__cintDIV	lib	
 5:0b61	1020:0b61	67	lib	__amsg_exit	lib	
 5:0ba4	1020:0ba4	144	lib	__setenvp	lib	
@@ -134,7 +137,8 @@
 5:1a36	1020:1a36	127	lib	__intdosx	lib	gap1
 5:1ab6	1020:1ab6	212	lib	__lseek	lib	
 5:1b8a	1020:1b8a	55	lib	__NMSG_TEXT	lib	
-5:1bc1	1020:1bc1	61	lib	__NMSG_WRITE	lib	gap6
+5:1bc1	1020:1bc1	61	lib	__NMSG_WRITE	lib	
+5:1bfe	1020:1bfe	6	lib	__fptrap	lib	
 5:1c04	1020:1c04	45	lib	__myalloc	lib	gap1
 5:1c32	1020:1c32	101	lib	_getenv	lib	gap5
 5:1c9c	1020:1c9c	40	lib	_strncpy	lib	

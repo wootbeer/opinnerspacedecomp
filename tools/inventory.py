@@ -132,7 +132,7 @@ def walk(seg, start, limit, near_calls):
     return covered, has_data
 
 
-def lib_starts(data, segs, libs, ranges=None):
+def lib_starts(data, segs, libs, ranges=None, small_in=None):
     """{(seg, off): name} for C runtime publics found in code. If `ranges` is
     a list, (seg, start, end, module) of every matched module is appended."""
     found = {}
@@ -141,10 +141,12 @@ def lib_starts(data, segs, libs, ranges=None):
     for lib in libs:
         for mname, mcode, pubs in modules(open(lib, "rb").read()):
             for sname, (d, m) in mcode.items():
-                if len(d) < 16 or sum(m) < 12:
+                small = len(d) < 16 or sum(m) < 12
+                if small and (not small_in or len(d) < 4):
                     continue
                 rx = pattern(d, m)
-                hits = [(n, mt.start()) for n, b in code for mt in rx.finditer(b)]
+                hits = [(n, mt.start()) for n, b in code for mt in rx.finditer(b)
+                        if not small or n in small_in]
                 if len(hits) != 1:
                     continue
                 n, base = hits[0]
@@ -192,6 +194,15 @@ def main():
         add(sg, off, 'far')
     libranges = []
     libnames = lib_starts(data, segs, libs, libranges) if libs else {}
+    # small modules (under 16 bytes) only in segments that already hold
+    # several matched runtime modules, where a short match is not chance
+    if libs:
+        per = {}
+        for rs, _, _, _ in libranges:
+            per[rs] = per.get(rs, 0) + 1
+        rt = {sn for sn, c in per.items() if c >= 5}
+        for k, v in lib_starts(data, segs, libs, libranges, rt).items():
+            libnames.setdefault(k, v)
     for (sn, off) in libnames:
         starts[(sn, off)] = 'lib'
     for key in names:

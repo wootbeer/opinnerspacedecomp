@@ -1821,8 +1821,10 @@ void far fn_15_52e4(void)
 
 /* near-match 41%: 15:454c (draws the shaded side walls and the four
  * perspective lines [inferred]). Frame and first 0xad bytes match; the game
- * subtracts the spilled x0 straight from memory, and in the loop keeps
- * (int)i in dx/si where CL 8 picks cx and recomputes. */
+ * subtracts the spilled x0 straight from memory (CL reloads it into dx),
+ * loads ybot's g_6db6 into dx, and in the loop computes pt.x in cx keeping
+ * x0/xa in ax (CL computes into ax). The never-read x0/xa assignments in
+ * the loop give the game's (int)i CSE in si; 19 instructions differ. */
 void far fn_15_454c(void)
 {
     HGDIOBJ oldbrush;
@@ -1857,12 +1859,12 @@ void far fn_15_454c(void)
     for (i = 0; i < w; i += 2) {
         for (k = 0; k < 3; k++)
             c[k] = i * -150 / w + 170;
-        pt.x = g_6dac + g_6db4 + (int)i;
+        pt.x = (x0 = g_6dac + g_6db4) + (int)i;
         pt.y = dy1 * i / w + ybot;
         h = (dy2 - dy1) * i / w + dh;
         oldbrush = SelectObject(dc, CreateSolidBrush(PALETTERGB(c[0], c[1], c[2])));
         PatBlt(dc, pt.x, pt.y, 2, h, PATCOPY);
-        pt.x = g_6db0 - 2 - (int)i;
+        pt.x = (xa = g_6db0 - 2) - (int)i;
         PatBlt(dc, pt.x, pt.y, 2, h + 2, PATCOPY);
         DeleteObject(SelectObject(dc, oldbrush));
     }
