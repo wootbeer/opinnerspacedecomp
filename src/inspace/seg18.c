@@ -281,7 +281,9 @@ typedef struct {                /* 0x94 bytes at DS:6098 (seen as DS:610e) */
     int f78;
     int f7a;
     int f7c;
-    char p7e[0x94 - 0x7e];
+    char p7e[0x82 - 0x7e];
+    int f82;
+    char p84[0x94 - 0x84];
 } REC_6098;
 extern REC_6098 g_6098[];
 extern int g_073e;
@@ -1416,9 +1418,101 @@ void far fn_18_2272(void)
     fn_18_270e(g_6da4->f02, g_6da4->f04);
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+extern RECT g_8860[];
+extern POINT g_8ce4[];
+extern int g_8d1c[];
+#define SC(n) ((n) << g_9156)
+
+/* Sets the Demon arena size and lays out its wall rectangles, bounce
+ * points and corner pieces [inferred]. */
+/* @addr 18:270e */
 void far fn_18_270e(int w, int h)
 {
+    g_6da4->f02 = w;
+    g_6da4->f04 = h;
+    g_88c0 = w;
+    g_88c2 = h - g_88ea;
+    g_88f4[0].x = 0;
+    g_88f4[0].y = g_88c2 - g_9678;
+    g_88f4[1].x = g_88c0 - g_9678;
+    g_88f4[1].y = g_88c2 - g_9678;
+    g_88f4[2].x = g_88c0 - g_9678;
+    g_88f4[2].y = 0;
+    g_88f4[3].x = 0;
+    g_88f4[3].y = 0;
+    g_9156 <<= 1;
+    SetRect(&g_8860[0], 0, g_88c2 - g_9678, SC(5), g_88c2 + SC(9) - g_9678);
+    SetRect(&g_8860[1], 0, SC(9) - g_9678 + g_88c2, SC(14), g_88c2);
+    SetRect(&g_8860[2], SC(14), SC(-12) + g_88c2, g_9678, SC(-2) + g_88c2);
+    g_8ce4[0].x = SC(-15);
+    g_8ce4[0].y = SC(-2) - g_9678 + g_88c2;
+    g_8d1c[0] = SC(20);
+    g_8ce4[1].x = SC(-3);
+    g_8ce4[1].y = SC(9) - g_9678 + g_88c2;
+    g_8d1c[1] = SC(18);
+    g_8ce4[2].x = SC(14);
+    g_8ce4[2].y = SC(14) - g_9678 + g_88c2;
+    g_8d1c[2] = SC(13);
+    SetRect(&g_8860[3], SC(-5) + g_88c0, g_88c2 - g_9678, g_88c0, SC(9) - g_9678 + g_88c2);
+    SetRect(&g_8860[4], SC(-14) + g_88c0, SC(9) - g_9678 + g_88c2, g_88c0, g_88c2);
+    SetRect(&g_8860[5], g_88c0 - g_9678, SC(-12) + g_88c2, SC(-14) + g_88c0, SC(-2) + g_88c2);
+    g_8ce4[3].x = SC(-5) + g_88c0;
+    g_8ce4[3].y = SC(-2) - g_9678 + g_88c2;
+    g_8d1c[3] = SC(20);
+    g_8ce4[4].x = SC(-16) + g_88c0;
+    g_8ce4[4].y = SC(9) - g_9678 + g_88c2;
+    g_8d1c[4] = SC(19);
+    g_8ce4[5].x = SC(-27) + g_88c0;
+    g_8ce4[5].y = SC(15) - g_9678 + g_88c2;
+    g_8d1c[5] = SC(13);
+    SetRect(&g_8860[6], SC(-5) + g_88c0, SC(-9) + g_9678, g_88c0, g_9678);
+    SetRect(&g_8860[7], SC(-14) + g_88c0, 0, g_88c0, SC(-9) + g_9678);
+    SetRect(&g_8860[8], g_88c0 - g_9678, SC(2), SC(-14) + g_88c0, SC(12));
+    g_8ce4[6].x = SC(-5) + g_88c0;
+    g_8ce4[6].y = SC(-18) + g_9678;
+    g_8d1c[6] = SC(20);
+    g_8ce4[7].x = SC(-16) + g_88c0;
+    g_8ce4[7].y = SC(-28) + g_9678;
+    g_8d1c[7] = SC(19);
+    g_8ce4[8].x = SC(-27) + g_88c0;
+    g_8ce4[8].y = SC(-29) + g_9678;
+    g_8d1c[8] = SC(15);
+    SetRect(&g_8860[9], 0, SC(-9) + g_9678, SC(5), g_9678);
+    SetRect(&g_8860[10], 0, 0, SC(14), SC(-9) + g_9678);
+    SetRect(&g_8860[11], SC(14), SC(2), g_9678, SC(12));
+    g_8ce4[9].x = SC(-15);
+    g_8ce4[9].y = SC(-18) + g_9678;
+    g_8d1c[9] = SC(20);
+    g_8ce4[10].x = SC(-3);
+    g_8ce4[10].y = SC(-28) + g_9678;
+    g_8d1c[10] = SC(19);
+    g_8ce4[11].x = SC(13);
+    g_8ce4[11].y = SC(-28) + g_9678;
+    g_8d1c[11] = SC(14);
+    g_9156 /= 2;
+    g_8904[0].x = 18 / (4 - g_9156 * 3);
+    g_8904[0].y = 52 / (4 - g_9156 * 3) - g_9678 + g_88c2;
+    g_8904[1].x = -46 / (4 - g_9156 * 3) + g_88c0;
+    g_8904[1].y = 52 / (4 - g_9156 * 3) - g_9678 + g_88c2;
+    g_8904[2].x = -46 / (4 - g_9156 * 3) + g_88c0;
+    g_8904[2].y = 26 / (4 - g_9156 * 3);
+    g_8904[3].x = 18 / (4 - g_9156 * 3);
+    g_8904[3].y = 26 / (4 - g_9156 * 3);
+    g_8914[0].x = 18 / (4 - g_9156 * 3);
+    g_8914[0].y = 52 / (4 - g_9156 * 3) + g_9678;
+    g_8914[1].x = -46 / (4 - g_9156 * 3) + g_9678 * 2;
+    g_8914[1].y = 52 / (4 - g_9156 * 3) + g_9678;
+    g_8914[2].x = -46 / (4 - g_9156 * 3) + g_9678 * 2;
+    g_8914[2].y = 26 / (4 - g_9156 * 3);
+    g_8914[3].x = 18 / (4 - g_9156 * 3);
+    g_8914[3].y = 26 / (4 - g_9156 * 3);
+    g_1e34->f20 = (int)(g_1e34->f22 * g_88cc / g_88c0);
+    g_1e34->f04 = (int)g_88cc / 2 - g_1e34->f20 / 2;
+    g_1e34->f06 = (int)(g_88c2 * g_88cc / g_88c0) / 2 - g_1e34->f20 / 2;
+    g_1e34->f00 = g_88c0 / 2 - g_1e34->f22 / 2;
+    g_1e34->f02 = g_88c2 / 2 - g_1e34->f22 / 2;
+    g_1e34->f0c = 0;
+    g_1e34->f0e = 0;
 }
 
 /* Builds the scaled copies (DCs 35-38) of the sprite sheets 6-8 for the
@@ -1800,9 +1894,133 @@ void far fn_18_0000(void)
     }
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+extern int g_913c;
+extern DWORD g_1e84;
+extern int g_9662;
+void far fn_16_631c(void);
+void far fn_11_1bcc(void);
+void far fn_11_0894(void);
+void far fn_11_3396(void);
+void far fn_11_0afe(void);
+
+/* Ends the Demon sub-game and restores the normal view [inferred]. */
+/* @addr 18:03d6 */
 void far fn_18_03d6(void)
 {
+    int i;
+    int j;
+    int changed;
+    int scaled;
+    int b0;
+    int b1;
+
+    scaled = changed = 0;
+    if (g_9130) {
+        if (g_9156 == 1)
+            scaled = 1;
+        g_9130 = 0;
+        if (g_9156 == 1)
+            fn_16_631c();
+        PatBlt(g_13dc, 0, 0, g_88c0, g_88c2, BLACKNESS);
+        g_9326 = 0;
+        if (g_92e8)
+            g_9326 = 1;
+        g_9324 = 14;
+        g_9328 = 5;
+        g_934a = 3;
+        if (g_9156 == 1) {
+            g_913c = 1;
+            g_9666 = 0;
+            g_9664 = 0;
+            fn_10_754a(0x27, g_88c8.x, g_88c8.y, 4);
+            g_1df8[14][g_9646].f18 = 1;
+            g_073e = 0;
+            fn_10_7480(-3, 1);
+        } else
+            fn_18_0ba0();
+        for (j = 0; j < 4; j++)
+            g_70ae[g_9646].f08[j] = g_6e24[g_70ae[g_9646].fb8].f38[j];
+        g_70ae[g_9646].f00 = 40 * g_6e24[g_70ae[g_9646].fb8].f1c;
+        g_70ae[g_9646].f06 = g_6e24[g_70ae[g_9646].fb8].f74;
+        if (g_6e24[g_70ae[g_9646].fb8].f72 != g_70ae[g_9646].f8e ||
+            g_6e24[g_70ae[g_9646].fb8].f73 != g_70ae[g_9646].f8f)
+            changed = 1;
+        if (!g_70ae[g_9646].fce)
+            changed = 1;
+        g_70ae[g_9646].f8e = g_6e24[g_70ae[g_9646].fb8].f72;
+        g_70ae[g_9646].f8f = g_6e24[g_70ae[g_9646].fb8].f73;
+        b0 = g_70ae[g_9646].f8e;
+        b1 = g_70ae[g_9646].f8f;
+        g_70ae[g_9646].fce = 1;
+        g_1e84 = 0;
+        g_2408 = 0;
+        g_238c = 0;
+        fn_06_7266();
+        g_94c4 = 1;
+        fn_06_72d8(5, 5);
+        g_94c4 = 0;
+        g_92e4 = g_9330 = 1;
+        if (g_966a) {
+            if (g_920e)
+                SelectPalette(g_966a, g_9670, 0);
+            SelectObject(g_966a, g_966e);
+            DeleteObject(g_966c);
+            DeleteDC(g_966a);
+            g_966a = 0;
+        }
+        if (g_9656) {
+            if (g_920e)
+                SelectPalette(g_9656, g_965c, 0);
+            SelectObject(g_9656, g_965a);
+            DeleteObject(g_9658);
+            DeleteDC(g_9656);
+            g_9656 = 0;
+        }
+        if (g_9156 == 1)
+            sprite_dc_restore();
+        if (g_959e != 1 || !g_9156) {
+            if (g_90f4 == 1)
+                fn_18_07b2();
+            else
+                g_9662 = 1;
+        } else if (changed) {
+            fn_10_1eb6(g_9646, g_70ae[g_9646].f30, 1);
+            fn_16_3784(g_9646, 2);
+            if (g_70ae[g_9646].fc6 && g_96f0[g_70ae[g_9646].f30].f0a == 3) {
+                if (!b0)
+                    fn_08_2cd8(g_9646, 0);
+                if (!b1)
+                    fn_08_2cd8(g_9646, 1);
+            }
+        }
+        fn_10_0552(0x27, 1);
+        fn_10_0552(0x23, 1);
+        fn_10_0552(0x24, 1);
+        fn_10_0552(0x25, 1);
+        fn_10_0552(0x26, 1);
+        if (g_9668) {
+            DeleteObject(g_9668);
+            g_9668 = 0;
+        }
+        fn_18_1e46();
+        g_92e4 = 0;
+        g_9156 = g_959e;
+        if (scaled) {
+            fn_13_65f2(2);
+            fn_11_1bcc();
+            fn_11_0894();
+            fn_11_3396();
+            fn_11_0afe();
+        }
+        for (i = 0; i < 45; i++)
+            g_1e90[i].f00 = -1;
+        for (i = 0; i < 9; i++)
+            g_610e[i].f00 = -1;
+        for (i = 0; i < 20; i++)
+            g_58cc[i].f00 = -1;
+        g_9510 = 100;
+        g_9660 = 0;
+    }
 }
 
 /* Not yet decompiled: stub so calls to it compile as near calls. */
@@ -2011,5 +2229,204 @@ void far attractive_force_weapon(int type, int idx)
             }
         }
     }
+    }
+}
+
+typedef struct {                /* 0x1c-byte records at DS:66e4 */
+    int f00;
+    char p02[0x04 - 0x02];
+    int f04;
+    int f06;
+    int f08;
+    char p0a[0x1c - 0x0a];
+} REC_1C;
+typedef struct {                /* 0x50-byte records at DS:2f4c */
+    char p00[0x26];
+    int f26;
+    char p28[0x2c - 0x28];
+    int f2c;
+    char p2e[0x50 - 0x2e];
+} REC_50;
+typedef struct {                /* 0x14-byte records at DS:5a50 */
+    int f00;
+    int f02;
+    char p04[0x14 - 0x04];
+} REC_14B;
+extern REC_1C g_66e4[];
+extern REC_50 g_2f4c[];
+extern REC_14B g_5a50[];
+extern int g_9410;
+extern int g_9412;
+
+/* Pushes every nearby object away from a point ahead of object
+ * (type, idx) [inferred]. */
+/* @addr 18:551a */
+void far repulsive_force_weapon(int type, int idx)
+{
+    int dir;
+    int dist;
+    int force;
+    int a;
+    int b;
+    int i;
+    int r;
+    int k;
+    POINT tp;
+    POINT src;
+    POINT pp;
+
+    if (type == 14 && !g_1df8[14][idx].f54) {
+        if (!g_70ae[idx].f00)
+            return;
+        if (g_1e68 % 14 == 0)
+            g_70ae[idx].f00--;
+    }
+    dir = g_1df8[type][idx].f28;
+    if (type == 15)
+        dir = (dir + 8) & 0xf;
+    if (g_9130)
+        r = g_88cc * (15 * g_a198 + 85) / g_88c0;
+    else
+        r = 800;
+    src.x = (g_1050[dir].x * r >> 4) + (g_1df8[type][idx].f20 >> 1) + g_1df8[type][idx].f04;
+    src.y = (g_1050[dir].y * r >> 4) + (g_1df8[type][idx].f20 >> 1) + g_1df8[type][idx].f06;
+    pp = fn_08_29ea(src);
+    for (i = 0; i < 5; i++) {
+        if (g_6098[i].f76 >= 0 && g_6098[i].f74 >= g_6098[i].f76 &&
+            (g_6098[i].f7a != type || g_6098[i].f7c != idx)) {
+            tp.x = g_6098[i].x1[0][0];
+            tp.y = g_6098[i].y1[0][0];
+            dist = fn_08_285a(&a, &b, src, tp);
+            if (!dist)
+                dist = 1;
+            if (dist < 90) {
+                force = dist * 15 / -90 + 20;
+                g_6098[i].f70 += (long)a * force / dist;
+                g_6098[i].f72 += (long)b * force / dist;
+                g_6098[i].f82 = 1;
+            }
+        }
+    }
+    if (!g_9130)
+        for (i = 0; i < g_9412; i++) {
+            k = g_66e4[i].f00;
+            if ((g_2f4c[k].f26 > g_66e4[i].f08 || g_2f4c[k].f2c == 6) && k != -1 &&
+                !g_1df8[6][i].f18 &&
+                (g_66e4[i].f04 != type || g_66e4[i].f06 != idx)) {
+                tp.x = g_1df8[6][i].f04;
+                tp.y = g_1df8[6][i].f06;
+                dist = fn_08_285a(&a, &b, src, tp);
+                if (!dist)
+                    dist = 1;
+                if (dist < 90) {
+                    force = dist * 15 / -90 + 20;
+                    g_1df8[6][i].f0c += (long)a * force / dist;
+                    g_1df8[6][i].f0e += (long)b * force / dist;
+                }
+            }
+        }
+    if (!g_9130)
+        for (i = 0; i < g_9410; i++) {
+            if (!g_1df8[5][i].f18 &&
+                (g_5a50[i].f00 != type || g_5a50[i].f02 != idx)) {
+                tp.x = g_1df8[5][i].f04;
+                tp.y = g_1df8[5][i].f06;
+                dist = fn_08_285a(&a, &b, src, tp);
+                if (!dist)
+                    dist = 1;
+                if (dist < 90) {
+                    force = dist * 15 / -90 + 20;
+                    g_1df8[5][i].f0c += (long)a * force / dist;
+                    g_1df8[5][i].f0e += (long)b * force / dist;
+                }
+            }
+        }
+}
+
+void far fn_11_9daa(int a, int b);
+
+/* A wall gun n aims at the player ship and fires when lined up
+ * [inferred]. */
+/* near-match 26%: 18:49d8 (the game keeps the second q.x/q.y in si/cx and
+ * reuses them for d; here they are reloaded from q; layout otherwise the
+ * same) */
+void far fn_18_49d8(int n, int m)
+{
+    int i;
+    int dist;
+    int speed;
+    int unused_a;
+    POINT pos;
+    POINT d;
+    POINT v;
+    POINT c;
+    POINT q;
+    RECT rc;
+
+    if (g_90f4 == 6 && g_a198 < 6)
+        return;
+    if (g_a17f[n] < 0) {
+        pos.x = g_6098[n].x1[0][0];
+        pos.y = g_6098[n].y1[0][0];
+        v.x = g_6098[n].f70;
+        v.y = g_6098[n].f72;
+        for (i = 0; i < 4; i++) {
+            c.x = (g_8870[i].rc.right - g_8870[i].rc.left) / 2 + g_8870[i].rc.left;
+            c.y = (g_8870[i].rc.bottom - g_8870[i].rc.top) / 2 + g_8870[i].rc.top;
+            c = fn_08_2bbe(c);
+            dist = fn_08_35d0(d.x = c.x - pos.x, d.y = c.y - pos.y);
+            speed = fn_08_35d0(v.x, v.y);
+            if (!speed)
+                speed = 1;
+            q.x = (long)dist * v.x / speed + pos.x;
+            q.y = (long)dist * v.y / speed + pos.y;
+            q = fn_08_29ea(q);
+            SetRect(&rc, g_8870[i].rc.left - 7, g_8870[i].rc.top - 7,
+                    g_8870[i].rc.right + 7, g_8870[i].rc.bottom + 7);
+            if (PtInRect(&rc, q)) {
+            POINT s;
+            int steps;
+            int dir1;
+            int dir2;
+
+            dir1 = (g_1e34->f28 + 8) % 16;
+            s.x = g_1e34->f22 / 2 + g_1e34->f04;
+            s.y = g_1e34->f22 / 2 + g_1e34->f06;
+            dir2 = fn_08_19b0(c.x - s.x, c.y - s.y);
+            if (g_9676)
+                return;
+            if (fn_09_88ba(dir1 - dir2) < 3) {
+                if (g_90f4 == 1)
+                    dist = (8 - g_a198) * dist / 10;
+                else
+                    dist = (14 - g_a198) * dist / 10;
+                q.x = (long)dist * v.x / speed + pos.x;
+                q.y = (long)dist * v.y / speed + pos.y;
+                s.x = g_1e34->f20 / 2 + g_1e34->f04;
+                s.y = g_1e34->f20 / 2 + g_1e34->f06;
+                steps = dist / speed;
+                if (steps >= m - 1)
+                    return;
+                dist = fn_08_35d0(d.x = q.x - s.x, d.y = q.y - s.y);
+                if (!dist)
+                    dist = 1;
+                speed = dist / steps;
+                g_a17f[n] = 0;
+                g_a199[n].x = s.x;
+                g_a199[n].y = s.y;
+                *(POINT *)&g_a1c9 = fn_08_29ea(s);
+                MoveTo(g_13dc, g_a1c9, g_a1cb);
+                g_a1a9[n].x = (long)d.x * speed / dist;
+                g_a1a9[n].y = (long)d.y * speed / dist;
+                g_a187[n] = steps;
+                return;
+            }
+            if ((g_90f4 == 1 && (g_a198 + 1) * 2 > rand() % 27) ||
+                (g_90f4 == 6 && g_a198 - 1 > rand() % 12))
+                fn_11_9daa(15, 0);
+            return;
+            }
+        }
+        g_a187[n] = 0;
     }
 }

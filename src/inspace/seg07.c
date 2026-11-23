@@ -22,7 +22,7 @@ typedef struct {
     int f20;                    /* +20 */
     int f22;                    /* +22 */
     int f24;                    /* +24 */
-    char p26[0x28 - 0x26];
+    int f26;                    /* +26 */
     int f28;                    /* +28 */
     char p2a[0x2c - 0x2a];
     int f2c;                    /* +2c */
@@ -71,7 +71,9 @@ typedef struct {                /* 0x23 bytes, DGROUP array at DS:57a8 */
     char p08[0x0a - 0x08];
     char f0a;
     char f0b;
-    char p0c[0x1f - 0x0c];
+    char p0c[0x19 - 0x0c];
+    int f19;                    /* +19 */
+    char f1b[4];                /* +1b: indices of the four pieces [inferred] */
     DWORD f1f;                  /* +1f; 7:4a38 reaches it as g_57a8[n - 1].f1f */
 } REC_23;
 #pragma pack()
@@ -286,6 +288,22 @@ void far fn_08_99ce(int a, int b, int c, int d, int e);
 void far fn_13_6450(int a, int b, int c);
 void far fn_13_58dc(int a, int b);
 void far fn_13_5a6a(HDC dc, int a, int b, int c, int d, int e, int f, int g);
+extern int g_92ee;
+extern HGLOBAL g_9102;
+void far fn_11_3914(void);
+extern int g_9130;                  /* subgame_active */
+extern HBRUSH g_3b74[];
+extern char g_507c[];
+extern char g_50e0[];
+extern int g_9146;
+extern RECT g_8860[];
+extern int g_3a00;
+extern int hazards_ship_redraw_pending;
+void far pascal fn_08_124a(int i);
+void far fn_18_5350(int x, int y);
+extern int g_9454;
+int far fn_09_88ba(int x);
+
 
 /* Adds cracks to a window pane and redraws it [inferred]. */
 /* @addr 7:233c */
@@ -745,6 +763,103 @@ void far fn_07_3a42(int n)
     }
 }
 
+/* Updates the objects of type g_934a: animation frame, glow and hits [inferred]. */
+/* @addr 7:3bae */
+void far fn_07_3bae(void)
+{
+    int i;
+    int r;
+    int k;
+    int u[10];
+    HGDIOBJ old;
+    int flag;
+    int u2[2];
+    int d;
+
+    for (i = 0; i < g_9406[g_934a]; i++) {
+        if (g_1df8[g_934a][i].f18 == 0) {
+            if (g_1df8[g_934a][i].f1a != 0) {
+                if (g_1df8[g_934a][i].f2f > 0) {
+                    if (g_9130)
+                        k = 0x24;
+                    else
+                        k = 6;
+                    old = SelectObject(g_13dc, g_3b74[g_1df8[g_934a][i].f2f]);
+                    flag = 1;
+                    if (g_1df8[g_934a][i].f6a < g_1e50) {
+                        g_1df8[g_934a][i].f2f--;
+                        g_1df8[g_934a][i].f6a = g_1e50 + 3000;
+                    }
+                } else {
+                    if (g_1df8[g_934a][i].f2f < 0) {
+                        if (rand() % 7 == 2)
+                            fn_07_5b68(g_934a, i, 0);
+                        g_1df8[g_934a][i].f2f++;
+                    }
+                    if (g_9130)
+                        k = 0x23;
+                    else
+                        k = 7;
+                    flag = 0;
+                }
+                if (!g_9130 && g_1df8[g_934a][i].f22 < (30 << g_9156 >> 1))
+                    k += 2;
+                if (g_9130 && (g_9156 == 0 && g_1df8[g_934a][i].f22 < 12
+                               || g_9156 == 1 && g_1df8[g_934a][i].f22 < 30))
+                    k += 2;
+                fn_08_1d54((char)i | g_934a << 8, 0x28);
+                fn_08_1b54((char)i | g_934a << 8, 1);
+                g_1df8[g_934a][i].f28 = g_1df8[g_934a][i].f26 / 100;
+                g_1df8[g_934a][i].f10 = (g_1df8[g_934a][i].f22 + g_1df8[g_934a][i].f24)
+                    * (g_1df8[g_934a][i].f26 / 100) + g_1df8[g_934a][i].f24;
+                fn_08_0b76((char)i | g_934a << 8, 1, g_39e8[k], flag);
+                if (g_1df8[g_934a][i].f2f > 0)
+                    SelectObject(g_13dc, old);
+                d = fn_09_88ba(g_1df8[g_934a][i].f0c) + fn_09_88ba(g_1df8[g_934a][i].f0e);
+                if (g_1df8[g_934a][i].f0c < 0)
+                    d = -d;
+                g_1df8[g_934a][i].f26 += d;
+                if (g_1df8[g_934a][i].f26 > 0x707)
+                    g_1df8[g_934a][i].f26 = 0;
+                if (g_1df8[g_934a][i].f26 < 0)
+                    g_1df8[g_934a][i].f26 = 0x707;
+            } else if (g_9142 % 3 == 0) {
+                fn_08_1d54((char)i | g_934a << 8, 0x28);
+                fn_08_1b54((char)i | g_934a << 8, 3);
+                if (g_1df8[g_934a][i].f2f > 0) {
+                    if (g_1df8[g_934a][i].f6a < g_1e50) {
+                        g_1df8[g_934a][i].f2f--;
+                        g_1df8[g_934a][i].f6a = g_1e50 + 3000;
+                    }
+                } else if (g_1df8[g_934a][i].f2f < 0)
+                    g_1df8[g_934a][i].f2f++;
+            }
+            if (g_1df8[g_934a][i].f1a != 0 && g_1df8[g_934a][i].f1c == 0) {
+                g_943c = i;
+                g_943a = g_934a;
+                r = fn_08_50aa((char)i | g_934a << 8);
+                if (r != -1) {
+                    if (HIBYTE(r) == g_9328) {
+                        if (g_1df8[HIBYTE(r)][LOBYTE(r)].f44 == 120) {
+                            g_1df8[g_934a][i].f2f = min(g_1df8[g_934a][i].f2f + 1, 9);
+                            g_1df8[g_934a][i].f6a = g_1e50 + 5000;
+                        } else if (g_1df8[HIBYTE(r)][LOBYTE(r)].f44 == 200
+                                   && g_1df8[g_934a][i].f2f > 0) {
+                            g_1df8[g_934a][i].f2f = -(g_1df8[g_934a][i].f2f * 5);
+                            fn_07_5b68(g_934a, i, 0);
+                        }
+                    }
+                    g_9454 = g_1df8[g_934a][i].f2f;
+                    fn_08_5df2(g_934a, i, HIBYTE(r), LOBYTE(r),
+                               fn_08_546c(r, &g_1df8[g_934a][i].f0c, &g_1df8[g_934a][i].f0e,
+                                          g_1df8[g_934a][i].f20 + 2, g_1df8[g_934a][i].f44));
+                    g_9454 = 0;
+                }
+            }
+        }
+    }
+}
+
 /* Builds the five-frame strip of a window pane in g_3a04[n] [inferred]. */
 /* @addr 7:477e */
 void far fn_07_477e(int n)
@@ -925,6 +1040,97 @@ void far fn_07_5d6a(int a, int b, int unused, int c, int d)
             g_9456++;
             return;
         }
+}
+
+/* Animates the up-to-20 sparkle bursts in g_58bc and checks them for overlap [inferred]. */
+/* @addr 7:5e04 */
+void far fn_07_5e04(void)
+{
+    int i;
+    int w;
+    int off;
+    int q;
+    int srcx;
+    int j;
+    int k;
+    int tbl[6];
+    RECT r2;
+    RECT r1;
+    RECT r3;
+    int flag;
+    RECT r4;
+
+    tbl[2] = 6;
+    tbl[3] = 18;
+    tbl[4] = 36;
+    tbl[5] = 60;
+    for (i = tbl[1] = tbl[0] = 0; i < 20; i++) {
+        if (g_58bc[i].f10 < 55 && g_58bc[i].f10 > -1) {
+            q = g_58bc[i].f10 / 9;
+            if (g_58bc[i].f10 % 4 <= g_9208 + 2) {
+                w = (q + 5) * 2 << g_9156 >> 1;
+                srcx = q * (30 << g_9156 >> 1) + (tbl[q] << g_9156 >> 1)
+                    + w * (g_58bc[i].f10 / 3 % 3);
+                off = q;
+                fn_08_124a(i);
+                flag = 1;
+                if (g_9208 >= 2) {
+                    SetRect(&r3, g_58bc[i].a.x - (off << g_9156 >> 1),
+                            g_58bc[i].a.y - (off << g_9156 >> 1),
+                            g_58bc[i].a.x - (off << g_9156 >> 1) + w,
+                            g_58bc[i].a.y - (off << g_9156 >> 1) + w);
+                    for (j = 0; j < g_9146; j++) {
+                        SetRect(&r1, g_1df8[g_507c[j]][g_50e0[j]].f00,
+                                g_1df8[g_507c[j]][g_50e0[j]].f02,
+                                g_1df8[g_507c[j]][g_50e0[j]].f22 + g_1df8[g_507c[j]][g_50e0[j]].f00,
+                                g_1df8[g_507c[j]][g_50e0[j]].f22 + g_1df8[g_507c[j]][g_50e0[j]].f02);
+                        if (IntersectRect(&r2, &r3, &r1))
+                            flag = 0;
+                    }
+                }
+                g_58bc[i].c.x += g_58bc[i].fc;
+                g_58bc[i].c.y += g_58bc[i].fe;
+                if (g_58bc[i].f12)
+                    PatBlt(g_13dc, g_58bc[i].b.x - (off << g_9156 >> 1),
+                           g_58bc[i].b.y - (off << g_9156 >> 1), w, w, BLACKNESS);
+                if (g_9130) {
+                    SetRect(&r3, g_58bc[i].a.x - (off << g_9156 >> 1),
+                            g_58bc[i].a.y - (off << g_9156 >> 1),
+                            g_58bc[i].a.x - (off << g_9156 >> 1) + w,
+                            g_58bc[i].a.y - (off << g_9156 >> 1) + w);
+                    for (k = 0; k < 4; k++)
+                        for (j = 0; j < 3; j++)
+                            if (IntersectRect(&r2, &r3, &g_8860[k * 3 + j])) {
+                                flag = 0;
+                                g_58bc[i].f10 = 0x36;
+                                fn_18_5350(g_58bc[k].a.x, g_58bc[k].a.y);   /* sic: k, not i */
+                                break;
+                            }
+                }
+                if (flag) {
+                    BitBlt(g_13dc, g_58bc[i].a.x - (off << g_9156 >> 1),
+                           g_58bc[i].a.y - (off << g_9156 >> 1), w, w,
+                           g_3a00, srcx, 0, SRCCOPY);
+                    g_58bc[i].f12 = 1;
+                } else
+                    g_58bc[i].f12 = 0;
+                SetRect(&r4, g_1df8[g_9324][g_9646].f00 - w, g_1df8[g_9324][g_9646].f02 - w,
+                        g_1df8[g_9324][g_9646].f00 + g_1df8[g_9324][g_9646].f22 + w,
+                        g_1df8[g_9324][g_9646].f02 + g_1df8[g_9324][g_9646].f22 + w);
+                if (PtInRect(&r4, g_58bc[i].a))
+                    hazards_ship_redraw_pending = 1;
+            }
+            g_58bc[i].f10++;
+        }
+        if (g_58bc[i].f10 == 55) {
+            PatBlt(g_13dc, g_58bc[i].a.x - (6 << g_9156 >> 1), g_58bc[i].a.y - (6 << g_9156 >> 1),
+                   24 << g_9156 >> 1, 24 << g_9156 >> 1, BLACKNESS);
+            g_58bc[i].f10 = -1;
+            if (g_9130)
+                fn_18_5350(g_58bc[i].a.x, g_58bc[i].a.y);
+            g_9456--;
+        }
+    }
 }
 
 /* Window procedure of the "IS_ICON" pilot-icon window [inferred]. */
@@ -1149,10 +1355,142 @@ void far fn_07_5b68(int type, int idx, int flag)
     }
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Breaks window pane n into four pieces of type 1 [inferred]. */
+/* @addr 7:2768 */
 void far fn_07_2768(int n)
 {
-    g_0a76 = n;
+    int i;
+    int j;
+    int k;
+    int size;
+    int gap;
+    int s32;
+    int g2;
+    int idx[4];
+    int found;
+    HDC dc[2];
+    HGDIOBJ old[2];
+    int bmp;
+
+    size = 20 << g_9156 >> 1;
+    gap = 6 << g_9156 >> 1;
+    s32 = 32 << g_9156 >> 1;
+    g2 = 6 << g_9156 >> 1;
+    g_57a8[n].f19 = 1;
+    for (i = 0; i < 4; i++) {
+        for (j = 0; j < g_92ee; j++) {
+            found = 0;
+            if (g_1df8[1][j].f18 != 0) {
+                g_1df8[1][j].f18 = 0;
+                g_1df8[1][j].f1e = 0;
+                if (g_4e94[j]) {
+                    DeleteObject(g_4e94[j]);
+                    g_4e94[j] = 0;
+                }
+                g_4e94[j] = CreateCompatibleBitmap(g_13dc, gap * 2 + size, gap * 2 + size);
+                idx[i] = j;
+                g_6038[j] = n;
+                g_57a8[n].f1b[i] = j;
+                found = 1;
+                break;
+            }
+        }
+        if (!found) {
+            g_92ee = j + 1;
+            GlobalUnlock(g_9102);
+            g_9102 = GlobalReAlloc(g_9102, (long)max(g_92ee, 1) * 0x70, 0x42);
+            g_1df8[1] = (REC_70 far *)GlobalLock(g_9102);
+            g_1df8[1][j].f22 = 20 << g_9156 >> 1;
+            g_1df8[1][j].f20 = 0xa0;
+            g_1df8[1][j].f24 = 6 << g_9156 >> 1;
+            g_1df8[1][j].f44 = 0x3c;
+            g_1df8[1][j].f42 = 0x12;
+            g_1df8[1][j].f4c = 0x808000;
+            g_1df8[1][j].f2c = 0xe;
+            g_1df8[1][j].f18 = 1;
+            g_1df8[1][j].f66 = fn_07_2e02;
+            g_1df8[1][j].f62 = fn_11_3914;
+            g_1df8[1][j].f5e = (int (far *)(int, int))fn_07_2652;
+            g_1df8[1][j].f53 = 0;
+            g_1df8[1][j].f1e = 0;
+            g_1df8[1][j].f18 = 0;
+            g_1df8[1][j].f32 = -1;
+            g_1df8[1][j].f12 = g_1df8[1][j].f24;
+            g_1df8[1][j].f2e = 0;
+            if (g_4e94[j]) {
+                DeleteObject(g_4e94[j]);
+                g_4e94[j] = 0;
+            }
+            g_4e94[j] = CreateCompatibleBitmap(g_13dc, gap * 2 + size, gap * 2 + size);
+            idx[i] = j;
+            g_6038[j] = n;
+            g_57a8[n].f1b[i] = j;
+        }
+        if (j >= g_9408)
+            g_9408 = j + 1;
+    }
+    bmp = fn_10_6308(-1, -1, fn_10_6d38("piece"), -1);
+    for (k = 0; k < 2; k++)
+        dc[k] = CreateCompatibleDC(g_13dc);
+    old[0] = SelectObject(dc[0], bmp);
+    old[1] = SelectObject(dc[1], g_4e94[0]);
+
+    SelectObject(dc[0], bmp);
+    SelectObject(dc[1], g_4e94[idx[0]]);
+    PatBlt(dc[1], 0, 0, g2 * 2 + s32, g2 * 2 + s32, BLACKNESS);
+    BitBlt(dc[1], gap, gap, size, size, dc[0], 0, 0, SRCCOPY);
+    BitBlt(dc[1], (2 << g_9156 >> 1) + gap, (2 << g_9156 >> 1) + gap,
+           size - (4 << g_9156 >> 1), size - (4 << g_9156 >> 1), g_3a02,
+           (g2 + s32) * n + (3 << g_9156 >> 1) + g2, (3 << g_9156 >> 1) + g2, SRCCOPY);
+
+    SelectObject(dc[0], bmp);
+    SelectObject(dc[1], g_4e94[idx[1]]);
+    PatBlt(dc[1], 0, 0, g2 * 2 + s32, g2 * 2 + s32, BLACKNESS);
+    BitBlt(dc[1], gap, gap, size, size, dc[0], 0, 0, SRCCOPY);
+    BitBlt(dc[1], (2 << g_9156 >> 1) + gap, (2 << g_9156 >> 1) + gap,
+           size - (4 << g_9156 >> 1), size - (4 << g_9156 >> 1), g_3a02,
+           (g2 + s32) * n + s32 / 2 + g2, (3 << g_9156 >> 1) + g2, SRCCOPY);
+
+    SelectObject(dc[0], bmp);
+    SelectObject(dc[1], g_4e94[idx[2]]);
+    PatBlt(dc[1], 0, 0, g2 * 2 + s32, g2 * 2 + s32, BLACKNESS);
+    BitBlt(dc[1], gap, gap, size, size, dc[0], 0, 0, SRCCOPY);
+    BitBlt(dc[1], (2 << g_9156 >> 1) + gap, (2 << g_9156 >> 1) + gap,
+           size - (4 << g_9156 >> 1), size - (4 << g_9156 >> 1), g_3a02,
+           (g2 + s32) * n + (3 << g_9156 >> 1) + g2, g2 + size, SRCCOPY);
+
+    SelectObject(dc[0], bmp);
+    SelectObject(dc[1], g_4e94[idx[3]]);
+    PatBlt(dc[1], 0, 0, g2 * 2 + s32, g2 * 2 + s32, BLACKNESS);
+    BitBlt(dc[1], gap, gap, size, size, dc[0], 0, 0, SRCCOPY);
+    BitBlt(dc[1], (2 << g_9156 >> 1) + gap, (2 << g_9156 >> 1) + gap,
+           size - (4 << g_9156 >> 1), size - (4 << g_9156 >> 1), g_3a02,
+           (g2 + s32) * n + g2 + size, g2 + size, SRCCOPY);
+
+    for (k = 0; k < 2; k++) {
+        SelectObject(dc[k], old[k]);
+        DeleteDC(dc[k]);
+    }
+    if (bmp) {
+        DeleteObject(bmp);
+        bmp = 0;
+    }
+    g_1df8[1][idx[0]].f04 = g_1df8[0][n].f04;
+    g_1df8[1][idx[0]].f06 = g_1df8[0][n].f06;
+    g_1df8[1][idx[0]].f0c = g_1df8[0][n].f0c - 10;
+    g_1df8[1][idx[0]].f0e = g_1df8[0][n].f0e - 10;
+    g_1df8[1][idx[1]].f04 = g_1df8[0][n].f04 + 0xb0;
+    g_1df8[1][idx[1]].f06 = g_1df8[0][n].f06;
+    g_1df8[1][idx[1]].f0c = g_1df8[0][n].f0c + 20;
+    g_1df8[1][idx[1]].f0e = g_1df8[0][n].f0e - 10;
+    g_1df8[1][idx[2]].f04 = g_1df8[0][n].f04;
+    g_1df8[1][idx[2]].f06 = g_1df8[0][n].f06 + 0xb0;
+    g_1df8[1][idx[2]].f0c = g_1df8[0][n].f0c - 10;
+    g_1df8[1][idx[2]].f0e = g_1df8[0][n].f0e + 20;
+    g_1df8[1][idx[3]].f04 = g_1df8[0][n].f04 + 0xb0;
+    g_1df8[1][idx[3]].f06 = g_1df8[0][n].f06 + 0xb0;
+    g_1df8[1][idx[3]].f0c = g_1df8[0][n].f0c + 10;
+    g_1df8[1][idx[3]].f0e = g_1df8[0][n].f0e + 10;
 }
 
 /* Animates a window pane being cleared: shifts random columns [inferred]. */
