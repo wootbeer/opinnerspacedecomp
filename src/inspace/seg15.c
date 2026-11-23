@@ -954,10 +954,165 @@ void far fn_15_5962(int a)
     }
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+extern HDC g_39f2;
+extern int g_1214;
+extern DWORD g_1d3c;
+void far fn_06_0a6c(void);
+
+/* Calibration screen (state machine on g_95cc): counter gauge, the
+ * spark/laser animation and the final caption [inferred]. */
+/* @addr 15:5e22 */
 void far fn_15_5e22(int a)
 {
-    g_95b8 = a;
+    HDC mdc;
+    HGDIOBJ oldm;
+    HGDIOBJ oldbr;
+    HGDIOBJ oldpen;
+    int i;
+    int r;
+    int n;
+    int sz;                     /* digit size */
+    int m;                      /* digit margin */
+    COLORREF color;
+
+    m = 6;
+    sz = 40;
+    mdc = CreateCompatibleDC(g_13dc);
+    oldm = SelectObject(mdc, (HGDIOBJ)g_95f4);
+    if (a && g_95cc)
+        BitBlt(g_13dc, g_90ea / 2 - 88, g_0010 / 2 - 60, 40, 40, g_39f2, n * 46 + 6, 6, SRCCOPY);  /* sic: n unset */
+    switch (g_95cc) {
+    case 0: {
+        int v;
+
+        if (g_95d2 < 9999)
+            n = g_95d2 / 1000;
+        else
+            n = 0;
+        if (g_1212 && g_120e == 0 && g_95d0 && g_95d0 < 160 && n == 5) {
+            g_95d0 = g_95d2 = 0;
+            fn_10_754a(0x23, 0, 0, 0);
+            g_95cc++;
+        }
+        BitBlt(g_13dc, g_90ea / 2 - 88, g_0010 / 2 - 60, sz, sz, g_39f2, (sz + m) * n + m,
+               m, SRCCOPY);
+        g_95d2 += g_95d0;
+        if (g_95d2 > 13999) {
+            g_95d2 = 0;
+            if (g_120e == 0)
+                g_95d0 = g_95d0 - 18 < 1 ? 1 : g_95d0 - 18;
+        }
+        if (g_120e) {
+            if (GetCurrentTime() > g_120e + 1000) {
+                v = GetPrivateProfileInt(g_9690, "Calibrate", 0, g_96a9);
+                if (g_8ffa && v / 2 > g_8ffa && g_1214)
+                    g_1214 = g_8ffa = 0;
+                if ((g_90f8 || g_90ee < 8) && GetCurrentTime() < g_1d3c + 2000 || !g_8ffa) {
+                    g_120e = GetCurrentTime();
+                    g_8ffa = 0;
+                } else {
+                    g_1212 = 1;
+                    g_95d0 = 240;
+                    g_120e = 0;
+                    g_8ffa = (long)g_8ffa * 23 / 10;
+                    fn_06_0a6c();
+                }
+            } else
+                g_8ffa++;
+        }
+        break;
+    }
+    case 1:
+        BitBlt(g_13dc, g_90ea / 2 - 88, g_0010 / 2 - 60, sz, sz, g_39f2,
+               (n = g_95d2 / 1000 + 10) * (m + sz) + m, m, SRCCOPY);
+        g_95d2 += 45;
+        if (g_95d2 >= 3940) {
+            fn_10_754a(0x68, 0, 0, 0);
+            g_95d2 = 620;
+            g_95cc++;
+        }
+        break;
+    case 2:
+        switch (r = rand() % 4) {
+        case 0:
+            color = RGB(0, 0, 255);
+            break;
+        case 1:
+            color = RGB(0, 255, 255);
+            break;
+        case 2:
+            color = RGB(255, 255, 255);
+            break;
+        case 3:
+            color = RGB(0, 128, 128);
+            break;
+        }
+        oldpen = SelectObject(g_13dc, CreatePen(PS_SOLID, 2, color));
+        MoveTo(g_13dc, g_90ea / 2 - 48, g_0010 / 2 - 40);
+        LineTo(g_13dc, g_90ea / 2 + g_95d2 / 5 - 38, rand() % 30 + g_0010 / 2 - 55);
+        DeleteObject(SelectObject(g_13dc, CreatePen(PS_SOLID, 2, RGB(0, 0, 0))));
+        MoveTo(g_13dc, g_90ea / 2 - 48, g_0010 / 2 - 40);
+        LineTo(g_13dc, g_90ea / 2 + g_95d2 / 5 - 38, rand() % 30 + g_0010 / 2 - 55);
+        DeleteObject(SelectObject(g_13dc, oldpen));
+        fn_10_7d58(g_90ea / 2 + g_95d2 / 2 - 38, g_90ec / 2);
+        oldbr = SelectObject(g_13dc, GetStockObject(DKGRAY_BRUSH));
+        BitBlt(g_13dc, g_95d2 / 5 + g_90ea / 2 - 38, g_0010 / 2 - 56, 2, 32, mdc, g_95d2 / 5, 0,
+               MERGECOPY);
+        SelectObject(g_13dc, oldbr);
+        if ((g_95d2 -= 4) < 0) {
+            PatBlt(g_13dc, g_90ea / 2 - 48, g_0010 / 2 - 56, 10, 32, BLACKNESS);
+            for (i = 0; i < 630; i += 2) {
+                if (i == 100)
+                    fn_10_744c(0x6e);
+                oldbr = SelectObject(g_13dc, CreateSolidBrush(RGB(i / 5 + 128, i / 5 - 128,
+                                                                  i / -5 + 127)));
+                BitBlt(g_13dc, g_90ea / 2 - 38, g_0010 / 2 - 56, 130, 32, mdc, 0, 0, MERGECOPY);
+                DeleteObject(SelectObject(g_13dc, oldbr));
+            }
+            g_95cc++;
+            g_95d2 = 3940;
+            fn_10_744c(0x23);
+        }
+        break;
+    case 3:
+        BitBlt(g_13dc, g_90ea / 2 - 88, g_0010 / 2 - 60, sz, sz, g_39f2,
+               (n = g_95d2 / 1000 + 10) * (m + sz) + m, m, SRCCOPY);
+        g_95d2 -= 45;
+        if (g_95d2 <= 60) {
+            BitBlt(g_13dc, g_90ea / 2 - 88, g_0010 / 2 - 60, sz, sz, g_39f2, m * 6 + sz * 5,
+                   m, SRCCOPY);
+            g_95cc++;
+            g_6e28 = g_1e50 + 3000;
+        }
+        break;
+    case 4: {
+        HGDIOBJ oldfont;
+        HFONT font;
+        char buf[40];
+        DWORD oldtc;
+        DWORD oldbk;
+
+        fn_10_744c(0x6e);
+        font = CreateFont(38, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2, 0x22, "Times New Roman");
+        oldfont = SelectObject(g_13dc, font);
+        oldbk = SetBkColor(g_13dc, RGB(0, 0, 0));
+        SetBkMode(g_13dc, TRANSPARENT);
+        SetTextAlign(g_13dc, TA_CENTER);
+        oldtc = SetTextColor(g_13dc, RGB(255, 255, 0));
+        LoadString(g_9212, 0x846, buf, 40);
+        TextOut(g_13dc, g_90ea / 2, g_0010 / 2 + 17, buf, lstrlen(buf));
+        SetBkColor(g_13dc, oldbk);
+        SetTextColor(g_13dc, oldtc);
+        SelectObject(g_13dc, oldfont);
+        if (font) {
+            DeleteObject(font);
+            font = 0;
+        }
+        break;
+    }
+    }
+    SelectObject(mdc, oldm);
+    DeleteDC(mdc);
 }
 
 /* Not yet decompiled: stub so calls to it compile as near calls. */

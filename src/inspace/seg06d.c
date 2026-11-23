@@ -959,3 +959,157 @@ void far fn_06_5318(void)
 void far fn_06_5524(void)
 {
 }
+
+extern int g_94b8;
+int far fn_02_1a5a(int a, int b, long c);
+void far fn_02_190a(DWORD ctx);
+void far fn_06_23d4(void);
+
+/* Window procedure of the load/save dialog window [inferred]. */
+/* @addr 6:1f22 */
+LRESULT far pascal fn_06_1f22(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    PAINTSTRUCT ps;
+    HDC hdc;
+    int u26;
+    int y;
+    RECT u2a;
+    RECT rc;
+    DRAWITEMSTRUCT far *dis;
+    UINT cmd;
+    int r;
+    MINMAXINFO far *mm;
+    char u46[120];
+    TEXTMETRIC tm;
+    HDC dc;
+    HGDIOBJ oldfont;
+
+    switch (msg) {
+    default:
+        return DefWindowProc(hwnd, msg, wParam, lParam);
+    case WM_CREATE:
+        g_0d1e = hwnd;
+        fn_06_23d4();
+        break;
+    case WM_DRAWITEM:
+        dis = (DRAWITEMSTRUCT far *)lParam;
+        if (dis->itemID == -1)
+            fn_06_4e04(dis);
+        else
+            switch (dis->itemAction) {
+            case ODA_DRAWENTIRE:
+                fn_06_4ea8(dis);
+                break;
+            case ODA_SELECT:
+                fn_06_47e8(dis);
+                break;
+            case ODA_FOCUS:
+                fn_06_4e04(dis);
+                break;
+            }
+        return 1;
+    case WM_MEASUREITEM: {
+        MEASUREITEMSTRUCT far *mis;
+
+        dc = GetDC(g_0016);
+        oldfont = SelectObject(dc, g_90fe);
+        GetTextMetrics(dc, &tm);
+        SelectObject(dc, oldfont);
+        ReleaseDC(g_0016, dc);
+        (mis = (MEASUREITEMSTRUCT far *)lParam)->itemHeight =
+            max(tm.tmHeight + tm.tmExternalLeading + 3, 14);
+        break;
+    }
+    case WM_CTLCOLOR:
+        if (g_0024 && (r = fn_02_1a5a(msg, wParam, lParam)) != 0)
+            return (UINT)r;
+        return DefWindowProc(hwnd, msg, wParam, lParam);
+    case WM_GETMINMAXINFO:
+        mm = (MINMAXINFO far *)lParam;
+        mm->ptMinTrackSize.x = 560;
+        mm->ptMinTrackSize.y = 350;
+        break;
+    case WM_SIZE:
+        GetWindowRect(g_0d1e, &g_6af0);
+        GetClientRect(g_0d1e, &rc);
+        MoveWindow(GetDlgItem(g_0d1e, 1), rc.right - 105, 5, 90, 26, TRUE);
+        MoveWindow(GetDlgItem(g_0d1e, 0x70), rc.right - 105, 40, 90, 26, TRUE);
+        MoveWindow(GetDlgItem(g_0d1e, 0x65), 0, 0, 160, rc.bottom - 26, TRUE);
+        MoveWindow(GetDlgItem(g_0d1e, 0x6b), 164, 0, rc.right - 284, rc.bottom - 26, TRUE);
+        y = rc.bottom - 155;
+        MoveWindow(GetDlgItem(g_0d1e, 0x8c), rc.right - 110, y, 102, 122, TRUE);
+        MoveWindow(GetDlgItem(g_0d1e, 0x93), rc.right - 110, y, 102, 122, TRUE);
+        MoveWindow(GetDlgItem(g_0d1e, 0x8d), rc.right - 97, y + 18, 80, g_94b8 * 4 + 30, TRUE);
+        MoveWindow(GetDlgItem(g_0d1e, 0x91), rc.right - 99, y + 18, 83, (g_94b8 + 10) * 3, TRUE);
+        MoveWindow(GetDlgItem(g_0d1e, 0x8e), rc.right - 97, y + 43, 80, (g_94b8 + 10) * 3, TRUE);
+        MoveWindow(GetDlgItem(g_0d1e, 0x92), rc.right - 99, y + 43, 83, (g_94b8 + 10) * 3, TRUE);
+        MoveWindow(GetDlgItem(g_0d1e, 0x8f), rc.right - 97, y + 68, 80, (g_94b8 + 10) * 3, TRUE);
+        MoveWindow(GetDlgItem(g_0d1e, 0x90), rc.right - 97, y + 93, 80, (g_94b8 + 5) * 6, TRUE);
+        MoveWindow(GetDlgItem(g_0d1e, 0x94), rc.right - 99, y + 68, 83, (g_94b8 + 5) * 6, TRUE);
+        break;
+    case WM_MOVE:
+        GetWindowRect(g_0d1e, &g_6af0);
+        break;
+    case WM_PAINT:
+        InvalidateRect(hwnd, NULL, TRUE);
+        GetClientRect(hwnd, &rc);
+        fn_06_5b4c(hdc = BeginPaint(hwnd, &ps), 1);
+        EndPaint(hwnd, &ps);
+        break;
+    case WM_COMMAND: {
+        int res;
+
+        switch (wParam) {
+        case 0x65:
+            if (HIWORD(lParam) == 2) {
+                char buf[100];
+
+                res = fn_06_5260(buf);
+                if (res == 1)
+                    fn_06_4f46();
+                else if (res == 2)
+                    fn_06_511c();
+            } else if (HIWORD(lParam) == 1) {
+                int v;
+
+                v = (int)SendMessage(GetDlgItem(g_0d1e, 0x65), 0x409, 0, 0L);
+                if (v != g_94b4) {
+                    g_94b4 = v;
+                    fn_06_5318();
+                }
+            }
+            break;
+        case 0x70:
+            fn_02_190a(5L);
+            break;
+        case IDOK:
+            if (!fn_06_301a()) {
+                char buf[100];
+
+                res = fn_06_5260(buf);
+                if (res == 1)
+                    fn_06_4f46();
+                else if (res == 2)
+                    fn_06_511c();
+            }
+            break;
+        }
+        break;
+    }
+    case WM_SYSCOMMAND:
+        switch (cmd = wParam & 0xfff0) {
+        case SC_CLOSE:
+            PostMessage(g_0016, WM_SYSCOMMAND, SC_CLOSE, 0L);
+            break;
+        default:
+            return DefWindowProc(hwnd, msg, wParam, lParam);
+        }
+        break;
+    }
+    return 0;
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_06_23d4(void)
+{
+}

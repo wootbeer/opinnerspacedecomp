@@ -138,7 +138,8 @@ typedef struct {                /* 0x4b0-byte effect records at far DS:6b0c */
     int f06;
     int f08;
     int f0a;
-    char p0c[0x24c - 0x0c];
+    int f0c[144];               /* trail x */
+    int f12c[144];              /* trail y */
     char f24c[36];
     long f270[36];
     long f300[36];
@@ -207,7 +208,8 @@ typedef struct {                /* 0x1a9-byte save summary [inferred] */
     char f173;
     char f174[10];
     char f17e[10];
-    char p188[0x18a - 0x188];
+    char f188;
+    char f189;
     char f18a;
     long f18b;
     char f18f;
@@ -215,29 +217,82 @@ typedef struct {                /* 0x1a9-byte save summary [inferred] */
     char p197[0x1a9 - 0x197];
 } REC_SAVE;
 typedef struct {                /* 0x15a-byte object records from DS:7092 */
-    char p00[0x16];
-    char f16;
-    char p17[0x24 - 0x17];
+    char p00[0x08];
+    char f08;
+    char p09[0x16 - 0x09];
+    int f16;
+    char p18[0x1c - 0x18];
+    int f1c;
+    char p1e[0x22 - 0x1e];
+    int f22;
     int f24[4];
     char p2c[0x4c - 0x2c];
     int f4c;                    /* class */
     char p4e[0x5b - 0x4e];
     signed char f5b;
     signed char f5c;
-    char p5d[0xaa - 0x5d];
+    char p5d[0x60 - 0x5d];
+    int f60[16];
+    int f80;
+    char p82[0xaa - 0x82];
     char faa;
     char fab;
-    char pac[0xcc - 0xac];
+    char fac[10];
+    char fb6[0xc9 - 0xb6];
+    char fc9;
+    char pca[0xcc - 0xca];
     int fcc;
     int fce;
     int fd0;
-    char pd2[0xda - 0xd2];
+    char pd2[0xd4 - 0xd2];
+    int fd4;
+    int fd6;
+    char pd8[0xda - 0xd8];
     long fda;
     char pde[0xe2 - 0xde];
     char fe2;
-    char pe3[0x15a - 0xe3];
+    char pe3[0xea - 0xe3];
+    char fea;
+    char peb[0x15a - 0xeb];
 } REC_7092;
 typedef struct { int f00; char p02[0x7c - 0x02]; } REC_7CB;
+typedef struct {                /* 0x7c-byte records at far DS:6e24 */
+    int f00;
+    int f02;
+    int f04;
+    int f06;
+    char p08[0x1c - 0x08];
+    char f1c;
+    char f1d;
+    char f1e[10];
+    char f28[0x38 - 0x28];
+    char f38[4];
+    char f3c[0x64 - 0x3c];
+    char f64;
+    char p65[0x72 - 0x65];
+    char f72;
+    char f73;
+    char f74;
+    char f75;
+    char f76;
+    char p77[0x7c - 0x77];
+} REC_7C;
+typedef struct {                /* 0x297-byte records at far DS:69f4 */
+    char p000[0xa0];
+    char fa0;
+    char fa1;
+    char p0a2;
+    char fa3;
+    char p0a4[0xad - 0xa4];
+    char fad;
+    int fae[40];
+    int ffe[0x1c0 - 0xfe >> 1];
+    signed char f1c0[8];
+    char p1c8[0x297 - 0x1c8];
+} REC_297C;
+typedef struct { char p00[0x18]; int f18; char p1a[0x1e - 0x1a]; int f1e;
+                 char p20[0x44 - 0x20]; int f44; char p46[0x70 - 0x46]; } REC_70;
+typedef struct { int f00; char p02[0x24 - 0x02]; int f24; char p26[0x34 - 0x26]; } REC_34;
 typedef struct { char p000[0x1d0]; char f1d0; char p1d1[0x297 - 0x1d1]; } REC_297B;
 #pragma pack()
 extern REC_7092 g_7092[];
@@ -904,10 +959,108 @@ int far fn_06_885c(int ask, int mode)
     return 1;
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+extern HGDIOBJ g_3b4c[];
+
+/* Moves and draws every active effect; returns 1 when none is active
+ * [inferred]. */
+/* @addr 6:73f6 */
 int far fn_06_73f6(void)
 {
-    return 0;
+    int j;
+    int cnt;
+    int bi;                     /* brush index */
+    int last;
+    int row;
+    int col;
+    int base;
+    int k;
+    int x;
+    int y;
+    HGDIOBJ old;
+    int done;
+    int u1c;
+
+    if (!g_94dc)
+        return 1;
+    done = 1;
+    for (k = 0; k < g_94d0; k++) {
+        if (FX[k].f04 - FX[k].f05 == -4)
+            fn_06_73d6(k);
+        else if (FX[k].f00) {
+            done = 0;
+            if (FX[k].f04 <= FX[k].f05 && FX[k].f04 + 4 > FX[k].f05) {
+                cnt = FX[k].f02 * FX[k].f02;
+                for (j = 0; j < cnt; j++)
+                    PatBlt(g_13dc, FX[k].f0c[FX[k].f0a + j], FX[k].f12c[FX[k].f0a + j],
+                           4, 4, BLACKNESS);
+                FX[k].f05++;
+                FX[k].f0a += g_94d6;
+                if (FX[k].f0a > g_94d6 * 3)
+                    FX[k].f0a = 0;
+            }
+            if (FX[k].f04 > FX[k].f05) {
+                bi = FX[k].f01 + FX[k].f05 * 9 / FX[k].f04;
+                old = SelectObject(g_13dc, g_3b4c[bi]);
+                last = FX[k].f02 - 1;
+                cnt = (last + 1) * (last + 1);
+                for (base = row = 0; base < cnt; row++, base += FX[k].f02)
+                    for (col = 0; col < FX[k].f02; col++) {
+                        j = col + base;
+                        PatBlt(g_13dc, FX[k].f0c[FX[k].f0a + j], FX[k].f12c[FX[k].f0a + j],
+                               4, 4, BLACKNESS);
+                        x = (int)(FX[k].f390[j] >> 8);
+                        y = (int)(FX[k].f420[j] >> 8);
+                        if (FX[k].f24c[j] > 0) {
+                            if (FX[k].f24c[j] <= 4) {
+                                switch (FX[k].f24c[j]) {
+                                case 1:
+                                    old = SelectObject(g_13dc, GetStockObject(GRAY_BRUSH));
+                                    break;
+                                case 2:
+                                    old = SelectObject(g_13dc, GetStockObject(WHITE_BRUSH));
+                                    break;
+                                case 3:
+                                    old = SelectObject(g_13dc, GetStockObject(LTGRAY_BRUSH));
+                                    break;
+                                case 4:
+                                    old = SelectObject(g_13dc, GetStockObject(BLACK_BRUSH));
+                                    break;
+                                }
+                                PatBlt(g_13dc, x, y, 4, 4, PATCOPY);
+                                SelectObject(g_13dc, old);
+                                FX[k].f24c[j]++;
+                            }
+                        } else {
+                            if (col == 0 || col == last || row == 0 || row == last)
+                                PatBlt(g_13dc, x, y, 2, 2, PATCOPY);
+                            else if (col == 1 || last - col - 1 == 0 || row == 1 || last - row - 1 == 0)
+                                PatBlt(g_13dc, x, y, 3, 3, PATCOPY);
+                            else
+                                PatBlt(g_13dc, x, y, 4, 4, PATCOPY);
+                            if (FX[k].f04 - 8 <= FX[k].f05 && FX[k].f04 - 4 >= FX[k].f05
+                                && FX[k].f05 - FX[k].f04 + rand() % 4 + 4 >= 0) {
+                                if (FX[k].f06 > 1000)
+                                    FX[k].f24c[j] = 1;
+                                else
+                                    FX[k].f05 = FX[k].f04 - 2;
+                            }
+                        }
+                        FX[k].f0c[FX[k].f0a + j] = x;
+                        FX[k].f12c[FX[k].f0a + j] = y;
+                        FX[k].f390[j] += FX[k].f270[j];
+                        FX[k].f420[j] += FX[k].f300[j];
+                        FX[k].f270[j] -= FX[k].f270[j] >> FX[k].f08;
+                        FX[k].f300[j] -= FX[k].f300[j] >> FX[k].f08;
+                    }
+                SelectObject(g_13dc, old);
+                FX[k].f05++;
+                FX[k].f0a += g_94d6;
+                if (FX[k].f0a > g_94d6 * 3)
+                    FX[k].f0a = 0;
+            }
+        }
+    }
+    return done;
 }
 
 /* Not yet decompiled: stub so calls to it compile as near calls. */
@@ -1150,4 +1303,279 @@ void far fn_06_78ea(int kind, int x, int y, int vx, int vy, int size, int n,
             }
         return;
     }
+}
+
+extern int g_9316;
+extern int g_9418;
+extern int g_940c;
+extern int g_9416;
+extern int g_0952[];
+extern int g_096c[];
+extern REC_70 far *g_1e04;
+extern REC_70 far *g_1e18;
+extern REC_70 far *g_1e1c;
+extern REC_34 g_3d5a[];
+void far fn_14_421c(int n);
+
+#define R7C ((REC_7C far *)g_6e24)
+#define R297 ((REC_297C far *)g_69f4)
+
+/* Copies the object records into the far ship table (DS:6e24) and the
+ * current mission record (DS:69f4), then saves [inferred]. rank stays
+ * uninitialised when no band matches (as in the original). */
+/* @addr 6:99b6 */
+void far fn_06_99b6(void)
+{
+    int i;
+    int me;                     /* copy of g_9646 */
+    int u8;
+    int ua;
+    int j;
+    int v;
+    int rank;
+    int u12;
+    int u14;
+    int u16;
+    int u18;
+    int found;
+
+    if (g_91f8 > 0) {
+        for (i = 0; i <= g_9316; i++) {
+            if (g_7092[i].fd4 == -1)
+                continue;
+            for (j = 0; j <= g_9316; j++)
+                R7C[g_7092[i].fd4].f3c[g_7092[j].fd4] = g_7092[i].f60[j] / 10;
+            for (j = 0; j < 4; j++)
+                R7C[g_7092[i].fd4].f38[j] = g_7092[i].f24[j];
+            if (!g_7092[i].fea)
+                R7C[g_7092[i].fd4].f38[0] = 0;
+            for (j = 0; j < g_7092[i].fc9; j++) {
+                R7C[g_7092[i].fd4].f28[j] = g_7092[i].fb6[j];
+                R7C[g_7092[i].fd4].f1e[j] = g_7092[i].fac[j];
+            }
+            R7C[g_7092[i].fd4].f1d = g_7092[i].fc9;
+            fn_14_421c(i);
+            R7C[g_7092[i].fd4].f06 = g_7092[i].f80;
+            R7C[g_7092[i].fd4].f1c = g_7092[i].f1c / 40;
+            R7C[g_7092[i].fd4].f74 = g_7092[i].f22;
+            R7C[g_7092[i].fd4].f75 = g_7092[i].f08;
+            R7C[g_7092[i].fd4].f72 = g_7092[i].faa;
+            R7C[g_7092[i].fd4].f73 = g_7092[i].fab;
+            R7C[g_7092[i].fd4].f04 = g_7092[i].fcc;
+            R7C[g_7092[i].fd4].f02 = (int)((g_7092[i].fda = min(g_7092[i].fda, 327670L)) / 10);
+            v = (int)((g_7092[i].fda * 3 + g_7092[i].fd6) / 100);
+            for (j = 1; j < 11; j++)
+                if (g_0952[j] <= v && g_096c[j] > v) {
+                    rank = j;
+                    break;
+                }
+            R7C[g_7092[i].fd4].f76 = rank;
+            /* bare label: resets CL's register tracking (layout only) */
+        reset:
+            me = g_9646;
+            if (!g_7092[i].fea || g_7092[i].f80 < 0 || i == me) {
+                for (j = 0; j < 8; j++)
+                    if (R297[g_94a2].f1c0[j] == g_7092[i].fd4)
+                        R297[g_94a2].f1c0[j] = -1;
+            } else {
+                for (j = found = 0; j < 8; j++)
+                    if (R297[g_94a2].f1c0[j] == g_7092[i].fd4)
+                        found = 1;
+                if (!found)
+                    for (j = 0; j < 8; j++)
+                        if (R297[g_94a2].f1c0[j] == -1) {
+                            R297[g_94a2].f1c0[j] = g_7092[i].fd4;
+                            break;
+                        }
+            }
+        }
+        g_931c = g_7092[g_9646].fd4;
+        R297[g_94a2].fa3 = 0;
+        R297[g_94a2].fa0 = 0;
+        R297[g_94a2].fa1 = 0;
+        for (i = 0; i < g_9418; i++)
+            if (!g_1e1c[i].f18)
+                R297[g_94a2].fa3++;
+        for (i = 0; i < g_940c; i++) {
+            if (g_1e04[i].f44 == 350 && !g_1e04[i].f18)
+                R297[g_94a2].fa0++;
+            if (g_1e04[i].f44 == 1400 && !g_1e04[i].f18)
+                R297[g_94a2].fa1++;
+        }
+        for (i = 0; i < g_9416; i++) {
+            R297[g_94a2].fae[i] = g_1e18[i].f1e;
+            if (g_3d5a[i].f00 == -3)
+                R297[g_94a2].fae[i] = -R297[g_94a2].fae[i];
+            R297[g_94a2].ffe[i] = g_3d5a[i].f24;
+        }
+    }
+    fn_06_885c(1, 0);
+}
+
+extern int g_92e2;
+extern char g_a161;
+extern char g_a162;
+extern int g_95aa;
+extern int g_951c;
+extern int g_104c;
+extern int g_104e;
+extern int g_92e4;
+void far fn_14_3eda(void);
+int far fn_14_455c(int n);
+void far fn_14_4074(void);
+
+/* Loads the saved game [inferred]. */
+/* @addr 6:930a */
+int far fn_06_930a(void)
+{
+    int i;
+    int j;
+    HFILE hf;
+    DWORD size;
+    DWORD size2;
+    char path[110];
+    char name[20];
+    char tmp[20];
+    OFSTRUCT of;
+    HGLOBAL h;
+    REC_SAVE far *p;
+    int hi;
+    int lo;
+
+    if (!g_920c && flow_interactive) {
+        fn_16_68d6(g_0016, 0x915, -1);
+        return 0;
+    }
+    g_939a = fn_10_804c(1);
+    *(long *)&g_939e = fn_10_804c(0);
+    lstrcpy(path, g_9078);
+    lstrcat(path, g_96b8);
+    if (flow_interactive) {
+        GetPrivateProfileString(g_9690, "Restore", "", name, 9, g_96a9);
+        lstrcat(path, name);
+    } else
+        lstrcat(path, "demogame");
+    lstrcat(path, ".sav");
+    hf = OpenFile(path, &of, OF_READ);
+    if (hf == -1 || !(h = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, 0x1a9L)))
+        return 0;
+    if (!(p = (REC_SAVE far *)GlobalLock(h))) {
+        fn_06_9932(h, hf, 0);
+        return 0;
+    }
+    size = GlobalSize(h);
+    GlobalUnlock(h);
+    if (!fn_14_4006(hf, (char huge *)(p = (REC_SAVE far *)GlobalLock(h = GlobalReAlloc(h, size, GMEM_MOVEABLE | GMEM_ZEROINIT))), size)) {
+        fn_06_9932(h, hf, 0);
+        return 0;
+    }
+    if (g_95a4) {
+        GlobalUnlock(g_95a4);
+        GlobalFree(g_95a4);
+    }
+    if (g_94ae) {
+        GlobalUnlock(g_94ae);
+        GlobalFree(g_94ae);
+    }
+    if (!(g_95a4 = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, size = (long)(p->f34 + 1) * 0x7c)))
+        return 0;
+    if (!(g_6e24 = GlobalLock(g_95a4))) {
+        fn_06_9932(h, hf, 0);
+        return 0;
+    }
+    size2 = GlobalSize(g_95a4);
+    GlobalUnlock(g_95a4);
+    if (!fn_14_4006(hf, (char huge *)(g_6e24 = GlobalLock(g_95a4 = GlobalReAlloc(g_95a4, size2, GMEM_MOVEABLE | GMEM_ZEROINIT))), size2)) {
+        fn_06_9932(h, hf, 0);
+        return 0;
+    }
+    if (!(g_94ae = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, size = 0x297L * p->f32)))
+        return 0;
+    if (!(g_69f4 = GlobalLock(g_94ae))) {
+        fn_06_9932(h, hf, 0);
+        return 0;
+    }
+    size2 = GlobalSize(g_94ae);
+    GlobalUnlock(g_94ae);
+    if (!fn_14_4006(hf, (char huge *)(g_69f4 = GlobalLock(g_94ae = GlobalReAlloc(g_94ae, size2, GMEM_MOVEABLE | GMEM_ZEROINIT))), size2)) {
+        fn_06_9932(h, hf, 0);
+        return 0;
+    }
+    if (p->f171 != g_9156) {
+        fn_06_0f1a(g_9156 = p->f171, tmp);
+        WritePrivateProfileString(g_9690, "Size", tmp, g_96a9);
+        g_92e2 = 1;
+    }
+    g_939a = p->f00;
+    hi = p->f1a;
+    lo = (p->f18 << 8) | p->f19;
+    *(long *)&g_939e = ((long)hi << 16) | (unsigned)lo;
+    g_7092[0].f5b = p->f26;
+    g_7092[0].f5c = p->f28;
+    g_91f8 = p->f24;
+    g_94a2 = p->f2a;
+    if (!R297[g_94a2].fad)
+        R297[g_94a2].fad = 1;
+    g_931c = p->f2c;
+    g_9432 = p->f2e;
+    g_964a = p->f30;
+    g_94a4 = p->f32;
+    g_931a = p->f34;
+    g_1e58 = p->f1e;
+    g_5078 = p->f16a;
+    g_93ac = p->f166;
+    g_94ca = p->f168;
+    g_9346 = p->f18f;
+    g_967c = p->f18a;
+    for (i = 0; i < 10; i++) {
+        g_a14d[i] = p->f174[i];
+        g_a157[i] = p->f17e[i];
+    }
+    g_a161 = p->f188;
+    g_a162 = p->f189;
+    g_7092[g_9646].f16 = p->f172;
+    g_7092[0].fd0 = p->f15a;
+    g_7092[0].fce = p->f15c;
+    g_9134 = p->f16e;
+    if (!flow_interactive)
+        g_9134 = 1;
+    g_94ac = p->f16f;
+    g_05a8 = p->f18b;
+    lstrcpy(g_380c, p->f04);
+    for (i = 0; i < 8; i++) {
+        for (j = 0; j < 8; j++)
+            g_3824[i][j] = p->f36[i][j];
+        for (j = 0; j < 3; j++) {
+            g_4eec[i][j] = p->fb6[i][j];
+            g_4fd0[i][j] = p->fe6[i][j];
+            g_6b10[i][j] = p->f116[i][j];
+        }
+        g_6b40[i] = p->f146[i];
+    }
+    g_945c = p->f156;
+    g_945e = p->f158;
+    g_a1cd = p->f190[0] << 7;
+    g_a1cd += p->f190[1];
+    g_a1cf = p->f190[6];
+    for (i = 2; i < 6; i++)
+        g_a191[i] = p->f190[i];
+    g_1318 = p->f173;
+    fn_14_3eda();
+    for (i = 0; i < g_931a; i++) {
+        if (R7C[i].f64 == 7)
+            R7C[i].f64 = 0;
+        if (R7C[i].f00 >= g_95aa || !i && !fn_14_455c(R7C[i].f00))
+            R7C[i].f00 = 1;
+    }
+    fn_14_4074();
+    g_104e = g_104c = g_951c = 0;
+    g_92e4 = 1;
+    if (p->f15e < 100)
+        for (i = 0; i < g_931a; i++)
+            if (R7C[i].f02 < -15000)
+                R7C[i].f02 = (unsigned)R7C[i].f02 / 10;
+            else
+                R7C[i].f02 /= 10;
+    fn_06_9932(h, hf, 1);
+    return 1;
 }

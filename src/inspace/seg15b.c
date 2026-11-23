@@ -169,7 +169,10 @@ extern REC_7C far *g_6e24;
 typedef struct {                /* 0x15a bytes, DGROUP array at DS:7090 */
     char p00[0x4e];
     int f4e;                    /* +4e */
-    char p50[0xd6 - 0x50];
+    char p50[0xac - 0x50];
+    char fac;                   /* +ac */
+    char fad;                   /* +ad */
+    char pae[0xd6 - 0xae];
     int fd6;                    /* +d6 */
     char pd8[0xe4 - 0xd8];
     char fe4;                   /* +e4 */
@@ -1013,11 +1016,7 @@ void far fn_15_1a42(void)
     }
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
-void far fn_15_20ca(void)
-{
-    g_92a2 = 4;
-}
+
 
 /* Moves the ship sprite along the launch tube and draws it; returns 1
  * when it has left the tube [inferred]. */
@@ -1137,11 +1136,7 @@ int far fn_15_374c(int a)
     return 0;
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
-int far fn_15_3caa(int a)
-{
-    return a;
-}
+
 
 /* Sets up the trapezoid view geometry (g_3c8c) and its memory DC [inferred]. */
 /* @addr 15:482e */
@@ -1182,11 +1177,6 @@ void far fn_15_482e(void)
     fn_15_4a2e();
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
-int far fn_15_0000(int a)
-{
-    return a;
-}
 
 #pragma pack(1)
 typedef struct {                /* 0x41-byte records, far array at DS:6e20 */
@@ -1569,8 +1559,7 @@ void far fn_15_84b0(int x, int y);
 
 /* Types the briefing text g_4fcc onto the screen a few characters per
  * call, with a cursor block and scrolling [inferred]. */
-/* near-match 99%: 15:1584. Only the cursor y differs: the game adds
- * g_17e8/g_17e4 before h (h * 10 / -13 + y + h); CL 8 always adds h first. */
+/* @addr 15:1584 */
 void far fn_15_1584(int a)
 {
     HGDIOBJ oldfont;
@@ -1656,15 +1645,19 @@ void far fn_15_1584(int a)
                 g_17e2.y += h + 1;
         } else {
             HGDIOBJ old;
+            /* block-scope int views of g_17e6.y / g_17e2.y: only to get the
+             * game's add order (global before h) */
+            extern int g_17e8;
+            extern int g_17e4;
 
             if (g_17ea)
-                PatBlt(g_13dc, g_17e6.x + 2, h * 10 / -13 + g_17e6.y + h, h * 6 / 13, h * 10 / 13,
+                PatBlt(g_13dc, g_17e6.x + 2, h * 10 / -13 + g_17e8 + h, h * 6 / 13, h * 10 / 13,
                        BLACKNESS);
             TextOut(g_13dc, g_17e2.x, g_17e2.y, g_4fcc + g_17ea, 1);
             sz = GetTextExtent(g_13dc, g_4fcc + g_17ea, 1);
             g_17e2.x += LOWORD(sz);
             old = SelectObject(g_13dc, CreateSolidBrush(RGB(0x80, 0xff, 0)));
-            PatBlt(g_13dc, g_17e2.x + 2, h * 10 / -13 + g_17e2.y + h, h * 6 / 13, h * 10 / 13,
+            PatBlt(g_13dc, g_17e2.x + 2, h * 10 / -13 + g_17e4 + h, h * 6 / 13, h * 10 / 13,
                    PATCOPY);
             DeleteObject(SelectObject(g_13dc, old));
             g_17e6 = g_17e2;
@@ -1883,4 +1876,708 @@ void far fn_15_454c(void)
     MoveTo(dc, g_6db0 - 2, ytop);
     LineTo(dc, g_90ea / 2, g_3ca2);
     DeleteObject(SelectObject(dc, oldpen));
+}
+
+extern int g_093c;
+extern int g_9004;
+extern int g_92c0;
+void far fn_13_65f2(int a);
+void far fn_10_94c4(int a, int b, long color, int x, int y, LPSTR s);
+
+/* Opens the briefing screen: background bitmap, layout rects and the
+ * "loading" caption [inferred]. */
+/* @addr 15:302e */
+void far fn_15_302e(void)
+{
+    char s[80];
+    char t[40];
+    int u1, u2;
+    int jy;
+    int jx;
+
+    jy = jx = 0;
+    fn_13_65f2(3);
+    if (g_90f4 != 9)
+        fn_10_7480(-2, 1);
+    if (g_90f4 != 9 || !g_92be) {
+        fn_10_744c(0x6e);
+        if (!g_93a6)
+            PatBlt(g_13dc, 0, 0, g_90ea, g_0010, BLACKNESS);
+        fn_10_6da6(0, 1);
+        if (!g_93a6 && (g_8ffc < 850 || g_8ffc < 1600 && g_90ee < 8)) {
+            lstrcpy(s, "");
+            if (g_90ea > 700) {
+                LoadString(g_9212, 0x859, t, 40);
+                lstrcat(s, t);
+            }
+            LoadString(g_9212, 0x85a, t, 40);
+            lstrcat(s, t);
+            fn_10_94c4(0, 6, RGB(0, 255, 0), g_90ea / 2, g_90ec / 2, s);
+        }
+    }
+    g_92d6 = (long)g_0010 * 22 / 100;
+    g_92d8 = g_0010 - 10;
+    if (g_90f4 == 9 && !g_92be) {
+        g_92d8 = g_0010 / 30;
+        g_92d6 = g_0010 * 4 / 10;
+    }
+    if (!g_0928) {
+        if (!g_92a6) {
+            if (!(g_92a6 = GlobalAlloc(GHND, 8L)))
+                return;
+            if (!(g_3cc0 = (RECT far *)GlobalLock(g_92a6))) {
+                GlobalFree(g_92a6);
+                return;
+            }
+        }
+        if (g_90f4 == 6) {
+            g_9294 = fn_10_9526(g_3cc0, g_92a6, 0x69, 0L, 0, 0L, 0, g_90ea, g_0010, jx, jy, 0);
+            g_929a = CreateCompatibleDC(g_13dc);
+            g_9296 = SelectObject(g_929a, g_9294);
+            if (g_920e)
+                g_92a0 = SelectPalette(g_929a, (HPALETTE)g_920e, 0);
+            g_92de = g_3cc0->bottom;
+            g_92d6 = g_3cc0[1].top - 40;
+        } else if (g_90f4 == 8) {
+            g_9294 = fn_10_9526(g_3cc0, g_92a6, 0x6e, 0L, 0, 0L, 0, g_90ea, g_0010, jx, jy, 0);
+            g_929a = CreateCompatibleDC(g_13dc);
+            g_9296 = SelectObject(g_929a, g_9294);
+            if (g_920e)
+                g_92a0 = SelectPalette(g_929a, (HPALETTE)g_920e, 0);
+            SetRect(&g_3ca8, g_3cc0->left, g_3cc0->top, g_3cc0->right, g_3cc0->bottom);
+            g_92de = g_0010;
+            g_92d6 = g_3ca8.top + 20;
+        } else if (g_90f4 == 9) {
+            if (!g_92be) {
+                g_9294 = fn_10_9526(g_3cc0, g_92a6, 0x78, 0L, 0, 0L, 0, g_90ea, g_0010, jx, jy, 0);
+                g_929a = CreateCompatibleDC(g_13dc);
+                g_9296 = SelectObject(g_929a, g_9294);
+                if (g_920e)
+                    g_92a0 = SelectPalette(g_929a, (HPALETTE)g_920e, 0);
+                SetRect(&g_3ca8, g_3cc0->left, g_3cc0->top, g_3cc0->right, g_3cc0->bottom);
+                g_92c0 = g_3cc0[1].top;
+                g_92de = g_0010;
+            } else if (g_92be == 2) {
+                PatBlt(g_13dc, 0, 0, g_90ea, g_0010, BLACKNESS);
+                fn_10_6da6(1, 1);
+                jy = -201;
+                jx = 500;
+                fn_10_744c(0x6e);
+            reload:     /* bare label: keeps jx/jy in memory (layout only) */
+                g_9294 = fn_10_9526(g_3cc0, g_92a6, 100, 0L, 0, 0L, 0, g_90ea, g_0010, jx, jy, 0x4b);
+                g_929a = CreateCompatibleDC(g_13dc);
+                g_9296 = SelectObject(g_929a, g_9294);
+                if (g_920e)
+                    g_92a0 = SelectPalette(g_929a, (HPALETTE)g_920e, 0);
+                SetRect(&g_3ca8, g_3cc0->left, g_3cc0->top, g_3cc0->right, g_3cc0->bottom);
+                SetRect(&g_3cb8, g_3cc0[1].left, g_3cc0[1].top, g_3cc0[1].right, g_3cc0[1].bottom);
+                SetRect(&g_3cd4, g_3cc0[4].left, g_3cc0[4].top, g_3cc0[4].right, g_3cc0[4].bottom);
+                g_3d48 = g_3ca4 = g_3cc0->left;
+                g_3d4a = g_3ca6 = g_3cc0->top;
+                g_92de = g_3cc0[2].bottom < g_3cc0[3].bottom ? g_3cc0[3].bottom : g_3cc0[2].bottom;
+                fn_15_8604();
+                fn_15_8ae6();
+                g_92d8 = (g_3ca8.bottom - g_3ca8.top) * 2 / 5 + g_3ca8.top;
+                g_92d6 = g_0010 * 7 / 10;
+            }
+        }
+        BitBlt(g_13dc, 0, 0, g_90ea, g_0010, g_929a, 0, 0, SRCCOPY);
+        if (g_3cc0) {
+            GlobalUnlock(g_92a6);
+            g_3cc0 = 0;
+            GlobalFree(g_92a6);
+            g_92a6 = 0;
+        }
+    }
+    fn_15_1a42();
+    g_92a2 = 0;
+    fn_15_3caa(1);
+    if (g_90ee >= 8 && g_093c) {
+        if (g_8ffc > 2000)
+            g_9004 <<= 2;
+        else if (g_8ffc > 1500)
+            g_9004 <<= 1;
+    }
+    g_093c = 0;
+}
+
+extern int g_17c2;
+extern int g_17c6;
+extern int g_17c8;
+extern int g_17ca;
+extern int g_17cc;
+extern int g_17ce;
+extern int g_17d0;
+extern RECT g_17d2;
+extern RECT g_17da;
+
+/* Moves the briefing ship sprite one step down the screen (scaled sprite
+ * frames from g_3d08/g_3ce8, sound pitch via fn_10_993a); returns 0 once
+ * it has arrived [inferred]. */
+/* @addr 15:0000 */
+int far fn_15_0000(int a)
+{
+    int p;
+    int w4;
+    int y;
+    int ten;
+    int c;
+    int e;
+    int prev;
+    int old17d0;
+    int u14;
+    int v;
+    RECT rc;
+    int a20;
+    int k;                      /* unused */
+    BITMAP bm;
+    HGDIOBJ old;
+    DWORD t;
+
+    if (g_90f4 == 0)
+        w4 = g_92da * 4;
+    else {
+        GetObject((HGDIOBJ)g_92b0[0], sizeof bm, &bm);
+        if (g_90ee < 8)
+            g_17ce = 4;
+        else
+            g_17ce = 2;
+        w4 = bm.bmHeight / g_17ce * 4;
+    }
+    if (a == 2) {
+        fn_10_744c(0x20);
+        g_3cb0.left = g_90ea / 2 - g_3ce6 / 2;
+        g_3cb0.right = g_3cb0.left + g_3ce6;
+        g_3cb0.top = g_0010 - g_3c9a - 0x34;
+        g_3cb0.bottom = g_3cb0.top + g_3c9a + 0x34;
+        g_17d2.left = g_3d48;
+        g_17d2.right = g_3d48 - g_3ca8.left + g_3ca8.right;
+        g_17d2.top = g_3d4a;
+        g_17d2.bottom = g_92de;
+        if (g_92b6)
+            g_92d8 = g_3cb0.top - w4 + g_3c9a - 10;
+        if (g_90f4 == 0) {
+            g_92d6 = 60;
+            BitBlt(g_13dc, g_3cb0.left, g_3cb0.top, g_3ce6, g_3c9a + 0x34, (HDC)g_92b6, 0, 0,
+                   SRCCOPY);
+        } else if (g_90f4 == 6)
+            g_92d6 = -10;
+        else if (g_90f4 == 8) {
+            g_92d6 = (g_3ca8.bottom - g_3ca8.top) / 4 + g_3ca6;
+            BitBlt(g_929a, g_3ca8.left, g_3ca8.top, g_3ca8.right - g_3ca8.left,
+                   g_3ca8.bottom - g_3ca8.top, g_13dc, g_3ca8.left, g_3ca8.top, SRCCOPY);
+        }
+        g_17c2 = g_92d8 * 10;
+        fn_15_3bfa(g_3d08[0].x, g_3d08[0].y + 15);
+        g_17c8 = 150;
+        g_17ca = 0;
+        g_17d0 = 100;
+    } else if (a == 1)
+        fn_10_744c(0x1c);
+    prev = g_17ca;
+    if (prev < 10) {
+        p = g_17c2 / -10 + g_92d8;
+        g_17c6 = (g_92d8 - g_92d6) / 2 / 10;
+        if (!g_17c6)
+            g_17c6 = 1;
+        g_17ca = p / g_17c6 > 15 ? 15 : p / g_17c6;
+    } else {
+        p = (g_92d6 - g_92d8) / 2 - g_17c2 / 10 + g_92d8;
+        g_17c6 = (g_92d8 - g_92d6) / 2 / 6;
+        if (!g_17c6)
+            g_17c6 = 1;
+        g_17ca = p / g_17c6 + 10 > 15 ? 15 : p / g_17c6 + 10;
+    }
+    g_17da.left = g_90ea / 2 - g_3d08[0].x / 2;
+    g_17da.right = g_17da.left + g_3d08[0].x;
+    g_17da.top = g_17c2 / 10;
+    g_17da.bottom = g_17da.top + g_3d08[0].y + 15;
+    if (prev < g_17ca) {
+        u14 = g_17da.top + a20 + c;     /* sic: a20, c unset on first call */
+        old17d0 = g_17d0;
+        g_17d0 = g_17ca * -100 / 40 + 100;
+        if (!old17d0)
+            old17d0 = 1;
+        v = g_17d0 * 100 / old17d0;
+        fn_10_993a(3, v);
+        fn_10_993a(2, (v + 200) / 3);
+    }
+    if (a == 2)
+        g_17cc = g_17da.top;
+    if (g_8ffc < 1400)
+        g_17c8 = 150 - g_17ca / 2;
+    else
+        g_17c8 = 150 - g_17ca * 4;
+    g_17c8 = g_17c8 < 9 ? 9 : g_17c8;
+    PatBlt((HDC)g_92b8, 0, 0, g_17da.right - g_17da.left, g_17da.bottom - g_17da.top, BLACKNESS);
+    if ((g_95b8 == 6 || g_90f4 == 8) && IntersectRect(&rc, &g_17d2, &g_17da))
+        BitBlt((HDC)g_92b8, rc.left - g_17da.left, rc.top - g_17da.top, rc.right - rc.left,
+               rc.bottom - rc.top, g_929a, rc.left - g_17d2.left + g_3ca4,
+               rc.top - g_17d2.top + g_3ca6, SRCCOPY);
+    if (g_92b6 && IntersectRect(&rc, &g_3cb0, &g_17da))
+        BitBlt((HDC)g_92b8, rc.left - g_17da.left, rc.top - g_17da.top, rc.right - rc.left,
+               rc.bottom - rc.top, (HDC)g_92b6, rc.left - g_3cb0.left, rc.top - g_3cb0.top,
+               SRCCOPY);
+    y = g_17c2 / -10 + g_92d8;
+    if (y < 80 || g_90f4 == 0) {
+        if (g_90f4 == 0) {
+            if (g_17c2 / 10 - g_92d6 < 40)
+                y = g_17c2 / 10 - g_92d6;
+            y = y > 40 ? 40 : y;
+        }
+        a20 = y / 3 + 4;
+        e = g_17cc - g_17da.top;
+        ten = g_3d08[0].y - e - a20 + 14;
+        c = ten > g_3d08[g_17ca].y ? g_3d08[g_17ca].y : ten;
+        if (g_90ee < 8)
+            old = SelectObject((HDC)g_92b8, g_5ea8);
+        else
+            old = SelectObject((HDC)g_92b8, g_5eaa);
+        if (g_90ee <= 8)
+            BitBlt((HDC)g_92b8, g_3d08[0].x / 2 - g_3d08[g_17ca].x / 2, a20, g_3d08[g_17ca].x, c,
+                   g_3cdc[1], 0, g_3ce8[g_17ca], 0x00a803a9L);
+        SelectObject((HDC)g_92b8, old);
+    }
+    BitBlt((HDC)g_92b8, g_3d08[0].x / 2 - g_3d08[g_17ca].x / 2, 0, g_3d08[g_17ca].x,
+           g_3d08[g_17ca].y, g_3cdc[1], 0, g_3ce8[g_17ca], SRCAND);
+    BitBlt((HDC)g_92b8, g_3d08[0].x / 2 - g_3d08[g_17ca].x / 2, 0, g_3d08[g_17ca].x,
+           g_3d08[g_17ca].y, g_3cdc[0], 0, g_3ce8[g_17ca], SRCPAINT);
+    BitBlt(g_13dc, g_17da.left, g_17da.top, g_17da.right - g_17da.left,
+           g_17da.bottom - g_17da.top, (HDC)g_92b8, 0, 0, SRCCOPY);
+    g_17cc = g_17da.top;
+    if (g_8ffc < 1400)
+        g_17c2 += g_17c8 * 5 / -7;
+    else
+        g_17c2 += g_17c8 * 3 / -7;
+    if (g_92d6 * 10 > g_17c2) {
+        if (g_90f4 == 0) {
+            BitBlt(g_13dc, g_3ca4 + 29, g_3ca6 + 29, g_3ca8.right - g_3ca8.left - 58, g_92d2 - 58,
+                   g_929a, g_3d48 + 29, g_3d4a + 29, SRCCOPY);
+            fn_10_754a(0x4c, 0, 0, 0);
+        } else {
+            fn_10_744c(0x15);
+            if (g_929a) {
+                BitBlt(g_13dc, g_17da.left, g_17da.top, g_17da.right - g_17da.left,
+                       g_17da.bottom - g_17da.top, g_929a, g_17da.left, g_17da.top, SRCCOPY);
+                SelectObject(g_929a, g_9296);
+                if (g_92a0)
+                    SelectPalette(g_929a, g_92a0, 0);
+                DeleteDC(g_929a);
+                DeleteObject(g_9294);
+                g_929a = g_9294 = 0;
+            } else
+                PatBlt(g_13dc, g_17da.left, g_17da.top, g_17da.right - g_17da.left,
+                       g_17da.bottom - g_17da.top, BLACKNESS);
+        }
+        fn_15_84b0((g_17da.right - g_17da.left) / 2 + g_17da.left, g_17da.top + 12);
+        if (g_90f4 == 0) {
+            BitBlt(g_13dc, g_3ca4 + 29, g_3ca6 + 29, g_3ca8.right - g_3ca8.left - 58, g_92d2 - 58,
+                   g_929a, g_3d48 + 29, g_3d4a + 29, SRCCOPY);
+            t = GetCurrentTime() + 1460;
+            do
+                fn_10_740c();
+            while (GetCurrentTime() < t);
+        }
+        return 1;
+    }
+    return 0;
+}
+
+#pragma pack(1)
+typedef struct {                /* 0xad-byte class records, viewed from DS:96ea */
+    char f00;
+    char p01;
+    char f02;
+    char p03[0x10 - 0x03];
+    int f10;
+    char p12[0x1e - 0x12];
+    int f1e;
+    char p20[0x2c - 0x20];
+    int f2c;
+    char p2e[0x30 - 0x2e];
+    int f30;
+    char p32[0x6c - 0x32];
+    char f6c[0xad - 0x6c];      /* name */
+} REC_AD6;
+#pragma pack()
+extern REC_AD6 g_96ea[];
+extern int g_9e5b;
+
+/* Builds the bitmaps of the current object's ship (g_92b0[], g_3cc8[]) and
+ * sets the panel sizes g_92c6/g_92c8 [inferred]. */
+/* @addr 15:20ca */
+void far fn_15_20ca(void)
+{
+    int i;
+    int sz;
+    int off;
+    int sc;
+    int off14;
+    int save;
+    HDC dcs2[2];
+    HDC dcs1[3];
+    HDC mdc;
+    HGDIOBJ old2[2];
+    HGDIOBJ old1[3];
+    HBITMAP bmp;
+    HGDIOBJ oldm;
+    HPALETTE pal2[2];
+    HPALETTE pal1[3];
+    POINT pt;
+    int be;
+
+    if (g_90ee < 8)
+        sc = 4;
+    else
+        sc = 2;
+    if (g_96ea[g_7090[g_9646].f4e].f2c)
+        be = 1;
+    else
+        be = 0;
+    sz = g_6e24[g_7090[g_9646].fd6].f7a + (g_6e24[g_7090[g_9646].fd6].f7b - 6) / 2;
+    g_92b0[0] = fn_10_73a6(g_96ea[g_7090[g_9646].f4e].f1e, g_96ea[g_7090[g_9646].f4e].f6c,
+                           -2, -2, 2, 0, 1, g_96ea[g_7090[g_9646].f4e].f00,
+                           g_96ea[g_7090[g_9646].f4e].f02);
+    g_92b2 = CreateCompatibleBitmap(g_13dc, sc * sz, sc * sz);
+    g_92b4 = CreateCompatibleBitmap(g_13dc, sc * sz, sc * sz);
+    bmp = fn_10_6ec6(g_92b0[0]);
+    mdc = CreateCompatibleDC(g_13dc);
+    oldm = SelectObject(mdc, bmp);
+    save = g_9156;
+    g_9156 = 1;
+    g_3cc8[0] = fn_10_7032(1, 1, be);
+    g_9156 = save;
+    g_3cc8[1] = fn_10_6ec6(g_3cc8[0]);
+    for (i = 0; i < 3; i++) {
+        dcs1[i] = CreateCompatibleDC(g_13dc);
+        old1[i] = SelectObject(dcs1[i], g_92b0[i]);
+        pal1[i] = SelectPalette(dcs1[i], g_920e, 0);
+    }
+    for (i = 0; i < 2; i++) {
+        dcs2[i] = CreateCompatibleDC(g_13dc);
+        old2[i] = SelectObject(dcs2[i], g_3cc8[i]);
+        pal2[i] = SelectPalette(dcs2[i], g_920e, 0);
+    }
+    fn_14_3eda();
+    if (!g_96ea[g_7090[g_9646].f4e].f30) {
+        if (g_90f4 == 9)
+            fn_10_9962(0, dcs1[1], 0, sc * sz - 1, sc * sz, -(sc * sz), dcs1[0], 0, 0, sc * sz,
+                       sc * sz, SRCCOPY);
+        else
+            BitBlt(dcs1[1], 0, 0, sc * sz, sc * sz, dcs1[0], 0, 0, SRCCOPY);
+        off = sz / 2 - g_6e1c[g_6e20[g_6e24[g_7090[g_9646].fd6].f00].f21].f1a / 2;
+        if (!g_7090[g_9646].fac && g_96ea[g_7090[g_9646].f4e].f10 == 3)
+            PatBlt(dcs1[1], 0, 0, sc * off, sc * sz, BLACKNESS);
+        if (!g_7090[g_9646].fad && g_96ea[g_7090[g_9646].f4e].f10 == 3)
+            PatBlt(dcs1[1], (sz - off) * sc, 0, sc * off, sc * sz, BLACKNESS);
+        BitBlt(dcs1[2], 0, 0, sc * sz, sc * sz, dcs1[1], 0, 0, SRCCOPY);
+        if (!g_9e5b)
+            fn_15_28b2(dcs1[1], dcs1[2], sc, sz);
+    }
+    if (g_7090[g_9646].fe4) {
+        pt.x = sz / 2 - 4;
+        pt.y = g_6e1c[g_6e20[g_6e24[g_7090[g_9646].fd6].f00].f21].f19;
+        if (g_90f4 == 9)
+            pt.y = sz - pt.y;
+        if (sc == 4 && g_96ea[g_7090[g_9646].f4e].f2c)
+            off14 = 18;
+        else
+            off14 = 0;
+        if (g_96ea[g_7090[g_9646].f4e].f30)
+            PatBlt(dcs1[1], 0, 0, sc * sz, sc * sz, BLACKNESS);
+        if (g_90f0 == 0) {
+            if (g_90f4 == 9) {
+                fn_10_9962(0, dcs1[1], pt.x * sc, pt.y * sc, 36, -36, dcs2[1], 0, off14 * 2,
+                           36, 36, SRCAND);
+                fn_10_9962(0, dcs1[1], pt.x * sc, pt.y * sc, 36, -36, dcs2[0], 0, off14 * 2,
+                           36, 36, SRCPAINT);
+            } else {
+                BitBlt(dcs1[1], pt.x * sc, pt.y * sc, 36, 36, dcs2[1], 0, off14 * 2, SRCAND);
+                BitBlt(dcs1[1], pt.x * sc, pt.y * sc, 36, 36, dcs2[0], 0, off14 * 2, SRCPAINT);
+            }
+        } else if (g_90f4 == 9) {
+            fn_10_9962(0, dcs1[1], pt.x * sc, pt.y * sc, sc * 9, -(sc * 9), dcs2[1], 0, off14,
+                       18, 18, SRCAND);
+            fn_10_9962(0, dcs1[1], pt.x * sc, pt.y * sc, sc * 9, -(sc * 9), dcs2[0], 0, off14,
+                       18, 18, SRCPAINT);
+        } else {
+            fn_10_9962(0, dcs1[1], pt.x * sc, pt.y * sc, sc * 9, sc * 9, dcs2[1], 0, off14,
+                       18, 18, SRCAND);
+            fn_10_9962(0, dcs1[1], pt.x * sc, pt.y * sc, sc * 9, sc * 9, dcs2[0], 0, off14,
+                       18, 18, SRCPAINT);
+        }
+    }
+    fn_14_4074();
+    if (g_96ea[g_7090[g_9646].f4e].f30) {
+        if (g_90f4 == 9) {
+            fn_10_9962(0, dcs1[1], 0, sc * sz, sc * sz, -(sc * sz), mdc, 0, 0, sc * sz, sc * sz,
+                       SRCAND);
+            fn_10_9962(0, dcs1[1], 0, sc * sz, sc * sz, -(sc * sz), dcs1[0], 0, 0, sc * sz,
+                       sc * sz, SRCPAINT);
+            fn_10_9962(0, dcs1[2], 0, sc * sz, sc * sz, -(sc * sz), dcs1[0], 0, 0, sc * sz,
+                       sc * sz, SRCCOPY);
+        } else {
+            BitBlt(dcs1[1], 0, 0, sc * sz, sc * sz, mdc, 0, 0, SRCAND);
+            BitBlt(dcs1[1], 0, 0, sc * sz, sc * sz, dcs1[0], 0, 0, SRCPAINT);
+            BitBlt(dcs1[2], 0, 0, sc * sz, sc * sz, dcs1[0], 0, 0, SRCCOPY);
+        }
+        fn_14_3eda();
+        off = sz / 2 - g_6e1c[g_6e20[g_6e24[g_7090[g_9646].fd6].f00].f21].f1a / 2;
+        fn_14_4074();
+        if (!g_7090[g_9646].fac && g_96ea[g_7090[g_9646].f4e].f10 == 3) {
+            PatBlt(dcs1[1], 0, 0, sc * off, sc * sz, BLACKNESS);
+            PatBlt(dcs1[2], 0, 0, sc * off, sc * sz, BLACKNESS);
+        }
+        if (!g_7090[g_9646].fad && g_96ea[g_7090[g_9646].f4e].f10 == 3) {
+            PatBlt(dcs1[1], (sz - off) * sc, 0, sc * off, sc * sz, BLACKNESS);
+            PatBlt(dcs1[2], (sz - off) * sc, 0, sc * off, sc * sz, BLACKNESS);
+        }
+        if (!g_9e5b)
+            fn_15_28b2(dcs1[1], dcs1[2], sc, sz);
+    }
+    SelectObject(mdc, oldm);
+    DeleteDC(mdc);
+    DeleteObject(bmp);
+    for (i = 0; i < 2; i++) {
+        SelectObject(dcs2[i], old2[i]);
+        SelectPalette(dcs2[i], pal2[i], 0);
+        DeleteDC(dcs2[i]);
+    }
+    for (i = 0; i < 3; i++) {
+        SelectObject(dcs1[i], old1[i]);
+        if (pal1[i])
+            SelectPalette(dcs1[i], pal1[i], 0);
+        DeleteDC(dcs1[i]);
+    }
+    switch (g_9208) {
+    case 0:
+        g_92c6 = sz * 4;
+        g_92c8 = sz * 16 / 10;
+        break;
+    case 1:
+        g_92c6 = sz * 5;
+        g_92c8 = sz * 2;
+        break;
+    case 2:
+        g_92c6 = sz * 6;
+        g_92c8 = sz * 24 / 10;
+        break;
+    case 3:
+        g_92c6 = sz * 7;
+        g_92c8 = sz * 28 / 10;
+        break;
+    }
+}
+
+extern int g_1806;
+extern int g_1808;
+extern int g_180a;
+extern int g_180c;
+extern int g_180e;
+extern int g_1810;
+extern int g_1812;
+extern RECT g_1814;
+
+/* Animates the ship taking off from / landing in the briefing panel one
+ * step per call; returns 1 while still moving [inferred]. */
+/* @addr 15:3caa */
+int far fn_15_3caa(int a)
+{
+    int hh;
+    int dx6;
+    int d8;
+    int ten;
+    int c;
+    int prev;
+    int old1812;
+    int u12;                    /* unused */
+    int v;
+    int k0;
+    int k1;
+    int hgt;
+    int yoff;
+    HGDIOBJ old;
+
+    if (g_0928)
+        return 1;
+    if (g_90f4 == 9) {
+        k0 = 15;
+        k1 = 0;
+    } else {
+        k0 = 0;
+        k1 = 15;
+    }
+    if (a) {
+        g_180c = g_92d8 * 10;
+        g_180e = 0;
+        fn_10_744c(0x1c);
+        g_3cb0.right = g_90ea;
+        g_3cb0.top = g_3cb0.left = 0;
+        g_3cb0.bottom = g_92de;
+        fn_15_3bfa(g_3d08[k0].x, g_3d08[k0].y + 15);
+        g_1806 = (g_92d8 - g_92d6) / 16;
+        g_1808 = 150;
+        g_180a = 0;
+        g_1812 = 100;
+        if (g_90f4 == 9)
+            g_1812 = 50;
+    }
+    if (!g_1806)
+        g_1806 = 1;
+    if (g_180e == 0 || g_180e == 2) {
+        int y;
+        RECT rc;
+
+        y = g_180c / -10 + g_92d8 - 55;
+        prev = g_180a;
+        g_180a = y / g_1806;
+        if (g_90f4 == 9 && g_92be >= 0)
+            g_180a = (long)(g_180c / 10 - g_92d8) * 15 / (g_92d6 - g_92d8);
+        g_180a = g_180a > 15 ? 15 : g_180a;
+        g_180a = g_180a < 0 ? 0 : g_180a;
+        if (g_180e == 2)
+            g_180a = 15;
+        g_1814.left = g_90ea / 2 - g_3d08[k0].x / 2;
+        g_1814.top = g_180c / 10;
+        if (a)
+            g_1810 = g_1814.top;
+        g_1814.right = g_3d08[k0].x + g_1814.left;
+        g_1814.bottom = g_3d08[k0].y + g_1814.top + 15;
+        if (prev < g_180a && g_180e == 0) {
+            old1812 = g_1812;
+            if (g_90f4 == 9)
+                g_1812 = g_180a * 100 / 30 + 50;
+            else
+                g_1812 = g_180a * -100 / 30 + 100;
+            if (!old1812)
+                old1812 = 1;
+            v = g_1812 * 100 / old1812;
+            fn_10_993a(3, v);
+            fn_10_993a(2, (v + 200) / 3);
+        }
+        if (g_90f4 == 9) {
+            if (g_180e == 0) {
+                if (g_92be == 1)
+                    g_1808 = (long)g_180a * g_180a * g_180a * 40 / 1000 + 15;
+                else {
+                    g_1808 = (long)g_180a * g_180a * 44 / 100 + 50;
+                    if (g_180a == 7 && prev == 6)
+                        fn_10_744c(0x27);
+                }
+            } else
+                g_1808 = 150;
+            g_1814.top -= 15;
+            g_1814.bottom -= 15;
+        } else
+            g_1808 = 150 - g_180a * 4 < 9 ? 9 : 150 - g_180a * 4;
+        PatBlt((HDC)g_92b8, 0, 0, g_1814.right - g_1814.left, g_1814.bottom - g_1814.top,
+               BLACKNESS);
+        if (IntersectRect(&rc, &g_3cb0, &g_1814))
+            BitBlt((HDC)g_92b8, rc.left - g_1814.left, rc.top - g_1814.top, rc.right - rc.left,
+                   rc.bottom - rc.top, g_929a, rc.left, rc.top - g_3cb0.top, SRCCOPY);
+        if (g_180a < 10) {
+            dx6 = 25 - g_180a * 2;
+            hh = (15 - g_180a) * 4;
+        } else {
+            dx6 = 15 - g_180a;
+            hh = 30 - g_180a;
+        }
+        d8 = g_1810 - g_1814.top;
+        ten = g_3d08[k0].y - d8 - hh + 14;
+        c = ten > g_3d08[g_180a].y ? g_3d08[g_180a].y : ten;
+        if (g_90f4 != 9) {
+            if (g_90ee < 8)
+                old = SelectObject((HDC)g_92b8, g_5ea8);
+            else
+                old = SelectObject((HDC)g_92b8, g_5eaa);
+            if (g_90ee <= 8)
+                BitBlt((HDC)g_92b8, g_3d08[k0].x / 2 - g_3d08[g_180a].x / 2 + dx6, hh,
+                       g_3d08[g_180a].x, c, g_3cdc[1], 0, g_3ce8[g_180a], 0x00a803a9L);
+            SelectObject((HDC)g_92b8, old);
+        }
+        yoff = 0;
+        if (g_90f4 == 9 && g_180e == 2) {
+            hgt = g_180c / -10 + g_3ca8.top;
+            hgt = hgt < 0 ? 0 : hgt;
+            if (g_180c / 10 + g_3d08[g_180a].y > g_92c0) {
+                yoff = g_180c / -10 + g_92c0;
+                yoff = yoff < 0 ? 0 : yoff;
+                hgt = g_3d08[g_180a].y - yoff;
+                hgt = hgt < 0 ? 0 : hgt;
+            }
+        } else
+            hgt = g_3d08[g_180a].y;
+        BitBlt((HDC)g_92b8, g_3d08[k0].x / 2 - g_3d08[g_180a].x / 2, yoff + k0, g_3d08[g_180a].x,
+               hgt, g_3cdc[1], 0, g_3ce8[g_180a] + yoff, SRCAND);
+        BitBlt((HDC)g_92b8, g_3d08[k0].x / 2 - g_3d08[g_180a].x / 2, yoff + k0, g_3d08[g_180a].x,
+               hgt, g_3cdc[0], 0, g_3ce8[g_180a] + yoff, SRCPAINT);
+        BitBlt(g_13dc, g_1814.left, g_1814.top, g_1814.right - g_1814.left,
+               g_1814.bottom - g_1814.top, (HDC)g_92b8, 0, 0, SRCCOPY);
+        g_1810 = g_1814.top;
+        if (g_90f4 == 9) {
+            g_180c += g_1808 * 2 / 3;
+            if (g_180c > g_92d6 * 10) {
+                if (g_180e == 0 && g_92be == 1) {
+                    g_92d8 = g_92d6;
+                    g_92d6 = g_0010 * 7 / 10;
+                    g_180e = 2;
+                } else {
+                    if (g_92be != 3)
+                        return 1;
+                    BitBlt(g_13dc, g_1814.left, g_1814.top, g_1814.right - g_1814.left,
+                           g_1814.bottom - g_1814.top, g_929a, g_1814.left, g_1814.top,
+                           SRCCOPY);
+                    return 1;
+                }
+            }
+        } else {
+            g_180c += g_1808 * 2 / -3;
+            if (g_180c < g_92d6 * 10) {
+                g_180c -= 20;
+                g_1808 = 200;
+                g_180e = 1;
+            }
+        }
+    } else {
+        int y;
+        RECT rc;
+
+        g_1808 = g_1808 - 5 < 50 ? 50 : g_1808 - 5;
+        y = g_180c / -10 + g_92d8 - 55;    /* never read */
+        g_1814.left = g_90ea / 2 - g_3d08[k0].x / 2;
+        g_1814.top = g_180c / 10;
+        g_1814.right = g_1814.left + g_3d08[k0].x;
+        g_1814.bottom = g_1814.top + g_3d08[k0].y + 15;
+        PatBlt((HDC)g_92b8, 0, 0, g_1814.right - g_1814.left, g_1814.bottom - g_1814.top,
+               BLACKNESS);
+        if (IntersectRect(&rc, &g_3cb0, &g_1814))
+            BitBlt((HDC)g_92b8, rc.left - g_1814.left, rc.top - g_1814.top, rc.right - rc.left,
+                   rc.bottom - rc.top, g_929a, rc.left, rc.top - g_3cb0.top, SRCCOPY);
+        if (g_180a < 10) {
+            dx6 = 25 - g_180a * 2;
+            hh = (15 - g_180a) * 4;
+        } else {
+            dx6 = 15 - g_180a;
+            hh = 30 - g_180a;
+        }
+        if (g_90ee < 8)
+            old = SelectObject((HDC)g_92b8, g_5ea8);
+        else
+            old = SelectObject((HDC)g_92b8, g_5eaa);
+        if (g_90ee <= 8)
+            BitBlt((HDC)g_92b8, g_3d08[k0].x / 2 - g_3d08[g_180a].x / 2 + dx6, hh,
+                   g_3d08[g_180a].x, g_3d08[g_180a].y, g_3cdc[1], 0, g_3ce8[g_180a],
+                   0x00a803a9L);
+        SelectObject((HDC)g_92b8, old);
+        BitBlt((HDC)g_92b8, g_3d08[k0].x / 2 - g_3d08[k1].x / 2, 2, g_3d08[k1].x, g_3d08[k1].y,
+               g_3cdc[1], 0, g_3ce8[15], SRCAND);
+        BitBlt((HDC)g_92b8, g_3d08[k0].x / 2 - g_3d08[k1].x / 2, 2, g_3d08[k1].x, g_3d08[k1].y,
+               g_3cdc[0], 0, g_3ce8[15], SRCPAINT);
+        BitBlt(g_13dc, g_1814.left, g_1814.top, g_1814.right - g_1814.left,
+               g_1814.bottom - g_1814.top, (HDC)g_92b8, 0, 0, SRCCOPY);
+        g_180c += g_1808 * 2 / 20;
+        if (g_180c > (g_92d6 + 44) * 10)
+            return 1;
+    }
+    return 0;
 }
