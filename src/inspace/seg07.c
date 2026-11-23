@@ -305,6 +305,13 @@ void far pascal fn_08_124a(int i);
 void far fn_18_5350(int x, int y);
 extern int g_9454;
 int far fn_09_88ba(int x);
+extern int g_9320;
+extern int g_9150;
+extern int g_0b70[];
+extern HBRUSH g_5ea8[];
+POINT far pascal fn_08_29ea(POINT pt);
+BOOL far fn_08_7ba8(POINT pt);
+void far fn_07_477e(int n);
 
 
 /* Adds cracks to a window pane and redraws it [inferred]. */
@@ -1818,16 +1825,12 @@ int far fn_07_5090(int type, int idx, int amount)
     return 0;
 }
 
-extern int g_9320;
-extern int g_9150;
-extern int g_0b70[];
-extern HBRUSH g_5ea8[];
-POINT far pascal fn_08_29ea(POINT pt);
-BOOL far fn_08_7ba8(POINT pt);
-void far fn_07_477e(int n);
 #define SC(n) ((n) << g_9156 >> 1)
-
-/* @addr 7:40c4 */
+/* Steps the g_5a4c effect of each g_9328 object (size from its counter,
+ * a 6-point trail in g_5eac) and applies its hit to what it touches
+ * [inferred]. */
+/* near-match 58%: 7:40c4 (bytes shift; only the first f2f clamp differs: the
+ * game keeps &g_1df8[type] in bx, this keeps type * 4) */
 void far fn_07_40c4(void)
 {
     int n;
@@ -1838,7 +1841,7 @@ void far fn_07_40c4(void)
     int e;
     int t;
     int dci;
-    int unused[9];
+    int unused[9];      /* frame filler */
 
     for (n = 0; n < g_9406[g_9328]; n++) {
         if (g_5a4c[n].f00 > -1) {
@@ -1900,8 +1903,6 @@ void far fn_07_40c4(void)
                                fn_08_546c(r, &g_1df8[g_9328][n].f0c, &g_1df8[g_9328][n].f0e,
                                           g_1df8[g_9328][n].f20 + 2, g_1df8[g_9328][n].f44));
                     if (HIBYTE(r) == g_934a) {
-                        extern REC_70 far *g_1df8[];
-
                         if (g_1df8[g_9328][n].f44 == 120) {
                             g_1df8[HIBYTE(r)][LOBYTE(r)].f2f =
                                 min(g_1df8[HIBYTE(r)][LOBYTE(r)].f2f + 1, 9);

@@ -509,3 +509,10 @@ Conventions
   reproduces a reload of a byte just used.
 - Ternary with a re-evaluated arm: `2 >= X ? X : 2` keeps the game's order.
 - match.py prints only the first WRONG REFERENCE; `match.run()` returns all.
+- Arguments computed before the HDC push but stored in no slot of their own:
+  the source assigned them to function-level locals never read again
+  (`x2 = ...; y2 = ...; MoveTo(dc, x2, y2);`).
+- C89 implicit declarations: a missing macro (e.g. SC()) compiles silently
+  as a call to an undeclared function. Watch for unexpected `lcall` + `pop bx`.
+- world_map (10:8b1c) reads g_05a0 as the map width (int); g_5006/g_5008/
+  g_500c are HBRUSHes; g_3a38 is HDC[].
