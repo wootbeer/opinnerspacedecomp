@@ -2009,14 +2009,12 @@ int far fn_16_0b4e(int i)
 }
 
 /* Step of the end-of-mission sequence (state g_914a) [inferred].
- * near-match 86%: 16:0cfe. Two differences left: (1) case 58's
- * `f_0da -= (long)g_9e55 - g_9e5d` comes out as add/adc of the negated
- * difference (the game has sub/sbb; every rewrite tried folds the same way,
- * a never-read long `d = ...` gives sub but keeps the store); (2) the shared
- * fn_16_2e3c(0, ...) call tail is kept in the first copy (cases 5, 9, ...)
- * where the game keeps the later one (cases 3, 7, ...). Block-scope slots
+ * Case 58 is written as two statements: `f_0da -= (long)g_9e55 - g_9e5d`
+ * always compiles as add/adc of the negated difference, while CL combines
+ * `f += b; f -= a;` into the game's sub/sbb of (a - b). Block-scope slots
  * follow a LIFO reuse of freed slots: case 2's x/y must be one POINT so that
  * the later 4-byte locals (t, l) reuse it at bp-0x72. */
+/* @addr 16:0cfe */
 void far fn_16_0cfe(int a)
 {
     int i;
@@ -2054,6 +2052,7 @@ void far fn_16_0cfe(int a)
         break;
     case 1:
         fn_15_3590();
+    brk:    /* layout-only, see case 3 */
         break;
     case 2: {
         HDC dc;
@@ -2349,7 +2348,8 @@ void far fn_16_0cfe(int a)
         break;
     case 3: case 7: case 12: case 14: case 32: case 37:
         fn_16_2e3c(0, 0);
-        break;
+        goto brk;   /* layout-only: a jump via another case's break makes CL
+                       keep this copy of the shared fn_16_2e3c(0, ...) tail */
     case 33:
         if (g_9540) {
             fn_10_a332(g_6db8, (char *)0x9ec, 1, 0xe, g_952e, 1);
@@ -2528,7 +2528,8 @@ void far fn_16_0cfe(int a)
             g_1c48 = 0;
             g_914a = 0x3c;
         } else {
-            g_7092[g_952e].f_0da -= (long)g_9e55 - g_9e5d;
+            g_7092[g_952e].f_0da += g_9e5d;
+            g_7092[g_952e].f_0da -= g_9e55;
             g_9e55 = 0;
             fn_06_0f54(g_7092[g_952e].f_0da, 100, 2, buf);
             fn_10_a332(g_6db8, (char *)0x486, 1, (LPSTR)buf);

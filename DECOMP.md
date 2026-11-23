@@ -564,3 +564,12 @@ Conventions
   block (placed at the end of its enclosing block; labels inside `if (0)` did
   not crash) [layout-only; the original may have used plain gotos].
 - A dead `imul bx` before a statement: an empty `if (rec[n].f) ;`.
+- `x -= a - b` with longs: `x += b; x -= a;` gives sub/sbb of (a - b).
+- To keep a later copy of a cross-jumped tail in a switch, route that case's
+  exit through a jump-to-jump (`goto` to a label before another case's
+  `break`) [layout-only].
+- A store in a nested if makes CL keep the inner copy; one store after the
+  nested if (via a dead local) lets the outer first arm's copy win.
+- Diffs that ignore jump targets (sd.py) can hide real logic differences
+  (8:5df2's old draft nested a condition chain wrongly): always confirm with
+  match.py.

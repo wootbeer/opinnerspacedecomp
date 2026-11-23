@@ -1667,8 +1667,10 @@ void far fn_08_9028();       /* old-style: callers pass ints or a PAIR */
 /* Object (type, idx) takes dmg points of damage from object (stype, sidx):
  * finds the responsible owner, scores, applies it through the record's
  * damage callback (f5e) and returns that callback's result [inferred]. */
-/* near-match 94%: 8:5df2. Only the cross-jumped f66 store at the end
- * differs: the game keeps the copy in the flag8 arm, CL here the last. */
+/* The subgame scaling goes back into v before one shared f66 store: with a
+ * store in each inner arm CL keeps the last copy of the cross-jumped f66
+ * store, the game keeps the flag8 arm's. */
+/* @addr 8:5df2 */
 int far fn_08_5df2(int type, int idx, int stype, int sidx, int dmg)
 {
     int ret;
@@ -1833,22 +1835,20 @@ int far fn_08_5df2(int type, int idx, int stype, int sidx, int dmg)
                     if (type == 8 && g_3d5a[idx].f00 == 16)
                         fn_13_b6f2(oidx, 6);
                 }
-                if (g_70ae[oidx].f34 >= 2) {
-                    if (g_70ae[oidx].f34 <= 4 && g_70ae[oidx].f3a != oidx
-                        && g_70ae[oidx].f36 == type && g_0b0c) {
-                        if (type == 9) {
-                            fn_03_06ec(oidx, g_9324, g_70ae[oidx].f3a, 0x75);
-                            fn_13_2714(g_70ae[oidx].f3a, oidx, 15, 40, 0, 6);
-                            if (g_9134 == 0 || oidx != g_9646 && flow_interactive == 0)
-                                g_70ae[oidx].f34 = 0;
-                            v = 1;
-                        } else if (g_70ae[oidx].f38 == idx) {
-                            fn_03_06ec(oidx, g_9324, g_70ae[oidx].f3a, 0x76);
-                            fn_13_2714(g_70ae[oidx].f3a, oidx, 50, 90, 0, 6);
-                            if (g_9134 == 0 || oidx != g_9646 && flow_interactive == 0)
-                                g_70ae[oidx].f34 = 0;
-                            v = 1;
-                        }
+                if (g_70ae[oidx].f34 >= 2 && g_70ae[oidx].f34 <= 4
+                    && g_70ae[oidx].f3a != oidx && g_70ae[oidx].f36 == type && g_0b0c) {
+                    if (type == 9) {
+                        fn_03_06ec(oidx, g_9324, g_70ae[oidx].f3a, 0x75);
+                        fn_13_2714(g_70ae[oidx].f3a, oidx, 15, 40, 0, 6);
+                        if (g_9134 == 0 || oidx != g_9646 && flow_interactive == 0)
+                            g_70ae[oidx].f34 = 0;
+                        v = 1;
+                    } else if (g_70ae[oidx].f38 == idx) {
+                        fn_03_06ec(oidx, g_9324, g_70ae[oidx].f3a, 0x76);
+                        fn_13_2714(g_70ae[oidx].f3a, oidx, 50, 90, 0, 6);
+                        if (g_9134 == 0 || oidx != g_9646 && flow_interactive == 0)
+                            g_70ae[oidx].f34 = 0;
+                        v = 1;
                     }
                 } else if (g_70ae[oidx].f34 == 1 && type == g_9324) {
                     if (g_70ae[idx].f14 == g_9324 && g_70ae[oidx].f3a == g_70ae[idx].f16
@@ -1907,11 +1907,11 @@ int far fn_08_5df2(int type, int idx, int stype, int sidx, int dmg)
                 v = max(dmg * 12, 600);
                 if (subgame_active) {
                     if (g_90f4 == 1)
-                        g_70ae[idx].f66 = (g_a198 + 3) * v / 6 + g_1e50;
+                        v = (g_a198 + 3) * v / 6;
                     else
-                        g_70ae[idx].f66 = v * (g_a198 + 3) / 12 + g_1e50;
-                } else
-                    g_70ae[idx].f66 = v + g_1e50;
+                        v = v * (g_a198 + 3) / 12;
+                }
+                g_70ae[idx].f66 = v + g_1e50;
             }
         }
     } else if (type == 8) {
