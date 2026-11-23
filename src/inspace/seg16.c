@@ -452,7 +452,10 @@ void far fn_15_84b0(int x, int y);
 /* near-match 82%: 16:0000 (game: sub 0x30; mov cx,1000; imul cx for the
  * thousands digit and r kept in si until one store; here CL folds (d-48)*1000
  * into imul+add 0x4480 and stores r early. Never-read locals u1/u2 stop the
- * Horner refactoring of the other terms.) */
+ * Horner refactoring of the other terms. Round 6: the game's thousands form
+ * comes from a long multiply, `(long)(s[k] - 48) * 1000` assigned to a long
+ * `struct { long v; } r` (frame 0xa, only the low word stored), but then CL keeps
+ * r in registers instead of the single [bp-6] store; best such variant 66%.) */
 int far fn_16_0000(LPSTR s)
 {
     int u0;

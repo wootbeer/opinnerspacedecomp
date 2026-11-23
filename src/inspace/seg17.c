@@ -22,7 +22,8 @@ typedef struct {
     int f_02a;    /* DS:70bc */
     char pad_02c[0x20];
     int f_04c;    /* DS:70de */
-    char pad_04e[0xd];
+    int f_04e;    /* DS:70e0 */
+    char pad_050[0xb];
     char f_05b;    /* DS:70ed */
     char f_05c;    /* DS:70ee */
     char pad_05d[0x4d];
@@ -81,6 +82,7 @@ typedef struct {                /* view of the 0xad records at DS:96e2 (fields b
 } REC_AD_LO;
 #pragma pack()
 
+extern int g_9316;              /* declared before g_9464: compare operand order in 17:20fa */
 extern OBJ15A g_7092[];
 extern REC_AD g_96f0[];
 extern int g_3824[][8];
@@ -127,7 +129,6 @@ extern int g_6086;
 extern int g_9322;
 extern HGDIOBJ g_9490;
 extern HGDIOBJ g_93ae;
-extern int g_946c;
 extern HWND g_947a[9];
 extern HGDIOBJ g_6094[2];
 extern REC_70 far *g_1e30;
@@ -147,6 +148,7 @@ extern long g_18a0;
 extern int g_6088;
 extern char g_57b4[][35];
 extern int g_9464;
+extern int g_946c;              /* declared after g_9464: compare operand order in 17:20fa */
 extern HINSTANCE g_8e66;
 extern int g_946a;
 extern HWND g_9482;
@@ -194,7 +196,6 @@ void far fn_17_7ba6(int a, LPSTR buf);
 void far fn_17_67e6(void);
 void far pascal fn_17_90d2(DRAWITEMSTRUCT far *dis);
 void far pascal fn_17_9308(DRAWITEMSTRUCT far *dis);
-extern int g_9316;
 extern int g_92fe;
 extern int g_92f0;
 extern int g_4ee0[2];
@@ -384,8 +385,7 @@ extern long g_18fa;
 extern long g_18fe;
 extern int g_1902;
 extern int g_1904;
-extern int g_1906;
-extern int g_1908;
+extern POINT g_1906;            /* portrait position [inferred] */
 void far pascal fn_11_b09c(int n, int a);
 void far fn_10_320a(void);
 extern REC_70 far *g_1df8[16];
@@ -3986,9 +3986,266 @@ int far fn_17_1b3e(int reset, int kind)
     return 0;
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Animates the pilot portraits flying in and out of the pilot panel [inferred].
+ * Returns 1 when the animation is finished or waiting. */
+/* @addr 17:20fa */
 int far fn_17_20fa(int reset, int a, int b)
 {
+    int h4;
+    int h6;
+    int size;
+    int ha;
+    int pc;
+    int pe;
+    int r;
+    int bmp;
+    int obj;
+    int u16;
+    int u18;
+    int u1a;
+    int h1c;
+    int h1e;
+    int mult;
+
+    obj = g_9464;
+    bmp = g_7092[obj].f_04e + 0x28;
+    if (g_90ee < 8)
+        mult = 2;
+    else
+        mult = 3;
+    if (reset && g_946c == g_9464 && g_9460) {
+        if (g_7092[g_9464].f_0d4 >= 0)
+            size = g_6e24[g_7092[g_9464].f_0d4].f7a;
+        else
+            size = g_1e30[g_9464].f22;
+        g_9462 = 1;
+        pc = g_1e30[g_9464].f22;
+        pe = g_1e30[g_9464].f24;
+        g_5000 = (size + 13) * 3 + g_1906.x;
+        g_5002 = (g_6086 - g_608a) / 2 + g_608a - 0x56;
+        SetStretchBltMode(g_13dc, 3);
+        PatBlt(g_13dc, g_5000, g_5002, g_6088 - g_5000, g_608a - g_5002, BLACKNESS);
+        PatBlt(g_13dc, g_6084, g_5002, g_5000 - 100, g_608a - g_5002, BLACKNESS);
+        fn_10_9962(0, g_13dc, g_1906.x, g_1906.y, mult * size, mult * size, g_39e8[bmp],
+                   pe, pe, pc, pc, SRCCOPY);
+        pilot_panel_header(g_9464);
+        fn_17_30b0(g_93aa, 3000L);
+        return 0;
+    }
+    if (reset) {
+        g_91f8++;
+        fn_09_6624();
+        g_91f8--;
+        if (b)
+            g_9462 = 0;
+        else if (a) {
+            if (++g_9464 > g_9316) {
+                g_18c2 = g_1e50 + 100;
+                return 1;
+            }
+            g_9462 = 0;
+        } else
+            g_9464 = 0;
+        if (g_9464 > g_9316) {
+            g_18c2 = g_1e50 + 100;
+            return 1;
+        }
+        if (g_7092[g_9464].f_0d4 != -1)
+            size = g_6e24[g_7092[g_9464].f_0d4].f7a;
+        else
+            size = g_1e30[g_9464].f22;
+        g_1e30[g_9464].f1a = 1;
+        fn_11_b09c(g_9464, 1);
+        g_1e30[g_9464].f1a = 0;
+        g_18c6 = 0;
+        g_18fa = 1;
+        g_18ca = 20;
+        g_18ce = 80;
+        g_18e2 = 25;
+        g_18e6 = mult * 100 - 25L;
+        g_18ea = (g_6086 - g_608a) / 2 + g_608a;
+        g_18ee = 0;
+        g_18f2 = 400;
+        g_18f6 = 0;
+        g_18de = 0;
+        g_18da = 0;
+        g_18d2 = (g_6084 + 40) * 10;
+        g_18d6 = g_18d2 + (g_6088 - g_6084) * 11 / 3;
+        g_1902 = g_18d2 / 10;
+        g_1904 = g_18ea;
+        fn_10_754a(0x13, 100, g_90ec / 2, 4);
+        g_18c2 = 0;
+    }
+    if (g_39e8[bmp] == 0)
+        return 1;
+    if (g_18c2 != 0) {
+        if (g_18c2 < g_1e50)
+            return 1;
+        return 0;
+    }
+    if (g_7092[g_9464].f_0d4 != -1)
+        size = g_6e24[g_7092[g_9464].f_0d4].f7a;
+    else
+        size = g_1e30[g_9464].f22;
+    switch (g_9462) {
+    case 0:
+        h4 = g_18e6 * g_18d2 / g_18d6 + g_18e2;
+        h1e = h4 / 2 * g_18fa;
+        h1c = g_18d2 * g_18ce / g_18d6 + g_18ca;
+        if (g_18de == 0)
+            h6 = g_18f2 / 100;
+        else
+            h6 = (g_18f6 * g_18da / g_18de + g_18f2) / 100;
+        pc = g_1e30[g_9464].f22;
+        pe = g_1e30[g_9464].f24;
+        g_1904 = g_18ee * g_18d2 / g_18d6 + g_18ea;
+        ha = size * h4 / 100;
+        g_1906.y = g_1904 - ha / 2;
+        g_1906.x = ha * h1c / -100 / 2 + g_1902;
+        SetStretchBltMode(g_13dc, 3);
+        fn_10_9962(0, g_13dc, g_1906.x, g_1906.y, ha * h1c / 100, ha, g_39e8[bmp],
+                   (pe + pc) * h6 + pe, pe, pc, pc, SRCCOPY);
+        PatBlt(g_13dc, g_1906.x - 20, g_1906.y - 20, 20, ha + 20, BLACKNESS);
+        g_1902 = (g_18d2 += h1e) / 10;
+        g_18da++;
+        if (g_18d2 >= g_18d6 && g_18de <= g_18da) {
+            g_1e30[obj].f1a = 1;
+            fn_11_b09c(obj, 0);
+            g_1e30[obj].f1a = 0;
+            g_18c6++;
+            g_18ca = 100;
+            g_18ce = 0;
+            g_18e2 = mult * 100;
+            g_18e6 = 0;
+            g_18ea = g_1904;
+            g_18ee = 0;
+            g_18f2 = 400;
+            g_18f6 = -400;
+            g_18da = 0;
+            g_18de = 10;
+            g_18fa = 0;
+        }
+        if (g_18c6 > 1) {
+            g_18fe = g_18d6;
+            g_18c6 = 0;
+            g_18ca = 100;
+            g_18ce = 0;
+            g_18e2 = 0;
+            g_18e6 = 0;
+            g_18ea = g_1904;
+            g_18ee = 0;
+            g_18f2 = 0;
+            g_18f6 = 400;
+            g_18da = 0;
+            g_18de = 10;
+            g_9462++;
+            g_5000 = ha + g_1906.x + 39;
+            g_5002 = (g_6086 - g_608a) / 2 + g_608a - 0x56;
+            if (g_91f8 && g_9464 == g_9646)
+                fn_17_30b0(g_93aa, 3500L);
+            else
+                fn_17_30b0(g_93aa, 5000L);
+            pilot_panel_header(g_9464);
+        }
+        break;
+    case 1:
+        g_946c = g_9464;
+        if (g_9460 && g_9474) {
+            g_9474 = 0;
+            pc = g_1e30[g_946c].f22;
+            pe = g_1e30[g_946c].f24;
+            g_5000 = (size + 13) * 3 + g_1906.x;
+            g_5002 = (g_6086 - g_608a) / 2 + g_608a - 0x56;
+            pilot_panel_header(g_9464);
+            fn_17_2c5a(1, 1);
+            SetStretchBltMode(g_13dc, 3);
+            fn_10_9962(0, g_13dc, g_1906.x, g_1906.y, mult * size, mult * size, g_39e8[bmp],
+                       pe, pe, pc, pc, SRCCOPY);
+            break;
+        }
+        if ((r = fn_17_2c5a(0, 0)) == 1)
+            fn_10_565a();
+        else if (r == 2 && !g_9460) {
+            g_9462++;
+            PatBlt(g_13dc, g_5000, g_5002, g_6088 - g_5000, g_608a - g_5002, BLACKNESS);
+            PatBlt(g_13dc, g_6084, g_5002, g_5000 - 100, g_608a - g_5002, BLACKNESS);
+        }
+        break;
+    case 2:
+        h4 = g_18fe * g_18e6 / g_18d6 + g_18e2;
+        h1e = h4 / 2 * g_18fa;
+        h1c = g_18fe * g_18ce / g_18d6 + g_18ca;
+        if (g_18de == 0)
+            h6 = g_18f2 / 100;
+        else
+            h6 = (g_18f6 * g_18da / g_18de + g_18f2) / 100;
+        pc = g_1e30[g_9464].f22;
+        pe = g_1e30[g_9464].f24;
+        g_1904 = g_18fe * g_18ee / g_18d6 + g_18ea;
+        ha = size * h4 / 100;
+        g_1906.y = g_1904 - ha / 2;
+        g_1906.x = ha * h1c / -100 / 2 + g_1902;
+        SetStretchBltMode(g_13dc, 3);
+        fn_10_9962(0, g_13dc, g_1906.x, g_1906.y, ha * h1c / 100, ha, g_39e8[bmp],
+                   (pe + pc) * h6 + pe, pe, pc, pc, SRCCOPY);
+        PatBlt(g_13dc, g_1906.x - 20, g_1906.y - 20, ha * h1c / 100 + 20, 20, BLACKNESS);
+        PatBlt(g_13dc, g_1906.x - 20, ha + g_1906.y, ha * h1c / 100 + 20, 20, BLACKNESS);
+        PatBlt(g_13dc, g_1906.x - 20, g_1906.y - 20, 20, ha + 20, BLACKNESS);
+        g_1902 = (g_18d2 += h1e) / 10;
+        g_18da++;
+        g_18fe += h1e;
+        if (g_18fe >= g_18d6 && g_18de <= g_18da) {
+            g_1e30[obj].f1a = 1;
+            fn_11_b09c(obj, 1);
+            g_1e30[obj].f1a = 0;
+            g_18fa = 1;
+            g_18ca = 100;
+            g_18ce = -80;
+            g_18e2 = mult * 100;
+            g_18e6 = 50 - g_18e2;
+            g_18ea = g_1904;
+            g_18ee = 0;
+            g_18f2 = 400;
+            g_18f6 = 0;
+            g_18fe = 0;
+            g_18d6 = g_6088 * 10 - g_18d2 - 200;
+            g_18de = 0;
+            g_18da = 0;
+            g_18c6++;
+            if (g_18c6 <= 1)
+                fn_10_754a(0x15, g_6088 / 2 + 250, g_90ec / 2, 4);
+            else {
+                g_9464++;
+                PatBlt(g_13dc, g_6084, g_6086, g_6088 - g_6084, g_608a - g_6086, BLACKNESS);
+                if (g_9464 <= g_9316) {
+                    g_1e30[g_9464].f1a = 1;
+                    fn_11_b09c(g_9464, 1);
+                    g_1e30[g_9464].f1a = 0;
+                    g_9462 = 0;
+                    g_18c6 = 0;
+                    g_18fa = 1;
+                    g_18ca = 20;
+                    g_18ce = 80;
+                    g_18e2 = 25;
+                    g_18e6 = mult * 100 - 25L;
+                    g_18ea = (g_6086 - g_608a) / 2 + g_608a;
+                    g_18ee = 0;
+                    g_18f2 = 400;
+                    g_18f6 = 0;
+                    g_18de = 0;
+                    g_18da = 0;
+                    g_18d2 = (g_6084 + 40) * 10;
+                    g_18d6 = g_18d2 + (g_6088 - g_6084) * 11 / 3;
+                    g_1902 = g_6084 + 40;
+                    g_1904 = g_18ea;
+                    fn_10_754a(0x13, 100, g_90ec / 2, 4);
+                } else
+                    g_18c2 = g_1e50 + 1000;
+            }
+        }
+        break;
+    }
+    g_9474 = 0;
     return 0;
 }
 
