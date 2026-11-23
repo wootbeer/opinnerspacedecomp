@@ -579,3 +579,10 @@ Conventions
   such files, add /Fc to a copy's @cflags line.
 - Segment 5 is entirely C runtime; its last pieces are QuickWin stubs from
   windows\noqwin.asm (__wcinit, __wopen) and long-shift helpers.
+- To keep `f*5` separate from a following `* 2` (CL folds to `*10`), assign
+  it to a local that is reassigned later in the same block (CL drops the
+  first store, keeps the value in a register).
+- Frame slots that are compiler temps: remove extra named locals and the
+  layout often falls into place.
+- `for (i = a = b = 0; ...)` stores lower address first without a dword merge
+  when the game shows that.

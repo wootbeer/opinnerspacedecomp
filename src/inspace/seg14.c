@@ -1567,13 +1567,9 @@ extern int g_9516;
 extern int g_964a;
 
 /* Pick a ship record (index into DS:6e20) for a new object of kind t;
- * the score goes to g_95b4 [inferred]. */
-/* Pick a ship record (index into DS:6e20) for a new object of kind t;
  * the score goes to g_95b4 [inferred]. Quirks kept: u10 is read but never
  * set, bk may be unset, and a failed search returns 1, not -1. */
-/* near-match 44%: 14:2300 (logic decoded; the 6-branch and the rest match up
- * to the frame offsets; the evaluation order in the g_9320 == 7 rating block
- * and the block-scope frame layout (0xac) still differ) */
+/* @addr 14:2300 */
 int far fn_14_2300(int t, int n)
 {
     int u4, k, res, i, uc, v, u10, r, best, bk, v18, lvl, c1c, c2, c0, c1, s24, s26, j;
@@ -1696,26 +1692,36 @@ int far fn_14_2300(int t, int n)
                 best = r;
             }
         } else if (g_9320 == 7 && n != g_9646 && g_6e20[k].f_003 != 7) {
-            int u6c, u6e, me, a72, a74, u7c, u7e, a82, a86, u8a, d1, d2;
+            int u8a, a86, a82, u7e, u7c, me, a74, a72;
             long L8e, L92, L96;
 
             r = 0;
             me = g_6e24[g_931c].f_00;
-            d1 = (int)((long)(g_6e1c[g_6e20[me].f_021].f_01b * 10) * (g_6e20[me].f_002 / 4 + 100L) / 100L) + g_6e20[me].f_000 * 2;
-            u6c = g_6e20[me].f_001 * 5;
-            u6e = u6c * 2;
-            a82 = (u6e - g_6e1c[g_6e20[me].f_021].f_01c) * 10 / d1;
-            a82 = a82 < 1 ? 1 : a82;
-            a74 = (long)u6c * 345 / g_6e1c[g_6e20[me].f_021].f_01c;
+            u7e = g_6e20[me].f_001 * 5;
+            u7c = g_6e1c[g_6e20[me].f_021].f_01c;
+            /* The clamps are written as `x = X < 1 ? 1 : X` (CL evaluates X
+             * once); u7e/u7c serve the own ship here and candidate k below,
+             * which lets CL drop these first stores. */
+            a82 = (u7e * 2 - u7c) * 10
+                / ((int)((long)(g_6e1c[g_6e20[me].f_021].f_01b * 10)
+                         * (g_6e20[me].f_002 / 4 + 100L) / 100L)
+                   + g_6e20[me].f_000 * 2) < 1 ? 1
+                : (u7e * 2 - u7c) * 10
+                / ((int)((long)(g_6e1c[g_6e20[me].f_021].f_01b * 10)
+                         * (g_6e20[me].f_002 / 4 + 100L) / 100L)
+                   + g_6e20[me].f_000 * 2);
+            a74 = (long)u7e * 345 / u7c;
             a74 = a74 < 1 ? 1 : a74;
-            L96 = (long)(g_6e1c[g_6e20[me].f_021].f_01b * 10) * (g_6e20[me].f_002 / 4 + 100L) / 100L * g_6e20[me].f_002 / 360;
-            L96 = L96 < 1 ? 1 : L96;
+            L96 = (long)(g_6e1c[g_6e20[me].f_021].f_01b * 10) * (g_6e20[me].f_002 / 4 + 100L)
+                / 100L * g_6e20[me].f_002 / 360 < 1 ? 1
+                : (long)(g_6e1c[g_6e20[me].f_021].f_01b * 10) * (g_6e20[me].f_002 / 4 + 100L)
+                / 100L * g_6e20[me].f_002 / 360;
             u8a = g_6e20[k].f_000 * 2;
-            d2 = (int)(L8e = (long)(g_6e1c[g_6e20[k].f_021].f_01b * 10) * (g_6e20[k].f_002 / 4 + 100L) / 100L);
+            L8e = (long)(g_6e1c[g_6e20[k].f_021].f_01b * 10) * (g_6e20[k].f_002 / 4 + 100L) / 100L;
             u7e = g_6e20[k].f_001 * 5;
             u7c = g_6e1c[g_6e20[k].f_021].f_01c;
-            a86 = (u7e * 2 - u7c) * 10 / (d2 += u8a);
-            a86 = a86 < 1 ? 1 : a86;
+            a86 = (u7e * 2 - u7c) * 10 / ((int)L8e + u8a) < 1 ? 1
+                : (u7e * 2 - u7c) * 10 / ((int)L8e + u8a);
             a72 = (long)u7e * 345 / u7c;
             a72 = a72 < 1 ? 1 : a72;
             L92 = (long)(g_6e1c[g_6e20[k].f_021].f_01b * 10) * (g_6e20[k].f_002 / 4 + 100L) / 100L * g_6e20[k].f_002 / 360;
@@ -1802,7 +1808,7 @@ int far fn_14_2300(int t, int n)
                 r += g_9432 / 20 < 30 ? 30 : g_9432 / 20;
             if (g_6e20[k].f_003 == 3 && g_7092[g_9646].f_0cc > (g_9208 + 4) * 100)
                 r += g_7092[g_9646].f_0cc / 20 > 40 ? 40 : g_7092[g_9646].f_0cc / 20;
-            for (i = s26 = s24 = 0; i <= g_931a; i++)
+            for (i = s24 = s26 = 0; i <= g_931a; i++)
                 if (g_6e24[i].f_79 + 15 > g_91f8
                     && g_6e24[i].f_64 != g_6e24[g_931c].f_64) {
                     if (g_6e20[k].f_003 == g_6e24[i].f_64) {
@@ -1832,7 +1838,7 @@ int far fn_14_2300(int t, int n)
                 r += rand() % 80;
             }
             r += rand() % 30;
-            for (i = c1 = c0 = c2 = 0; i < n; i++)
+            for (i = c2 = c0 = c1 = 0; i < n; i++)
                 if (g_7092[i].f_0d4 >= 0) {
                     if (g_6e24[g_7092[i].f_0d4].f_00 == k)
                         r -= 45;
