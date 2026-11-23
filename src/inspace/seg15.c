@@ -78,6 +78,27 @@ void far fn_06_7266(void);
 void far fn_10_7d58(int x, int y);
 
 extern int g_95da;
+extern int g_9224;
+extern int g_922a;
+extern int g_95ce;
+extern HBITMAP g_95be;
+extern HDC g_95c2;
+extern HGDIOBJ g_95c0;
+extern HPALETTE g_95c4;
+extern int g_90f0;
+extern int g_8fe8;
+extern int g_95c6;
+extern DWORD g_1c6c;
+extern HINSTANCE g_9212;
+void far fn_10_6ea0(unsigned a);
+void far fn_11_3fd4(LPSTR s, int a);
+int far fn_09_955c(UINT id, LPSTR buf);
+int far fn_10_946a(char far *p);
+void far fn_10_9962(int a, HDC dst, int x, int y, int w, int h, HDC src,
+                    int xs, int ys, int ws, int hs, DWORD rop);
+int far fn_10_73a6(int id, LPSTR name, int a, int b, int c, int d, int e, char f, char g);
+void far fn_06_72d8(int n, int m);
+void far fn_06_78ea(int kind, int x, int y, int vx, int vy, int size, int n, int c);
 extern DWORD g_130c;
 extern int g_920a;
 extern HDC g_3a14;
@@ -1115,10 +1136,306 @@ void far fn_15_5e22(int a)
     DeleteDC(mdc);
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Title screen: logo lines, version and CD/demo status, the logo bitmap
+ * dissolving in, then the title scrolling and the end fireworks [inferred]. */
+/* @addr 15:6cdc */
 void far fn_15_6cdc(void)
 {
-    g_95b8 = 2;
+    int u1;
+    int u2;
+    int u3;
+    int u4;
+    int u5;
+    int v;
+    int flag;
+    int u6;
+    int k;
+    int pix;
+    int ok;
+    BYTE mask;
+    int bit;
+    int idx;
+    HGDIOBJ oldfont;
+    HFONT font;
+    char buf[90];
+    char buf2[140];
+    COLORREF textcol;
+    COLORREF bkcol;
+
+    switch (g_95cc) {
+    case 0:
+        if (g_95d4 == 0) {
+            fn_10_6ea0(5);
+            font = CreateFont(24, 11, 0, 0, 600, 0, 0, 0, 0, 0, 0, 2, 0x22, "Arial");
+            oldfont = SelectObject(g_13dc, font);
+            bkcol = SetBkColor(g_13dc, 0L);
+            SetBkMode(g_13dc, TRANSPARENT);
+            SetTextAlign(g_13dc, TA_CENTER);
+            if (g_90ee < 8)
+                textcol = SetTextColor(g_13dc, RGB(0, 0xff, 0xff));
+            else
+                textcol = SetTextColor(g_13dc, PALETTERGB(0, 0xa5, 0xff));
+            LoadString(g_9212, 0x849, buf, 90);
+            fn_15_7970(g_90ea / 2 - 90, g_0010 / 2 + g_95de - 245, buf);
+            SelectObject(g_13dc, oldfont);
+            if (font) {
+                DeleteObject(font);
+                font = 0;
+            }
+            font = CreateFont(35, 19, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, "Arial");
+            oldfont = SelectObject(g_13dc, font);
+            if (g_920c == 0)
+                LoadString(g_9212, 0x922, buf, 45);
+            else
+                LoadString(g_9212, 0x921, buf, 45);
+            fn_11_3fd4(buf, 0);
+            lstrcat(buf, "\x99");
+            fn_15_7970(g_90ea / 2, g_0010 / 2 + g_95de - 220, buf);
+            SelectObject(g_13dc, oldfont);
+            if (font) {
+                DeleteObject(font);
+                font = 0;
+            }
+            font = CreateFont(22, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, "Arial");
+            oldfont = SelectObject(g_13dc, font);
+            if (g_11aa == 0) {
+                if (g_920c == 3)
+                    lstrcpy(buf, "");
+                else
+                    fn_09_955c(0x923, buf);
+            } else
+                fn_09_955c(0x924, buf);
+            lstrcat(buf, " - ");
+            fn_15_681c(g_8e66, buf2);
+            lstrcat(buf, buf2);
+            lstrcat(buf, " ");
+            LoadString(g_8e66, 0x25f, buf2, 20);
+            lstrcat(buf, buf2);
+            SetTextColor(g_13dc, PALETTERGB(0xc0, 0xc0, 0xc0));
+            fn_15_7970(g_90ea / 2, g_0010 / 2 + g_95de - 186, buf);
+            fn_10_885e(0);
+            flag = 0;
+            SetTextColor(g_13dc, PALETTERGB(0xc0, 0xc0, 0xc0));
+            if (g_920c != 3) {
+                if (g_920c == -1) {
+                    GetProfileString(g_9690, "CDDrive", "", buf, 40);
+                    if (buf[0] == 0) {
+                        fn_09_955c(0x84c, buf2);
+                        fn_10_946a(buf);
+                        lstrcat(buf2, buf);
+                    } else {
+                        lstrcpy(buf2, "CD: ");
+                        lstrcat(buf2, buf);
+                    }
+                } else if (g_920c == 2) {
+                    int n;
+
+                    n = -g_9224;
+                    fn_09_955c(0x926, buf);
+                    wsprintf(buf2, buf, n);
+                } else {
+                    int n;
+
+                    if (g_922a)
+                        fn_09_955c(0x927, buf2);
+                    else {
+                        if (g_9224 < 0) {
+                            n = -g_9224;
+                            fn_09_955c(0x926, buf);
+                        } else {
+                            lstrcpy(buf, "");
+                            n = g_9224;
+                            fn_09_955c(0x925, buf);
+                        }
+                        wsprintf(buf2, buf, n);
+                    }
+                    flag = 1;
+                }
+                fn_15_7970(g_90ea / 2, g_0010 / 2 + g_95ce + 125, buf2);
+            }
+            if (flag) {
+                SetTextColor(g_13dc, 0L);
+                SetBkColor(g_13dc, PALETTERGB(0xb4, 0x80, 0xe0));
+                SetBkMode(g_13dc, OPAQUE);
+                if (g_922a)
+                    fn_09_955c(0x928, buf2);
+                else
+                    fn_09_955c(0x906, buf2);
+                TextOut(g_13dc, g_90ea / 2, g_0010 / 2 + g_95ce + 150, buf2, lstrlen(buf2));
+                SetBkColor(g_13dc, 0L);
+                SetBkMode(g_13dc, TRANSPARENT);
+            }
+            SelectObject(g_13dc, oldfont);
+            if (font) {
+                DeleteObject(font);
+                font = 0;
+            }
+            font = CreateFont(16, 0, 0, 0, 500, 0, 0, 0, 0, 0, 0, 2, 0x22, "Arial");
+            oldfont = SelectObject(g_13dc, font);
+            if (g_90ee != 8) {
+                SetTextColor(g_13dc, 0L);
+                SetBkColor(g_13dc, PALETTERGB(0xc0, 0xc0, 0xc0));
+                SetBkMode(g_13dc, OPAQUE);
+                lstrcpy(buf2, " For best results, change Windows to 256 color mode ");
+                TextOut(g_13dc, g_90ea / 2, g_0010 / 2 + g_95ce + 86, buf2, lstrlen(buf2));
+                SetBkColor(g_13dc, 0L);
+                SetBkMode(g_13dc, TRANSPARENT);
+            }
+            SetTextColor(g_13dc, PALETTERGB(0xb4, 0x80, 0xe0));
+            lstrcpy(buf, "\xa9 1994-2000 Software Dynamics, inc. All rights reserved.");
+            TextOut(g_13dc, g_90ea / 2, g_0010 / 2 + g_95ce + 103, buf, lstrlen(buf));
+            SelectObject(g_13dc, oldfont);
+            if (font) {
+                DeleteObject(font);
+                font = 0;
+            }
+            font = CreateFont(30, 0, 0, 0, 800, 1, 0, 0, 0, 0, 0, 2, 0x22, "Arial");
+            oldfont = SelectObject(g_13dc, font);
+            SetTextColor(g_13dc, PALETTERGB(0xb4, 0x80, 0xe0));
+            fn_09_955c(0x9ee, buf2);
+            fn_15_7970(g_90ea / 2, g_0010 / 2 + g_95ce + 185, buf2);
+            SetBkColor(g_13dc, bkcol);
+            SetTextColor(g_13dc, textcol);
+            SelectObject(g_13dc, oldfont);
+            if (font) {
+                DeleteObject(font);
+                font = 0;
+            }
+            g_95be = fn_10_6c02(300, 0, -1);
+            g_95c2 = CreateCompatibleDC(g_13dc);
+            g_95c0 = SelectObject(g_95c2, g_95be);
+            if (g_920e)
+                g_95c4 = SelectPalette(g_95c2, g_920e, 0);
+            SetStretchBltMode(g_13dc, 3);
+            fn_10_9962(1, g_13dc, g_90ea / 2 - 138, g_0010 / 2 + g_95de - 155, 276, 210,
+                       g_95c2, 0, 0, 138, 105, SRCCOPY);
+            if (g_920e)
+                SelectPalette(g_95c2, g_95c4, 0);
+            SelectObject(g_95c2, g_95c0);
+            DeleteObject(g_95be);
+            for (k = 0; k < 18; k++)
+                g_95e0[k] = 0;
+            if (g_90f0 == 0 && (g_8fe8 == 0 || g_8ffa < 800)) {
+                HDC mdc;
+                HBITMAP bmp;
+                HGDIOBJ oldbmp;
+                HPALETTE oldpal;
+
+                bmp = fn_10_6c02(300, 3, -1);
+                mdc = CreateCompatibleDC(g_13dc);
+                oldbmp = SelectObject(mdc, bmp);
+                if (g_920e)
+                    oldpal = SelectPalette(mdc, g_920e, 0);
+                g_95be = CreateCompatibleBitmap(g_13dc, 276, 276);
+                g_95c0 = SelectObject(g_95c2, g_95be);
+                if (g_920e)
+                    g_95c4 = SelectPalette(g_95c2, g_920e, 0);
+                SetStretchBltMode(g_95c2, 3);
+                fn_10_9962(1, g_95c2, 0, 0, 276, 276, mdc, 0, 0, 138, 138, SRCCOPY);
+                if (g_920e)
+                    SelectPalette(mdc, oldpal, 0);
+                SelectObject(mdc, oldbmp);
+                DeleteObject(bmp);
+                DeleteDC(mdc);
+            } else {
+                g_95be = fn_10_73a6(300, "", -2, -2, 2, 0, 1, 1, 12);
+                g_95c0 = SelectObject(g_95c2, g_95be);
+                if (g_920e)
+                    g_95c4 = SelectPalette(g_95c2, g_920e, 0);
+            }
+        }
+        g_6e2c = 0;
+        g_95c6 = g_90ea / 2 - 400;
+        ok = g_95dc = 0;
+        while (!ok) {
+            pix = rand() % 105;
+            idx = pix >> 3;
+            bit = pix & 7;
+            mask = 1 << bit;
+            ok = !(g_95e0[idx] & mask);
+        }
+        g_95e0[idx] |= mask;
+        g_95d4++;
+        BitBlt(g_13dc, g_90ea / 2 - 138, g_0010 / 2 + pix * 2 + g_95de - 155, 276, 2,
+               g_95c2, 0, pix * 2, SRCCOPY);
+        if (g_95d4 >= 105) {
+            if (g_95c4)
+                SelectPalette(g_95c2, g_95c4, 0);
+            SelectObject(g_95c2, g_95c0);
+            DeleteObject(g_95be);
+            DeleteDC(g_95c2);
+            g_95c2 = 0;
+            for (k = 0; k < 18; k++)
+                g_95e0[k] = 0;
+            g_95cc++;
+            g_95d4 = 0;
+            g_95ca = g_95c8 = 0;
+        }
+        break;
+    case 1:
+        g_95cc++;
+        g_95ce = g_95c8 = 0;
+        break;
+    case 2:
+        g_95cc++;
+        g_95ca = g_95c8 = 0;
+        break;
+    case 3:
+        fn_10_7d58(g_95c6 += 5, g_90ec / 2);
+        if (g_95ca > 190)
+            v = min(g_95c8 - 190, 255);
+        else
+            v = max((24 - g_95c8) * 10, 0);
+        g_95c8 += 2;
+        g_95ca += 2;
+        if (g_95ca >= 230) {
+            g_95cc++;
+            g_95ca = g_95c8 = 0;
+        }
+        break;
+    case 4:
+        fn_10_7d58(g_95c6 += 5, g_90ec / 2);
+        g_95c8 += 4;
+        g_95ce += 2;
+        if (g_95ce >= 40) {
+            g_6e2c = g_1e50 + 45000;
+            g_6e28 = g_6e2c + 6500;
+            g_95cc = 5;
+            g_95ca = g_95c8 = 0;
+        }
+        break;
+    }
+    if (g_6e2c && g_6e2c < g_1e50) {
+        g_94c4 = 0;
+        fn_06_7266();
+        fn_06_72d8(2, 3);
+        fn_10_744c(0x6e);
+        fn_06_84fc((rand() % 2 + 1) * 10, g_90ea / 2 - 210, g_90ec, 0, -2500,
+                   32, 32, 25, 178, -1);
+        fn_06_84fc((rand() % 2 + 1) * 10, g_90ea / 2 + 210, g_90ec, 0, -2500,
+                   32, 32, 25, 165, -1);
+        g_6e2c = 0;
+    }
+    if (g_94c4 == 0) {
+        int a;
+        int b;
+
+        a = fn_06_73f6();
+        b = fn_06_7c14();
+        if (b && !g_95dc) {
+            g_95dc = 1;
+            PatBlt(g_13dc, 0, 0, g_90ea, g_0010, BLACKNESS);
+            g_1c6c = g_1e50 + 100;
+            g_6e28 = g_1e50 + 2500;
+        }
+        if (g_6e28 - 800 > g_1e50 && g_1c6c + 100 < g_1e50 && g_95dc && rand() % 10 < 3) {
+            fn_06_78ea(rand() % 2 * 10, rand() % 300 + g_90ea / 2 - 150,
+                       rand() % 440 + g_90ec / 2 - 220, 0, 0, 800, 4, 50 - rand() % 10);
+            g_1c6c = g_1e50;
+        }
+        if (g_6e28 - 200 < g_1e50)
+            g_94c4 = 1;
+    }
 }
 
 

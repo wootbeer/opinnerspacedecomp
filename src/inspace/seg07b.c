@@ -27,7 +27,8 @@ typedef struct {
     char p2a[0x2c - 0x2a];
     int f2c;                    /* +2c */
     char f2e;                   /* +2e */
-    char p2f[0x3c - 0x2f];
+    char p2f[0x3a - 0x2f];
+    HDC f3a;                    /* +3a */
     HDC f3c;                    /* +3c */
     char p3e[0x44 - 0x3e];
     int f44;                    /* +44 */
@@ -68,7 +69,9 @@ typedef struct {                /* 0x23 bytes, DGROUP array at DS:57a8 */
 typedef struct {                /* 0x15a bytes, DGROUP array at DS:7090 */
     char p00[0x10];
     int f10;                    /* +10 */
-    char p12[0x32 - 0x12];
+    char p12[0x2e - 0x12];
+    int f2e;                    /* +2e */
+    char p30[0x32 - 0x30];
     int f32;                    /* +32 */
     int f34;                    /* +34 */
     char p36[0x38 - 0x36];
@@ -244,6 +247,24 @@ void far fn_08_99ce(int a, int b, int c, int d, int e);
 void far fn_13_6450(int a, int b, int c);
 void far fn_13_58dc(int a, int b);
 void far fn_13_5a6a(HDC dc, int a, int b, int c, int d, int e, int f, int g);
+void far fn_02_170e(void);
+void far fn_07_2080();          /* old-style: 7:158e passes (type, idx) */
+void far fn_12_3778(void);
+void far fn_12_26a4(int type, int idx);
+void far fn_03_06ec(int n, int kind, int target, int d);
+void far fn_10_a332(LPSTR out, int id, int n, ...);
+extern long g_05c0;
+extern long g_1e58;
+extern DWORD g_1e68;
+extern int g_937a[8];
+extern char g_938a[8];
+extern char g_9392[8];
+extern HDC g_929e;
+extern HDC g_9580;
+typedef struct { int f00; char p02[0x08 - 0x02]; int f08; char p0a[0x1c - 0x0a]; } REC_1C;
+extern REC_1C g_66e4[];
+typedef struct { char p00[0x26]; int f26; char p28[0x50 - 0x28]; } REC_50;
+extern REC_50 g_2f4c[];
 
 
 /* @addr 7:119c */
@@ -364,6 +385,152 @@ void far fn_07_13b2(char kind, int type, int idx)
     if (!found && type <= 14)
         PatBlt(g_13dc, g_1df8[type][idx].f00, g_1df8[type][idx].f02,
                g_1df8[type][idx].f22, g_1df8[type][idx].f22, BLACKNESS);
+}
+
+/* Advances the active dissolves by a few pixels each [inferred]. */
+#define DOBJ(i) g_1df8[g_221c[i].type][g_221c[i].idx]
+/* @addr 7:158e */
+void far fn_07_158e(void)
+{
+    int i;
+    int j;
+    int pix;
+    int y;
+    int x;
+    int k;
+    int bit;
+    int ok;
+    char mask;
+    char unused[44];            /* never used: frame size */
+    int n;
+
+    for (i = 0; i < 4; i++) {
+        if (g_221c[i].type != -1) {
+            if (g_221c[i].type <= 14)
+                n = 10;
+            else if (g_221c[i].type == 20)
+                n = g_221c[i].sq / 9;
+            else if (g_221c[i].type >= 21)
+                n = 5;
+            for (j = 0; j < n; j++) {
+                do {
+                    pix = rand() % g_221c[i].sq;
+                    k = pix >> 3;
+                    bit = pix & 7;
+                    mask = 1 << bit;
+                    ok = !(mask & g_221c[i].b[k]);
+                } while (!ok);
+                g_221c[i].b[k] |= mask;
+                g_221c[i].f58++;
+                if (g_221c[i].type <= 14) {
+                    x = pix % g_221c[i].r << g_9156;
+                    y = pix / g_221c[i].r << g_9156;
+                } else if (g_221c[i].type == 20) {
+                    x = pix % g_221c[i].r << 3;
+                    y = pix / g_221c[i].r << 3;
+                } else if (g_221c[i].type == 21) {
+                    x = (long)(pix % g_221c[i].r) * g_90ea / g_221c[i].r;
+                    y = (long)(pix / g_221c[i].r) * g_90ec / g_221c[i].r;
+                } else if (g_221c[i].type == 22) {
+                    x = (long)(pix % g_221c[i].r) * g_90ea / g_221c[i].r / 2;
+                    y = (long)(pix / g_221c[i].r) * g_90ec / g_221c[i].r / 2;
+                } else if (g_221c[i].type == 23) {
+                    x = (long)(pix % g_221c[i].r) * g_90ea / g_221c[i].r / 2 + g_90ea / 2;
+                    y = (long)(pix / g_221c[i].r) * g_90ec / g_221c[i].r / 2;
+                } else if (g_221c[i].type == 24) {
+                    x = (long)(pix % g_221c[i].r) * g_90ea / g_221c[i].r / 2 + g_90ea / 2;
+                    y = (long)(pix / g_221c[i].r) * g_90ec / g_221c[i].r / 2 + g_90ec / 2;
+                } else if (g_221c[i].type == 25) {
+                    x = (long)(pix % g_221c[i].r) * g_90ea / g_221c[i].r / 2;
+                    y = (long)(pix / g_221c[i].r) * g_90ec / g_221c[i].r / 2 + g_90ec / 2;
+                }
+                if (g_221c[i].f58 >= g_221c[i].sq) {
+                    if (g_221c[i].type <= 14) {
+                        if (DOBJ(i).f2e == 1) {
+                            PatBlt(g_13dc, DOBJ(i).f00, DOBJ(i).f02, DOBJ(i).f22, DOBJ(i).f22,
+                                   BLACKNESS);
+                            if (g_221c[i].type == 14 && g_7090[g_221c[i].idx].f2e == 2) {
+                                DOBJ(i).f2e = -2;
+                                if (g_9134 && g_7090[g_9646].f32 == g_221c[i].type
+                                    && g_7090[g_9646].f34 == g_221c[i].idx
+                                    && g_7090[g_9646].f38 == 1) {
+                                    g_05c0 = g_1e50 + 1200;
+                                    fn_10_a332(g_8630, 0x58e, g_058c = 1);
+                                }
+                            } else {
+                                DOBJ(i).f18 = 1;
+                                fn_07_65aa(g_221c[i].type, g_221c[i].idx);
+                                if (g_221c[i].type != 14 && g_221c[i].type != 6
+                                    && g_221c[i].type != 7 && g_221c[i].type != 2)
+                                    for (j = 0; j < 8 && g_1e68 / 10 - g_937a[j] < 20; j++) {
+                                        if (g_938a[j] == g_221c[i].type && g_9392[j] == g_221c[i].idx) {
+                                            fn_10_754a(0x73, g_221c[i].type, g_221c[i].idx, 1);
+                                            fn_03_06ec(g_9646, 7, 0, 0x70);
+                                            g_1e58 += 800;
+                                            break;
+                                        }
+                                    }
+                                if (g_221c[i].type == 6) {
+                                    g_66e4[g_221c[i].idx].f08 = g_2f4c[g_66e4[g_221c[i].idx].f00].f26;
+                                    g_66e4[g_221c[i].idx].f00 = -1;
+                                    DOBJ(i).f2e = 0;
+                                } else {
+                                    DOBJ(i).f2e = -1;
+                                    fn_12_3778();
+                                }
+                                fn_12_26a4(g_221c[i].type, g_221c[i].idx);
+                                fn_07_2080(g_221c[i].type, g_221c[i].idx);  /* sic: 2 args */
+                                fn_02_170e();
+                            }
+                        } else {
+                            if (DOBJ(i).f1a)
+                                BitBlt(g_13dc, DOBJ(i).f00, DOBJ(i).f02, DOBJ(i).f22, DOBJ(i).f22,
+                                       DOBJ(i).f3c,
+                                       (DOBJ(i).f22 + DOBJ(i).f24) * DOBJ(i).f28 + DOBJ(i).f24,
+                                       DOBJ(i).f24, SRCCOPY);
+                            DOBJ(i).f2e = 0;
+                            if (g_221c[i].type == 14 && g_221c[i].idx == g_9646
+                                && g_7090[g_9646].f2e != 2)
+                                fn_10_754a(0x65, 0, 0, 0);
+                            fn_12_26a4(g_221c[i].type, g_221c[i].idx);
+                        }
+                        if (g_221c[i].type == 14) {
+                            g_7090[g_221c[i].idx].feb = 0;
+                            fn_02_170e();
+                        }
+                        g_221c[i].type = -1;
+                        dissolve_active_count--;
+                        return;
+                    } else if (g_221c[i].type == 20) {
+                        PatBlt(g_929e, 0, 0, g_92a4, g_92a4, BLACKNESS);
+                        g_221c[i].type = -1;
+                        dissolve_active_count--;
+                        return;
+                    } else if (g_221c[i].type >= 21) {
+                        g_221c[i].type = -1;
+                        dissolve_active_count--;
+                        return;
+                    }
+                } else if (g_221c[i].type <= 14) {
+                    if (DOBJ(i).f2e == 1)
+                        PatBlt(DOBJ(i).f3c, x + DOBJ(i).f24, y + DOBJ(i).f24,
+                               (2 << g_9156) >> 1, (2 << g_9156) >> 1, BLACKNESS);
+                    else
+                        BitBlt(DOBJ(i).f3c, x + DOBJ(i).f24, y + DOBJ(i).f24,
+                               (2 << g_9156) >> 1, (2 << g_9156) >> 1, DOBJ(i).f3a,
+                               (DOBJ(i).f22 + DOBJ(i).f24) * DOBJ(i).f28 + DOBJ(i).f24 + x,
+                               y + DOBJ(i).f24, SRCCOPY);
+                } else if (g_221c[i].type == 20)
+                    PatBlt(g_929e, x, y, 8, 8, BLACKNESS);
+                else if (g_221c[i].type == 21)
+                    BitBlt(g_13dc, x, y, g_90ea / g_221c[i].r + 1, g_90ec / g_221c[i].r + 1,
+                           g_9580, x, y, SRCCOPY);
+                else if (g_221c[i].type > 21)
+                    BitBlt(g_13dc, x, y, g_90ea / g_221c[i].r / 2 + 1,
+                           g_90ec / g_221c[i].r / 2 + 1, g_9580, x, y, SRCCOPY);
+            }
+        }
+    }
 }
 
 /* Respawns ships waiting in state 100 after their timer runs out [inferred].
