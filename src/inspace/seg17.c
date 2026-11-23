@@ -33,7 +33,9 @@ typedef struct {
     signed char f_0c9;    /* DS:715b */
     char pad_0ca[0x2];
     int f_0cc;    /* DS:715e */
-    char pad_0ce[0x6];
+    int f_0ce;    /* DS:7160 */
+    int f_0d0;    /* DS:7162 */
+    char pad_0d2[0x2];
     int f_0d4;    /* DS:7166 */
     int f_0d6;    /* DS:7168 */
     char pad_0d8[0x2];
@@ -79,7 +81,9 @@ extern int g_9462;
 extern int g_9474;
 typedef struct {                /* 0x7c-byte records, far pointer at DS:6e24 */
     char p00[0x65];
-    char name[0x7c - 0x65];
+    char name[0x77 - 0x65];
+    signed char f77;
+    char p78[0x7c - 0x78];
 } REC_7C;
 extern REC_7C far *g_6e24;
 typedef struct {                /* 0x14-byte records, DGROUP array at DS:4d92 */
@@ -263,6 +267,32 @@ int far fn_17_193c(int reset);
 extern DWORD g_18a8;
 extern POINT g_18ac;           /* bitmap size */
 HBITMAP far fn_11_2ff6(int n);
+extern long g_1e58;
+extern char g_38c8[];
+extern char g_09ee[];
+extern char g_8d38[];
+extern char g_8db0[];
+extern char g_8768[];
+extern char g_87b8[];
+void far fn_06_0f54(long v, int div, int width, LPSTR buf);
+void far fn_06_1010(int v, int div, int width, LPSTR buf);
+void far fn_03_1d0a(int i, int j, int k);
+void far fn_03_3498(LPSTR a, LPSTR b, LPSTR c);
+extern int g_607c;
+extern int g_607e;
+extern int g_6080;
+extern int g_6082;
+extern int g_608c;
+extern int g_608e;
+extern char g_06b0[];
+extern DWORD g_1886;
+extern int g_188a;
+extern int g_188c;
+extern int g_188e;
+extern REC_70 far *g_1e08;
+extern HDC g_39f0;
+void far fn_10_3a2e(void);
+void far fn_10_3ea2(void);
 
 /* @addr 17:306e */
 void far fn_17_306e(void)
@@ -1085,9 +1115,93 @@ int far fn_17_2c5a(int a, int b)
     return 0;
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Draws the friends / neutral / enemies lists of the relations page [inferred]. */
+/* @addr 17:458e */
 void far fn_17_458e(void)
 {
+    HFONT font;
+    HGDIOBJ oldfont;
+    COLORREF oldbk;
+    COLORREF oldtxt;
+    char buf1[80];
+    char buf2[70];
+    int i;
+    int j;
+    int me;
+    int rel;
+    POINT pt;
+
+    font = CreateFont(15, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, g_06b0);
+    oldfont = SelectObject(g_13dc, font);
+    oldbk = SetBkColor(g_13dc, 0L);
+    SetBkMode(g_13dc, TRANSPARENT);
+    SetTextAlign(g_13dc, 0);
+    fn_09_955c(0x382, buf2);
+    oldtxt = SetTextColor(g_13dc, PALETTERGB(0, 214, 255));
+    TextOut(g_13dc, g_5000, g_6086 + 20, buf2, lstrlen(buf2));
+    SetBkColor(g_13dc, oldbk);
+    SetTextColor(g_13dc, oldtxt);
+    SelectObject(g_13dc, oldfont);
+    if (font) {
+        DeleteObject(font);
+        font = 0;
+    }
+    font = CreateFont(13, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, g_06b0);
+    oldfont = SelectObject(g_13dc, font);
+    oldbk = SetBkColor(g_13dc, 0L);
+    SetBkMode(g_13dc, TRANSPARENT);
+    SetTextAlign(g_13dc, 0);
+    me = g_96f0[g_7092[g_9646].f_04c].f1a;
+    oldtxt = SetTextColor(g_13dc, RGB(0, 255, 255));
+    pt.y = g_6086 + 60;
+    pt.x = g_5000;
+    fn_09_955c(0x380, buf1);
+    lstrcat(buf1, "S");
+    TextOut(g_13dc, pt.x, pt.y, buf1, lstrlen(buf1));
+    pt.y += 28;
+    for (i = 0; i < 8; i++) {
+        j = i;
+        if (j != me && (rel = g_3824[j][me]) > 80) {
+            fn_17_56fe(j, buf2);
+            TextOut(g_13dc, pt.x, pt.y, buf2, lstrlen(buf2));
+            pt.y += 18;
+        }
+    }
+    oldtxt = SetTextColor(g_13dc, PALETTERGB(192, 192, 192));
+    pt.y = g_6086 + 60;
+    pt.x = g_6084 + 210;
+    fn_09_955c(0x246, buf1);
+    TextOut(g_13dc, pt.x, pt.y, buf1, lstrlen(buf1));
+    pt.y += 28;
+    for (i = 0; i < 8; i++) {
+        j = i;
+        if (j != me && (rel = g_3824[j][me]) < 80 && rel > -80) {
+            fn_17_56fe(j, buf2);
+            TextOut(g_13dc, pt.x, pt.y, buf2, lstrlen(buf2));
+            pt.y += 18;
+        }
+    }
+    oldtxt = SetTextColor(g_13dc, PALETTERGB(255, 128, 60));
+    pt.y = g_6086 + 60;
+    pt.x = g_6084 + 410;
+    fn_09_955c(0x30ed, buf1);
+    TextOut(g_13dc, pt.x, pt.y, buf1, lstrlen(buf1));
+    pt.y += 36;
+    for (i = 0; i < 8; i++) {
+        j = i;
+        if (j != me && (rel = g_3824[j][me]) < -80) {
+            fn_17_56fe(j, buf2);
+            TextOut(g_13dc, pt.x, pt.y, buf2, lstrlen(buf2));
+            pt.y += 18;
+        }
+    }
+    SetBkColor(g_13dc, oldbk);
+    SetTextColor(g_13dc, oldtxt);
+    SelectObject(g_13dc, oldfont);
+    if (font) {
+        DeleteObject(font);
+        font = 0;
+    }
 }
 
 /* Not yet decompiled: stub so calls to it compile as near calls. */
@@ -1100,9 +1214,85 @@ void far fn_17_3746(void)
 {
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Writes the relations/finance lines of the contact report [inferred]. */
+/* @addr 17:33ee */
 void far fn_17_33ee(void)
 {
+    int rel;
+    int rel2;
+    int c1;
+    int c2;
+    char buf3e[52];
+    char buf66[40];
+    char buff2[140];
+    int id1;
+    int id2;
+
+    if (g_9464 == g_9646) {
+        fn_06_0f54(g_7092[g_9464].f_0da, 100, 2, buf3e);
+        fn_06_1010(g_7092[g_9464].f_0cc, 100, 2, buf66);
+        fn_10_a332(g_6078, (char *)0xbdb, 0, g_91f8 < 1 ? 1 : g_91f8, (LPSTR)g_38c8, g_1e58,
+                   g_7092[g_9646].f_0d0, 0x9d3, g_7092[g_9646].f_0ce, 0x9d3,
+                   (LPSTR)buf3e, (LPSTR)buf66);
+        if (g_9460)
+            return;
+        fn_17_42ea(1);
+        fn_17_42ea(1);
+    } else {
+        if (g_96f0[g_7092[g_9464].f_04c].f1a != 7 && g_7092[g_9464].f_0d4 >= 0
+            && g_6e24[g_7092[g_9464].f_0d4].f77 > 1)
+            fn_10_a332(g_6078, (char *)0xbda, 0, 0xe, g_9464, 3,
+                       g_6e24[g_7092[g_9464].f_0d4].f77 < 4,
+                       g_6e24[g_7092[g_9464].f_0d4].f77 == 2, 0x39a, 0x39b,
+                       g_6e24[g_7092[g_9464].f_0d4].f77 >= 4,
+                       g_6e24[g_7092[g_9464].f_0d4].f77 - 1);
+        else
+            fn_10_a332(g_6078, (char *)0x399, 0, 0xe, g_9464, 3);
+        if (g_96f0[g_7092[g_9464].f_04c].f1a != 7 && g_7092[g_9464].f_0d4 >= 0
+            && g_6e24[g_7092[g_9464].f_0d4].f77 > 1) {
+            fn_09_95ba(0x7fe);
+            lstrcat(g_6078, g_09ee);
+        }
+        c1 = g_96f0[g_7092[g_9464].f_04c].f1a;
+        c2 = g_96f0[g_7092[g_9646].f_04c].f1a;
+        if (c1 == c2) {
+            rel = 90;
+            id1 = 0x319;
+        } else {
+            rel = g_3824[c1][c2];
+            if (rel < -80)
+                id1 = 0x316;
+            else if (rel < 80)
+                id1 = 0x317;
+            else
+                id1 = 0x318;
+        }
+        rel2 = fn_13_2688(g_9646, g_9464);
+        if (rel2 < -80)
+            id2 = 0x316;
+        else if (rel2 < 80)
+            id2 = 0x317;
+        else
+            id2 = 0x318;
+        fn_10_a332(g_6078, (char *)0x31a, 0, id1,
+                   id2 == id1 || (id2 == 0x318 && id1 == 0x319) ? 1 : 0,
+                   0x800, 0x31b, id2);
+        if (g_9460) {
+            lstrcpy(buff2, g_8d38);
+            fn_03_1d0a(g_9646, g_9464, 2);
+            lstrcpy(g_8db0, g_8d38);
+            ((void (far *)(char *))fn_11_3fd4)(g_8db0);
+            fn_03_3498(g_8db0, g_8768, g_87b8);
+            fn_06_0f54(g_7092[g_9464].f_0da, 100, 2, buf3e);
+            fn_06_1010(g_7092[g_9464].f_0cc, 100, 2, buf66);
+            fn_10_a332(g_6078, (char *)0xbde, 0, (LPSTR)g_8768, (LPSTR)g_87b8,
+                       (LPSTR)buf3e, (LPSTR)buf66);
+            lstrcpy(g_8d38, buff2);
+            return;
+        }
+    }
+    fn_17_4068(g_9464, buff2);
+    lstrcat(g_6078, buff2);
 }
 
 /* Not yet decompiled: stub so calls to it compile as near calls. */
@@ -2220,9 +2410,92 @@ int far fn_17_0600(int reset)
     return 0;
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Contact animation step (portrait zoom in/out) [inferred]. */
+/* @addr 17:0d22 */
 int far fn_17_0d22(int reset)
 {
+    POINT pt;
+    int sz;
+    int b;
+    int a;
+    int r;
+    int unused[2];
+
+    if (reset) {
+        fn_10_744c(0x13);
+        g_1886 = 0;
+        g_188a = 1;
+    }
+    if (g_1886) {
+        if (g_1886 < g_1e50)
+            return 1;
+        return 0;
+    }
+    switch (g_9462) {
+    case 0:
+        b = g_1e08->f22;
+        sz = min(g_188a * 36 / 20, 72);
+        if (sz < 72)
+            g_188e = g_188a * 2;
+        pt.x = g_608c / 2 - sz / 2 - g_188e - 30;
+        pt.y = (g_6086 - g_608a) / 2 - sz / 2 + g_608a;
+        a = g_1e08->f24;
+        SetStretchBltMode(g_13dc, 3);
+        fn_10_9962(0, g_13dc, pt.x, pt.y, sz, sz, g_39f0, a, a, b, b, SRCCOPY);
+        PatBlt(g_13dc, sz + pt.x, pt.y, 2, sz, BLACKNESS);
+        g_188a++;
+        if (g_188a > 40) {
+            g_9462++;
+            g_5000 = sz + pt.x + 60;
+            g_5002 = pt.y - 17;
+            fn_17_30b0(g_93aa, 0x1194L);
+        }
+        break;
+    case 1:
+        if (g_9460 != 0 && g_9474 != 0) {
+            g_9474 = 0;
+            a = g_1e08->f24;
+            b = g_1e08->f22;
+            pt.y = (g_6086 - g_608a) / 2 + g_608a - 36;
+            pt.x = g_608c / 2 - 146;
+            g_5000 = pt.x + 132;
+            g_5002 = pt.y - 17;
+            fn_17_2c5a(1, 1);
+            SetStretchBltMode(g_13dc, 3);
+            fn_10_9962(0, g_13dc, pt.x, pt.y, 72, 72, g_39f0, a, a, b, b, SRCCOPY);
+        } else {
+            r = fn_17_2c5a(0, 0);
+            if (r == 1) {
+                fn_10_3a2e();
+                fn_10_3ea2();
+            } else if (r == 2 && g_9460 == 0) {
+                g_188c = g_188a = 40;
+                fn_10_744c(0x15);
+                g_9462++;
+            }
+        }
+        break;
+    case 2:
+        b = g_1e08->f22;
+        sz = min(g_188c * 36 / 20, 72);
+        a = g_1e08->f24;
+        if (sz < 72)
+            g_188e = g_188a * 2;
+        pt.x = g_608c / 2 - sz / 2 - g_188e - 30;
+        pt.y = (g_6086 - g_608a) / 2 - sz / 2 + g_608a;
+        SetStretchBltMode(g_13dc, 3);
+        fn_10_9962(0, g_13dc, pt.x, pt.y, sz, sz, g_39f0, a - 3, a - 3, b + 6, b + 6, SRCCOPY);
+        PatBlt(g_13dc, pt.x - 10, pt.y, 10, sz, BLACKNESS);
+        PatBlt(g_13dc, pt.x - 20, pt.y - 20, sz + 20, 20, BLACKNESS);
+        g_188c = g_188a;
+        g_188a -= 2;
+        if (g_188a <= 7) {
+            PatBlt(g_13dc, pt.x - 4, pt.y - 4, sz + 8, sz + 8, BLACKNESS);
+            g_1886 = g_1e50 + 1000;
+        }
+        break;
+    }
+    g_9474 = 0;
     return 0;
 }
 
@@ -2367,4 +2640,75 @@ void far fn_17_8572(HWND hDlg)
     lstrcat(s1, s2);
     SendMessage(GetDlgItem(hDlg, 0x199), 0x40d, -1, (LPARAM)(LPSTR)s1);
     SetFocus(GetDlgItem(hDlg, 0x195));
+}
+
+/* WM_CREATE handler of the contact window: layout and buttons [inferred]. */
+/* @addr 17:6116 */
+void far fn_17_6116(void)
+{
+    RECT rc;
+    char buf[80];
+    int i;
+    HPALETTE old;
+
+    GetClientRect(g_9460, &rc);
+    g_6086 = 0;
+    g_607c = g_6084 = 6;
+    g_6080 = g_6088 = rc.right - g_6084;
+    g_607e = g_608a = rc.bottom - 67;
+    g_6082 = g_607e + 180;
+    if (g_93ae) {
+        DeleteObject(g_93ae);
+        g_93ae = 0;
+    }
+    g_93ae = CreateRectRgn(g_6084, g_6086, g_6088, g_608a);
+    for (i = 0; i < 9; i++) {
+        if (g_947a[i]) {
+            DestroyWindow(g_947a[i]);
+            g_947a[i] = 0;
+        }
+    }
+    g_6094[0] = CreateFont(12, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, g_06b0);
+    g_6094[1] = CreateFont(14, 7, 0, 0, 730, 0, 0, 0, 0, 0, 0, 2, 0x22, g_06b0);
+    if (g_6088 > 670) {
+        fn_09_955c(0x88a, buf);
+        g_947a[1] = CreateWindow("button", buf, WS_CHILD | WS_VISIBLE | WS_TABSTOP,
+                                 9, rc.bottom - 30, 60, 23, g_9460, 0x65, g_8e66, NULL);
+        fn_09_955c(0x88b, buf);
+        g_947a[0] = CreateWindow("button", buf, WS_CHILD | WS_VISIBLE | WS_TABSTOP,
+                                 0x49, rc.bottom - 30, 60, 23, g_9460, 0x64, g_8e66, NULL);
+        fn_09_955c(0x88c, buf);
+        g_947a[2] = CreateWindow("button", buf, WS_CHILD | WS_VISIBLE | WS_TABSTOP,
+                                 0x89, rc.bottom - 30, 60, 23, g_9460, 0x66, g_8e66, NULL);
+    } else {
+        g_947a[1] = CreateWindow("button", "&?", WS_CHILD | WS_VISIBLE | WS_TABSTOP,
+                                 9, rc.bottom - 30, 30, 23, g_9460, 0x65, g_8e66, NULL);
+        g_947a[0] = CreateWindow("button", "<<", WS_CHILD | WS_VISIBLE | WS_TABSTOP,
+                                 0x2b, rc.bottom - 30, 40, 23, g_9460, 0x64, g_8e66, NULL);
+        g_947a[2] = CreateWindow("button", ">>", WS_CHILD | WS_VISIBLE | WS_TABSTOP,
+                                 0x57, rc.bottom - 30, 40, 23, g_9460, 0x66, g_8e66, NULL);
+    }
+    SendMessage(g_947a[0], WM_SETFONT, g_6094[1], 1L);
+    SendMessage(g_947a[2], WM_SETFONT, g_6094[1], 1L);
+    SendMessage(g_947a[1], WM_SETFONT, g_6094[1], 1L);
+    fn_17_7324();
+    fn_09_955c(0x88d, buf);
+    g_947a[8] = CreateWindow("button", buf, WS_CHILD | WS_VISIBLE | WS_TABSTOP,
+                             rc.right - 55, rc.bottom - 30, 45, 23, g_9460, 0x69, g_8e66, NULL);
+    SendMessage(g_947a[8], WM_SETFONT, g_6094[1], 1L);
+    if (g_9488)
+        SetFocus(g_9488);
+    else
+        SetFocus(g_9482);
+    g_608c = g_6088;
+    g_608e = g_608a;
+    g_1e50 = GetCurrentTime();
+    g_13dc = GetDC(g_9460);
+    if (g_920e)
+        old = SelectPalette(g_13dc, g_920e, 0);
+    fn_17_0000(0, 1);
+    if (old)
+        SelectPalette(g_13dc, old, 0);
+    ReleaseDC(g_0016, g_13dc);
+    g_13dc = 0;
 }

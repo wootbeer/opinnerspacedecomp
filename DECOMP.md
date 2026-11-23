@@ -262,3 +262,8 @@ Conventions
   needs a separate identical `case N: ...; break;`.
 - Quick test of one function: copy the file's header and inspace.h into a
   scratch folder with the function.
+- `mov cx,1000; imul cx` is only CL's form for a multiplier above imm8.
+- 17:33ee passes a near pointer where fn_11_3fd4 expects far (bug in the
+  original): call through a cast, keep it.
+- Pushed constants that sit inside a dword table are ints, not strings;
+  strings defined in other files: declare as `g_XXXX[]`.
