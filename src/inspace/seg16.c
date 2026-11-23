@@ -94,7 +94,8 @@ typedef struct {                /* 0xad bytes, DGROUP array at DS:96f0 */
     char p04[0x0a - 0x04];
     int f0a;
     int f0c;
-    char p0e[0x8f - 0x0e];
+    char p0e[0x52 - 0x0e];
+    char f52[0x8f - 0x52];    /* name [inferred] */
     int f8f;    /* seen only as [n - 1].f8f: the true base is lower [inferred] */
     int f91;
     int f93;
