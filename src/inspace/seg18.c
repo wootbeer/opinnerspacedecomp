@@ -41,7 +41,8 @@ typedef struct {                /* 0x15a bytes, DGROUP array at DS:70ae */
     char p43[0x8e - 0x43];
     char f8e;
     char f8f;
-    char p90[0xad - 0x90];
+    char p90[0x9a - 0x90];
+    signed char f9a[0xad - 0x9a];
     signed char fad;
     char pae[0xb8 - 0xae];
     int fb8;
@@ -157,19 +158,28 @@ typedef struct {                /* 0x70-byte records */
     int f28;
     char p2a[0x2c - 0x2a];
     int f2c;
-    char p2e[0x3c - 0x2e];
+    char f2e;
+    signed char f2f;
+    char p30[0x32 - 0x30];
+    int f32;
+    char p34[0x36 - 0x34];
+    int f36;
+    char p38[0x3c - 0x38];
     int f3c;
     char p3e[0x42 - 0x3e];
     int f42;
     int f44;
     int f46;
     int f48;
-    char p4a[0x54 - 0x4a];
+    char p4a[0x4c - 0x4a];
+    DWORD f4c;
+    char p50[0x53 - 0x50];
+    char f53;
     char f54;
     char p55[0x5e - 0x55];
-    long f5e;
-    long f62;
-    long f66;
+    int (far *f5e)(int type, int idx);
+    void (far *f62)(void);
+    void (far *f66)(int type, int idx);
     char p6a[0x70 - 0x6a];
 } REC_70;
 extern REC_70 far *g_1df8[21];      /* 0-14: 0x460-byte blocks, 15-20: 0x70 */
@@ -405,6 +415,29 @@ void far fn_10_9962(int a, HDC dst, int x, int y, int w, int h, HDC src,
                     int sx, int sy, int sw, int sh, DWORD rop);
 int far fn_14_3eda(void);
 void far fn_14_4074(void);
+
+extern int g_930a;
+extern int g_9424;
+extern int g_9428;
+extern int g_942c;
+extern int g_9312;
+extern int g_930e;
+extern int g_9314;
+extern int g_942e;
+extern int g_92ec[];
+extern char g_a191;
+extern char g_a192;
+extern char g_a17b[];
+void far fn_11_3914(void);
+int far fn_07_570a(int type, int idx);
+int far fn_07_2652(int type, int idx);
+void far fn_12_274a(int type, int idx);
+void far fn_11_39d8(void);
+int far fn_07_5090(int type, int idx);
+void far fn_18_633c(void);
+HBITMAP far fn_10_6fec(int a, LPSTR s, int b, int c, int d, int e, int f,
+                       int g, int h, int i, int j, int k);
+void far fn_18_270e(int w, int h);
 
 /* @addr 18:034c */
 void far fn_18_034c(void)
@@ -809,9 +842,99 @@ typedef struct {
 } REC_7090;
 extern REC_7090 g_7090[];
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Resets the Demon sub-game objects and their arrays [inferred]. */
+/* @addr 18:1eac */
 void far fn_18_1eac(void)
 {
+    int i;
+    int j;
+    int k;
+
+    g_9424 = g_930a = 1;
+    g_930e = g_942c = g_9312 = g_942a = g_9428 = 0;
+    g_942e = g_9314 = g_9316 + 1;
+    for (i = 15; i <= 20; i++) {
+        GlobalUnlock(g_9100[i]);
+        g_9100[i] = GlobalReAlloc(g_9100[i], (long)max(g_92ec[i], 1) * 0x70, GHND);
+        g_1df8[i] = (REC_70 far *)GlobalLock(g_9100[i]);
+    }
+    g_1df8[17]->f44 = 120;
+    g_1df8[17]->f42 = 100;
+    g_1df8[17]->f4c = 0xff;
+    g_1df8[17]->f62 = fn_11_3914;
+    g_1df8[17]->f5e = fn_07_570a;
+    g_1df8[17]->f53 = 0;
+    g_1df8[17]->f54 = 0;
+    g_1df8[18]->f44 = 100;
+    g_1df8[18]->f42 = 100;
+    g_1df8[18]->f4c = 0xff;
+    g_1df8[18]->f62 = fn_11_3914;
+    g_1df8[18]->f5e = fn_07_570a;
+    g_1df8[18]->f53 = 0;
+    g_1df8[18]->f54 = 0;
+    g_1df8[18]->f18 = 1;
+    g_1df8[18]->f1a = 0;
+    g_1df8[15]->f44 = 1000;
+    g_1df8[15]->f18 = 0;
+    g_1df8[15]->f42 = 18;
+    g_1df8[15]->f46 = 6;
+    g_1df8[15]->f2c = 500;
+    g_1df8[15]->f48 = 10;
+    g_1df8[15]->f5e = fn_07_2652;
+    g_1df8[15]->f66 = fn_12_274a;
+    g_1df8[15]->f53 = 0;
+    g_1df8[15]->f54 = 1;
+    g_1df8[15]->f2f = 7;
+    g_1df8[16]->f44 = 20000;
+    g_1df8[16]->f18 = 1;
+    g_1df8[16]->f1a = 0;
+    g_1df8[16]->f42 = 6;
+    g_1df8[16]->f54 = 1;
+    g_1df8[16]->f22 = 2;
+    g_1df8[16]->f0e = 0;
+    g_1df8[16]->f0c = g_1df8[16]->f0e;
+    g_1df8[16]->f46 = 1;
+    g_1df8[16]->f62 = fn_11_39d8;
+    g_1df8[16]->f5e = fn_07_5090;
+    for (i = g_9326; i <= g_9324; i++)
+        for (j = 0; j < g_92ec[i]; j++) {
+            g_1df8[i][j].f12 = g_1df8[i][j].f24;
+            g_1df8[i][j].f2e = 0;
+            g_1df8[i][j].f32 = -1;
+            g_1df8[i][j].f36 = -1;
+        }
+    for (i = k = 0; i < 4; i++)
+        g_a18f[i] = 1;
+    for (i = 0; i < 4; i++) {
+        for (j = 0; j <= g_70ae[g_9646].fad; j++) {
+            if (g_90f4 == 1) {
+                if (g_70ae[g_9646].f9a[j] == 0x1a)
+                    g_a191 = g_a192 = 0;
+                else if (g_70ae[g_9646].f9a[j] - i == 0x16)
+                    g_a18f[i] = 0;
+            }
+        }
+        if (g_90f4 == 6 && !g_a193[i]) {
+            g_a18f[i] = 0;
+            k++;
+        }
+    }
+    if (k > 3)
+        fn_18_633c();
+    g_a198 = 0;
+    if (g_90f4 == 1) {
+        for (i = 0; i < 4; i++)
+            if (!g_a18f[i])
+                g_a198++;
+    } else
+        g_a198 = min(g_a1cf, 3);
+    for (i = 0; i < 4; i++)
+        if (g_a18f[i]) {
+            g_a16a[i] = 0;
+            g_a17b[i] = 5;
+        }
+    for (i = 0; i < 4; i++)
+        g_a17f[i] = -1;
 }
 
 /* Rebuilds the sprite sheet of object n at the current zoom [inferred]. */
@@ -1112,8 +1235,102 @@ int far pascal fn_18_4dc4(int n)
     return 0;
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Builds the Demon's sprite sheet (DC 39) and the 2x2 corner bitmap at
+ * DS:966a [inferred]. */
+/* @addr 18:2272 */
 void far fn_18_2272(void)
+{
+    int size;
+    int cell;
+    int sz2;
+    int w35;
+    int rows;
+    int r;
+    int c;
+    int gap;
+    HBITMAP hbm;
+    HBITMAP oldbm;
+    HDC hdc;
+    HPALETTE oldpal;
+    BITMAP bm;
+
+    fn_10_6ee6(0x27, 0x42, "", 1, 0, 0x10001L, 1, g_9156 + 1, 12, 12, 2, 0);
+    size = fn_10_86ca();
+    cell = g_9156 > 0 ? size * 2 : size;
+    gap = 4;
+    SelectObject(g_39e8[39], g_3974[39]);
+    GetObject(g_3ad0[39], sizeof(BITMAP), &bm);
+    SelectObject(g_39e8[39], g_3ad0[39]);
+    rows = bm.bmHeight / cell;
+    sz2 = (g_9156 + 1) * size;
+    hdc = CreateCompatibleDC(g_13dc);
+    hbm = CreateCompatibleBitmap(g_13dc, sz2 * 16 + 68, (sz2 + 4) * rows + 4);
+    if (g_920e)
+        oldpal = SelectPalette(hdc, g_920e, 0);
+    oldbm = SelectObject(hdc, hbm);
+    PatBlt(hdc, 0, 0, sz2 * 16 + gap * 17, rows * sz2 + (rows + 1) * gap,
+           BLACKNESS);
+    SetStretchBltMode(hdc, 3);
+    for (r = 0; r < rows; r++)
+        for (c = 0; c < 16; c++)
+            fn_10_9962(0, hdc, c * sz2 + (c + 1) * gap,
+                       r * sz2 + (r + 1) * gap, sz2, sz2, g_39e8[39],
+                       c * cell, r * cell, cell, cell, SRCCOPY);
+    SelectObject(g_39e8[39], g_3974[39]);
+    if (g_920e)
+        SelectPalette(g_39e8[39], g_3a5c[39], 0);
+    DeleteDC(g_39e8[39]);
+    DeleteObject(g_3ad0[39]);
+    g_39e8[39] = hdc;
+    g_3ad0[39] = hbm;
+    g_3974[39] = oldbm;
+    g_3a5c[39] = oldpal;
+    g_1df8[15]->f22 = sz2;
+    g_1df8[15]->f24 = gap;
+    w35 = 0x35 << g_9156;
+    g_9678 = 0x35 << g_9156 * 2 >> 1;
+    g_966a = CreateCompatibleDC(g_13dc);
+    g_966c = CreateCompatibleBitmap(g_13dc, g_9678 * 2, g_9678 * 2);
+    hdc = CreateCompatibleDC(g_13dc);
+    if (g_920e) {
+        g_9670 = SelectPalette(g_966a, g_920e, 0);
+        oldpal = SelectPalette(hdc, g_920e, 0);
+    }
+    g_966e = SelectObject(g_966a, g_966c);
+    PatBlt(g_966a, 0, 0, g_9678 * 2, g_9678 * 2, BLACKNESS);
+    SetStretchBltMode(g_966a, 3);
+    oldbm = SelectObject(hdc, hbm = fn_10_6fec(0x3c0, "", 1, -100, 1, 1, 1,
+                                               g_9156, 4, 12, 2, 0));
+    fn_10_9962(0, g_966a, 0, g_9678, g_9678, g_9678, hdc, 0, 0, w35, w35,
+               SRCCOPY);
+    SelectObject(hdc, oldbm);
+    DeleteObject(hbm);
+    oldbm = SelectObject(hdc, hbm = fn_10_6fec(0x3c0, "", 1, -100, 1, 1, 1,
+                                               g_9156, 16, 12, 2, 0));
+    fn_10_9962(0, g_966a, g_9678 * 2 - 1, g_9678, -g_9678, g_9678, hdc, 0, 0,
+               w35, w35, SRCCOPY);
+    SelectObject(hdc, oldbm);
+    DeleteObject(hbm);
+    oldbm = SelectObject(hdc, hbm = fn_10_6fec(0x3c0, "", 1, -100, 1, 1, 1,
+                                               g_9156, 9, 12, 2, 0));
+    fn_10_9962(0, g_966a, g_9678 * 2 - 1, g_9678 - 1, -g_9678, -g_9678, hdc,
+               0, 0, w35, w35, SRCCOPY);
+    SelectObject(hdc, oldbm);
+    DeleteObject(hbm);
+    oldbm = SelectObject(hdc, hbm = fn_10_6fec(0x3c0, "", 1, -100, 1, 1, 1,
+                                               g_9156, 2, 12, 2, 0));
+    fn_10_9962(0, g_966a, 0, g_9678 - 1, g_9678, -g_9678, hdc, 0, 0, w35, w35,
+               SRCCOPY);
+    SelectObject(hdc, oldbm);
+    DeleteObject(hbm);
+    if (g_920e)
+        SelectPalette(hdc, oldpal, 0);
+    DeleteDC(hdc);
+    fn_18_270e(g_6da4->f02, g_6da4->f04);
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_18_270e(int w, int h)
 {
 }
 
