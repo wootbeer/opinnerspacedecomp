@@ -526,3 +526,9 @@ Conventions
 - 3:06ec is the message builder (190-case switch on kind); 3:1d0a the
   status-line builder (passes a near pointer to fn_10_a332: HANDOFF's
   1010:1d0a text buffer quirk).
+- Skip tests at a loop top: an if/else-if chain with no `continue`/`goto`
+  (`if (A||B) r = -1000; else if (...) ...`), the follow-up block copied into
+  each branch for CL to merge.
+- `if (x == -1 || x == 1)` on a temp gives `mov cx,ax; inc ax; je; loop`.
+- In functions that take a local's address, dead stores to locals are kept,
+  so never-read-local tricks emit stores there.
