@@ -321,7 +321,7 @@ void fn_07_0000(void)
             return;
         if (g_9144 >= g_8f76) {
             for (j = g_9136 = 0; j < 5; j++) {
-                for (i = 0; i < g_0598 + g_0594; i++)
+                for (i = 0; i < (int16_t)(g_0598 + g_0594); i++)
                     g_9136 = fn_08_3aec(i, j);
                 g_05cc++;
             }
@@ -350,10 +350,10 @@ void fn_07_0000(void)
     else {
         g_914c++;
         if (g_1e50 > g_1e64) {
-            if (!g_0592 && (g_059e + 1 < g_914c || g_059e - 1 > g_914c)) {
+            if (!g_0592 && ((int16_t)(g_059e + 1) < g_914c || (int16_t)(g_059e - 1) > g_914c)) {
                 if (g_914c > g_059e && !g_8f76)
                     g_8f76 = 1;
-                g_8f76 = g_914c * g_8f76 / g_059e;
+                g_8f76 = (int16_t)(g_914c * g_8f76) / g_059e;
             }
             g_1e64 = g_1e50 + 250;
             g_914c = 0;
@@ -362,10 +362,10 @@ void fn_07_0000(void)
     g_0586++;
     if (g_1e50 > g_1e8c) {
         g_1e8c = g_1e50 + 1000;
-        if (!g_0592 && g_059c < 1000 && g_059c + 9 > g_0586 && g_059c - 9 < g_0586) {
+        if (!g_0592 && g_059c < 1000 && (int16_t)(g_059c + 9) > g_0586 && (int16_t)(g_059c - 9) < g_0586) {
             if (g_059c < g_0586 && !g_8f76)
                 g_8f76 = 1;
-            g_8f76 = g_8f76 * g_0586 / g_059c;
+            g_8f76 = (int16_t)(g_8f76 * g_0586) / g_059c;
         }
         if (g_0592)
             g_0592--;
@@ -626,7 +626,7 @@ void fn_07_13b2(char kind, int16_t type, int16_t idx)
     }
     found = 0;
     if (type <= 14) {
-        if (g_1df8[type][idx].f_22 % ((2 << g_9156) >> 1) == 0)
+        if (g_1df8[type][idx].f_22 % ((int16_t)(2 << g_9156) >> 1) == 0)
             r = 0;
         else
             r = 1;
@@ -793,10 +793,10 @@ void fn_07_158e(void)
                 } else if (g_221c[i].type <= 14) {
                     if (g_1df8[g_221c[i].type][g_221c[i].idx].f_2e == 1)
                         PatBlt(g_1df8[g_221c[i].type][g_221c[i].idx].f_3c, x + g_1df8[g_221c[i].type][g_221c[i].idx].f_24, y + g_1df8[g_221c[i].type][g_221c[i].idx].f_24,
-                               (2 << g_9156) >> 1, (2 << g_9156) >> 1, BLACKNESS);
+                               (int16_t)(2 << g_9156) >> 1, (int16_t)(2 << g_9156) >> 1, BLACKNESS);
                     else
                         BitBlt(g_1df8[g_221c[i].type][g_221c[i].idx].f_3c, x + g_1df8[g_221c[i].type][g_221c[i].idx].f_24, y + g_1df8[g_221c[i].type][g_221c[i].idx].f_24,
-                               (2 << g_9156) >> 1, (2 << g_9156) >> 1, g_1df8[g_221c[i].type][g_221c[i].idx].f_3a,
+                               (int16_t)(2 << g_9156) >> 1, (int16_t)(2 << g_9156) >> 1, g_1df8[g_221c[i].type][g_221c[i].idx].f_3a,
                                (g_1df8[g_221c[i].type][g_221c[i].idx].f_22 + g_1df8[g_221c[i].type][g_221c[i].idx].f_24) * g_1df8[g_221c[i].type][g_221c[i].idx].f_28 + g_1df8[g_221c[i].type][g_221c[i].idx].f_24 + x,
                                y + g_1df8[g_221c[i].type][g_221c[i].idx].f_24, SRCCOPY);
                 } else if (g_221c[i].type == 20)
@@ -837,7 +837,7 @@ void fn_07_1d0c(void)
                 if (i == main_ship)
                     r = 0;
                 g_1df8[14][i].f_04 = g_1df8[8][r * 2].f_04;
-                g_1df8[14][i].f_04.x += (g_1df8[8][r * 2 + 1].f_04.x - g_1df8[8][r * 2].f_04.x) / 2
+                g_1df8[14][i].f_04.x += (int16_t)(g_1df8[8][r * 2 + 1].f_04.x - g_1df8[8][r * 2].f_04.x) / 2
                                    - g_1df8[14][i].f_20 / 2 + g_1df8[8]->f_20 / 2;
                 g_1df8[14][i].f_18 = 0;
                 if (i == main_ship)
@@ -963,10 +963,10 @@ void fn_07_2206(void)
     }
     g_914c++;
     if (g_1e50 > g_1e64) {
-        if (a + 1 < g_914c || a - 1 > g_914c) {
+        if ((int16_t)(a + 1) < g_914c || (int16_t)(a - 1) > g_914c) {
             if (g_914c > a && g_9004 == 0)
                 g_9004 = 1;
-            g_9004 = g_914c * g_9004 / a;
+            g_9004 = (int16_t)(g_914c * g_9004) / a;
         }
         g_1e64 = g_1e50 + 250;
         g_914c = 0;
@@ -974,10 +974,10 @@ void fn_07_2206(void)
     g_0586++;
     if (g_1e50 > g_1e8c) {
         g_1e8c = g_1e50 + 1000;
-        if (b + 9 > g_0586 && b - 9 < g_0586) {
+        if ((int16_t)(b + 9) > g_0586 && (int16_t)(b - 9) < g_0586) {
             if (b < g_0586 && g_9004 == 0)
                 g_9004 = 1;
-            g_9004 = g_9004 * g_0586 / b;
+            g_9004 = (int16_t)(g_9004 * g_0586) / b;
         }
         if (g_0592)
             g_0592--;

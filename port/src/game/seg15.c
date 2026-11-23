@@ -258,7 +258,7 @@ void fn_15_6890(void)
         if (ptr[k] == '\r')
             ptr[k] = 0;
     PatBlt(g_13dc, 0, g_0010 / 2 - 115, LO16(g_90ea), g_0010 / 2 + 149, BLACKNESS);
-    for (i = off = 0; i < g_95d6 * 11; i++)
+    for (i = off = 0; i < (int16_t)(g_95d6 * 11); i++)
         off += lstrlen(ptr + off) + 2;
     for (i = 0; i < 11; i++) {
         TextOut(g_13dc, LO16(g_90ea) / 2, g_0010 / 2 + i * 24 - 115, ptr + off, lstrlen(ptr + off));
@@ -474,7 +474,7 @@ void fn_15_7cda(void)
         g_95d0 += 3;
     if (g_95d0 > 300)
         g_95d0 = 300;
-    sz = size * g_95d0 / 200;
+    sz = (int16_t)(size * g_95d0) / 200;
     SetStretchBltMode(g_13dc, COLORONCOLOR);
     StretchBlt(g_13dc, LO16(g_90ea) / 2 - sz / 2, g_0010 / 2 - sz / 2 - 20, sz, sz, g_3a14,
                (gap + size) * (g_95d2 / 10) + gap, gap, size, size, SRCCOPY);
@@ -617,7 +617,7 @@ int16_t fn_15_8174(int16_t which, int16_t n)
         }
         g_1c70 = LOWORD(GetCurrentPosition(g_13dc)) + 2000;
     }
-    w = g_1c70 * n / lstrlen(buf);
+    w = (int16_t)(g_1c70 * n) / lstrlen(buf);
     if (orig != -1) {
         p1.x = LO16(g_90ea) / 2;
         p1.y = g_0010 / 2 - 20;
@@ -855,7 +855,7 @@ void fn_15_5e22(int16_t a)
         if (g_95d2 > 13999) {
             g_95d2 = 0;
             if (g_120e == 0)
-                g_95d0 = g_95d0 - 18 < 1 ? 1 : g_95d0 - 18;
+                g_95d0 = (int16_t)(g_95d0 - 18) < 1 ? 1 : g_95d0 - 18;
         }
         if (g_120e) {
             if (GetCurrentTime() > g_120e + 1000) {
@@ -1217,9 +1217,9 @@ void fn_15_6cdc(void)
     case 3:
         fn_10_7d58(g_95c6 += 5, HI16(g_90ea) / 2);
         if (g_95ca > 190)
-            v = min(g_95c8 - 190, 255);
+            v = min((int16_t)(g_95c8 - 190), 255);
         else
-            v = max((24 - g_95c8) * 10, 0);
+            v = max((int16_t)((24 - g_95c8) * 10), 0);
         g_95c8 += 2;
         g_95ca += 2;
         if (g_95ca >= 230) {
@@ -1362,16 +1362,16 @@ void fn_15_8ae6(void)
     w = g_3cb8.right - g_3cb8.left;
     h = g_3cb8.bottom - g_3cb8.top;
     fn_10_949c(g_929a, g_3cb8.left, g_3cb8.top, w, h, 2);
-    fn_10_949c(g_929a, w / 16 + g_3cb8.left, w / 16 + g_3cb8.top, w * 7 / 8, h - w / 8, 3);
-    fn_10_949c(g_929a, w / 8 + g_3cb8.left, h * 5 / 8 + g_3cb8.top + 1, w * 3 / 4,
-               h * 3 / 8 - w / 8, 1);
-    fn_10_949c(g_929a, w / 8 + g_3cb8.left, h / 2 + g_3cb8.top, w * 3 / 4, h / 8, 1);
+    fn_10_949c(g_929a, w / 16 + g_3cb8.left, w / 16 + g_3cb8.top, (int16_t)(w * 7) / 8, h - w / 8, 3);
+    fn_10_949c(g_929a, w / 8 + g_3cb8.left, (int16_t)(h * 5) / 8 + g_3cb8.top + 1, (int16_t)(w * 3) / 4,
+               (int16_t)(h * 3) / 8 - w / 8, 1);
+    fn_10_949c(g_929a, w / 8 + g_3cb8.left, h / 2 + g_3cb8.top, (int16_t)(w * 3) / 4, h / 8, 1);
     bmp = fn_10_6c02(0x122, 0, -1);
     dc = CreateCompatibleDC(g_13dc);
     if (g_920e)
         pal = SelectPalette(dc, g_920e, 0);
     oldbmp = SelectObject(dc, bmp);
-    BitBlt(g_929a, w / 8 + g_3cb8.left + 2, h * 5 / 8 + g_3cb8.top + 3, min(w * 3 / 4, 44), 10,
+    BitBlt(g_929a, w / 8 + g_3cb8.left + 2, (int16_t)(h * 5) / 8 + g_3cb8.top + 3, min((int16_t)(w * 3) / 4, 44), 10,
            dc, 0, 0, SRCCOPY);
     SelectObject(dc, oldbmp);
     if (pal)
@@ -1379,12 +1379,12 @@ void fn_15_8ae6(void)
     DeleteDC(dc);
     DeleteObject(bmp);
     oldbr = SelectObject(g_929a, CreateSolidBrush(PALETTERGB(0, 0xff, 0)));
-    PatBlt(g_929a, w * 3 / 8 + g_3cb8.left - 2, h * 17 / 32 + g_3cb8.top, 5, 3, PATCOPY);
+    PatBlt(g_929a, (int16_t)(w * 3) / 8 + g_3cb8.left - 2, (int16_t)(h * 17) / 32 + g_3cb8.top, 5, 3, PATCOPY);
     DeleteObject(SelectObject(g_929a, oldbr));
     oldbr = SelectObject(g_929a, CreateSolidBrush(PALETTERGB(0x7f, 0xff, 0)));
-    PatBlt(g_929a, w * 4 / 8 + g_3cb8.left - 2, h * 17 / 32 + g_3cb8.top, 5, 3, PATCOPY);
+    PatBlt(g_929a, (int16_t)(w * 4) / 8 + g_3cb8.left - 2, (int16_t)(h * 17) / 32 + g_3cb8.top, 5, 3, PATCOPY);
     DeleteObject(SelectObject(g_929a, oldbr));
     oldbr = SelectObject(g_929a, CreateSolidBrush(PALETTERGB(0x7f, 0, 0)));
-    PatBlt(g_929a, w * 5 / 8 + g_3cb8.left - 2, h * 17 / 32 + g_3cb8.top, 5, 3, PATCOPY);
+    PatBlt(g_929a, (int16_t)(w * 5) / 8 + g_3cb8.left - 2, (int16_t)(h * 17) / 32 + g_3cb8.top, 5, 3, PATCOPY);
     DeleteObject(SelectObject(g_929a, oldbr));
 }

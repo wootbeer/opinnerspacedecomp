@@ -16,6 +16,7 @@ from collections import defaultdict
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import port_merge as pm  # noqa: E402
+import port_int16  # noqa: E402
 from port_merge import (Prim, Win, Ptr, Arr, Func, Struct, Kind, c_ast,  # noqa: E402
                         strip_arr, lex, walk)
 
@@ -353,7 +354,7 @@ class FileTranslator:
         or None if it cannot be expressed."""
         tsz = t.size if isinstance(t, Kind) else t.size()
         if off == 0 and tsz == size and self.compatible(t, vt):
-            return ('', path, '')
+            return self.sign_view(t, vt, ('', path, ''))
         if isinstance(t, Kind):
             for f in t.fields:
                 if f.off <= off and off + size <= f.off + max(f.size, 0):
@@ -388,8 +389,8 @@ class FileTranslator:
             if es and isinstance(vt, Arr) and off % es == 0 and \
                     self.compatible(strip_arr(t), strip_arr(vt)):
                 if off == 0:
-                    return ('', path, '')
-                return ('(', path, ' + %d)' % (off // es))
+                    return self.sign_view(t, vt, ('', path, ''))
+                return self.sign_view(t, vt, ('(', path, ' + %d)' % (off // es)))
             if es and off // es < (t.n or 1 << 30) and off % es + size <= es:
                 return self.sub_path(t.of, off % es, size, vt, path + '[%d]' % (off // es))
             return self.view_cast(t, off, size, vt, path)
@@ -399,6 +400,26 @@ class FileTranslator:
         if tsz == 2 and size == 1 and off in (0, 1) and isinstance(vt, Prim):
             return ('LO8(' if off == 0 else 'HI8(', path, ')')
         return self.view_cast(t, off, size, vt, path)
+
+    @staticmethod
+    def int_sign(t):
+        """(bits, signed) of a 1994 integer type, else None."""
+        if isinstance(t, Prim):
+            return port_int16.PRIM_INT.get(t.name)
+        if isinstance(t, Win) and t.name in pm.WIN_TYPES:
+            return port_int16.PORT_INT.get(pm.WIN_TYPES[t.name][1])
+        return None
+
+    def sign_view(self, t, vt, res):
+        """An integer view whose signedness differs from the merged type
+        is marked for port_int16, which casts where the 1994 view type
+        changes the result (and drops the marker elsewhere)."""
+        a, b = self.int_sign(strip_arr(t)), self.int_sign(strip_arr(vt))
+        if a is None or b is None or a == b or a[0] != b[0]:
+            return res
+        self.counts['signedness view'] += 1
+        mark = port_int16.marker(b, isinstance(vt, Arr))
+        return (mark + '(' + res[0], res[1], res[2] + ')')
 
     def view_cast(self, t, off, size, vt, path):
         self.counts['VIEW'] += 1
@@ -1149,6 +1170,16 @@ class FileTranslator:
             s = self.node_start(node)
             if s is None:
                 return
+            # include opening parens of a cast or grouping inside the access
+            i = self.tok_at(s)
+            while i is not None:
+                j = self.prev_sig(i)
+                if j is None or j < 0 or self.toks[j].text != '(' or \
+                        self.toks[self.match_close(j)].pos > fp:
+                    break
+                i = j
+            if i is not None:
+                s = self.toks[i].pos
             self.ed.add(s, s, pre)
             self.ed.add(fp + len(fname), fp + len(fname), post)
 
@@ -1623,6 +1654,8 @@ class FileTranslator:
 
 
 DROPPED = []
+INT16_COUNTS = port_int16.Counter()
+INT16_SITES = []
 
 
 def translate(fn, mg, sp, notes, counts):
@@ -1633,6 +1666,9 @@ def translate(fn, mg, sp, notes, counts):
     text = re.sub(r'\n{3,}', '\n\n', text)
     text = re.sub(r'\)\n\n+\{\n', ')\n{\n', text)     # padding left by header overrides
     text = pm.apply_names(text)
+    text, casts, sites = port_int16.process(fn, text)
+    INT16_COUNTS.update(casts)
+    INT16_SITES.extend(sites)
     with open(os.path.join(OUT, fn), 'w') as f:
         f.write(text)
     notes.extend(tr.notes)
@@ -1658,6 +1694,10 @@ def main(argv):
         for k, v in sorted(counts.items()):
             f.write('%s: %d\n' % (k, v))
         mg.report['dropped call arguments'] = [pm.apply_names(d) for d in DROPPED]
+        mg.report['16-bit arithmetic casts by kind'] = [
+            '%5d  %s' % (v, k) for k, v in sorted(INT16_COUNTS.items())] + [
+            '%5d  total' % sum(v for k, v in INT16_COUNTS.items() if not k.startswith('('))]
+        mg.report['16-bit arithmetic casts'] = INT16_SITES
         for sec, lines in mg.report.items():
             f.write('== %s (%d)\n' % (sec, len(lines)))
             for ln in lines:

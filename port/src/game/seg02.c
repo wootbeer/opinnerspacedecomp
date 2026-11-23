@@ -57,7 +57,7 @@ int16_t WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR cmd, int16_t show)
         }
 dispatch:
         handled = 0;
-        if (GetActiveWindow() == g_0016)
+        if (GetActiveWindow() == (uint16_t)g_0016)
             handled = TranslateAccelerator(g_0016, acc, &msg);
         if (!handled) {
             if (g_9460 && IsDialogMessage(g_9460, &msg))
@@ -448,7 +448,7 @@ void fn_02_11f8(void)
                 fn_10_8686();
         } else if (!g_8e5c && !IsIconic(g_0016))
             fn_10_86a8();
-        if (act != g_0016 && act != g_934c && act != g_0d1e) {
+        if (act != (uint16_t)g_0016 && act != g_934c && act != g_0d1e) {
             if (g_8f68)
                 fn_02_09c4();
         } else if (!g_8f68 && !IsIconic(g_0016))
@@ -525,8 +525,8 @@ void fn_02_0a74(UINT type, LPARAM lp)
                    || GetSystemMetrics(SM_CYSCREEN) != h)) {
         MoveWindow(g_0016, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), 1);
     } else {
-        LO16(g_90ea) = GetSystemMetrics(SM_CXSCREEN) < LOWORD(lp) ? GetSystemMetrics(SM_CXSCREEN) : LOWORD(lp);
-        g_0010 = HI16(g_90ea) = GetSystemMetrics(SM_CYSCREEN) < HIWORD(lp) ? GetSystemMetrics(SM_CYSCREEN) : HIWORD(lp);
+        LO16(g_90ea) = (uint16_t)GetSystemMetrics(SM_CXSCREEN) < LOWORD(lp) ? GetSystemMetrics(SM_CXSCREEN) : LOWORD(lp);
+        g_0010 = HI16(g_90ea) = (uint16_t)GetSystemMetrics(SM_CYSCREEN) < HIWORD(lp) ? GetSystemMetrics(SM_CYSCREEN) : HIWORD(lp);
         HI16(g_90ea) -= g_0a70;
     }
     g_8e58 = 0;

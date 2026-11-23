@@ -1,7 +1,7 @@
 /* INSPACE.EXE segment 14 (selector 1068). */
 #include "game.h"
 
-#define SC(n) ((n) << g_9156 >> 1)
+#define SC(n) ((int16_t)((n) << g_9156) >> 1)
 
 /* 14:455c */
 int16_t fn_14_455c(int16_t k)
@@ -74,7 +74,7 @@ int16_t fn_14_3db6(void)
         return 2;
     g_95ae = (len = _filelength(fh)) / sizeof(REC2C);
     g_95ac = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT,
-                         len = g_95ae * sizeof(REC2C));
+                         len = (uint16_t)(g_95ae * sizeof(REC2C)));
     g_6e1c = (REC2C *)GlobalLock(g_95ac);
     if (!g_95ac)
         return 3;
@@ -113,7 +113,7 @@ int16_t fn_14_3eda(void)
     }
     g_95aa = (len = _filelength(fh)) / sizeof(REC_41);
     g_95a6 = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT,
-                         len = g_95aa * sizeof(REC_41));
+                         len = (uint16_t)(g_95aa * sizeof(REC_41)));
     g_6e20 = (REC_41 *)GlobalLock(g_95a6);
     if (!g_95a6)
         return 3;
@@ -137,7 +137,7 @@ int16_t fn_14_4006(HFILE f, char *buf, uint32_t len)
     p = buf;
     while (len != 0) {
         n = len > 0x7fff ? 0x7fff : (int16_t)len;
-        if (_lread(f, p, n) != n)
+        if (_lread(f, p, n) != (uint16_t)n)
             return 0;
         len -= n;
         p += n;
@@ -175,13 +175,13 @@ int16_t fn_14_40d8(int16_t n)
          / g_6e1c[g_6e20[n].f_21].f_1b - u1) * 2;
     c = g_1332[g_6e20[n].f_06];
     if (!(g_6e20[n].f_09 & 4))
-        a = a * 3 / 4;
+        a = (int16_t)(a * 3) / 4;
     if (g_6e20[n].f_09 & 8)
-        a = a * 6 / 5;
+        a = (int16_t)(a * 6) / 5;
     if (g_6e1c[g_6e20[n].f_21].f_20 & 2)
-        a = a * 6 / 5;
+        a = (int16_t)(a * 6) / 5;
     if (!(g_6e20[n].f_09 & 0x10))
-        b = b * 5 / 6;
+        b = (int16_t)(b * 5) / 6;
     u2 = c + b + a;
     for (k = 1; k < 11; k++)
         if (g_0952[k] <= u2 && g_096c[k] > u2)
@@ -295,7 +295,7 @@ void fn_14_421c(int16_t n)
                         b1 = i;
                     }
                 }
-                if ((8 - g_7090[n].f_05d) * s1 < (8 - g_7090[n].f_05e) * s2) {
+                if ((int16_t)((8 - g_7090[n].f_05d) * s1) < (int16_t)((8 - g_7090[n].f_05e) * s2)) {
                     if (g_7090[n].f_062[j + 8] <= s2) {
                         g_7090[n].f_0ee[j] = b2;
                         g_7090[n].f_062[j + 8] = s2;
@@ -369,7 +369,7 @@ void fn_14_0dd6(int16_t n, int16_t s, int16_t k0)
         } else {
             g_931a++;
             GlobalUnlock(g_95a4);
-            g_95a4 = GlobalReAlloc(g_95a4, (int32_t)(g_931a + 1) * 0x7c, GHND);
+            g_95a4 = GlobalReAlloc(g_95a4, (int32_t)(int16_t)(g_931a + 1) * 0x7c, GHND);
             g_6e24 = (REC_7C *)GlobalLock(g_95a4);
             k = g_931a;
         }
@@ -398,8 +398,8 @@ void fn_14_0dd6(int16_t n, int16_t s, int16_t k0)
         g_6e24[k].f_74 = 1;
         g_6e24[k].f_75 = 1;
         g_6e24[k].f_1c = g_6e20[s].f_00;
-        g_6e24[k].f_02 = rand() % ((g_9334 + 1) * 10) + 10;
-        g_6e24[k].f_04 = rand() % ((g_9334 + 1) * 50) + 150;
+        g_6e24[k].f_02 = rand() % (int16_t)((g_9334 + 1) * 10) + 10;
+        g_6e24[k].f_04 = rand() % (int16_t)((g_9334 + 1) * 50) + 150;
         g_6e24[k].f_77 = 0;
         g_6e24[k].f_64 = g_6e20[s].f_03;
         fn_09_5be0(n, k);
@@ -416,8 +416,8 @@ void fn_14_0dd6(int16_t n, int16_t s, int16_t k0)
                 g_69f4[g_94a2].f_1c0[j] = k;
                 break;
             }
-        if (g_6e24[k].f_79 < g_91f8 - 1)
-            g_6e24[k].f_02 += min((g_91f8 - g_6e24[k].f_79) * (g_9334 + 15), 200);
+        if (g_6e24[k].f_79 < (int16_t)(g_91f8 - 1))
+            g_6e24[k].f_02 += min((int16_t)((g_91f8 - g_6e24[k].f_79) * (g_9334 + 15)), 200);
     }
     g_7090[n].f_0d6 = k;
     g_0992 += 40;
@@ -434,7 +434,7 @@ void fn_14_1430(int16_t n)
         g = g_6e24[t].f_00;
     else
         g = g_4ed8[g_7090[n].f_05e];
-    if (g_95aa - 1 < g) {
+    if ((int16_t)(g_95aa - 1) < g) {
         g_6e24[t].f_00 = 0;
         g = g_6e24[t].f_00;
     }
@@ -522,7 +522,7 @@ void fn_14_1430(int16_t n)
                 }
         g_7090[n].f_01e = 40 * (uint8_t)g_6e24[t].f_1c;
         if (n != main_ship)
-            g_7090[n].f_01e = max(g_7090[n].f_01e, g_96d2[c].f_1e * 2 / 3);
+            g_7090[n].f_01e = max(g_7090[n].f_01e, (int16_t)(g_96d2[c].f_1e * 2) / 3);
         if (g_96d2[c].f_1e < g_7090[n].f_01e) {
             g_7090[n].f_01e = g_96d2[c].f_1e;
             g_6e24[t].f_1c = g_96d2[c].f_1e / 40;
@@ -539,7 +539,7 @@ void fn_14_1430(int16_t n)
         g_7090[n].f_0ce = g_6e24[t].f_04;
         g_7090[n].f_082 = g_6e24[t].f_06;
         g_7090[n].f_000 = 0;
-        if (g_6e24[t].f_79 - g_91f8 == -1)
+        if ((int16_t)(g_6e24[t].f_79 - g_91f8) == -1)
             g_6e24[t].f_78++;
         else if (g_6e24[t].f_78 > 1) {
             g_7090[n].f_000 = 4;
@@ -720,7 +720,7 @@ void fn_14_1b84(int16_t n, int16_t c, int16_t t, int16_t g)
     else
         g_7090[n].f_014 = 1200L * g_96d2[c].f_20 / g_96d2[c].f_3e;
     if (n == main_ship && flow_interactive)
-        g_7090[n].f_014 = g_7090[n].f_014 * 3 / 4;
+        g_7090[n].f_014 = (int16_t)(g_7090[n].f_014 * 3) / 4;
 }
 
 /* View of the class records (RECAD) at DS:96d2, 0x18 bytes below the
@@ -763,7 +763,7 @@ void fn_14_0000(int16_t arg)
         g_9338 = g_9338 > 7 ? 7 : g_9338;
         g_95a8 = 0;
     }
-    g_9338 = 7 - g_932c > g_9338 ? g_9338 : 7 - g_932c;
+    g_9338 = (int16_t)(7 - g_932c) > g_9338 ? g_9338 : 7 - g_932c;
     for (i = 0; i < 8; i++)
         a54[i] = 1;
     g_95b6 = arg;
@@ -774,7 +774,7 @@ void fn_14_0000(int16_t arg)
             if (g_9334 > 0)
                 g_9334++;
         }
-        g_9338 = g_9208 + 3 > g_9338 ? g_9338 : g_9208 + 3;
+        g_9338 = (int16_t)(g_9208 + 3) > g_9338 ? g_9338 : g_9208 + 3;
     }
     if (arg >= 0)
         n = g_9338 = g_9316 + 1;
@@ -790,8 +790,8 @@ void fn_14_0000(int16_t arg)
             s1e = main_ship;
             for (i = 0; i <= g_931a; i++)
                 for (j = 0; j <= g_931a; j++) {
-                    t = (g_6e24[i].f_3c[j] * 10 - g_3824[g_6e24[i].f_64][g_6e24[i].f_64]) * 9 / 10;
-                    g_6e24[i].f_3c[j] = (t + g_3824[g_6e24[i].f_64][g_6e24[i].f_64]) / 10;
+                    t = (int16_t)((g_6e24[i].f_3c[j] * 10 - g_3824[g_6e24[i].f_64][g_6e24[i].f_64]) * 9) / 10;
+                    g_6e24[i].f_3c[j] = (int16_t)(t + g_3824[g_6e24[i].f_64][g_6e24[i].f_64]) / 10;
                 }
         } else
             s1c = 0;
@@ -878,7 +878,7 @@ void fn_14_0000(int16_t arg)
         if (g_94b0 == 0)
             if (g_92e8 == 0 && g_9320 != 6 && g_9320 != 7)
                 for (i = 0; i < 8; i++) {
-                    if (g_0994 * 30 + g_0992 > g_932a)
+                    if ((int16_t)(g_0994 * 30 + g_0992) > g_932a)
                         break;
                     if (g_69f4[g_94a2].f_1c0[i] != -1)
                         if (n < 6 && g_6e24[g_69f4[g_94a2].f_1c0[i]].f_78 < 5 && fn_14_455c(g_69f4[g_94a2].f_1c0[i])) {
@@ -894,7 +894,7 @@ void fn_14_0000(int16_t arg)
                                 || g_4f1c[j] == 100 && g_6e24[g_7090[n].f_0d6].f_64 == 3)
                                 g_4f1c[j] = -120;
                         n++;
-                        if (g_0994 * 30 + g_0992 + 40 > g_932a)
+                        if ((int16_t)(g_0994 * 30 + g_0992 + 40) > g_932a)
                             break;
                         }
                 }
@@ -908,7 +908,7 @@ void fn_14_0000(int16_t arg)
         for (i = c32 = 0; i < g_0994; i++)
             if (g_4f1c[i] != -120)
                 c32++;
-        if (c32 + n - 1 > g_9338)
+        if ((int16_t)(c32 + n - 1) > g_9338)
             g_9338 = c32 + n - 1;
     }
     if (n > g_9338 && g_9346 == -1)
@@ -929,7 +929,7 @@ void fn_14_0000(int16_t arg)
             }
     }
     if (g_9320 != 6 && g_9320 != 7 && g_92e8 == 0)
-        if (c32 + n - 1 > g_9338)
+        if ((int16_t)(c32 + n - 1) > g_9338)
             g_9338 = c32 + n - 1;
     if (g_96d2[g_7090[main_ship].f_04e].f_38 != arg && arg <= 6 || arg == -1)
         for (i = n; i <= g_9338; i++) {
@@ -958,7 +958,7 @@ void fn_14_0000(int16_t arg)
                 }
             }
         }
-        if (g_932c != 0 && arg == -1 && g_4ed8[0] <= 0 && g_0992 + 25 < g_932a
+        if (g_932c != 0 && arg == -1 && g_4ed8[0] <= 0 && (int16_t)(g_0992 + 25) < g_932a
             || arg == 22) {
             g_4ed8[3] = g_4ed8[2] = s = fn_14_2300(2, n);
             g_7090[n].f_0d6 = -1;
@@ -1003,7 +1003,7 @@ done:
                         g_3ad0[k] = ac8[j];
                         g_3974[k] = ad8[j];
                         g_3a5c[k] = ae8[j];
-                        if (ab8[j] == g_39e8[j + 40]) {
+                        if (ab8[j] == (int16_t)g_39e8[j + 40]) {
                             g_39e8[j + 40] = 0;
                             g_3ad0[j + 40] = 0;
                             g_3974[j + 40] = 0;
@@ -1074,8 +1074,8 @@ done:
         }
         g_1df8[g_9324][i].f_22 = SC(w);
         g_1df8[g_9324][i].f_24 = SC(h);
-        d26 = (bm.bmHeight - g_1df8[g_9324][i].f_24)
-            / (g_1df8[g_9324][i].f_22 + g_1df8[g_9324][i].f_24);
+        d26 = (int16_t)(bm.bmHeight - g_1df8[g_9324][i].f_24)
+            / (int16_t)(g_1df8[g_9324][i].f_22 + g_1df8[g_9324][i].f_24);
         g_1df8[g_9324][i].f_20 = w << 3;
         g_7090[i].f_05b = d26 - 1;
         g_96d2[g_7090[i].f_04e].f_02 = g_96d2[g_7090[i].f_04e].f_00 = w / 2;
@@ -1109,7 +1109,7 @@ int16_t fn_14_2300(int16_t t, int16_t n)
     int16_t u4, k, res, i, uc, v, u10, r, best, bk, v18, lvl, c1c, c2, c0, c1, s24, s26, j;
     char main[20], ship1[20], ship2[20];
 
-    k = rand() % (g_95aa - 1);
+    k = rand() % (int16_t)(g_95aa - 1);
     res = -1;
     best = -1000;
     if (g_931c > g_931a)
@@ -1182,7 +1182,7 @@ int16_t fn_14_2300(int16_t t, int16_t n)
             r = 0;
             me = g_6e24[g_931c].f_00;
             u6c = g_6e20[me].f_01 * 5;
-            a6a = (u6c * 2 - g_6e1c[g_6e20[me].f_21].f_1c) * 10
+            a6a = (int16_t)((u6c * 2 - g_6e1c[g_6e20[me].f_21].f_1c) * 10)
                 / ((int16_t)((int32_t)(g_6e1c[g_6e20[me].f_21].f_1b * 10)
                          * (g_6e20[me].f_02 / 4 + 100L) / 100L)
                    + g_6e20[me].f_00 * 2);
@@ -1193,7 +1193,7 @@ int16_t fn_14_2300(int16_t t, int16_t n)
                 * (g_6e20[k].f_02 / 4 + 100L) / 100L;
             u6c = g_6e20[k].f_01 * 5;
             u6e = g_6e1c[g_6e20[k].f_21].f_1c;
-            a68 = (u6c * 2 - u6e) * 10 / ((int16_t)L78 + u66);
+            a68 = (int16_t)((u6c * 2 - u6e) * 10) / (int16_t)((int16_t)L78 + u66);
             a74 = (int32_t)u6c * 345 / u6e;
             a74 = a74 < 1 ? 1 : a74;
             switch (g_94aa) {
@@ -1201,21 +1201,21 @@ int16_t fn_14_2300(int16_t t, int16_t n)
                 r = rand() % 100 + a68 * 10 + a74 / 100;
                 break;
             case 1:
-                a6a = a6a * 5 / 4;
-                a72 = a72 * 5 / 4;
+                a6a = (int16_t)(a6a * 5) / 4;
+                a72 = (int16_t)(a72 * 5) / 4;
             case 2:
-                r = rand() % 150 - (int16_t)abs32((int32_t)(a6a - a68) * 500 / a6a) + 500;
-                r += 400 - (int16_t)abs32((int32_t)(a72 - a74) * 400 / a72);
+                r = rand() % 150 - (int16_t)abs32((int32_t)(int16_t)(a6a - a68) * 500 / a6a) + 500;
+                r += 400 - (int16_t)abs32((int32_t)(int16_t)(a72 - a74) * 400 / a72);
                 break;
             case 3:
                 if (me == k)
                     r = 900;
                 break;
             case 4:
-                a6a = a6a * 3 / 4;
-                a72 = a72 * 3 / 4;
-                r = rand() % 150 - (int16_t)abs32((int32_t)(a6a - a68) * 500 / a6a) + 500;
-                r += 400 - (int16_t)abs32((int32_t)(a72 - a74) * 400 / a72);
+                a6a = (int16_t)(a6a * 3) / 4;
+                a72 = (int16_t)(a72 * 3) / 4;
+                r = rand() % 150 - (int16_t)abs32((int32_t)(int16_t)(a6a - a68) * 500 / a6a) + 500;
+                r += 400 - (int16_t)abs32((int32_t)(int16_t)(a72 - a74) * 400 / a72);
                 break;
             case 5:
                 r = rand() % 100 + (100 - a68) * 10 - a74 / 100;
@@ -1236,11 +1236,11 @@ int16_t fn_14_2300(int16_t t, int16_t n)
             /* The clamps are written as `x = X < 1 ? 1 : X` (CL evaluates X
              * once); u7e/u7c serve the own ship here and candidate k below,
              * which lets CL drop these first stores. */
-            a82 = (u7e * 2 - u7c) * 10
+            a82 = (int16_t)((u7e * 2 - u7c) * 10)
                 / ((int16_t)((int32_t)(g_6e1c[g_6e20[me].f_21].f_1b * 10)
                          * (g_6e20[me].f_02 / 4 + 100L) / 100L)
                    + g_6e20[me].f_00 * 2) < 1 ? 1
-                : (u7e * 2 - u7c) * 10
+                : (int16_t)((u7e * 2 - u7c) * 10)
                 / ((int16_t)((int32_t)(g_6e1c[g_6e20[me].f_21].f_1b * 10)
                          * (g_6e20[me].f_02 / 4 + 100L) / 100L)
                    + g_6e20[me].f_00 * 2);
@@ -1254,8 +1254,8 @@ int16_t fn_14_2300(int16_t t, int16_t n)
             L8e = (int32_t)(g_6e1c[g_6e20[k].f_21].f_1b * 10) * (g_6e20[k].f_02 / 4 + 100L) / 100L;
             u7e = g_6e20[k].f_01 * 5;
             u7c = g_6e1c[g_6e20[k].f_21].f_1c;
-            a86 = (u7e * 2 - u7c) * 10 / ((int16_t)L8e + u8a) < 1 ? 1
-                : (u7e * 2 - u7c) * 10 / ((int16_t)L8e + u8a);
+            a86 = (int16_t)((u7e * 2 - u7c) * 10) / (int16_t)((int16_t)L8e + u8a) < 1 ? 1
+                : (int16_t)((u7e * 2 - u7c) * 10) / (int16_t)((int16_t)L8e + u8a);
             a72 = (int32_t)u7e * 345 / u7c;
             a72 = a72 < 1 ? 1 : a72;
             L92 = (int32_t)(g_6e1c[g_6e20[k].f_21].f_1b * 10) * (g_6e20[k].f_02 / 4 + 100L) / 100L * g_6e20[k].f_02 / 360;
@@ -1265,12 +1265,12 @@ int16_t fn_14_2300(int16_t t, int16_t n)
                 r = rand() % 230 + ((int16_t)L92 + a86) * 10 + a72 / 100;
                 break;
             case 1:
-                a82 = a82 * 6 / 4;
-                a74 = a74 * 6 / 4;
+                a82 = (int16_t)(a82 * 6) / 4;
+                a74 = (int16_t)(a74 * 6) / 4;
                 L96 = L96 * 6 / 4;
             case 2:
-                r = rand() % 150 - (int16_t)abs32((int32_t)(a82 - a86) * 300 / a82) + 300;
-                r += 200 - (int16_t)abs32((int32_t)(a74 - a72) * 200 / a74);
+                r = rand() % 150 - (int16_t)abs32((int32_t)(int16_t)(a82 - a86) * 300 / a82) + 300;
+                r += 200 - (int16_t)abs32((int32_t)(int16_t)(a74 - a72) * 200 / a74);
                 r += 700 - (int16_t)abs32((L96 - L92) * 700 / L96);
                 break;
             case 3:
@@ -1278,11 +1278,11 @@ int16_t fn_14_2300(int16_t t, int16_t n)
                     r = 900;
                 break;
             case 4:
-                a82 = a82 * 2 / 3;
-                a74 = a74 * 2 / 3;
+                a82 = (int16_t)(a82 * 2) / 3;
+                a74 = (int16_t)(a74 * 2) / 3;
                 L96 = L96 * 2 / 3;
-                r = rand() % 150 - (int16_t)abs32((int32_t)(a82 - a86) * 300 / a82) + 300;
-                r += 200 - (int16_t)abs32((int32_t)(a74 - a72) * 200 / a74);
+                r = rand() % 150 - (int16_t)abs32((int32_t)(int16_t)(a82 - a86) * 300 / a82) + 300;
+                r += 200 - (int16_t)abs32((int32_t)(int16_t)(a74 - a72) * 200 / a74);
                 r += 700 - (int16_t)abs32((L96 - L92) * 700 / L96);
                 break;
             case 5:
@@ -1299,12 +1299,12 @@ int16_t fn_14_2300(int16_t t, int16_t n)
             v = g_6e20[k].f_04[1];
             if (v == g_9332)
                 r = 52;
-            if (v - g_9332 == -1 || v - g_9332 == 1)
+            if ((int16_t)(v - g_9332) == -1 || (int16_t)(v - g_9332) == 1)
                 r += 30;
             r += 10;
             if (lvl == g_9334)
                 r += 25;
-            else if (g_9334 + 1 < lvl)
+            else if ((int16_t)(g_9334 + 1) < lvl)
                 r += (g_9334 - lvl) * 32;
             if (lvl < g_9334)
                 r += (lvl - g_9334) * 18;
@@ -1324,11 +1324,11 @@ int16_t fn_14_2300(int16_t t, int16_t n)
             r = 0;
             if (v == g_9332)
                 r = 75;
-            if (v - g_9332 == -1 || v - g_9332 == 1)
+            if ((int16_t)(v - g_9332) == -1 || (int16_t)(v - g_9332) == 1)
                 r += 42;
             if (lvl == g_9334)
                 r += 25;
-            else if (g_9334 + 1 < lvl)
+            else if ((int16_t)(g_9334 + 1) < lvl)
                 r += (g_9334 - lvl) * 16;
             if (lvl < g_9334)
                 r += (lvl - g_9334) * 11;
@@ -1340,7 +1340,7 @@ int16_t fn_14_2300(int16_t t, int16_t n)
             if ((g_6e20[k].f_03 == 3 || g_6e20[k].f_03 == 6 || g_6e20[k].f_03 == 1)
                 && g_9432 > 300)
                 r += g_9432 / 20 < 30 ? 30 : g_9432 / 20;
-            if (g_6e20[k].f_03 == 3 && g_7090[main_ship].f_0ce > (g_9208 + 4) * 100)
+            if (g_6e20[k].f_03 == 3 && g_7090[main_ship].f_0ce > (int16_t)((g_9208 + 4) * 100))
                 r += g_7090[main_ship].f_0ce / 20 > 40 ? 40 : g_7090[main_ship].f_0ce / 20;
             for (i = s24 = s26 = 0; i <= g_931a; i++)
                 if (g_6e24[i].f_79 + 15 > g_91f8
@@ -1352,7 +1352,7 @@ int16_t fn_14_2300(int16_t t, int16_t n)
                     }
                     s26 += g_6e24[i].f_77;
                 }
-            r += 40 - (int16_t)((int32_t)(s26 + 85) * s24 / (s26 + 1));
+            r += 40 - (int16_t)((int32_t)(int16_t)(s26 + 85) * s24 / (int16_t)(s26 + 1));
             for (j = 0; j < g_0994; j++)
                 if (g_4f1c[j] <= 0 && g_4f1c[j] == -g_6e20[k].f_03
                     || g_4f1c[j] == -100 && g_6e20[k].f_03 == 3) {
@@ -1363,7 +1363,7 @@ int16_t fn_14_2300(int16_t t, int16_t n)
                 r -= 500;
             if (g_6e20[k].f_03 == g_95b6) {
                 r += 1000;
-                if (g_9334 + 2 < lvl)
+                if ((int16_t)(g_9334 + 2) < lvl)
                     r += 150;
                 if (g_95b6 == 4 && u10 < 2)
                     r += 300;
@@ -1403,7 +1403,7 @@ int16_t fn_14_2300(int16_t t, int16_t n)
     g_95b4 = best;
     if (best <= -1000)
         k = 1;
-    if ((t == 4 || t == 1) && g_0992 + 30 > g_932a && g_95b6 == -1 && best < 1000)
+    if ((t == 4 || t == 1) && (int16_t)(g_0992 + 30) > g_932a && g_95b6 == -1 && best < 1000)
         g_95b4 = -1;
     return k;
 }
@@ -1419,7 +1419,7 @@ int16_t fn_14_3274(int16_t t, int16_t n)
     int16_t a36, a38, u3a, u3c, me, a40, a42;
     int32_t L46;                           /* never read; see below */
 
-    k = rand() % (g_95aa - 1);
+    k = rand() % (int16_t)(g_95aa - 1);
     best = -1000;
     if (g_9320 == 6) {
         g_95b2 = -10000;
@@ -1438,7 +1438,7 @@ int16_t fn_14_3274(int16_t t, int16_t n)
             r = 0;
             me = g_6e24[g_931c].f_00;
             u3a = g_6e20[me].f_01 * 5;          /* rating of own ship [inferred] */
-            a38 = (u3a * 2 - g_6e1c[g_6e20[me].f_21].f_1c) * 10
+            a38 = (int16_t)((u3a * 2 - g_6e1c[g_6e20[me].f_21].f_1c) * 10)
                 / ((int16_t)((int32_t)(g_6e1c[g_6e20[me].f_21].f_1b * 10)
                          * (g_6e20[me].f_02 / 4 + 100L) / 100L)
                    + g_6e20[me].f_00 * 2);
@@ -1451,28 +1451,28 @@ int16_t fn_14_3274(int16_t t, int16_t n)
                                   * (g_6e20[g_6e24[k].f_00].f_02 / 4 + 100L) / 100L);
             u3a = g_6e20[g_6e24[k].f_00].f_01 * 5;
             uc = g_6e1c[g_6e20[g_6e24[k].f_00].f_21].f_1c;
-            a36 = (u3a * 2 - uc) * 10 / (u10 += u3c);
+            a36 = (int16_t)((u3a * 2 - uc) * 10) / (u10 += u3c);
             a42 = (int32_t)u3a * 345 / uc;
             switch (g_94aa) {
             case 0:
                 r = rand() % 100 + a36 * 10 + a42 / 100;
                 break;
             case 1:
-                a38 = a38 * 5 / 4;
-                a40 = a40 * 5 / 4;
+                a38 = (int16_t)(a38 * 5) / 4;
+                a40 = (int16_t)(a40 * 5) / 4;
             case 2:
-                r = rand() % 150 - (int16_t)abs32((int32_t)(a38 - a36) * 500 / a38) + 450;
-                r += 350 - (int16_t)abs32((int32_t)(a40 - a42) * 400 / a40);
+                r = rand() % 150 - (int16_t)abs32((int32_t)(int16_t)(a38 - a36) * 500 / a38) + 450;
+                r += 350 - (int16_t)abs32((int32_t)(int16_t)(a40 - a42) * 400 / a40);
                 break;
             case 3:
                 if (me == k)
                     r = 800;
                 break;
             case 4:
-                a38 = a38 * 3 / 4;
-                a40 = a40 * 3 / 4;
-                r = rand() % 150 - (int16_t)abs32((int32_t)(a38 - a36) * 500 / a38) + 450;
-                r += 350 - (int16_t)abs32((int32_t)(a40 - a42) * 400 / a40);
+                a38 = (int16_t)(a38 * 3) / 4;
+                a40 = (int16_t)(a40 * 3) / 4;
+                r = rand() % 150 - (int16_t)abs32((int32_t)(int16_t)(a38 - a36) * 500 / a38) + 450;
+                r += 350 - (int16_t)abs32((int32_t)(int16_t)(a40 - a42) * 400 / a40);
                 break;
             case 5:
                 r = rand() % 100 + (90 - a36) * 10 - a42 / 100;
@@ -1493,22 +1493,22 @@ int16_t fn_14_3274(int16_t t, int16_t n)
             ue = g_6e20[g_6e24[k].f_00].f_04[1];
             if (ue == g_9332)
                 r = 42;
-            if (ue - g_9332 == -1 || ue - g_9332 == 1)
+            if ((int16_t)(ue - g_9332) == -1 || (int16_t)(ue - g_9332) == 1)
                 r += 30;
             if (lvl == g_9334)
                 r += 30;
-            else if (g_9334 + 1 < lvl)
+            else if ((int16_t)(g_9334 + 1) < lvl)
                 r += (g_9334 - lvl) * 28;
             if (lvl < g_9334)
                 r += (lvl - g_9334) * 16;
             L32 = g_6e24[k].f_06;
-            if (g_6e24[k].f_79 >= g_91f8 - 1) {
+            if (g_6e24[k].f_79 >= (int16_t)(g_91f8 - 1)) {
                 L2a = g_6e24[k].f_78 + 1;
                 L32 = L32 * (L2a * L2a * 32 / -9 + (L2a << 5) / 2 + 32) / 32;
                 if (L32 < 0)
                     L32 = 0;
             } else if (g_6e24[k].f_78 != -1) {
-                L2e = g_91f8 - g_6e24[k].f_79 - 1;
+                L2e = (int16_t)(g_91f8 - g_6e24[k].f_79 - 1);
                 L2a = g_6e24[k].f_78 + 1 < 4 ? 4 : g_6e24[k].f_78 + 1;
                 if (L2e <= L2a / 2)
                     L32 = 0;
@@ -1532,11 +1532,11 @@ int16_t fn_14_3274(int16_t t, int16_t n)
             ue = g_6e20[g_6e24[k].f_00].f_04[1];
             if (ue == g_9332)
                 r = 65;
-            if (ue - g_9332 == -1 || ue - g_9332 == 1)
+            if ((int16_t)(ue - g_9332) == -1 || (int16_t)(ue - g_9332) == 1)
                 r += 50;
             if (lvl == g_9334)
                 r += 25;
-            else if (g_9334 + 1 < lvl)
+            else if ((int16_t)(g_9334 + 1) < lvl)
                 r += (g_9334 - lvl) * 16;
             if (lvl < g_9334)
                 r += (lvl - g_9334) * 11;
@@ -1550,13 +1550,13 @@ int16_t fn_14_3274(int16_t t, int16_t n)
                 && g_9432 > 300)
                 r += g_9432 / 17 < 50 ? 50 : g_9432 / 17;
             L32 = g_6e24[k].f_06;
-            if (g_6e24[k].f_79 >= g_91f8 - 1) {
+            if (g_6e24[k].f_79 >= (int16_t)(g_91f8 - 1)) {
                 L2a = g_6e24[k].f_78 + 1;
                 L32 = L32 * (L2a * L2a * 32 / -9 + (L2a << 5) / 2 + 32) / 32;
                 if (L32 < 0)
                     L32 = 0;
             } else if (g_6e24[k].f_78 != 0) {
-                L2e = g_91f8 - g_6e24[k].f_79 - 1;
+                L2e = (int16_t)(g_91f8 - g_6e24[k].f_79 - 1);
                 L2a = g_6e24[k].f_78 + 1 < 4 ? 4 : g_6e24[k].f_78 + 1;
                 if (L2e <= L2a / 2)
                     L32 = 0;
@@ -1580,7 +1580,7 @@ int16_t fn_14_3274(int16_t t, int16_t n)
                         s22 += g_6e24[m].f_77;
                     s24 += g_6e24[m].f_77;
                 }
-            r += 40 - (int16_t)((int32_t)(s24 + 85) * s22 / (s24 + 1));
+            r += 40 - (int16_t)((int32_t)(int16_t)(s24 + 85) * s22 / (int16_t)(s24 + 1));
             for (m = c2 = c0 = c1 = 0; m < n; m++)
                 if (g_7090[m].f_0d6 >= 0) {
                     if (g_6e24[g_7090[m].f_0d6].f_64 == g_6e24[k].f_64)

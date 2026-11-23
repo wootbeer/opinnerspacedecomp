@@ -101,7 +101,7 @@ void fn_06_1e68(int16_t start)
             } else
                 g_0d26 = 1;
         }
-        if (g_94b6 - 1 <= g_94b4)
+        if ((int16_t)(g_94b6 - 1) <= g_94b4)
             g_0d26 = 1;
     }
 }
@@ -788,7 +788,7 @@ void fn_06_49c0(DRAWITEMSTRUCT *dis)
 
         flag2 = flag1 = 0;
         count = (int16_t)SendMessage(dis->hwndItem, 0x40c, 0, 0L);
-        if (dis->itemID >= count - 1) {
+        if (dis->itemID >= (uint16_t)(count - 1)) {
             flag2 = 1;
             flag1 = 1;
         } else if (depth > 1) {
@@ -903,7 +903,7 @@ void fn_06_4e04(DRAWITEMSTRUCT *dis)
         }
         rc.left += x;
     }
-    if (dis->itemID == -1 || (dis->itemState & ODS_FOCUS))
+    if (dis->itemID == 0xffff || (dis->itemState & ODS_FOCUS))
         DrawFocusRect(dis->hDC, &rc);
     else
         fn_06_4ea8(dis);
@@ -1070,7 +1070,7 @@ void fn_06_5318(void)
             do {
                 SendMessage(GetDlgItem(g_0d1e, 0x65), LB_GETTEXT, i, (LONG)(LPSTR)buf);
                 dd = buf[lstrlen(buf) - 3] - '0';
-                if (depth - dd == lvl) {
+                if ((int16_t)(depth - dd) == lvl) {
                     for (k = 0; k < 3; k++)
                         buf[lstrlen(buf) - 1] = 0;
                     lstrcat(buf, "\\");
@@ -1211,7 +1211,7 @@ void fn_06_5524(void)
                 } else {
                     nexe += ndll;
                     if (!notfound && (g_69f4[idx].f_1d0 == 2 ||
-                                      g_69f4[idx].f_14e + g_69f4[idx].f_150 > g_94a6)) {
+                                      (int16_t)(g_69f4[idx].f_14e + g_69f4[idx].f_150) > g_94a6)) {
                         LoadString(g_9212, 0x2fd, buf, 400);
                         lstrcat(buf, g_09ee);
                         if (g_69f4[idx].f_1d0 != 2) {
@@ -1276,7 +1276,7 @@ LRESULT fn_06_1f22(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         break;
     case WM_DRAWITEM:
         dis = (DRAWITEMSTRUCT *)lParam;
-        if (dis->itemID == -1)
+        if (dis->itemID == 0xffff)
             fn_06_4e04(dis);
         else
             switch (dis->itemAction) {
@@ -1300,7 +1300,7 @@ LRESULT fn_06_1f22(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         SelectObject(dc, oldfont);
         ReleaseDC(g_0016, dc);
         (mis = (MEASUREITEMSTRUCT *)lParam)->itemHeight =
-            max(tm.tmHeight + tm.tmExternalLeading + 3, 14);
+            max((int16_t)(tm.tmHeight + tm.tmExternalLeading + 3), 14);
         break;
     }
     case WM_CTLCOLOR:

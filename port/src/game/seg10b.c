@@ -5,7 +5,7 @@
                                        
                                        
 
-#define SC(n) ((n) << g_9156 >> 1)
+#define SC(n) ((int16_t)((n) << g_9156) >> 1)
                                        
                                        
 
@@ -213,8 +213,8 @@ void fn_10_1620(int16_t i)
     w = g_96d2[i].f_2a;
     r = g_96d2[i].f_02;
     for (j = 0, ang = 270; j < 16; j++, ang -= j % 2 + 22) {
-        g_7ba0[i][j].x = fn_06_720c(ang) * r / 127 + w / 2;
-        g_7ba0[i][j].y = w / 2 + fn_06_71b2(ang) * r / -127;
+        g_7ba0[i][j].x = (int16_t)(fn_06_720c(ang) * r) / 127 + w / 2;
+        g_7ba0[i][j].y = w / 2 + (int16_t)(fn_06_71b2(ang) * r) / -127;
     }
 }
 
@@ -229,8 +229,8 @@ void fn_10_1460(int16_t i)
     w = g_96d2[i].f_2a;
     r = g_96d2[i].f_00 + 3;
     for (j = 0, ang = 450; j < 16; j++, ang -= j % 2 + 22) {
-        g_7b60[i][j].x = fn_06_720c(ang) * r / 128 + w / 2;
-        g_7b60[i][j].y = w / 2 - fn_06_71b2(ang) * r / 128;
+        g_7b60[i][j].x = (int16_t)(fn_06_720c(ang) * r) / 128 + w / 2;
+        g_7b60[i][j].y = w / 2 - (int16_t)(fn_06_71b2(ang) * r) / 128;
     }
 }
 
@@ -375,8 +375,8 @@ void fn_10_1502(int16_t i)
     }
     for (k = 0; k < 2; k++) {
         for (ang = j = 0; j < 16; j++, ang += j % 2 + 22) {
-            g_7be0[i][k][j].x = w / 2 + (fn_06_720c(ang) * rx[k] - fn_06_71b2(ang) * ry[k]) / 128;
-            g_7be0[i][k][j].y = (fn_06_720c(ang) * ry[k] + fn_06_71b2(ang) * rx[k]) / 128 + w / 2;
+            g_7be0[i][k][j].x = w / 2 + (int16_t)(fn_06_720c(ang) * rx[k] - fn_06_71b2(ang) * ry[k]) / 128;
+            g_7be0[i][k][j].y = (int16_t)(fn_06_720c(ang) * ry[k] + fn_06_71b2(ang) * rx[k]) / 128 + w / 2;
         }
     }
 }
@@ -1464,8 +1464,8 @@ void fn_10_0736(int16_t n)
     again = 1;
     do {
         g_1df8[0][n].f_54 = 0;
-        g_1df8[0][n].f_04.x = (rand() % ((LO16(g_05a0)) - 150) + 150) << 3;
-        g_1df8[0][n].f_04.y = (rand() % ((HI16(g_05a0)) - 150) + 150) << 3;
+        g_1df8[0][n].f_04.x = (rand() % (int16_t)((LO16(g_05a0)) - 150) + 150) << 3;
+        g_1df8[0][n].f_04.y = (rand() % (int16_t)((HI16(g_05a0)) - 150) + 150) << 3;
         g_1df8[0][n].f_00.x = g_1df8[0][n].f_08.x = -1000;
         g_1df8[0][n].f_00.y = g_1df8[0][n].f_08.y = -1000;
         g_1df8[0][n].f_2f = 0;
@@ -1489,8 +1489,8 @@ void fn_10_0a26(int16_t n)
 
     again = 1;
     do {
-        g_1df8[9][n].f_04.x = (rand() % ((LO16(g_05a0)) - 150) + 150) << 3;
-        g_1df8[9][n].f_04.y = (rand() % ((HI16(g_05a0)) - 150) + 150) << 3;
+        g_1df8[9][n].f_04.x = (rand() % (int16_t)((LO16(g_05a0)) - 150) + 150) << 3;
+        g_1df8[9][n].f_04.y = (rand() % (int16_t)((HI16(g_05a0)) - 150) + 150) << 3;
         g_1df8[9][n].f_00.x = g_1df8[9][n].f_08.x = -1000;
         g_1df8[9][n].f_00.y = g_1df8[9][n].f_08.y = -1000;
         g_1df8[9][n].f_0c = 25 - rand() % 50;
@@ -1519,8 +1519,8 @@ void fn_10_0864(int16_t n)
     again = 1;
     do {
         g_1df8[3][n].f_50 = 0;
-        g_1df8[3][n].f_04.x = (rand() % ((LO16(g_05a0)) - 150) + 150) << 3;
-        g_1df8[3][n].f_04.y = (rand() % ((HI16(g_05a0)) - 150) + 150) << 3;
+        g_1df8[3][n].f_04.x = (rand() % (int16_t)((LO16(g_05a0)) - 150) + 150) << 3;
+        g_1df8[3][n].f_04.y = (rand() % (int16_t)((HI16(g_05a0)) - 150) + 150) << 3;
         g_1df8[3][n].f_00.x = g_1df8[3][n].f_08.x = -1000;
         g_1df8[3][n].f_00.y = g_1df8[3][n].f_08.y = -1000;
         g_1df8[3][n].f_0c = 25 - rand() % 50;
@@ -1632,9 +1632,9 @@ void fn_10_16ba(int16_t i)
     int16_t a;
 
     if (subgame_active)
-        w = g_96d2[i].f_2a * (g_9156 * 2 + 1) / 3;
+        w = (int16_t)(g_96d2[i].f_2a * (g_9156 * 2 + 1)) / 3;
     else
-        w = (g_96d2[i].f_2a << g_9156) >> 1;
+        w = (int16_t)(g_96d2[i].f_2a << g_9156) >> 1;
     r0 = (g_96d2[i].f_04 + 1) * 2;
     for (j = 0; j < 5; j++) {
         r = r0;
@@ -1665,14 +1665,14 @@ void fn_10_16ba(int16_t i)
         if (subgame_active) {
             /* u1, u2 are never read: the assignments only fix CL's
              * evaluation order (no stores are emitted) */
-            g_96d2[i].f_50[j].x = g_06d6[j] * r / 256 * (g_9156 * 2 + 1) / 6 +
-                                 (u1 = -1 - g_9156 * 2) * a / 6 + w / 2;
-            g_96d2[i].f_50[j].y = (-1 - g_9156 * 2) * b / 6 -
-                                 (u2 = g_06e0[j] * r / 256 * (g_9156 * 2 + 1) / 6) + w / 2;
+            g_96d2[i].f_50[j].x = (int16_t)((int16_t)(g_06d6[j] * r) / 256 * (g_9156 * 2 + 1)) / 6 +
+                                 (int16_t)((u1 = -1 - g_9156 * 2) * a) / 6 + w / 2;
+            g_96d2[i].f_50[j].y = (int16_t)((-1 - g_9156 * 2) * b) / 6 -
+                                 (u2 = (int16_t)((int16_t)(g_06e0[j] * r) / 256 * (g_9156 * 2 + 1)) / 6) + w / 2;
         } else {
-            g_96d2[i].f_50[j].x = (g_06d6[j] * r / 256 >> (2 - g_9156)) -
+            g_96d2[i].f_50[j].x = ((int16_t)(g_06d6[j] * r) / 256 >> (2 - g_9156)) -
                                  (a >> (2 - g_9156)) + w / 2;
-            g_96d2[i].f_50[j].y = w / 2 - (g_06e0[j] * r / 256 >> (2 - g_9156)) -
+            g_96d2[i].f_50[j].y = w / 2 - ((int16_t)(g_06e0[j] * r) / 256 >> (2 - g_9156)) -
                                  (b >> (2 - g_9156));
         }
     }
@@ -2105,7 +2105,7 @@ int16_t fn_10_18b0(int16_t k1, int16_t k2, int16_t type, int16_t flag, int16_t r
     GetObject(bm2, 14, &bmp);
     sz = fn_10_86ca();
     DeleteObject(bm2);
-    if (sz * 2 > sz0 && !flag)
+    if ((int16_t)(sz * 2) > sz0 && !flag)
         m = sz * 2 - 1;
     else if (sz > sz0 && flag)
         m = sz;
@@ -2130,7 +2130,7 @@ int16_t fn_10_18b0(int16_t k1, int16_t k2, int16_t type, int16_t flag, int16_t r
     PatBlt(g_39e8[free], 0, 0, m * 16 + cell * 17, cell * 2 + m, BLACKNESS);
     if (k1 != -1) {
         for (i = 0; i < 16; i++)
-            BitBlt(g_39e8[free], (m - sz0) / 2 + (cell + m) * i + cell, (m - sz0) / 2 + cell,
+            BitBlt(g_39e8[free], (int16_t)(m - sz0) / 2 + (cell + m) * i + cell, (int16_t)(m - sz0) / 2 + cell,
                    sz0, sz0, dc0, 0, 0, SRCCOPY);
         SelectObject(dc0, old0);
         if (pal0)
@@ -2144,8 +2144,8 @@ int16_t fn_10_18b0(int16_t k1, int16_t k2, int16_t type, int16_t flag, int16_t r
     r = half = sz / 2;
     if (!flag) {
         for (i = 0, ang = 270; i < 16; i++, ang -= i % 2 + 22) {
-            d.x = fn_06_720c(ang) * r / 128 + half;
-            d.y = half - fn_06_71b2(ang) * r / 128;
+            d.x = (int16_t)(fn_06_720c(ang) * r) / 128 + half;
+            d.y = half - (int16_t)(fn_06_71b2(ang) * r) / 128;
             BitBlt(g_39e8[free], (cell + m) * i + m / 2 - d.x + cell, m / 2 - d.y + cell,
                    sz, sz, dc1, i * sz, 0, SRCAND);
             BitBlt(g_39e8[free], (cell + m) * i + m / 2 - d.x + cell, m / 2 - d.y + cell,
@@ -2153,7 +2153,7 @@ int16_t fn_10_18b0(int16_t k1, int16_t k2, int16_t type, int16_t flag, int16_t r
         }
     } else {
         for (i = 0; i < 16; i++)
-            BitBlt(g_39e8[free], (cell + m) * i + (m - sz) / 2 + cell, (m - sz) / 2 + cell,
+            BitBlt(g_39e8[free], (cell + m) * i + (int16_t)(m - sz) / 2 + cell, (int16_t)(m - sz) / 2 + cell,
                    sz, sz, g_39e8[28], i * sz, 0, SRCCOPY);
     }
     fn_10_0552(28, 0);
@@ -2227,7 +2227,7 @@ void fn_10_0b94(void)
         g_1df8[2][i].f_53 = 0;
     }
     for (i = 0; i < g_92ec[3]; i++) {
-        if (i < g_92ec[3] - g_92ea) {
+        if (i < (int16_t)(g_92ec[3] - g_92ea)) {
             g_1df8[3][i].f_22 = SC(44);
             g_1df8[3][i].f_20 = 344;
             g_1df8[3][i].f_44 = 1400;

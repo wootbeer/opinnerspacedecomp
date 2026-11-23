@@ -17,10 +17,10 @@ void fn_06_0000(void)
     g_1d20.right = GetPrivateProfileInt(g_9690, "ShowRight", 0, g_96a9);
     g_1d20.bottom = GetPrivateProfileInt(g_9690, "ShowBottom", 0, g_96a9);
     if (g_1d20.right <= 0) {
-        w = GetSystemMetrics(SM_CXSCREEN) * 4 / 5;
-        h = GetSystemMetrics(SM_CYSCREEN) * 4 / 5;
-        g_1d20.left = (GetSystemMetrics(SM_CXSCREEN) - w) / 2;
-        g_1d20.top = (GetSystemMetrics(SM_CYSCREEN) - h) / 2;
+        w = (int16_t)(GetSystemMetrics(SM_CXSCREEN) * 4) / 5;
+        h = (int16_t)(GetSystemMetrics(SM_CYSCREEN) * 4) / 5;
+        g_1d20.left = (int16_t)(GetSystemMetrics(SM_CXSCREEN) - w) / 2;
+        g_1d20.top = (int16_t)(GetSystemMetrics(SM_CYSCREEN) - h) / 2;
         g_1d20.right = w + g_1d20.left;
         g_1d20.bottom = h + g_1d20.top;
     }
@@ -44,11 +44,11 @@ void fn_06_0000(void)
     g_1dde = GetPrivateProfileInt(g_9690, "WatchTop", 0, g_96a9);
     g_1de0 = GetPrivateProfileInt(g_9690, "WatchRight", g_1ddc + 280, g_96a9);
     g_1de4.left = GetPrivateProfileInt(g_9690, "IconLeft", GetSystemMetrics(SM_CXSCREEN) - 48, g_96a9);
-    if (GetSystemMetrics(SM_CXSCREEN) - 10 < g_1de4.left)
+    if ((int16_t)(GetSystemMetrics(SM_CXSCREEN) - 10) < g_1de4.left)
         g_1de4.left = GetSystemMetrics(SM_CXSCREEN) - 10;
     g_1de4.top = GetPrivateProfileInt(g_9690, "IconTop", 0, g_96a9);
     g_1dec = GetPrivateProfileInt(g_9690, "SmLeft", 0, g_96a9);
-    if (GetSystemMetrics(SM_CXSCREEN) - 10 < g_1dec)
+    if ((int16_t)(GetSystemMetrics(SM_CXSCREEN) - 10) < g_1dec)
         g_1dec = GetSystemMetrics(SM_CXSCREEN) - 10;
     g_1dee = GetPrivateProfileInt(g_9690, "SmTop", 0, g_96a9);
     g_1dc4 = GetPrivateProfileInt(g_9690, "HelpLeft", 0, g_96a9);
@@ -494,7 +494,7 @@ void fn_06_11ec(void)
         break;
     }
     if (g_91f8 < 10)
-        g_932a = min(g_932a / 2 + g_91f8 * g_932a / 20, g_932a);
+        g_932a = min(g_932a / 2 + (int16_t)(g_91f8 * g_932a) / 20, g_932a);
 }
 
 /* 6:1290 */

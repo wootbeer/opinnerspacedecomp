@@ -1,7 +1,7 @@
 /* INSPACE.EXE segment 17 (selector 1080). */
 #include "game.h"
 
-#define SC(n) ((n) << g_9156 >> 1)     /* zoom scaling */
+#define SC(n) ((int16_t)((n) << g_9156) >> 1)     /* zoom scaling */
 
 /* 17:306e */
 void fn_17_306e(void)
@@ -57,7 +57,7 @@ void fn_17_8e60(int16_t i, LPSTR buf)
         a = g_7090[i].f_05e;
         b = i;
         LoadString(g_9212, 0x314, buf, 40);
-        c = (i * 2 + 3) * (a + 2) * (i + 6) * (i + 7) * 2 / (a + 3) + 956;
+        c = (int16_t)((i * 2 + 3) * (a + 2) * (i + 6) * (i + 7) * 2) / (int16_t)(a + 3) + 956;
         fn_06_0f1a(c, tmp);
         lstrcat(buf, " ");
         lstrcat(buf, tmp);
@@ -74,7 +74,7 @@ void fn_17_14fc(void)
     int16_t n;
 
     if (g_9460)
-        n = (g_9468 - 1) / 2;
+        n = (int16_t)(g_9468 - 1) / 2;
     else
         n = g_9322;
     hbm = world_map(g_6084.bottom - g_6084.top, g_6084.bottom - g_6084.top, 1, n, -1, -1, 0);
@@ -231,7 +231,7 @@ int16_t fn_17_15c6(int16_t reset)
     switch (g_9462) {
     case 0:
         g_9462++;
-        g_5000 = g_9468 == 0 ? g_6084.left + 30 : (g_6084.right - g_6084.left) / 2 + g_6084.left;
+        g_5000 = g_9468 == 0 ? g_6084.left + 30 : (int16_t)(g_6084.right - g_6084.left) / 2 + g_6084.left;
         g_5002 = g_6084.top + 55;
         fn_17_30b0(g_93aa, 3000L);
         fn_17_5008();
@@ -239,7 +239,7 @@ int16_t fn_17_15c6(int16_t reset)
     case 1:
         if (g_9460 && g_9474) {
             g_9474 = 0;
-            g_5000 = g_9468 == 0 ? g_6084.left + 30 : (g_6084.right - g_6084.left) / 2 + g_6084.left;
+            g_5000 = g_9468 == 0 ? g_6084.left + 30 : (int16_t)(g_6084.right - g_6084.left) / 2 + g_6084.left;
             g_5002 = g_6084.top + 55;
             fn_17_2c5a(1, 1);
             fn_17_5008();
@@ -716,7 +716,7 @@ void fn_17_92b8(DRAWITEMSTRUCT *dis)
     RECT rc;
 
     CopyRect(&rc, &dis->rcItem);
-    if (dis->itemID == -1 || (dis->itemState & ODS_FOCUS))
+    if (dis->itemID == 0xffff || (dis->itemState & ODS_FOCUS))
         DrawFocusRect(dis->hDC, &rc);
     else
         fn_17_9308(dis);
@@ -834,7 +834,7 @@ void fn_17_67e6(void)
         }
     } else if (!IsWindowEnabled(g_947a[0]))
         EnableWindow(g_947a[0], 1);
-    if (g_946a - g_9468 == 1) {
+    if ((int16_t)(g_946a - g_9468) == 1) {
         if (IsWindowEnabled(g_947a[2])) {
             if (GetFocus() == g_947a[2])
                 SetFocus(g_947a[4]);
@@ -972,13 +972,13 @@ void fn_17_67e6(void)
             g_947a[7] = CreateWindow("listbox", "", 0x40a30151L, 0x1b, 0x5c, 0x241, 0xc0,
                                   g_9460, (HMENU)0x6c, g_8e66, NULL);
             fn_02_1a7a(g_947a[7]);
-            fn_06_8b90((g_9468 - 1) / 2);
-            fn_06_8cb2((g_9468 - 1) / 2, main_ship, 0, 0, 1);
+            fn_06_8b90((int16_t)(g_9468 - 1) / 2);
+            fn_06_8cb2((int16_t)(g_9468 - 1) / 2, main_ship, 0, 0, 1);
             sel = -1;
-            for (j = 0; j < g_94c8; j++) {
+            for (j = 0; j < (int16_t)g_94c8; j++) {
                 best = 60000;
                 bi = -1;
-                for (i = 0; i < g_94c8; i++) {
+                for (i = 0; i < (int16_t)g_94c8; i++) {
                     if (g_6afc[i].f_32[0][1] > 1 && g_6afc[i].f_32[0][1] < best) {
                         bi = i;
                         best = g_6afc[i].f_32[0][1];
@@ -1127,7 +1127,7 @@ int16_t fn_17_2c5a(int16_t a, int16_t b)
                         margin = 9;
                     else
                         margin = 22;
-                    if (g_6084.right - margin < w)
+                    if ((int16_t)(g_6084.right - margin) < w)
                         wrap = 1;
                 }
             }
@@ -1299,7 +1299,7 @@ void fn_17_51b0(void)
     SetTextAlign(g_13dc, 0);
     side = g_96d2[g_7090[main_ship].f_04e].f_38;
     fn_13_218a(g_9468 - 1, name);
-    if ((rel = g_3824[g_9468 - 1][side]) > 80 || g_9468 - side - 1 == 0)
+    if ((rel = g_3824[g_9468 - 1][side]) > 80 || (int16_t)(g_9468 - side - 1) == 0)
         oldtext = SetTextColor(g_13dc, PALETTERGB(0, 0xd6, 0xff));
     else if (rel < -80)
         oldtext = SetTextColor(g_13dc, PALETTERGB(0xff, 0x80, 0));
@@ -1321,12 +1321,12 @@ void fn_17_51b0(void)
     SetTextColor(g_13dc, RGB(0, 255, 255));
     pt.y = g_6084.top + 60;
     pt.x = g_6084.left + 40;
-    if (g_9468 - side - 1 == 0) {
+    if ((int16_t)(g_9468 - side - 1) == 0) {
         fn_09_955c(0x806, buf);
     } else {
         i = count = 0;
         for (; i <= g_9316; i++)
-            if (g_7090[i].flag && g_96d2[g_7090[i].f_04e].f_38 - g_9468 + 1 == 0)
+            if (g_7090[i].flag && (int16_t)(g_96d2[g_7090[i].f_04e].f_38 - g_9468 + 1) == 0)
                 count++;
         if (count == 1)
             fn_09_955c(0x807, buf);
@@ -1412,27 +1412,27 @@ void fn_17_3746(void)
         l90 = l90 * ((g_6e24[g_7090[idx].f_0d6].f_33 + 10) * 10) / 100;
     l78 = l90 * 3456;
     l80 = g_96d2[g_7090[idx].f_04e].f_1e / 2;
-    i98 = g_7090[idx].f_00c * 3 / 4;
+    i98 = (int16_t)(g_7090[idx].f_00c * 3) / 4;
     ia4 = g_7090[idx].f_00e;
     i9a = (int16_t)(l90 * 69 / ia4);
-    l74 = l78 / (i9a * 10 / 36);
-    l88 = ia4 * -3600L / (g_1df8[14][idx].f_44 * 3) + 100;
+    l74 = l78 / ((int16_t)(i9a * 10) / 36);
+    l88 = ia4 * -3600L / (int16_t)(g_1df8[14][idx].f_44 * 3) + 100;
     la2.v = l88 * l88 * l88 / -60000 - l88 * l88 / 200;
     l8c = (la2.v - l88 - 100) * 37 / 100 + 100;
     i9c = (int16_t)(l90 * l8c * 69 / (ia4 * 100L));
-    i9e = g_1df8[14][idx].f_44 * 3 / (ia4 * 12);
+    i9e = (int16_t)(g_1df8[14][idx].f_44 * 3) / (int16_t)(ia4 * 12);
     if (g_7090[idx].f_0d6 != -1) {
-        l94 = g_96d2[g_7090[idx].f_04e].f_12 * 100 / (20 - 3 * g_6e24[g_7090[idx].f_0d6].f_35)
-            + g_96d2[g_7090[idx].f_04e].f_14 * 80 / (20 - 3 * g_6e24[g_7090[idx].f_0d6].f_36)
-            + g_96d2[g_7090[idx].f_04e].f_10 * 80 / (20 - 3 * g_6e24[g_7090[idx].f_0d6].f_34);
+        l94 = (int16_t)((int16_t)(g_96d2[g_7090[idx].f_04e].f_12 * 100) / (20 - 3 * g_6e24[g_7090[idx].f_0d6].f_35)
+            + (int16_t)(g_96d2[g_7090[idx].f_04e].f_14 * 80) / (20 - 3 * g_6e24[g_7090[idx].f_0d6].f_36)
+            + (int16_t)(g_96d2[g_7090[idx].f_04e].f_10 * 80) / (20 - 3 * g_6e24[g_7090[idx].f_0d6].f_34));
         if (g_96d2[g_7090[idx].f_04e].f_28 != -1) {
-            l94 += g_96d2[g_7090[idx].f_04e].f_16 * 100 / (20 - 3 * g_6e24[g_7090[idx].f_0d6].f_37);
+            l94 += (int16_t)(g_96d2[g_7090[idx].f_04e].f_16 * 100) / (20 - 3 * g_6e24[g_7090[idx].f_0d6].f_37);
             l94 /= 4;
         } else
             l94 /= 3;
     } else
         l94 = g_96d2[g_7090[idx].f_04e].f_a6;
-    l84 = l94 * (g_1df8[14][idx].f_44 + 350) * 2 / 350 * 12600 / 3000;
+    l84 = l94 * (int16_t)(g_1df8[14][idx].f_44 + 350) * 2 / 350 * 12600 / 3000;
     for (i = 0; i < 7; i++) {
         fn_09_95ba(i + 0xfe);
         fn_09_95ba(0x221);
@@ -1642,7 +1642,7 @@ void fn_17_4988(void)
             pt.y += 18;
         }
         pt.y = g_6084.top + 60;
-        pt.x = (g_6084.right - g_6084.left) / 2 + g_6084.left;
+        pt.x = (int16_t)(g_6084.right - g_6084.left) / 2 + g_6084.left;
         fn_09_955c(0x310, line);
         TextOut(g_13dc, pt.x, pt.y, line, lstrlen(line));
         fn_09_955c(0x311, line);
@@ -2121,27 +2121,27 @@ void fn_17_4068(int16_t i, LPSTR buf)
         id = 0x2c5;
     else if (g_7090[i].f_0d8 > 25000)
         id = 0x2c6;
-    else if (g_7090[i].f_0d8 > g_0956[10] * 100)
+    else if (g_7090[i].f_0d8 > (int16_t)(g_0956[10] * 100))
         id = 0x2c7;
-    else if (g_7090[i].f_0d8 > g_0956[9] * 100)
+    else if (g_7090[i].f_0d8 > (int16_t)(g_0956[9] * 100))
         id = 0x2c8;
-    else if (g_7090[i].f_0d8 > g_0956[8] * 100)
+    else if (g_7090[i].f_0d8 > (int16_t)(g_0956[8] * 100))
         id = 0x2c9;
-    else if (g_7090[i].f_0d8 > g_0956[7] * 100)
+    else if (g_7090[i].f_0d8 > (int16_t)(g_0956[7] * 100))
         id = 0x2ca;
-    else if (g_7090[i].f_0d8 > g_0956[6] * 100)
+    else if (g_7090[i].f_0d8 > (int16_t)(g_0956[6] * 100))
         id = 0x2cb;
-    else if (g_7090[i].f_0d8 > g_0956[5] * 100)
+    else if (g_7090[i].f_0d8 > (int16_t)(g_0956[5] * 100))
         id = 0x2cc;
-    else if (g_7090[i].f_0d8 > g_0956[4] * 100)
+    else if (g_7090[i].f_0d8 > (int16_t)(g_0956[4] * 100))
         id = 0x2cd;
-    else if (g_7090[i].f_0d8 > g_0956[3] * 100)
+    else if (g_7090[i].f_0d8 > (int16_t)(g_0956[3] * 100))
         id = 0x2ce;
-    else if (g_7090[i].f_0d8 > g_0956[2] * 100)
+    else if (g_7090[i].f_0d8 > (int16_t)(g_0956[2] * 100))
         id = 0x2cf;
-    else if (g_7090[i].f_0d8 > g_0956[1] * 100)
+    else if (g_7090[i].f_0d8 > (int16_t)(g_0956[1] * 100))
         id = 0x2d0;
-    else if (g_7090[i].f_0d8 > g_0956[0] * 100)
+    else if (g_7090[i].f_0d8 > (int16_t)(g_0956[0] * 100))
         id = 0x2d1;
     else
         id = 0x2d2;
@@ -2168,12 +2168,12 @@ void fn_17_5008(void)
     SetBkMode(g_13dc, TRANSPARENT);
     SetTextAlign(g_13dc, 0);
     if (g_93aa == 2) {
-        if (g_9460 != 0 && (g_9468 + 1) % 2 != 0)
+        if (g_9460 != 0 && (int16_t)(g_9468 + 1) % 2 != 0)
             SendMessage(g_947a[4], CB_GETLBTEXT, g_9468, (LPARAM)(LPSTR)buf);
         else
         {
             if (g_9460)
-                t = (g_9468 - 1) / 2;
+                t = (int16_t)(g_9468 - 1) / 2;
             else
                 t = g_9322;
             fn_09_955c(t + 0x2e4, buf);
@@ -2186,7 +2186,7 @@ void fn_17_5008(void)
     if (g_93aa == 0x10 && g_9468 != 0)
         fn_17_7c2a();
     oldtc = SetTextColor(g_13dc, PALETTERGB(0, 0xd6, 0xff));
-    if (g_93aa == 2 && (g_9460 == 0 || (g_9468 + 1) % 2 == 0))
+    if (g_93aa == 2 && (g_9460 == 0 || (int16_t)(g_9468 + 1) % 2 == 0))
         x = g_6084.right - 280;
     else if (g_93aa == 2)
         x = 20;
@@ -2512,7 +2512,7 @@ void fn_17_7324(void)
         }
         if (g_094e != 0 && g_93c6 == 4) {
             g_9466 = 7;
-            g_9468 = (g_094e - 1) / 4 * 2 + 1;
+            g_9468 = (int16_t)(g_094e - 1) / 4 * 2 + 1;
         } else if (kind == 14) {
             g_9466 = 0;
             g_9468 = fn_17_75c6(idx);
@@ -2737,15 +2737,15 @@ void fn_17_76e4(void)
     char names[3][10];
     uint16_t best[3][2];
 
-    n = g_9460 ? (g_9468 - 1) / 2 : g_9322;
+    n = g_9460 ? (int16_t)(g_9468 - 1) / 2 : g_9322;
     lstrcpy(g_6078, "");
     if (g_9460 && ((g_9468 + 1) & 1)) {
-        fn_06_8b90((g_9468 - 1) / 2);
-        fn_06_8cb2((g_9468 - 1) / 2, main_ship, 0, 0, 1);
+        fn_06_8b90((int16_t)(g_9468 - 1) / 2);
+        fn_06_8cb2((int16_t)(g_9468 - 1) / 2, main_ship, 0, 0, 1);
         for (i = 0; i < 3; i++)
             for (j = 0; j < 2; j++)
                 best[i][j] = 0;
-        for (i = 0; i < g_94c8; i++)
+        for (i = 0; i < (int16_t)g_94c8; i++)
             for (j = 0; j < 3; j++)
                 for (k = 0; k < 2; k++)
                     if (g_6afc[i].f_32[j][k]
@@ -2783,14 +2783,14 @@ void fn_17_76e4(void)
         lstrcat(g_6078, "\t510");
         if (best[2][0])
             lstrcat(g_6078, names[2]);
-        fn_06_8dfe((g_9468 - 1) / 2);
+        fn_06_8dfe((int16_t)(g_9468 - 1) / 2);
         fn_06_8eb4();
     } else {
         fn_09_95ba((n + 800) * 2);
         lstrcat(g_6078, g_09ee);
         fn_09_95ba(n * 2 + 0x641);
         lstrcat(g_6078, g_09ee);
-        if (g_094e && (g_094e - 1) / 4 == n) {
+        if (g_094e && (int16_t)(g_094e - 1) / 4 == n) {
             fn_17_42ea(1);
             fn_17_42ea(1);
             fn_09_95ba(0x824);
@@ -2858,7 +2858,7 @@ int16_t fn_17_7088(int16_t a)
         if (g_93aa == 13) {
             for (k = 0; k <= g_9316; k++) {
                 if (g_1df8[14][k].f_18 == 0 && g_7090[k].flag != 0 &&
-                    g_96d2[g_7090[k].f_04e].f_38 == g_9468 - 1) {
+                    g_96d2[g_7090[k].f_04e].f_38 == (int16_t)(g_9468 - 1)) {
                     count++;
                     fn_17_72aa(a, fn_17_75c6(k), 0);
                 }
@@ -3216,7 +3216,7 @@ int16_t fn_17_0600(int16_t reset)
     case 0:
         if (!g_91fc) {
             g_1882 += 3;
-            y = (g_6084.top - g_6084.bottom) / 2 + g_6084.bottom + 20;
+            y = (int16_t)(g_6084.top - g_6084.bottom) / 2 + g_6084.bottom + 20;
             hfont = CreateFont(0x26, 0x16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, g_06b0);
             oldfont = SelectObject(g_13dc, hfont);
             oldbk = SetBkColor(g_13dc, RGB(0, 0, 0));
@@ -3224,7 +3224,7 @@ int16_t fn_17_0600(int16_t reset)
             SetTextAlign(g_13dc, TA_CENTER);
             oldtext = SetTextColor(g_13dc, RGB(0, 255, 255));
             fn_09_955c(0x143, buf);
-            TextOut(g_13dc, (g_6084.right - g_6084.left) / 2 + g_6084.left, (g_6084.top - g_6084.bottom) / 2 + g_6084.bottom + 52,
+            TextOut(g_13dc, (int16_t)(g_6084.right - g_6084.left) / 2 + g_6084.left, (int16_t)(g_6084.top - g_6084.bottom) / 2 + g_6084.bottom + 52,
                     buf, lstrlen(buf));
             SetBkColor(g_13dc, oldbk);
             SetTextColor(g_13dc, oldtext);
@@ -3235,9 +3235,9 @@ int16_t fn_17_0600(int16_t reset)
             }
         } else {
             total = step * g_91fc;
-            left = (g_6084.right - total - g_6084.left) / 2;
-            x = left - (g_1882 + 4) / 2 + g_187e * step + g_6084.left + 32;
-            y = (g_6084.top - g_6084.bottom) / 2 - (g_1882 + 4) / 2 + g_6084.bottom + 52;
+            left = (int16_t)(g_6084.right - total - g_6084.left) / 2;
+            x = left - (int16_t)(g_1882 + 4) / 2 + g_187e * step + g_6084.left + 32;
+            y = (int16_t)(g_6084.top - g_6084.bottom) / 2 - (int16_t)(g_1882 + 4) / 2 + g_6084.bottom + 52;
             fn_10_9962(0, g_13dc, x, y, g_1882 + 4, g_1882 + 4, g_39e8[13],
                        (sz + org) * g_1880 + org, org, sz, sz, SRCCOPY);
             g_1882 += 3;
@@ -3255,7 +3255,7 @@ int16_t fn_17_0600(int16_t reset)
         if (!g_91fc && g_1882 > 10 || g_1880 >= g_91fe) {
             g_1882 = 0;
             g_9462++;
-            g_5000 = (g_6084.right - g_6084.left) / 2 + g_6084.left - 265;
+            g_5000 = (int16_t)(g_6084.right - g_6084.left) / 2 + g_6084.left - 265;
             g_5002 = y - 106;
             if (!g_91f8)
                 fn_17_30b0(g_93aa, 5000L);
@@ -3266,8 +3266,8 @@ int16_t fn_17_0600(int16_t reset)
     case 1:
         if (g_9460 && g_9474) {
             g_9474 = 0;
-            y = (g_6084.top - g_6084.bottom) / 2 + g_6084.bottom + 20;
-            g_5000 = (g_6084.right - g_6084.left) / 2 + g_6084.left - 265;
+            y = (int16_t)(g_6084.top - g_6084.bottom) / 2 + g_6084.bottom + 20;
+            g_5000 = (int16_t)(g_6084.right - g_6084.left) / 2 + g_6084.left - 265;
             g_5002 = y - 106;
             fn_17_2c5a(1, 1);
             SetStretchBltMode(g_13dc, 3);
@@ -3278,7 +3278,7 @@ int16_t fn_17_0600(int16_t reset)
                 while (g_1880 < g_91fe && g_1df8[0][g_1880].f_18);
             while (g_1880 < g_91fe) {
                 total = step * g_91fc;
-                left = (g_6084.right - total - g_6084.left) / 2;
+                left = (int16_t)(g_6084.right - total - g_6084.left) / 2;
                 x = left + g_187e * step + g_6084.left;
                 fn_10_9962(0, g_13dc, x, y, 64, 64, g_39e8[13],
                            (sz + org) * g_1880 + org, org, sz, sz, SRCCOPY);
@@ -3303,9 +3303,9 @@ int16_t fn_17_0600(int16_t reset)
         break;
     case 2:
         total = step * g_91fe;
-        left = (g_6084.right - total - g_6084.left) / 2;
-        x = left - (g_1884 + 4) / 2 + g_1880 * step + g_6084.left + 32;
-        y = (g_6084.top - g_6084.bottom) / 2 - (g_1882 + 4) / 2 + g_6084.bottom + 52;
+        left = (int16_t)(g_6084.right - total - g_6084.left) / 2;
+        x = left - (int16_t)(g_1884 + 4) / 2 + g_1880 * step + g_6084.left + 32;
+        y = (int16_t)(g_6084.top - g_6084.bottom) / 2 - (int16_t)(g_1882 + 4) / 2 + g_6084.bottom + 52;
         fn_10_9962(0, g_13dc, x, y, g_1884 + 4, g_1884 + 4, g_39e8[13],
                    (sz + org) * g_1880 + org - 2, org - 2, sz + 4, sz + 4, SRCCOPY);
         g_1884 = g_1882;
@@ -3319,7 +3319,7 @@ int16_t fn_17_0600(int16_t reset)
         }
         if (g_1882 <= 0) {
             x = g_1880 * step + left + g_6084.left;
-            y = (g_6084.top - g_6084.bottom) / 2 + g_6084.bottom + 20;
+            y = (int16_t)(g_6084.top - g_6084.bottom) / 2 + g_6084.bottom + 20;
             PatBlt(g_13dc, x - 6, y, 76, step, BLACKNESS);
             g_1884 = g_1882 = 60;
             if (++g_1880 >= g_91fe)
@@ -3355,11 +3355,11 @@ int16_t fn_17_0d22(int16_t reset)
     switch (g_9462) {
     case 0:
         b = g_1df8[4]->f_22;
-        sz = min(g_188a * 36 / 20, 72);
+        sz = min((int16_t)(g_188a * 36) / 20, 72);
         if (sz < 72)
             g_188e = g_188a * 2;
         pt.x = g_608c / 2 - sz / 2 - g_188e - 30;
-        pt.y = (g_6084.top - g_6084.bottom) / 2 - sz / 2 + g_6084.bottom;
+        pt.y = (int16_t)(g_6084.top - g_6084.bottom) / 2 - sz / 2 + g_6084.bottom;
         a = g_1df8[4]->f_24;
         SetStretchBltMode(g_13dc, 3);
         fn_10_9962(0, g_13dc, pt.x, pt.y, sz, sz, g_39f0, a, a, b, b, SRCCOPY);
@@ -3377,7 +3377,7 @@ int16_t fn_17_0d22(int16_t reset)
             g_9474 = 0;
             a = g_1df8[4]->f_24;
             b = g_1df8[4]->f_22;
-            pt.y = (g_6084.top - g_6084.bottom) / 2 + g_6084.bottom - 36;
+            pt.y = (int16_t)(g_6084.top - g_6084.bottom) / 2 + g_6084.bottom - 36;
             pt.x = g_608c / 2 - 146;
             g_5000 = pt.x + 132;
             g_5002 = pt.y - 17;
@@ -3398,12 +3398,12 @@ int16_t fn_17_0d22(int16_t reset)
         break;
     case 2:
         b = g_1df8[4]->f_22;
-        sz = min(g_188c * 36 / 20, 72);
+        sz = min((int16_t)(g_188c * 36) / 20, 72);
         a = g_1df8[4]->f_24;
         if (sz < 72)
             g_188e = g_188a * 2;
         pt.x = g_608c / 2 - sz / 2 - g_188e - 30;
-        pt.y = (g_6084.top - g_6084.bottom) / 2 - sz / 2 + g_6084.bottom;
+        pt.y = (int16_t)(g_6084.top - g_6084.bottom) / 2 - sz / 2 + g_6084.bottom;
         SetStretchBltMode(g_13dc, 3);
         fn_10_9962(0, g_13dc, pt.x, pt.y, sz, sz, g_39f0, a - 3, a - 3, b + 6, b + 6, SRCCOPY);
         PatBlt(g_13dc, pt.x - 10, pt.y, 10, sz, BLACKNESS);
@@ -3479,18 +3479,18 @@ int16_t fn_17_1b3e(int16_t reset, int16_t kind)
     switch (g_9462) {
     case 0:
         sz = g_1df8[kind][idx].f_22;
-        size = min(base * g_18ba / 55, base * 2);
+        size = min((int16_t)(base * g_18ba) / 55, (int16_t)(base * 2));
         org = g_1df8[kind][idx].f_24;
-        if (size < base * 2)
+        if (size < (int16_t)(base * 2))
             g_18be = g_18ba;
         x = g_608c / 2 - size / 2 - g_18be - 30;
-        y = (g_6084.top - g_6084.bottom) / 2 - size / 2 + g_6084.bottom;
+        y = (int16_t)(g_6084.top - g_6084.bottom) / 2 - size / 2 + g_6084.bottom;
         SetStretchBltMode(g_13dc, 3);
         fn_10_9962(0, g_13dc, x, y, size, size, g_39e8[spr], (org + sz) * (g_18c0 / 2) + org,
                    org, sz, sz, SRCCOPY);
         PatBlt(g_13dc, size + x, y, 2, size, BLACKNESS);
         g_18ba++;
-        if (++g_18c0 >= frames * 2)
+        if (++g_18c0 >= (int16_t)(frames * 2))
             g_18c0 = 0;
         if (g_18ba > limit) {
             g_9462++;
@@ -3506,7 +3506,7 @@ int16_t fn_17_1b3e(int16_t reset, int16_t kind)
             org = g_1df8[kind][idx].f_24;
             size = base * 2;
             x = g_608c / 2 - size / 2 - 140;
-            y = (g_6084.top - g_6084.bottom) / 2 - size / 2 + g_6084.bottom;
+            y = (int16_t)(g_6084.top - g_6084.bottom) / 2 - size / 2 + g_6084.bottom;
             g_5000 = x + size + 90;
             g_5002 = y - 10;
             fn_17_2c5a(1, 1);
@@ -3517,17 +3517,17 @@ int16_t fn_17_1b3e(int16_t reset, int16_t kind)
         }
         if (kind != 3 && kind != 7) {
             sz = g_1df8[kind][idx].f_22;
-            size = min(base * g_18ba / 55, base * 2);
+            size = min((int16_t)(base * g_18ba) / 55, (int16_t)(base * 2));
             org = g_1df8[kind][idx].f_24;
-            if (size < base * 2)
+            if (size < (int16_t)(base * 2))
                 g_18be = g_18ba;
             x = g_608c / 2 - size / 2 - g_18be - 30;
-            y = (g_6084.top - g_6084.bottom) / 2 - size / 2 + g_6084.bottom;
+            y = (int16_t)(g_6084.top - g_6084.bottom) / 2 - size / 2 + g_6084.bottom;
             SetStretchBltMode(g_13dc, 3);
             fn_10_9962(0, g_13dc, x, y, size, size, g_39e8[spr], (org + sz) * (g_18c0 / 2) + org,
                        org, sz, sz, SRCCOPY);
             PatBlt(g_13dc, size + x, y, 2, size, BLACKNESS);
-            if (++g_18c0 >= frames * 2)
+            if (++g_18c0 >= (int16_t)(frames * 2))
                 g_18c0 = 0;
         }
         if ((r = fn_17_2c5a(0, 0)) == 1)
@@ -3540,12 +3540,12 @@ int16_t fn_17_1b3e(int16_t reset, int16_t kind)
         break;
     case 2:
         sz = g_1df8[kind][idx].f_22;
-        size = min(base * g_18bc / 55, base * 2);
+        size = min((int16_t)(base * g_18bc) / 55, (int16_t)(base * 2));
         org = g_1df8[kind][idx].f_24;
-        if (size < base * 2)
+        if (size < (int16_t)(base * 2))
             g_18be = g_18ba;
         x = g_608c / 2 - size / 2 - g_18be - 30;
-        y = (g_6084.top - g_6084.bottom) / 2 - size / 2 + g_6084.bottom;
+        y = (int16_t)(g_6084.top - g_6084.bottom) / 2 - size / 2 + g_6084.bottom;
         SetStretchBltMode(g_13dc, 3);
         fn_10_9962(0, g_13dc, x, y, size, size, g_39e8[spr], (org + sz) * (g_18c0 / 2) + org - 2,
                    org - 2, sz + 4, sz + 4, SRCCOPY);
@@ -3601,7 +3601,7 @@ int16_t fn_17_20fa(int16_t reset, int16_t a, int16_t b)
         pc = g_1df8[14][g_9464].f_22;
         pe = g_1df8[14][g_9464].f_24;
         g_5000 = (size + 13) * 3 + g_1906.x;
-        g_5002 = (g_6084.top - g_6084.bottom) / 2 + g_6084.bottom - 0x56;
+        g_5002 = (int16_t)(g_6084.top - g_6084.bottom) / 2 + g_6084.bottom - 0x56;
         SetStretchBltMode(g_13dc, 3);
         PatBlt(g_13dc, g_5000, g_5002, g_6084.right - g_5000, g_6084.bottom - g_5002, BLACKNESS);
         PatBlt(g_13dc, g_6084.left, g_5002, g_5000 - 100, g_6084.bottom - g_5002, BLACKNESS);
@@ -3641,15 +3641,15 @@ int16_t fn_17_20fa(int16_t reset, int16_t a, int16_t b)
         g_18ca = 20;
         g_18ce = 80;
         g_18e2 = 25;
-        g_18e6 = mult * 100 - 25L;
-        g_18ea = (g_6084.top - g_6084.bottom) / 2 + g_6084.bottom;
+        g_18e6 = (int16_t)(mult * 100) - 25L;
+        g_18ea = (int16_t)((int16_t)(g_6084.top - g_6084.bottom) / 2 + g_6084.bottom);
         g_18ee = 0;
         g_18f2 = 400;
         g_18f6 = 0;
         g_18de = 0;
         g_18da = 0;
-        g_18d2 = (g_6084.left + 40) * 10;
-        g_18d6 = g_18d2 + (g_6084.right - g_6084.left) * 11 / 3;
+        g_18d2 = (int16_t)((g_6084.left + 40) * 10);
+        g_18d6 = g_18d2 + (int16_t)((g_6084.right - g_6084.left) * 11) / 3;
         g_1902 = g_18d2 / 10;
         g_1904 = g_18ea;
         fn_10_754a(0x13, 100, HI16(g_90ea) / 2, 4);
@@ -3678,11 +3678,11 @@ int16_t fn_17_20fa(int16_t reset, int16_t a, int16_t b)
         pc = g_1df8[14][g_9464].f_22;
         pe = g_1df8[14][g_9464].f_24;
         g_1904 = g_18ee * g_18d2 / g_18d6 + g_18ea;
-        ha = size * h4 / 100;
+        ha = (int16_t)(size * h4) / 100;
         g_1906.y = g_1904 - ha / 2;
-        g_1906.x = ha * h1c / -100 / 2 + g_1902;
+        g_1906.x = (int16_t)(ha * h1c) / -100 / 2 + g_1902;
         SetStretchBltMode(g_13dc, 3);
-        fn_10_9962(0, g_13dc, g_1906.x, g_1906.y, ha * h1c / 100, ha, g_39e8[bmp],
+        fn_10_9962(0, g_13dc, g_1906.x, g_1906.y, (int16_t)(ha * h1c) / 100, ha, g_39e8[bmp],
                    (pe + pc) * h6 + pe, pe, pc, pc, SRCCOPY);
         PatBlt(g_13dc, g_1906.x - 20, g_1906.y - 20, 20, ha + 20, BLACKNESS);
         g_1902 = (g_18d2 += h1e) / 10;
@@ -3694,7 +3694,7 @@ int16_t fn_17_20fa(int16_t reset, int16_t a, int16_t b)
             g_18c6++;
             g_18ca = 100;
             g_18ce = 0;
-            g_18e2 = mult * 100;
+            g_18e2 = (int16_t)(mult * 100);
             g_18e6 = 0;
             g_18ea = g_1904;
             g_18ee = 0;
@@ -3719,7 +3719,7 @@ int16_t fn_17_20fa(int16_t reset, int16_t a, int16_t b)
             g_18de = 10;
             g_9462++;
             g_5000 = ha + g_1906.x + 39;
-            g_5002 = (g_6084.top - g_6084.bottom) / 2 + g_6084.bottom - 0x56;
+            g_5002 = (int16_t)(g_6084.top - g_6084.bottom) / 2 + g_6084.bottom - 0x56;
             if (g_91f8 && g_9464 == main_ship)
                 fn_17_30b0(g_93aa, 3500L);
             else
@@ -3734,7 +3734,7 @@ int16_t fn_17_20fa(int16_t reset, int16_t a, int16_t b)
             pc = g_1df8[14][g_946c].f_22;
             pe = g_1df8[14][g_946c].f_24;
             g_5000 = (size + 13) * 3 + g_1906.x;
-            g_5002 = (g_6084.top - g_6084.bottom) / 2 + g_6084.bottom - 0x56;
+            g_5002 = (int16_t)(g_6084.top - g_6084.bottom) / 2 + g_6084.bottom - 0x56;
             pilot_panel_header(g_9464);
             fn_17_2c5a(1, 1);
             SetStretchBltMode(g_13dc, 3);
@@ -3761,14 +3761,14 @@ int16_t fn_17_20fa(int16_t reset, int16_t a, int16_t b)
         pc = g_1df8[14][g_9464].f_22;
         pe = g_1df8[14][g_9464].f_24;
         g_1904 = g_18fe * g_18ee / g_18d6 + g_18ea;
-        ha = size * h4 / 100;
+        ha = (int16_t)(size * h4) / 100;
         g_1906.y = g_1904 - ha / 2;
-        g_1906.x = ha * h1c / -100 / 2 + g_1902;
+        g_1906.x = (int16_t)(ha * h1c) / -100 / 2 + g_1902;
         SetStretchBltMode(g_13dc, 3);
-        fn_10_9962(0, g_13dc, g_1906.x, g_1906.y, ha * h1c / 100, ha, g_39e8[bmp],
+        fn_10_9962(0, g_13dc, g_1906.x, g_1906.y, (int16_t)(ha * h1c) / 100, ha, g_39e8[bmp],
                    (pe + pc) * h6 + pe, pe, pc, pc, SRCCOPY);
-        PatBlt(g_13dc, g_1906.x - 20, g_1906.y - 20, ha * h1c / 100 + 20, 20, BLACKNESS);
-        PatBlt(g_13dc, g_1906.x - 20, ha + g_1906.y, ha * h1c / 100 + 20, 20, BLACKNESS);
+        PatBlt(g_13dc, g_1906.x - 20, g_1906.y - 20, (int16_t)(ha * h1c) / 100 + 20, 20, BLACKNESS);
+        PatBlt(g_13dc, g_1906.x - 20, ha + g_1906.y, (int16_t)(ha * h1c) / 100 + 20, 20, BLACKNESS);
         PatBlt(g_13dc, g_1906.x - 20, g_1906.y - 20, 20, ha + 20, BLACKNESS);
         g_1902 = (g_18d2 += h1e) / 10;
         g_18da++;
@@ -3780,14 +3780,14 @@ int16_t fn_17_20fa(int16_t reset, int16_t a, int16_t b)
             g_18fa = 1;
             g_18ca = 100;
             g_18ce = -80;
-            g_18e2 = mult * 100;
+            g_18e2 = (int16_t)(mult * 100);
             g_18e6 = 50 - g_18e2;
             g_18ea = g_1904;
             g_18ee = 0;
             g_18f2 = 400;
             g_18f6 = 0;
             g_18fe = 0;
-            g_18d6 = g_6084.right * 10 - g_18d2 - 200;
+            g_18d6 = (int16_t)(g_6084.right * 10) - g_18d2 - 200;
             g_18de = 0;
             g_18da = 0;
             g_18c6++;
@@ -3806,15 +3806,15 @@ int16_t fn_17_20fa(int16_t reset, int16_t a, int16_t b)
                     g_18ca = 20;
                     g_18ce = 80;
                     g_18e2 = 25;
-                    g_18e6 = mult * 100 - 25L;
-                    g_18ea = (g_6084.top - g_6084.bottom) / 2 + g_6084.bottom;
+                    g_18e6 = (int16_t)(mult * 100) - 25L;
+                    g_18ea = (int16_t)((int16_t)(g_6084.top - g_6084.bottom) / 2 + g_6084.bottom);
                     g_18ee = 0;
                     g_18f2 = 400;
                     g_18f6 = 0;
                     g_18de = 0;
                     g_18da = 0;
-                    g_18d2 = (g_6084.left + 40) * 10;
-                    g_18d6 = g_18d2 + (g_6084.right - g_6084.left) * 11 / 3;
+                    g_18d2 = (int16_t)((g_6084.left + 40) * 10);
+                    g_18d6 = g_18d2 + (int16_t)((g_6084.right - g_6084.left) * 11) / 3;
                     g_1902 = g_6084.left + 40;
                     g_1904 = g_18ea;
                     fn_10_754a(0x13, 100, HI16(g_90ea) / 2, 4);
@@ -4074,7 +4074,7 @@ LRESULT fn_17_5782(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         break;
     case WM_DRAWITEM:
         dis = (DRAWITEMSTRUCT *)lParam;
-        if (dis->itemID == -1)
+        if (dis->itemID == 0xffff)
             fn_17_92b8(dis);
         else
             switch (dis->itemAction) {
@@ -4101,7 +4101,7 @@ LRESULT fn_17_5782(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         GetTextMetrics(dc, &tm);
         SelectObject(dc, old);
         ReleaseDC(g_0016, dc);
-        mis->itemHeight = max(tm.tmExternalLeading + tm.tmHeight + 3, 14);
+        mis->itemHeight = max((int16_t)(tm.tmExternalLeading + tm.tmHeight + 3), 14);
         if (g_9466 == 7)
             mis->itemHeight *= 2;
         break;

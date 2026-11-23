@@ -124,7 +124,7 @@ void fn_16_7396(void)
     d1 -= d2;
     days = (int16_t)d1 < 1 ? 1 : (int16_t)d1;
     if (days > 30)
-        m = days * 10 / 30;
+        m = (int16_t)(days * 10) / 30;
     else
         m = 0;
     if (m > 9) {

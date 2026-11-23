@@ -227,8 +227,8 @@ int16_t fn_09_08da(int16_t x, int16_t y)
     COLORREF c;
 
     c = GetPixel((HDC)g_3a02, 0, 0);
-    for (i = x; i < x + 32; i++)
-        for (j = y; j < y + 32; j++)
+    for (i = x; i < (int16_t)(x + 32); i++)
+        for (j = y; j < (int16_t)(y + 32); j++)
             if (GetPixel((HDC)g_3a02, i, j) != c)
                 return 0;
     return 1;

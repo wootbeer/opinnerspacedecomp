@@ -24,14 +24,14 @@ int32_t fn_11_1ab6(int32_t x)
         d1 = w - (int16_t)x + (LO16(g_05a0));
         d2 = (int16_t)x - w;
         if (d1 < d2)
-            return -d1;
+            return (int16_t)(-d1);
         return d2;
     } else {
         d1 = (int16_t)x - w + (LO16(g_05a0));
         d2 = w - (int16_t)x;
         if (d1 < d2)
             return d1;
-        return -d2;
+        return (int16_t)(-d2);
     }
 }
 
@@ -51,13 +51,13 @@ int32_t fn_11_1b44(int32_t y)
         d1 = h - (int16_t)y + (HI16(g_05a0));
         d2 = (int16_t)y - h;
         if (d1 < d2)
-            return -d1;
+            return (int16_t)(-d1);
         return d2;
     } else {
         d1 = (int16_t)y - h + (HI16(g_05a0));
         d2 = h - (int16_t)y;
         if (d1 < d2)
             return d1;
-        return -d2;
+        return (int16_t)(-d2);
     }
 }

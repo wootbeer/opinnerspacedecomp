@@ -14,7 +14,7 @@ int16_t fn_07_233c(int16_t unused, int16_t n, int16_t amount)
     HBITMAP bmp;
 
     if (g_57a8[n].f_00 == 0 && g_1df8[0][n].f_2f != -100 && g_1df8[0][n].f_2f != -2) {
-        g_1df8[0][n].f_1e = min(amount * 3 + g_1df8[0][n].f_1e, 211);
+        g_1df8[0][n].f_1e = min((int16_t)(amount * 3 + g_1df8[0][n].f_1e), 211);
         g_69f4[g_94a2].f_1d2[n] = g_1df8[0][n].f_1e;
         gap = g_1df8[0][n].f_24;
         size = g_1df8[0][n].f_22;
@@ -105,7 +105,7 @@ void fn_07_26c4(int16_t unused, int16_t n)
     g_1df8[0][n].f_18 = 1;
     fn_07_65aa(0, n);
     PatBlt(g_13dc, g_1df8[0][n].f_00.x, g_1df8[0][n].f_00.y,
-           (32 << g_9156) >> 1, (32 << g_9156) >> 1, BLACKNESS);
+           (int16_t)(32 << g_9156) >> 1, (int16_t)(32 << g_9156) >> 1, BLACKNESS);
     fn_07_5ae8(n, 0);
 }
 
@@ -266,7 +266,7 @@ void fn_07_32d0(void)
     int16_t u2[6];
     HGDIOBJ old;
 
-    size = (6 << g_9156) >> 1;
+    size = (int16_t)(6 << g_9156) >> 1;
     for (i = 0; i < g_9406[1]; i++) {
         if (g_1df8[1][i].f_18 == 0) {
             if (g_1df8[1][i].f_1a != 0 && g_4e94[i] != 0) {
@@ -372,7 +372,7 @@ void fn_07_375a(void)
     n = g_9208 * 2 + 3;
     m = (g_9208 + 7) * 4;
     for (i = 0; i < n; i++) {
-        if (n - 1 > g_9510 && i == g_9510)
+        if ((int16_t)(n - 1) > g_9510 && i == g_9510)
             for (j = 0; j < 4; j++) {
                 g_5b28[g_9510][j].s = g_1df8[g_9512][g_9514].f_04;
                 g_5b28[g_9510][j].s.x
@@ -383,7 +383,7 @@ void fn_07_375a(void)
                 g_5b28[g_9510][j].vy = -(g_1050[g_1df8[g_9512][g_9514].f_28].y * 4);
                 g_5b28[g_9510][j].f_0c = 0;
             }
-        if (m + n + 1 > g_9510 && i <= g_9510) {
+        if ((int16_t)(m + n + 1) > g_9510 && i <= g_9510) {
             for (j = 0; j < 4; j++) {
                 if (g_5b28[i][j].f_0c < m && g_5b28[i][j].f_0c > 0) {
                     fn_08_083e(i, j);
@@ -395,7 +395,7 @@ void fn_07_375a(void)
                 g_5b28[i][j].s.x += g_5b28[i][j].vx;
                 g_5b28[i][j].s.y += g_5b28[i][j].vy;
                 g_5b28[i][j].f_0c++;
-                if (g_5b28[i][j].f_0c >= m - 1)
+                if (g_5b28[i][j].f_0c >= (int16_t)(m - 1))
                     PatBlt(g_13dc, g_5b28[i][j].p.x, g_5b28[i][j].p.y, 2, 2, BLACKNESS);
             }
             if (g_5b28[i][0].f_0c < m / 3) {
@@ -427,7 +427,7 @@ void fn_07_375a(void)
             }
         }
     }
-    if (m + n == ++g_9510)
+    if ((int16_t)(m + n) == ++g_9510)
         g_9512 = -1;
 }
 
@@ -498,7 +498,7 @@ void fn_07_3bae(void)
                         k = 7;
                     flag = 0;
                 }
-                if (!subgame_active && g_1df8[g_934a][i].f_22 < (30 << g_9156 >> 1))
+                if (!subgame_active && g_1df8[g_934a][i].f_22 < ((int16_t)(30 << g_9156) >> 1))
                     k += 2;
                 if (subgame_active && (g_9156 == 0 && g_1df8[g_934a][i].f_22 < 12
                                || g_9156 == 1 && g_1df8[g_934a][i].f_22 < 30))
@@ -592,9 +592,9 @@ void fn_07_477e(int16_t n)
     }
     PatBlt(g_3a04[n], 0, 0, size * 5 + gap * 6, gap * 2 + size, BLACKNESS);
     for (i = 0; i < 5; i++) {
-        BitBlt(g_3a04[n], (gap + size) * i + gap, (12 << g_9156 >> 1) + gap, size,
-               size - (12 << g_9156 >> 1), g_3a02, (gap + size) * n + gap,
-               (12 << g_9156 >> 1) + gap, SRCCOPY);
+        BitBlt(g_3a04[n], (gap + size) * i + gap, ((int16_t)(12 << g_9156) >> 1) + gap, size,
+               size - ((int16_t)(12 << g_9156) >> 1), g_3a02, (gap + size) * n + gap,
+               ((int16_t)(12 << g_9156) >> 1) + gap, SRCCOPY);
         BitBlt(g_3a04[n], (gap + size) * i + gap, gap, size, size, dc2, size * i, 0, SRCAND);
         BitBlt(g_3a04[n], (gap + size) * i + gap, gap, size, size, dc1, size * i, 0, SRCPAINT);
     }
@@ -763,18 +763,18 @@ void fn_07_5e04(void)
     for (i = tbl[1] = tbl[0] = 0; i < 20; i++) {
         if (g_58bc[i].f_10 < 55 && g_58bc[i].f_10 > -1) {
             q = g_58bc[i].f_10 / 9;
-            if (g_58bc[i].f_10 % 4 <= g_9208 + 2) {
-                w = (q + 5) * 2 << g_9156 >> 1;
-                srcx = q * (30 << g_9156 >> 1) + (tbl[q] << g_9156 >> 1)
+            if (g_58bc[i].f_10 % 4 <= (int16_t)(g_9208 + 2)) {
+                w = (int16_t)((q + 5) * 2 << g_9156) >> 1;
+                srcx = q * ((int16_t)(30 << g_9156) >> 1) + ((int16_t)(tbl[q] << g_9156) >> 1)
                     + w * (g_58bc[i].f_10 / 3 % 3);
                 off = q;
                 fn_08_124a(i);
                 flag = 1;
                 if (g_9208 >= 2) {
-                    SetRect(&r3, g_58bc[i].a.x - (off << g_9156 >> 1),
-                            g_58bc[i].a.y - (off << g_9156 >> 1),
-                            g_58bc[i].a.x - (off << g_9156 >> 1) + w,
-                            g_58bc[i].a.y - (off << g_9156 >> 1) + w);
+                    SetRect(&r3, g_58bc[i].a.x - ((int16_t)(off << g_9156) >> 1),
+                            g_58bc[i].a.y - ((int16_t)(off << g_9156) >> 1),
+                            g_58bc[i].a.x - ((int16_t)(off << g_9156) >> 1) + w,
+                            g_58bc[i].a.y - ((int16_t)(off << g_9156) >> 1) + w);
                     for (j = 0; j < g_9146; j++) {
                         SetRect(&r1, g_1df8[g_507c[j]][g_50e0[j]].f_00.x,
                                 g_1df8[g_507c[j]][g_50e0[j]].f_00.y,
@@ -787,13 +787,13 @@ void fn_07_5e04(void)
                 g_58bc[i].c.x += g_58bc[i].f_0c;
                 g_58bc[i].c.y += g_58bc[i].f_0e;
                 if (g_58bc[i].f_12)
-                    PatBlt(g_13dc, g_58bc[i].b.x - (off << g_9156 >> 1),
-                           g_58bc[i].b.y - (off << g_9156 >> 1), w, w, BLACKNESS);
+                    PatBlt(g_13dc, g_58bc[i].b.x - ((int16_t)(off << g_9156) >> 1),
+                           g_58bc[i].b.y - ((int16_t)(off << g_9156) >> 1), w, w, BLACKNESS);
                 if (subgame_active) {
-                    SetRect(&r3, g_58bc[i].a.x - (off << g_9156 >> 1),
-                            g_58bc[i].a.y - (off << g_9156 >> 1),
-                            g_58bc[i].a.x - (off << g_9156 >> 1) + w,
-                            g_58bc[i].a.y - (off << g_9156 >> 1) + w);
+                    SetRect(&r3, g_58bc[i].a.x - ((int16_t)(off << g_9156) >> 1),
+                            g_58bc[i].a.y - ((int16_t)(off << g_9156) >> 1),
+                            g_58bc[i].a.x - ((int16_t)(off << g_9156) >> 1) + w,
+                            g_58bc[i].a.y - ((int16_t)(off << g_9156) >> 1) + w);
                     for (k = 0; k < 4; k++)
                         for (j = 0; j < 3; j++)
                             if (IntersectRect(&r2, &r3, &g_8860[k * 3 + j])) {
@@ -804,8 +804,8 @@ void fn_07_5e04(void)
                             }
                 }
                 if (flag) {
-                    BitBlt(g_13dc, g_58bc[i].a.x - (off << g_9156 >> 1),
-                           g_58bc[i].a.y - (off << g_9156 >> 1), w, w,
+                    BitBlt(g_13dc, g_58bc[i].a.x - ((int16_t)(off << g_9156) >> 1),
+                           g_58bc[i].a.y - ((int16_t)(off << g_9156) >> 1), w, w,
                            g_3a00, srcx, 0, SRCCOPY);
                     g_58bc[i].f_12 = 1;
                 } else
@@ -819,8 +819,8 @@ void fn_07_5e04(void)
             g_58bc[i].f_10++;
         }
         if (g_58bc[i].f_10 == 55) {
-            PatBlt(g_13dc, g_58bc[i].a.x - (6 << g_9156 >> 1), g_58bc[i].a.y - (6 << g_9156 >> 1),
-                   24 << g_9156 >> 1, 24 << g_9156 >> 1, BLACKNESS);
+            PatBlt(g_13dc, g_58bc[i].a.x - ((int16_t)(6 << g_9156) >> 1), g_58bc[i].a.y - ((int16_t)(6 << g_9156) >> 1),
+                   (int16_t)(24 << g_9156) >> 1, (int16_t)(24 << g_9156) >> 1, BLACKNESS);
             g_58bc[i].f_10 = -1;
             if (subgame_active)
                 fn_18_5350(g_58bc[i].a.x, g_58bc[i].a.y);
@@ -1067,10 +1067,10 @@ void fn_07_2768(int16_t n)
     HGDIOBJ old[2];
     int16_t bmp;
 
-    size = 20 << g_9156 >> 1;
-    gap = 6 << g_9156 >> 1;
-    s32 = 32 << g_9156 >> 1;
-    g2 = 6 << g_9156 >> 1;
+    size = (int16_t)(20 << g_9156) >> 1;
+    gap = (int16_t)(6 << g_9156) >> 1;
+    s32 = (int16_t)(32 << g_9156) >> 1;
+    g2 = (int16_t)(6 << g_9156) >> 1;
     g_57a8[n].f_19 = 1;
     for (i = 0; i < 4; i++) {
         for (j = 0; j < g_92ec[1]; j++) {
@@ -1095,9 +1095,9 @@ void fn_07_2768(int16_t n)
             GlobalUnlock(g_9100[1]);
             g_9100[1] = GlobalReAlloc(g_9100[1], (int32_t)max(g_92ec[1], 1) * 0x70, 0x42);
             g_1df8[1] = (REC_70 *)GlobalLock(g_9100[1]);
-            g_1df8[1][j].f_22 = 20 << g_9156 >> 1;
+            g_1df8[1][j].f_22 = (int16_t)(20 << g_9156) >> 1;
             g_1df8[1][j].f_20 = 0xa0;
-            g_1df8[1][j].f_24 = 6 << g_9156 >> 1;
+            g_1df8[1][j].f_24 = (int16_t)(6 << g_9156) >> 1;
             g_1df8[1][j].f_44 = 0x3c;
             g_1df8[1][j].f_42 = 0x12;
             g_1df8[1][j].f_4c = 0x808000;
@@ -1134,32 +1134,32 @@ void fn_07_2768(int16_t n)
     SelectObject(dc[1], g_4e94[idx[0]]);
     PatBlt(dc[1], 0, 0, g2 * 2 + s32, g2 * 2 + s32, BLACKNESS);
     BitBlt(dc[1], gap, gap, size, size, dc[0], 0, 0, SRCCOPY);
-    BitBlt(dc[1], (2 << g_9156 >> 1) + gap, (2 << g_9156 >> 1) + gap,
-           size - (4 << g_9156 >> 1), size - (4 << g_9156 >> 1), g_3a02,
-           (g2 + s32) * n + (3 << g_9156 >> 1) + g2, (3 << g_9156 >> 1) + g2, SRCCOPY);
+    BitBlt(dc[1], ((int16_t)(2 << g_9156) >> 1) + gap, ((int16_t)(2 << g_9156) >> 1) + gap,
+           size - ((int16_t)(4 << g_9156) >> 1), size - ((int16_t)(4 << g_9156) >> 1), g_3a02,
+           (g2 + s32) * n + ((int16_t)(3 << g_9156) >> 1) + g2, ((int16_t)(3 << g_9156) >> 1) + g2, SRCCOPY);
 
     SelectObject(dc[0], bmp);
     SelectObject(dc[1], g_4e94[idx[1]]);
     PatBlt(dc[1], 0, 0, g2 * 2 + s32, g2 * 2 + s32, BLACKNESS);
     BitBlt(dc[1], gap, gap, size, size, dc[0], 0, 0, SRCCOPY);
-    BitBlt(dc[1], (2 << g_9156 >> 1) + gap, (2 << g_9156 >> 1) + gap,
-           size - (4 << g_9156 >> 1), size - (4 << g_9156 >> 1), g_3a02,
-           (g2 + s32) * n + s32 / 2 + g2, (3 << g_9156 >> 1) + g2, SRCCOPY);
+    BitBlt(dc[1], ((int16_t)(2 << g_9156) >> 1) + gap, ((int16_t)(2 << g_9156) >> 1) + gap,
+           size - ((int16_t)(4 << g_9156) >> 1), size - ((int16_t)(4 << g_9156) >> 1), g_3a02,
+           (g2 + s32) * n + s32 / 2 + g2, ((int16_t)(3 << g_9156) >> 1) + g2, SRCCOPY);
 
     SelectObject(dc[0], bmp);
     SelectObject(dc[1], g_4e94[idx[2]]);
     PatBlt(dc[1], 0, 0, g2 * 2 + s32, g2 * 2 + s32, BLACKNESS);
     BitBlt(dc[1], gap, gap, size, size, dc[0], 0, 0, SRCCOPY);
-    BitBlt(dc[1], (2 << g_9156 >> 1) + gap, (2 << g_9156 >> 1) + gap,
-           size - (4 << g_9156 >> 1), size - (4 << g_9156 >> 1), g_3a02,
-           (g2 + s32) * n + (3 << g_9156 >> 1) + g2, g2 + size, SRCCOPY);
+    BitBlt(dc[1], ((int16_t)(2 << g_9156) >> 1) + gap, ((int16_t)(2 << g_9156) >> 1) + gap,
+           size - ((int16_t)(4 << g_9156) >> 1), size - ((int16_t)(4 << g_9156) >> 1), g_3a02,
+           (g2 + s32) * n + ((int16_t)(3 << g_9156) >> 1) + g2, g2 + size, SRCCOPY);
 
     SelectObject(dc[0], bmp);
     SelectObject(dc[1], g_4e94[idx[3]]);
     PatBlt(dc[1], 0, 0, g2 * 2 + s32, g2 * 2 + s32, BLACKNESS);
     BitBlt(dc[1], gap, gap, size, size, dc[0], 0, 0, SRCCOPY);
-    BitBlt(dc[1], (2 << g_9156 >> 1) + gap, (2 << g_9156 >> 1) + gap,
-           size - (4 << g_9156 >> 1), size - (4 << g_9156 >> 1), g_3a02,
+    BitBlt(dc[1], ((int16_t)(2 << g_9156) >> 1) + gap, ((int16_t)(2 << g_9156) >> 1) + gap,
+           size - ((int16_t)(4 << g_9156) >> 1), size - ((int16_t)(4 << g_9156) >> 1), g_3a02,
            (g2 + s32) * n + g2 + size, g2 + size, SRCCOPY);
 
     for (k = 0; k < 2; k++) {
@@ -1203,11 +1203,11 @@ void fn_07_4d86(int16_t n)
 
     size = g_1df8[0]->f_22;
     gap = g_1df8[0]->f_24;
-    a = (rand() % 12 + 10 << g_9156) >> 1;
-    b = (rand() % 12 + 10 << g_9156) >> 1;
+    a = (int16_t)(rand() % 12 + 10 << g_9156) >> 1;
+    b = (int16_t)(rand() % 12 + 10 << g_9156) >> 1;
     c = rand() % 10 << g_9156;
-    d = (rand() % 10 + 22 << g_9156) >> 1;
-    w = 2 << g_9156 >> 1;
+    d = (int16_t)(rand() % 10 + 22 << g_9156) >> 1;
+    w = (int16_t)(2 << g_9156) >> 1;
     if (g_57a8[n].f_02 == 0) {
         BitBlt(g_3a02, (size + gap) * n + gap + a, gap, w, size,
                g_3a02, (size + gap) * n + gap + a, gap - w, SRCCOPY);
@@ -1390,7 +1390,7 @@ int16_t fn_07_5090(int16_t type, int16_t idx, int16_t amount)
     if (g_9406[g_944c] < g_9450)
         return 0;
     if (type == g_934a && amount > 1) {
-        amount = amount * 3 / 2;
+        amount = (int16_t)(amount * 3) / 2;
         lvl = g_1df8[type][idx].f_2f;
         if (g_9328 != g_944c || g_1df8[g_944c][g_9450].f_44 != 200)
             g_1df8[type][idx].f_2f = min(amount / 4 + g_1df8[type][idx].f_2f, 9);
@@ -1429,7 +1429,7 @@ int16_t fn_07_5090(int16_t type, int16_t idx, int16_t amount)
                             g_1df8[g_934a][n].f_53 = 0;
                             g_1df8[g_934a][n].f_54 = 0;
                             g_1df8[g_934a][n].f_32 = -1;
-                            g_1df8[g_934a][n].f_24 = 5 << g_9156 >> 1;
+                            g_1df8[g_934a][n].f_24 = (int16_t)(5 << g_9156) >> 1;
                             g_1df8[g_934a][n].f_12 = g_1df8[g_934a][n].f_24;
                             g_1df8[g_934a][n].f_2e = 0;
                             g_1df8[g_934a][n].f_18 = 1;
@@ -1438,13 +1438,13 @@ int16_t fn_07_5090(int16_t type, int16_t idx, int16_t amount)
                         if (g_1df8[g_934a][n].f_18) {
                             cnt++;
                             g_1df8[g_934a][n].f_44 = 350;
-                            g_1df8[g_934a][n].f_22 = 22 << g_9156 >> 1;
+                            g_1df8[g_934a][n].f_22 = (int16_t)(22 << g_9156) >> 1;
                             g_1df8[g_934a][n].f_20 = 0xa8;
                             g_1df8[g_934a][n].f_2e = 0;
-                            g_1df8[g_934a][n].f_24 = 4 << g_9156 >> 1;
+                            g_1df8[g_934a][n].f_24 = (int16_t)(4 << g_9156) >> 1;
                             g_1df8[g_934a][n].f_12 = g_1df8[g_934a][n].f_24;
                             if (g_9156 == 0 && subgame_active)
-                                g_1df8[g_934a][n].f_22 = g_1df8[g_934a][n].f_22 * 2 / 3;
+                                g_1df8[g_934a][n].f_22 = (int16_t)(g_1df8[g_934a][n].f_22 * 2) / 3;
                             if (g_9156 == 2 && g_0740) {
                                 g_1df8[g_934a][n].f_24 = 4;
                                 g_1df8[g_934a][n].f_12 = 4;
@@ -1492,7 +1492,7 @@ int16_t fn_07_5090(int16_t type, int16_t idx, int16_t amount)
     return 0;
 }
 
-#define SC(n) ((n) << g_9156 >> 1)
+#define SC(n) ((int16_t)((n) << g_9156) >> 1)
 /* Steps the g_5a4c effect of each g_9328 object (size from its counter,
  * a 6-point trail in g_5eac) and applies its hit to what it touches
  * [inferred]. */
@@ -1547,8 +1547,8 @@ void fn_07_40c4(void)
             g_1df8[g_9328][n].f_04.y += t * 8;
             PatBlt(g_13dc, g_5eac[n][5] - 1, g_5eac[n][11] - 1,
                    g_5eac[n][17] + 2, g_5eac[n][17] + 2, BLACKNESS);
-            if (LO16(g_90ea) / 2 - g_5eac[n][17] < g_5eac[n][5]
-                && HI16(g_90ea) / 2 - g_5eac[n][17] < g_5eac[n][11]
+            if ((int16_t)(LO16(g_90ea) / 2 - g_5eac[n][17]) < g_5eac[n][5]
+                && (int16_t)(HI16(g_90ea) / 2 - g_5eac[n][17]) < g_5eac[n][11]
                 && LO16(g_90ea) / 2 + SC(40) > g_5eac[n][5]
                 && HI16(g_90ea) / 2 + SC(40) > g_5eac[n][11])
                 g_7090[main_ship].f_156 = g_1e50 - 1;
@@ -1606,7 +1606,7 @@ void fn_07_40c4(void)
                 }
             }
             g_5a4c[n].f_00++;
-            if (g_5a4c[n].f_02 + 4 < g_5a4c[n].f_00) {
+            if ((int16_t)(g_5a4c[n].f_02 + 4) < g_5a4c[n].f_00) {
                 if (fn_08_7ba8(g_1df8[g_9328][n].f_00))
                     PatBlt(g_13dc, g_1df8[g_9328][n].f_00.x - 1, g_1df8[g_9328][n].f_00.y - 1,
                            54, 54, BLACKNESS);

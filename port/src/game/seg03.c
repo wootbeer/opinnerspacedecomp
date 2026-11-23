@@ -1224,7 +1224,7 @@ void fn_03_1d0a(int16_t me, int16_t o, int16_t mode)
         } else if (g_7090[o].f_147) {
             LoadString(g_9212, 0x442, s1, 40);
             LoadString(g_9212, 0x443, line2, 40);
-        } else if (g_7090[o].f_026[0] + g_7090[o].f_026[1] + g_7090[o].f_026[2] < 100) {
+        } else if ((int16_t)(g_7090[o].f_026[0] + g_7090[o].f_026[1] + g_7090[o].f_026[2]) < 100) {
             LoadString(g_9212, 0x1e8, s1, 40);
             if (me == 100)
                 LoadString(g_9212, 0x460, line2, 40);
@@ -1291,7 +1291,7 @@ void fn_03_1d0a(int16_t me, int16_t o, int16_t mode)
                             g_7090[o].f_0a4 = g_1e50;
                             break;
                         }
-                    if (g_9316 - i + 1 == 0) {
+                    if ((int16_t)(g_9316 - i + 1) == 0) {
                         g_7090[o].f_094 = 0;
                         g_7090[o].f_052 = -1;
                         if (o != main_ship || !flow_interactive)
@@ -1364,7 +1364,7 @@ void fn_03_1d0a(int16_t me, int16_t o, int16_t mode)
                                 id = 0x6cb;
                             else
                                 id = 0x6ce;
-                        } else if (g_7090[me].f_026[0] * 3 / 4 < sz) {
+                        } else if ((int16_t)(g_7090[me].f_026[0] * 3) / 4 < sz) {
                             if (LO16(g_8e04) > LO16(g_8e00)) {
                                 if (mood > 2 && LO16(g_8e04) > 0x50) {
                                     if (g_7090[o].f_05e < 2)
@@ -1378,7 +1378,7 @@ void fn_03_1d0a(int16_t me, int16_t o, int16_t mode)
                                     id = 0x6b1;
                                 else
                                     id = 0x6b2;
-                            } else if (LO16(g_8e00) * 3 / 5 < LO16(g_8e04)) {
+                            } else if ((int16_t)(LO16(g_8e00) * 3) / 5 < LO16(g_8e04)) {
                                 if (mood > 1) {
                                     if (g_7090[o].f_05e < 2)
                                         id = 0x6b3;
@@ -1399,7 +1399,7 @@ void fn_03_1d0a(int16_t me, int16_t o, int16_t mode)
                                     id = 0x6b4;
                             } else
                                 id = 0x6b9;
-                        } else if (LO16(g_8e00) * 3 / 4 < LO16(g_8e04)
+                        } else if ((int16_t)(LO16(g_8e00) * 3) / 4 < LO16(g_8e04)
                                    && g_7090[me].f_026[0] / 2 < sz) {
                             if (mood > 1) {
                                 if (g_7090[o].f_05e < 2)
@@ -1649,7 +1649,7 @@ void fn_03_1d0a(int16_t me, int16_t o, int16_t mode)
                 else if (tt == 0)
                     id = 0x1e1;
                 else if (tt == 4
-                         && g_96d2[g_7090[o].f_04e].f_1e - 15 > g_7090[o].f_01e)
+                         && (int16_t)(g_96d2[g_7090[o].f_04e].f_1e - 15) > g_7090[o].f_01e)
                     id = 0x46a;
                 else if (tt == 4)
                     id = 0x469;
