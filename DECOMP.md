@@ -595,3 +595,14 @@ Conventions
   `if (0) { label: ... }`); a goto cannot push a block further down.
 - `volatile` stops value reuse but not which operand is loaded first.
 - `(unsigned)r >> 8` on an int crashed CL (C1001) in 13:0000; HIBYTE works.
+- A block with many locals: CL puts the first six declared ascending just
+  below the function-level locals, the rest descending; these can overlap
+  function-level compiler temps.
+- CL copies a just-assigned long local into a temp for the next statement;
+  only a label stops it (and the label also loses record-address CSE).
+
+## Remaining near-matches (all written in C, logic complete)
+7:0000 (one block placed differently), 7:40c4, 6:301a, 8:1e32, 8:3688,
+10:0736/0864/0a26 (one byte each), 11:1b44, 12:3e98 (87%), 12:4d8e,
+15:454c, 16:0000, 17:3746, 18:2c1e, 18:49d8. Each is a single register,
+slot or block-placement choice of CL 8.00c.
