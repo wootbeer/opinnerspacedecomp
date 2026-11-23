@@ -122,7 +122,8 @@ typedef struct {
     int f00;                    /* +00 */
     char p02[0x22 - 0x02];
     int f22;                    /* +22 */
-    char p24[0x34 - 0x24];
+    int f24;                    /* +24 */
+    char p26[0x34 - 0x26];
 } REC_34B;
 extern REC_34B g_3d5a[];
 
@@ -204,6 +205,21 @@ extern POINT g_9ea8[];
 extern int g_9322;
 extern int g_92f4;
 extern int g_941c;
+extern int g_9344;
+/* The 0x10-byte records of DS:4f32 from DS:4f2c: groups of objects
+ * turning round a centre [inferred]. */
+typedef struct {
+    int first;                  /* +00 */
+    int end;                    /* +02 */
+    int radius;                 /* +04 */
+    char p06[4];
+    int cx;                     /* +0a */
+    int cy;                     /* +0c */
+    int speed;                  /* +0e */
+} REC_10C;
+extern REC_10C g_4f2c[];
+int far fn_06_71b2(int deg);
+int far fn_06_720c(int deg);
 extern int g_9328;
 /* The 0x1c-byte records of DS:66e4 from their start, DS:66e0 [inferred]. */
 typedef struct {
@@ -430,10 +446,8 @@ void far pascal fn_12_5636(int a)
     g_9430 = a;
 }
 
-void far fn_12_7006(void)
-{
-    g_9430 = 0;
-}
+
+void far fn_12_7006(void);
 
 void far fn_12_7256(HDC dc, POINT a, POINT b)
 {
@@ -927,37 +941,31 @@ void far pascal fn_12_0586(int idx, int range)
         return;
     }
     for (t = 0; t <= g_9324; t++) {
-        if (g_2f5e[kind].f0a == 1 && t == g_9328)
-            continue;
-        if (t == 2)
-            continue;
-        for (i = 0; i < g_9406[t]; i++) {
-            if (t == 6 && i == idx)
-                continue;
-            if (g_1df8[t][i].f18 != 0)
-                continue;
-            if (g_1df8[t][i].f44 <= 0x1e)
-                continue;
-            if (g_2f5e[kind].f00 != 3 && g_1df8[t][i].f2f == 0)
-                continue;
-            d = fn_08_285a(&dy, &dx, g_1df8[6][idx].f04, g_1df8[t][i].f04);
-            if (g_66e0[idx].f08 == t && g_66e0[idx].f0a == i)
-                d <<= 2;
-            if (g_66e0[idx].f08 == g_9324 && t == g_9324
-                && g_96f0[g_70ae[g_66e0[idx].f0a].f30].f1a == g_96f0[g_70ae[i].f30].f1a
-                && g_92e8 == 0)
-                d *= 7;
-            if (g_2f5e[kind].f00 == 4) {
-                d += -25 * g_1df8[t][i].f2f;
-                if (t == g_9328)
-                    d /= 2;
-            } else if (t == g_9324) {
-                d = d * 2 / 3;
-            }
-            if (d < range && d < best) {
-                best = d;
-                bt = t;
-                bi = i;
+        if ((g_2f5e[kind].f0a != 1 || t != g_9328) && t != 2) {
+            for (i = 0; i < g_9406[t]; i++) {
+                if ((t != 6 || i != idx) && g_1df8[t][i].f18 == 0
+                    && g_1df8[t][i].f44 > 0x1e
+                    && (g_2f5e[kind].f00 == 3 || g_1df8[t][i].f2f != 0)) {
+                    d = fn_08_285a(&dy, &dx, g_1df8[6][idx].f04, g_1df8[t][i].f04);
+                    if (g_66e0[idx].f08 == t && g_66e0[idx].f0a == i)
+                        d <<= 2;
+                    if (g_66e0[idx].f08 == g_9324 && t == g_9324
+                        && g_96f0[g_70ae[g_66e0[idx].f0a].f30].f1a == g_96f0[g_70ae[i].f30].f1a
+                        && g_92e8 == 0)
+                        d *= 7;
+                    if (g_2f5e[kind].f00 == 4) {
+                        d += -25 * g_1df8[t][i].f2f;
+                        if (t == g_9328)
+                            d /= 2;
+                    } else if (t == g_9324) {
+                        d = d * 2 / 3;
+                    }
+                    if (d < range && d < best) {
+                        best = d;
+                        bt = t;
+                        bi = i;
+                    }
+                }
             }
         }
     }
@@ -968,4 +976,44 @@ void far pascal fn_12_0586(int idx, int range)
     g_66e0[idx].f1a = 1;
     g_66e0[idx].f00 = bt;
     g_66e0[idx].f02 = bi;
+}
+
+/* Turn the objects of each group round its centre [inferred]. */
+/* @addr 12:7006 */
+void far fn_12_7006(void)
+{
+    int k;
+    int j;
+    long s0;
+    long c0;
+    long s1;
+    long c1;
+
+    for (k = 0; k < g_9344; k++) {
+        for (j = g_4f2c[k].first; j < g_4f2c[k].end; j++) {
+            g_3d5a[j].f24 += g_4f2c[k].speed;
+            if (g_3d5a[j].f24 < 0)
+                g_3d5a[j].f24 = g_3d5a[j].f24 + 0xb40;
+            if (g_3d5a[j].f24 > 0xb40)
+                g_3d5a[j].f24 -= 0xb40;
+            s0 = fn_06_71b2(g_3d5a[j].f24 >> 3);
+            c0 = fn_06_720c(g_3d5a[j].f24 >> 3);
+            s1 = fn_06_71b2((g_3d5a[j].f24 >> 3) + 1);
+            c1 = fn_06_720c((g_3d5a[j].f24 >> 3) + 1);
+            s0 += (s1 - s0) * (g_3d5a[j].f24 % 8) / 8;
+            c0 += (c1 - c0) * (g_3d5a[j].f24 % 8) / 8;
+            g_1df8[8][j].f04.x = (int)(g_4f2c[k].radius * c0 / 128) + g_4f2c[k].cx;
+            g_1df8[8][j].f04.y = (int)(s0 * g_4f2c[k].radius / 128) + g_4f2c[k].cy;
+            g_1df8[8][j].f0c = (int)(s0 * ((long)g_4f2c[k].radius * g_4f2c[k].speed) / -82000L);
+            g_1df8[8][j].f0e = (int)(c0 * g_4f2c[k].radius * g_4f2c[k].speed / 82000L);
+            if (g_1df8[8][j].f04.y > g_05a2 * 8)
+                g_1df8[8][j].f04.y -= g_05a2 * 8;
+            else if (g_1df8[8][j].f04.y < 0)
+                g_1df8[8][j].f04.y += g_05a2 * 8;
+            if (g_1df8[8][j].f04.x > G_05A0_INT * 8)
+                g_1df8[8][j].f04.x -= G_05A0_INT * 8;
+            else if (g_1df8[8][j].f04.x < 0)
+                g_1df8[8][j].f04.x += G_05A0_INT * 8;
+        }
+    }
 }

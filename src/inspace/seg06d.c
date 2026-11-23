@@ -1,6 +1,7 @@
 /* INSPACE.EXE segment 6 (selector 1028): 6:1c72-6:5d58, one source file. */
 #include "inspace.h"
 #include <dos.h>
+#include <shellapi.h>
 
 int far fn_06_4190(char far *dir);
 int far fn_06_4650(char far *dir);
@@ -60,6 +61,11 @@ typedef struct {                /* 0x297 bytes, far array at DS:69f4 */
 extern REC_297 far *g_69f4;
 extern char g_6990[];
 extern HGDIOBJ g_6aee;
+extern int g_94a6;
+extern int g_94c0;
+extern int g_94c2;
+extern HINSTANCE g_9210;
+void far fn_09_0352(HDC hdc, int x, int flags, int w, int h, LPSTR name);
 extern HGDIOBJ g_90fe;
 int far fn_06_5cbc(int i, char far *s);
 extern struct find_t g_69f8;
@@ -237,9 +243,83 @@ void far fn_06_4118(char far *s, int a, int b, int c)
 }
 
 /* Nonzero when the directory holds no .exe file [inferred]. */
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Draws the icon of program dir\\name into the 32x32 bitmap g_94ba
+ * [inferred]. */
+/* @addr 6:4368 */
 void far fn_06_4368(char far *dir, char far *name)
 {
+    HICON icon;
+    HDC saved;
+    HDC memdc;
+    HGDIOBJ old;
+    HPALETTE pal;
+    int rel;
+    char path[130];
+    int n;
+    int res;
+
+    rel = 0;
+    saved = g_13dc;
+    if (!saved) {
+        rel = 1;
+        g_13dc = GetDC(g_0d1e);
+    }
+    if (g_920e)
+        pal = SelectPalette(g_13dc, g_920e, 0);
+    lstrcpy(path, dir);
+    res = 0;
+    if (lstrlen(path) == 1) {
+        switch (path[0]) {
+        case 'R':
+            res = 0x6a;
+            break;
+        case 'S':
+            res = 0x69;
+            break;
+        case 'D':
+            res = 0x6b;
+            break;
+        }
+    }
+    if (path[lstrlen(path) - 1] != '\\')
+        lstrcat(path, "\\");
+    lstrcat(path, name);
+    n = (int)ExtractIcon(g_8e66, path, -1);
+    if (*name)
+        n = n < 1 ? 1 : n;
+    g_94a6 += n;
+    if (!g_94c0) {
+        if (*name)
+            icon = ExtractIcon(g_8e66, path, 0);
+        else if (res)
+            icon = LoadIcon(g_9210, MAKEINTRESOURCE(res));
+        else
+            icon = 0;
+        if (icon > 1 || !*name || !g_94c2) {
+            if (icon > 1 || !*name)
+                g_94c0 = 1;
+            memdc = CreateCompatibleDC(g_13dc);
+            if (!g_94ba)
+                g_94ba = CreateCompatibleBitmap(g_13dc, 32, 32);
+            old = SelectObject(memdc, g_94ba);
+            if (!g_94c2 || icon > 1)
+                PatBlt(memdc, 0, 0, 32, 32, BLACKNESS);
+            if (icon > 1)
+                DrawIcon(memdc, 0, 0, icon);
+            if (icon < 2 && g_94a6 && !g_94c2)
+                fn_09_0352(memdc, 0, 0, 32, 0, name);
+            g_94c2 = 1;
+            SelectObject(memdc, old);
+            DeleteDC(memdc);
+            if (icon > 1)
+                DestroyIcon(icon);
+        }
+    }
+    if (pal)
+        SelectPalette(g_13dc, pal, 0);
+    if (rel)
+        ReleaseDC(g_0d1e, g_13dc);
+    g_13dc = saved;
 }
 
 /* Lists the files matching mask in dir into list box 0x6b; returns their

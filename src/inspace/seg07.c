@@ -69,11 +69,11 @@ typedef struct {                /* 0x23 bytes, DGROUP array at DS:57a8 */
 typedef struct {                /* 0x15a bytes, DGROUP array at DS:7090 */
     char p00[0x4e];
     int f4e;                    /* +4e */
-    char p50[0xe3 - 0x50];
-    char fe3;                   /* +e3 */
-    char pe4[0xd0 - 0xe4];
+    char p50[0xd0 - 0x50];
     int fd0;                    /* +d0 */
-    char pd2[0x15a - 0xd2];
+    char pd2[0xe3 - 0xd2];
+    char fe3;                   /* +e3 */
+    char pe4[0x15a - 0xe4];
 } REC_15A;
 
 typedef struct { int f0, f2, f4, f6; char rest[0x1e - 8]; } REC_1E;
@@ -185,6 +185,23 @@ typedef struct { int f00; char p02[0x1c - 2]; } REC_1C;
 extern REC_1C g_66e4[];         /* seg04.c uses base DS:66e8 */
 typedef struct { int f00; char p02[0x28 - 2]; int f28; char p2a[0x50 - 0x2a]; } REC_50;
 extern REC_50 g_2f50[];         /* seg04.c uses base DS:2f58 */
+
+/* 0x16-byte records at DS:5b28, [?][4] (as in seg08.c). */
+typedef struct {
+    POINT p;                    /* +0 */
+    POINT q;                    /* +4 */
+    POINT r;                    /* +8 */
+    int age;                    /* +c */
+    int vx;                     /* +e */
+    int vy;                     /* +10 */
+    POINT s;                    /* +12 */
+} REC_16;
+extern REC_16 g_5b28[][4];
+extern int g_9510;
+extern int g_9512;
+extern int g_9514;
+extern HGDIOBJ g_3b4c[];
+void far pascal fn_08_083e(int a, int b);
 
 void far pascal fn_08_1d54(int a, int b);
 void far pascal fn_08_1b54(int a, int b);
@@ -517,6 +534,82 @@ void far pascal fn_07_3400(int n)
 {
     fn_08_1d54((char)n | 0x100, 0x28);
     fn_08_1b54((char)n | 0x100, 3);
+}
+
+/* Moves the four sparks of each burst along curved paths [inferred]. */
+/* @addr 7:375a */
+void far fn_07_375a(void)
+{
+    int i;
+    int j;
+    int t;
+    int k;                      /* kept in a register, never stored */
+    int u2;
+    int n;
+    int m;
+
+    if (g_9510 >= 50)
+        return;
+    n = g_9208 * 2 + 3;
+    m = (g_9208 + 7) * 4;
+    for (i = 0; i < n; i++) {
+        if (n - 1 > g_9510 && i == g_9510)
+            for (j = 0; j < 4; j++) {
+                g_5b28[g_9510][j].s = *(POINT far *)&g_1df8[g_9512][g_9514].f04;
+                g_5b28[g_9510][j].s.x
+                    += g_7ba0[g_7090[g_9514].f4e][g_1df8[g_9512][g_9514].f28].x * 8;
+                g_5b28[g_9510][j].s.y
+                    += g_7ba0[g_7090[g_9514].f4e][g_1df8[g_9512][g_9514].f28].y * 8;
+                g_5b28[g_9510][j].vx = -(g_1050[g_1df8[g_9512][g_9514].f28].x * 4);
+                g_5b28[g_9510][j].vy = -(g_1050[g_1df8[g_9512][g_9514].f28].y * 4);
+                g_5b28[g_9510][j].age = 0;
+            }
+        if (m + n + 1 > g_9510 && i <= g_9510) {
+            for (j = 0; j < 4; j++) {
+                if (g_5b28[i][j].age < m && g_5b28[i][j].age > 0) {
+                    fn_08_083e(i, j);
+                    k = g_7090[g_9514].fe3 * 10 + (g_5b28[i][j].age >> 2);
+                    SelectObject(g_13dc, g_3b4c[k]);
+                    PatBlt(g_13dc, g_5b28[i][j].p.x, g_5b28[i][j].p.y, 2, 2, PATCOPY);
+                    PatBlt(g_13dc, g_5b28[i][j].q.x, g_5b28[i][j].q.y, 2, 2, BLACKNESS);
+                }
+                g_5b28[i][j].s.x += g_5b28[i][j].vx;
+                g_5b28[i][j].s.y += g_5b28[i][j].vy;
+                g_5b28[i][j].age++;
+                if (g_5b28[i][j].age >= m - 1)
+                    PatBlt(g_13dc, g_5b28[i][j].p.x, g_5b28[i][j].p.y, 2, 2, BLACKNESS);
+            }
+            if (g_5b28[i][0].age < m / 3) {
+                t = g_5b28[i][0].vx;
+                g_5b28[i][0].vx -= g_5b28[i][0].vy >> 2;
+                g_5b28[i][0].vy += t >> 2;
+                t = g_5b28[i][1].vx;
+                g_5b28[i][1].vx -= g_5b28[i][1].vy >> 3;
+                g_5b28[i][1].vy += t >> 3;
+                t = g_5b28[i][2].vx;
+                g_5b28[i][2].vx += g_5b28[i][2].vy >> 3;
+                g_5b28[i][2].vy -= t >> 3;
+                t = g_5b28[i][3].vx;
+                g_5b28[i][3].vx += g_5b28[i][3].vy >> 2;
+                g_5b28[i][3].vy -= t >> 2;
+            } else {
+                t = g_5b28[i][0].vx;
+                g_5b28[i][0].vx -= g_5b28[i][0].vy;
+                g_5b28[i][0].vy += t;
+                t = g_5b28[i][1].vx;
+                g_5b28[i][1].vx -= g_5b28[i][1].vy >> 1;
+                g_5b28[i][1].vy += t >> 1;
+                t = g_5b28[i][2].vx;
+                g_5b28[i][2].vx += g_5b28[i][2].vy >> 1;
+                g_5b28[i][2].vy -= t >> 1;
+                t = g_5b28[i][3].vx;
+                g_5b28[i][3].vx += g_5b28[i][3].vy;
+                g_5b28[i][3].vy -= t;
+            }
+        }
+    }
+    if (m + n == ++g_9510)
+        g_9512 = -1;
 }
 
 /* @addr 7:3a42 */

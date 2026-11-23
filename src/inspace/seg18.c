@@ -234,6 +234,23 @@ typedef struct {                /* 0x94 bytes at DS:6098 (seen as DS:610e) */
     char p7a[0x94 - 0x7a];
 } REC_6098;
 extern REC_6098 g_6098[];
+extern int g_073e;
+extern int g_9664;
+extern int g_9674;
+extern char g_a197;
+extern void far *g_88d4;
+extern int g_9326;
+extern int g_9328;
+extern int g_934a;
+extern int g_94c4;
+extern int g_9330;
+extern long g_88c4;
+extern int g_88f0;
+extern int g_88f2;
+extern int g_13a0;
+void far fn_06_7266(void);
+void far fn_06_72d8(int n, int m);
+void far fn_10_58ce(int a);
 int far fn_09_955c(UINT id, LPSTR buf);
 void far fn_09_9580(UINT id, LPSTR dst);
 
@@ -860,4 +877,97 @@ int far pascal fn_18_4dc4(int n)
         g_a17f[n] = -1;
     }
     return 0;
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_18_2272(void)
+{
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_18_6374(void)
+{
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_18_3474(void)
+{
+}
+
+/* Starts the Demon sub-game [inferred]. */
+/* near-match 41.4%: 18:08bc (helper stopped mid-work) */
+void far fn_18_08bc(int big)
+{
+    int i;
+
+    if (!g_9660) {
+        g_073e = 1;
+        fn_10_7480(10, 1);
+    }
+    g_9130 = 1;
+    g_959e = g_9156;
+    g_9664 = g_9674 = 0;
+    g_88d0 = 0;
+    if (big) {
+        g_9156 = 1;
+        g_a197 = 1;
+    } else
+        g_9156 = 0;
+    fn_18_0b1e();
+    if (g_959e != 1 || !g_9156) {
+        fn_10_1eb6(g_9646, g_70ae[g_9646].f30, 1);
+        fn_10_0552(0x22, 1);
+        fn_10_0552(0xc, 1);
+        fn_10_0552(0xa, 1);
+    }
+    *(long *)&g_a1d1 = 0;
+    g_88d4 = 0;
+    g_9324 = 0x14;
+    g_9326 = 0xf;
+    g_9328 = 0x11;
+    g_934a = 0x13;
+    fn_06_7266();
+    g_94c4 = 1;
+    fn_06_72d8(2, 2);
+    g_9330 = 1;
+    for (i = g_94c4 = 0; i < 45; i++)
+        g_1e90[i].f00 = -1;
+    for (i = 0; i < 9; i++)
+        g_610e[i].f00 = -1;
+    for (i = 0; i < 20; i++)
+        g_58cc[i].f00 = -1;
+    g_88c0 = g_6da4->f02;
+    g_88c2 = g_6da4->f04;
+    g_88c4 = 0;
+    g_88f0 = g_88c0 * 10 / 255;
+    g_88f2 = g_88c2 * 10 / 164;
+    g_88f0 = max(g_88f0 / 3 * 3, 6);
+    g_88f2 = max(g_88f2 / 4 * 4, 8);
+    g_88e8 = g_88c0;
+    g_88ea = g_88f2 + 2;
+    if (g_90f4 == 1)
+        g_88ea = 0;
+    g_88c2 -= g_88ea;
+    g_88cc = 8000;
+    fn_18_1dd0();
+    fn_18_1eac();
+    if (g_959e != 1 || !g_9156) {
+        fn_10_5c42();
+        fn_10_5202();
+        fn_10_5102();
+    }
+    fn_18_2272();
+    fn_10_58ce(0);
+    fn_18_6374();
+    if (!g_9660) {
+        fn_10_7480(-1, 1);
+        g_13a0 = 0x10;
+    }
+    fn_18_337c();
+    fn_18_3474();
+    fn_18_1784(0, 0, g_6da4->f02, g_6da4->f04 - g_88ea);
+    fn_18_17f6();
+    if (g_90f4 == 1)
+        fn_10_744c(0x30);
+    g_9660 = 1;
 }

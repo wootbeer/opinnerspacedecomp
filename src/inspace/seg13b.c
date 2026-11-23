@@ -92,7 +92,9 @@ typedef struct {
     int f_046;
     char pad_048[0x9];
     char f_051;
-    char pad_052[0x14];
+    char pad_052[0x1];
+    char f_053;
+    char pad_054[0x12];
     FNPTR f_066;
     char pad_06a[0x6];
 } REC70;
@@ -145,8 +147,8 @@ extern PAIR g_6e52;               /* = g_6e3e[0].f_14/f_16 in seg13.c */
 extern int g_9316;
 extern int g_9318;
 extern long g_2384;
-extern char g_a14d[];
 extern char g_a157[];
+extern char g_a14d[];
 extern char g_a161;
 extern char g_a163;
 extern RECAD g_970a[];
@@ -190,6 +192,7 @@ void far fn_13_2714(int, int, int, int, int, int);
 int far fn_13_2688(int i, int j);
 void far fn_03_00f4(int a, int s, int k);  /* seg03.c: (int, long) */
 extern int g_91fa;
+void far fn_03_33b4(int n);
 extern int g_9320;
 extern int g_964a;
 extern int g_9648;
@@ -824,16 +827,17 @@ void far fn_13_b6f2(int a, int t)
             && g_7092[i].f_050 != 0x16 && g_7092[i].f_050 != 0x17
             && (d = fn_08_285a(&y, &x, g_1e30[i].f_004, g_1e30[a].f_004))
                < 2400
-            && (t != 6 || g_a14d[t] <= g_a157[t])) {
-            if (!fn_13_adbe(a, 0x15, -1)) {
+            && (t != 6 || g_a157[t] >= g_a14d[t])) {
+            if (fn_13_adbe(a, 0x15, -1)) {
+                fn_03_06ec(a, 14, i, msg);
+                g_a163 = (char)t;
+                if (a == g_9646)
+                    g_a14d[t]++;
+                return;
+            } else {
                 fn_03_06ec(a, 14, i, 0x44);
                 return;
             }
-            fn_03_06ec(a, 14, i, msg);
-            g_a163 = (char)t;
-            if (a == g_9646)
-                g_a14d[t]++;
-            return;
         } else if (g_970a[g_7092[i].f_04c].f_000 == 7
                    && g_1e30[i].f_018 == 0)
             flag = 0;
@@ -842,4 +846,67 @@ void far fn_13_b6f2(int a, int t)
         fn_03_06ec(g_9646, 7, 0, 0x6e);
         g_9648 = 1001;
     }
+}
+
+/* @addr 13:9ce0 */
+int far fn_13_9ce0(int a)
+{
+    int i, u, s, k, done;
+
+    u = done = 0;
+    if ((a != g_9646 || g_9134 != 0) && g_7092[a].f_09a > g_1e50)
+        return 0;
+    s = g_7092[a].f_03c;
+    k = g_7092[a].f_03e;
+    if (!g_1df8[s][k].f_053) {
+        for (i = 0; i <= g_9316; i++)
+            if (g_970a[g_7092[i].f_04c].f_000
+                    == g_970a[g_7092[a].f_04c].f_000 && i != a)
+                break;
+        if (i <= g_9316) {
+            if (s == 14)
+                fn_03_06ec(a, 14, i, 0x23);
+            else
+                fn_03_06ec(a, 14, i, 0x24);
+        } else
+            fn_03_06ec(a, 7, 0, 0x25);
+        return 0;
+    }
+    for (i = 0; i <= g_9316; i++) {
+        if (g_1e30[i].f_018 == 0 && g_7092[i].f_0ea
+            && (g_7092[i].f_050 == 0 || g_7092[i].f_050 == 7
+                || g_7092[i].f_096 < g_1e50)
+            && i != a
+            && g_970a[g_7092[i].f_04c].f_000
+               == g_970a[g_7092[a].f_04c].f_000) {
+            if (g_7092[i].f_050 != 0)
+                fn_03_06ec(g_7092[i].f_056, 14, i, 0x13);
+            g_7092[i].f_050 = 9;
+            g_7092[i].f_092 = g_1e50 + 200;
+            g_7092[i].f_052 = s;
+            g_7092[i].f_054 = k;
+            g_7092[i].f_056 = a;
+            g_7092[i].f_096 = g_1e50 + 25000;
+            g_7092[a].f_09a = g_1e50 + 15000;
+            g_7092[i].f_0eb = 1;
+            fn_03_06ec(i, 14, a, 2);
+            if (a == g_9646 && g_9134 == 1)
+                fn_03_33b4(9);
+            done = 1;
+            if (i != g_9646)
+                fn_03_00f4(i, g_7092[i].f_052, g_7092[i].f_054);
+            return 1;
+        }
+    }
+    if (done)
+        return 0;
+    for (i = 0; i <= g_9316; i++)
+        if (g_970a[g_7092[i].f_04c].f_000 == g_970a[g_7092[a].f_04c].f_000
+            && i != a)
+            break;
+    if (i <= g_9316)
+        fn_03_06ec(a, 14, i, 0x26);
+    else
+        fn_03_06ec(a, 7, 0, 0x27);
+    return 0;
 }

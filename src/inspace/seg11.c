@@ -79,7 +79,9 @@ typedef struct {
     int  f00;                   /* +00 */
     int  f02;                   /* +02 */
     int  f04;                   /* +04 */
-    char p06[0x16 - 6];
+    char p06[0x0c - 6];
+    COLORREF f0c;               /* +0c */
+    char p10[0x16 - 0x10];
     POINT f16;                  /* +16 */
     char p1a[0x1e - 0x1a];
 } REC1E;
@@ -214,6 +216,16 @@ extern int g_238e;
 extern int g_9138;
 void far fn_07_1208(void);
 void far fn_06_0ef8(unsigned long v, char far *buf);
+void far fn_10_740c(void);
+HBITMAP far fn_10_6d38(LPCSTR s);
+HBITMAP far fn_10_6c02(int a, int b, int c);
+extern HBITMAP g_5042;
+extern HBITMAP g_5044;
+extern HBITMAP g_5046;
+/* inspace.h declares g_05a0 as long; here it is two ints (world width and
+ * height [inferred]). */
+#define g_05a0_lo (((int *)&g_05a0)[0])
+#define g_05a2 (((int *)&g_05a0)[1])
 extern int g_93d4;
 extern int g_93bc;
 extern HBITMAP g_503a;
@@ -273,6 +285,7 @@ void far fn_10_754a(int a, int b, int c, int d);
 void far pascal fn_13_1318(int type, int n, int t, int k);
 
 void far fn_11_0978(void);
+void far fn_11_2dac(HDC dc, int digit, int on, int i);
 void far fn_11_2154(char align, long color, int x, int y, LPSTR s);
 
 /* Not yet decompiled: stubs so calls to them compile as near calls. */
@@ -282,7 +295,6 @@ void far fn_11_33cc(void) { }
 HBITMAP far fn_11_2ff6(int a) { return 0; }
 void far pascal fn_11_4e0a(int a) { }
 void far fn_11_238e(HWND hwnd, HDC dc) { }
-void far fn_11_2dac(HDC dc, int a, int b, int i) { }
 void far fn_11_41bc(HDC dc, int a, int b) { }
 void far fn_11_7902(int msg, int wparam, long lparam) { }
 void far pascal fn_11_6b64(int msg, int wparam, long lparam) { }
@@ -1554,4 +1566,113 @@ void far fn_11_4928(int mode, DWORD t, LPSTR out)
         lstrcat(out, buf);
     } else if (mode == 0)
         lstrcat(out, "  ");
+}
+
+/* Load the bitmaps and brushes of the cockpit panel [inferred]. */
+/* @addr 11:0000 */
+void far fn_11_0000(void)
+{
+    int unused;
+    int g;
+
+    if (g_5042 == 0) {
+        fn_10_740c();
+        g_501c = (long)g_05a0_lo * 100;
+        g_5020 = (long)g_05a2 * 100;
+        g_5042 = CreateCompatibleBitmap(g_13dc, g_0a72, g_0a74);
+        g_5030[1] = fn_10_6d38("METAL");
+        g_5030[2] = fn_10_6c02(0xfa, 0, -1);
+        g_5030[3] = fn_10_6c02(0xf0, 0, -1);
+        fn_10_740c();
+        g_5044 = fn_10_6c02(0x2d, 0, -1);
+        if (g_90f0)
+            g_503a = fn_10_6c02(0x104, 0, -1);
+        else
+            g_503a = fn_10_6c02(0x104, 3, -1);
+        g_5038 = fn_10_6d38("DIGITAL");
+        g_5046 = fn_10_6d38("RADSHIP");
+        g_5030[0] = fn_10_6d38("SYSTEMS");
+        fn_10_740c();
+        g_500a = CreatePatternBrush(g_5030[1]);
+        if (g_90f0)
+            g = 0x60;
+        else
+            g = 0x40;
+        g_5004[0] = CreateSolidBrush(PALETTERGB(0, g, 0));
+        g_5004[7] = CreateSolidBrush(PALETTERGB(0, 0xc8, 0xff));
+        g_5004[6] = CreateSolidBrush(RGB(0x80, 0xa0, 0xff));
+        if (g_90f0)
+            g = 0x80;
+        else
+            g = 0x3f;
+        g_5004[2] = CreateSolidBrush(PALETTERGB(0, g, 0xff));
+        g_5004[4] = CreateSolidBrush(RGB(0xc0, 0xc0, 0xc0));
+        g_5004[1] = CreateSolidBrush(RGB(0xff, 0xc0, 0x40));
+        g_5004[5] = CreateSolidBrush(PALETTERGB(0xff, 0x40, 0));
+        g_93ce = CreateCompatibleDC(g_13dc);
+        g_9402 = SelectObject(g_93ce, g_5042);
+        g_93cc = CreateCompatibleDC(g_13dc);
+        g_9400 = SelectObject(g_93cc, g_5046);
+        if (g_920e)
+            g_9404 = SelectPalette(g_93ce, g_920e, 0);
+        fn_10_740c();
+        fn_11_0344();
+        g_93d8 = 1;
+    }
+}
+
+/* Draw one segment of a seven-segment digit [inferred]. */
+/* @addr 11:2dac */
+void far fn_11_2dac(HDC dc, int seg, int on, int i)
+{
+    POINT pt;
+    HPEN old;
+
+    pt = g_6e38[i].f16;
+    if (on)
+        old = SelectObject(dc, CreatePen(PS_SOLID, 1, g_6e38[i].f0c));
+    else
+        old = SelectObject(dc, GetStockObject(BLACK_PEN));
+    switch (seg) {
+    case 0:
+        MoveTo(dc, pt.x + 14, pt.y);
+        LineTo(dc, pt.x + 29, pt.y);
+        break;
+    case 1:
+        MoveTo(dc, pt.x + 29, pt.y);
+        LineTo(dc, pt.x + 43, pt.y);
+        LineTo(dc, pt.x + 43, pt.y + 14);
+        break;
+    case 2:
+        MoveTo(dc, pt.x + 43, pt.y + 14);
+        LineTo(dc, pt.x + 43, pt.y + 29);
+        break;
+    case 3:
+        MoveTo(dc, pt.x + 29, pt.y + 43);
+        LineTo(dc, pt.x + 43, pt.y + 43);
+        LineTo(dc, pt.x + 43, pt.y + 29);
+        break;
+    case 4:
+        MoveTo(dc, pt.x + 14, pt.y + 43);
+        LineTo(dc, pt.x + 29, pt.y + 43);
+        break;
+    case 5:
+        MoveTo(dc, pt.x + 14, pt.y + 43);
+        LineTo(dc, pt.x, pt.y + 43);
+        LineTo(dc, pt.x, pt.y + 29);
+        break;
+    case 6:
+        MoveTo(dc, pt.x, pt.y + 14);
+        LineTo(dc, pt.x, pt.y + 29);
+        break;
+    case 7:
+        MoveTo(dc, pt.x + 14, pt.y);
+        LineTo(dc, pt.x, pt.y);
+        LineTo(dc, pt.x, pt.y + 14);
+        break;
+    }
+    if (on)
+        DeleteObject(SelectObject(dc, old));
+    else
+        SelectObject(dc, old);
 }

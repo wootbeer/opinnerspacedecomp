@@ -127,7 +127,7 @@ extern HGLOBAL g_948e;
 void far fn_07_2206(void);
 void far fn_17_0000(int a, int b);
 void far fn_17_65da(void);
-void far fn_17_30b0(int a, int b, int c);
+void far fn_17_30b0(int id, long v);
 int far fn_17_2c5a(int a, int b);
 void far fn_17_458e(void);
 void far fn_17_51b0(void);
@@ -340,7 +340,7 @@ int far fn_17_108c(int reset)
         g_9462++;
         g_5000 = g_6084 + 20;
         g_5002 = g_608a - 40;
-        fn_17_30b0(g_93aa, 4500, 0);
+        fn_17_30b0(g_93aa, 4500L);
         fn_17_458e();
         break;
     case 1:
@@ -378,7 +378,7 @@ int far fn_17_1174(int reset)
         g_9462++;
         g_5000 = g_6088 - 280;
         g_5002 = g_6086 + 60;
-        fn_17_30b0(g_9468 + 305, 4500, 0);
+        fn_17_30b0(g_9468 + 305, 4500L);
         fn_17_51b0();
         break;
     case 1:
@@ -446,7 +446,7 @@ int far fn_17_15c6(int reset)
         g_9462++;
         g_5000 = g_9468 == 0 ? g_6084 + 30 : (g_6088 - g_6084) / 2 + g_6084;
         g_5002 = g_6086 + 55;
-        fn_17_30b0(g_93aa, 3000, 0);
+        fn_17_30b0(g_93aa, 3000L);
         fn_17_5008();
         break;
     case 1:
@@ -491,7 +491,7 @@ int far fn_17_13ca(int reset)
             g_5000 = 20;
             g_5002 = g_6086 + 40;
         }
-        fn_17_30b0(g_93aa + 400, 3000, 0);
+        fn_17_30b0(g_93aa + 400, 3000L);
         break;
     case 1:
         if (g_9460 && g_9474) {
@@ -534,7 +534,7 @@ int far fn_17_12f6(int reset)
         g_9462++;
         g_5000 = g_6084 + 30;
         g_5002 = g_6086 + 40;
-        fn_17_30b0(g_93aa, 3000, 0);
+        fn_17_30b0(g_93aa, 3000L);
         fn_17_5008();
         break;
     case 1:
@@ -1028,11 +1028,6 @@ void far fn_17_65da(void)
 
 /* Not yet decompiled: stub so calls to it compile as near calls. */
 void far fn_17_67e6(void)
-{
-}
-
-/* Not yet decompiled: stub so calls to it compile as near calls. */
-void far fn_17_30b0(int a, int b, int c)
 {
 }
 
@@ -1674,7 +1669,7 @@ int far fn_17_193c(int reset)
         g_9462++;
         g_5000 = g_6088 - 320;
         g_5002 = g_6086 + 30;
-        fn_17_30b0(g_93aa, 0x1194, 0);
+        fn_17_30b0(g_93aa, 0x1194L);
         fn_17_55e2(-1);
         g_18b4 = k = 0;
         old = SelectObject(g_13dc, g_5780[0]);
@@ -1712,4 +1707,9 @@ int far fn_17_193c(int reset)
     }
     g_9474 = 0;
     return 0;
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_17_30b0(int id, long v)
+{
 }

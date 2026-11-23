@@ -92,7 +92,9 @@ typedef struct {
     int f_046;
     char pad_048[0x9];
     char f_051;
-    char pad_052[0x14];
+    char pad_052[0x1];
+    char f_053;
+    char pad_054[0x12];
     FNPTR f_066;
     char pad_06a[0x6];
 } REC70;

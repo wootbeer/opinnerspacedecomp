@@ -685,7 +685,7 @@ void far fn_10_81b6(void)
 /* Runs dialog/screen a through g_fp_3c64 [inferred]. Modes 8 and 10 first
  * pass today's date (days since 1993); mode 1 reloads the INI player
  * settings. -100 is mode 6 owned by g_9532. Returns the dialog's result. */
-/* @addr 10:82a2 */
+/* near-match 93.9%: 10:82a2 (helper stopped mid-work) */
 int far fn_10_82a2(int a)
 {
     int r;
@@ -727,10 +727,8 @@ int far fn_10_82a2(int a)
         v0 = flow_interactive;
     } else if (a == 6) {
         v1 = flow_interactive;
-    } else if (a == 8 && !g_922a) {
-        v1 = g_9224;
     } else {
-        v1 = 0;
+        v1 = a == 8 && !g_922a ? g_9224 : 0;
     }
     if (a == 6 || a == 1 || a == 4) {
         if (g_920c == 0)

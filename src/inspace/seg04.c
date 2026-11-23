@@ -65,12 +65,14 @@ typedef struct {
     int f52;                    /* +52 */
     int f54;                    /* +54 */
     int f56;                    /* +56 */
-    char p058[0x5e - 0x58];
+    int f58;                    /* +58 */
+    char p05a[0x5e - 0x5a];
     char f5e;                   /* +5e */
     char f5f;                   /* +5f */
     char p060[0x94 - 0x60];
     long f94;                   /* +94 */
-    char p098[0xac - 0x98];
+    long f98;                   /* +98 */
+    char p09c[0xac - 0x9c];
     char fac;                   /* +ac */
     char p0ad;
     char fae[10];               /* +ae, indexed by slot [inferred] */
@@ -244,6 +246,16 @@ extern int g_4ed8[];
 extern int g_940c;
 extern int g_9416;
 int far fn_09_88ba(int v);
+extern DWORD g_52d8;
+extern DWORD g_8e44;
+extern char g_507c[];
+extern char g_50e0[];
+extern int g_9146;
+extern int g_9686;
+extern int g_9688;
+extern int g_968a;
+void far fn_13_7b40(int n);
+int far fn_04_8626(int type, int idx, int flag);
 
 /* @addr 4:0000 */
 void far pascal fn_04_0000(int n)
@@ -1253,4 +1265,10 @@ void far fn_04_79ae(int n)
     }
     if (n == g_9646 && msg)
         fn_03_332e(msg, msg2);
+}
+
+/* Not yet decompiled. */
+int far fn_04_8626(int type, int idx, int flag)
+{
+    return 0;
 }
