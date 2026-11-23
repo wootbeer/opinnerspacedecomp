@@ -358,3 +358,10 @@ Conventions
 - Scratch diff scripts that mask immediates hide `sub sp` frame-size
   differences: always confirm with match.py.
 - fn_11_5ab6 is pascal (n, k); fn_04_0078 is pascal (n).
+- A long constant passed through a stack slot (`mov ax,imm; mov dx,imm`,
+  store, `push dx; push ax`): a DWORD local (`rop = SRCCOPY;`); `long` gives
+  immediate pushes.
+- `mov al,byte; and ax,0xf; cmp ax,0xf` comes from a local holding the masked
+  value; `(x & 0xf) == 0xf` gives `and al`/`cmp al`.
+- A char-array index `[bx+si+0x34]` needs an array starting lower read with
+  an offset (`f30[k + 4]`); `f34[k]` emits `add bx,0x34`.
