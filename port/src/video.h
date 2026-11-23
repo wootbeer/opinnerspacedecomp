@@ -23,4 +23,7 @@ Framebuffer *video_framebuffer(void);
 void video_present(void);
 int  video_save_ppm(const char *path);
 
+/* Window pixel position to framebuffer position. */
+void video_map_point(float wx, float wy, int *x, int *y);
+
 #endif

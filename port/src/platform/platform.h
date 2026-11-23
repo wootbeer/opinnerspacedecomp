@@ -32,4 +32,12 @@ int platform_list_dir(const char *path, const char *pattern,
 /* Path of the folder holding the game's data files (INSPACE.EXE etc.). */
 const char *platform_data_dir(void);
 
+/* Writable folder for settings (INSPACE.INI), ending in a separator. */
+const char *platform_pref_dir(void);
+
+/* Finds path on disk ignoring the case of each name in it ('/' separated).
+ * Names that do not exist are kept as given (for new files).  Returns 1
+ * when the whole path exists. */
+int platform_find_path(const char *path, char *out, int size);
+
 #endif

@@ -44,7 +44,7 @@ void fn_08_90fa(int16_t i)
 
     if (g_91f8 < 4 || g_9334 < 5 || g_52ec[i].f_1c.a == 12)
         return;
-    for (k = g_0594; k < (int16_t)(g_0598 + g_0594); k++) {
+    for (k = g_0594; k < g_0598 + g_0594; k++) {
         if (g_6098[k].z[1][5] == -1) {
             for (j = 0; j < 2; j++) {
                 g_6098[k].f_48[0][j] = g_6098[k].f_30[0][j] = -800;
@@ -144,7 +144,7 @@ int16_t fn_08_95f2(int16_t unused, int16_t i, int16_t v)
     if (g_1df8[2][i].f_1e > 0x50)
         g_52ec[i].f_14 = 1;
     g_52ec[i].f_20 = g_1e50 + 0x15e;
-    if (g_1df8[2][i].f_1e > (int16_t)((g_9334 + 0x1a) * 5)) {
+    if (g_1df8[2][i].f_1e > (g_9334 + 0x1a) * 5) {
         fn_08_92a0(2, i);
         return 1;
     }

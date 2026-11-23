@@ -1632,9 +1632,9 @@ void fn_10_16ba(int16_t i)
     int16_t a;
 
     if (subgame_active)
-        w = (int16_t)(g_96d2[i].f_2a * (g_9156 * 2 + 1)) / 3;
+        w = g_96d2[i].f_2a * (g_9156 * 2 + 1) / 3;
     else
-        w = (int16_t)(g_96d2[i].f_2a << g_9156) >> 1;
+        w = (g_96d2[i].f_2a << g_9156) >> 1;
     r0 = (g_96d2[i].f_04 + 1) * 2;
     for (j = 0; j < 5; j++) {
         r = r0;
@@ -1665,14 +1665,14 @@ void fn_10_16ba(int16_t i)
         if (subgame_active) {
             /* u1, u2 are never read: the assignments only fix CL's
              * evaluation order (no stores are emitted) */
-            g_96d2[i].f_50[j].x = (int16_t)((int16_t)(g_06d6[j] * r) / 256 * (g_9156 * 2 + 1)) / 6 +
+            g_96d2[i].f_50[j].x = g_06d6[j] * r / 256 * (g_9156 * 2 + 1) / 6 +
                                  (int16_t)((u1 = -1 - g_9156 * 2) * a) / 6 + w / 2;
-            g_96d2[i].f_50[j].y = (int16_t)((-1 - g_9156 * 2) * b) / 6 -
-                                 (u2 = (int16_t)((int16_t)(g_06e0[j] * r) / 256 * (g_9156 * 2 + 1)) / 6) + w / 2;
+            g_96d2[i].f_50[j].y = (-1 - g_9156 * 2) * b / 6 -
+                                 (u2 = g_06e0[j] * r / 256 * (g_9156 * 2 + 1) / 6) + w / 2;
         } else {
-            g_96d2[i].f_50[j].x = ((int16_t)(g_06d6[j] * r) / 256 >> (2 - g_9156)) -
+            g_96d2[i].f_50[j].x = (g_06d6[j] * r / 256 >> (2 - g_9156)) -
                                  (a >> (2 - g_9156)) + w / 2;
-            g_96d2[i].f_50[j].y = w / 2 - ((int16_t)(g_06e0[j] * r) / 256 >> (2 - g_9156)) -
+            g_96d2[i].f_50[j].y = w / 2 - (g_06e0[j] * r / 256 >> (2 - g_9156)) -
                                  (b >> (2 - g_9156));
         }
     }
@@ -2227,7 +2227,7 @@ void fn_10_0b94(void)
         g_1df8[2][i].f_53 = 0;
     }
     for (i = 0; i < g_92ec[3]; i++) {
-        if (i < (int16_t)(g_92ec[3] - g_92ea)) {
+        if (i < g_92ec[3] - g_92ea) {
             g_1df8[3][i].f_22 = SC(44);
             g_1df8[3][i].f_20 = 344;
             g_1df8[3][i].f_44 = 1400;

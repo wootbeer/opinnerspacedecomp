@@ -57,8 +57,8 @@ void fn_09_5cca(void)
     fn_09_6624();
     g_91f8--;
     if (n != 0) {
-        if ((int16_t)(n * g_932e * 4 + g_0992) > (int16_t)(g_932a + 10))
-            g_932e = max(0, (int16_t)(g_932a - g_0992 + 20) / (int16_t)(n * 4));
+        if (n * g_932e * 4 + g_0992 > g_932a + 10)
+            g_932e = max(0, (g_932a - g_0992 + 20) / (n * 4));
     } else
         g_932e = 0;
     if (g_8ff8 == 0)
@@ -145,7 +145,7 @@ void fn_09_60bc(void)
     g_a197 = 0;
     g_913e = 0;
     if (g_9334 > 4 && g_92e8 == 0 && g_9320 != 6 && g_9320 != 7 && g_920c != 0 && g_920c != 3
-        && ((int16_t)(g_0992 + 30) < g_932a || (int16_t)(g_91f8 - g_93ac) > 15)) {
+        && (g_0992 + 30 < g_932a || g_91f8 - g_93ac > 15)) {
         for (i = cnt = 0; i < g_7090[main_ship].cnt; i++) {
             w = g_7090[main_ship].f_0b8[i];
             if (w == 0x18 || w == 0x19 || w == 0x17 || w == 0x16)
@@ -153,7 +153,7 @@ void fn_09_60bc(void)
             if (w == 0x1a)
                 cnt += 2;
         }
-        if ((int16_t)(g_91f8 - g_93ac) > 4 && cnt < 4) {
+        if (g_91f8 - g_93ac > 4 && cnt < 4) {
             chance = ((g_91f8 - g_93ac - 3) * 2 + g_9334) * 2;
             for (i = 1; i <= g_7090[main_ship].cnt; i++)
                 if (g_7090[main_ship].f_0b8[i] >= 0x16 && g_7090[main_ship].f_0b8[i] <= 0x1a)
@@ -378,8 +378,8 @@ void fn_09_6dec(int16_t force)
         return;
     if (force || g_6078 == 0) {
         SetRect(&g_6084, LO16(g_90ea) / 2 - 290, g_0010 / 2 - 173, LO16(g_90ea) / 2 + 290, g_0010 / 2 + 173);
-        left = max((int16_t)(g_6084.left - 6), 0);
-        right = min((int16_t)(g_6084.right + 6), LO16(g_90ea));
+        left = max(g_6084.left - 6, 0);
+        right = min(g_6084.right + 6, LO16(g_90ea));
         fn_11_1774(2, g_6084.left - 6, g_6084.top - 15, g_6084.right + 6, g_6084.bottom + 6);
         fn_11_1774(-1, left, g_6084.top - 15, right, g_6084.top + 10);
         fn_10_a332(buf, 0xbbb, 1, g_91f8);
@@ -495,7 +495,7 @@ void fn_09_6fee(void)
         int16_t flag5;
         char buf3[60];
 
-        n4 = (int16_t)(g_094e - 1) % 4;
+        n4 = (g_094e - 1) % 4;
         fn_06_8b90(g_9322);
         switch (g_9ea0) {
         case 1:
@@ -549,7 +549,7 @@ void fn_09_6fee(void)
         fn_17_42ea(1);
         i = mins[3][0] = mins[3][1] = mins[2][0] = mins[2][1] = mins[1][0] = mins[1][1] =
             mins[0][0] = mins[0][1] = 0;
-        for (; i < (int16_t)g_94c8; i++)
+        for (; i < g_94c8; i++)
             for (j = 0; j < 2; j++) {
                 if (k3 > 0 && g_6afc[i].f_32[k3][j] &&
                     (g_6afc[i].f_32[k3][j] < mins[0][j] || mins[0][j] == 0))
@@ -649,7 +649,7 @@ void fn_09_6fee(void)
         if (g_1df8[14][main_ship].f_51 == 2) {
             i = mins[3][0] = mins[3][1] = mins[2][0] = mins[2][1] = mins[1][0] = mins[1][1] =
                 mins[0][0] = mins[0][1] = 0;
-            for (; i < (int16_t)g_94c8; i++)
+            for (; i < g_94c8; i++)
                 for (j = 0; j < 2; j++) {
                     if (k3 > 0 && g_6afc[i].f_32[k3][j] &&
                         (g_6afc[i].f_32[k3][j] < mins[0][j] || mins[0][j] == 0))
@@ -1038,7 +1038,7 @@ void draw_briefing_panel_with_esc_prompt(int16_t a)
     if (g_0010 < 440)
         h = g_0010 + 20;
     else
-        h = min((int16_t)(g_0010 - 20), 460);
+        h = min(g_0010 - 20, 460);
     g_6084.left = LO16(g_90ea) / 2 - w / 2;
     g_6084.right = g_6084.left + w;
     g_6084.top = g_0010 / 2 - h / 2;
@@ -1189,7 +1189,7 @@ int16_t fn_09_8d18(int16_t init, int16_t quiet)
                 margin = 9;
             else
                 margin = 22;
-            if ((int16_t)(g_6084.right - margin) < w)
+            if (g_6084.right - margin < w)
                 h = 1;
         }
         if (g_4fcc[g_1838] == 13 || h) {

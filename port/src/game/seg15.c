@@ -258,7 +258,7 @@ void fn_15_6890(void)
         if (ptr[k] == '\r')
             ptr[k] = 0;
     PatBlt(g_13dc, 0, g_0010 / 2 - 115, LO16(g_90ea), g_0010 / 2 + 149, BLACKNESS);
-    for (i = off = 0; i < (int16_t)(g_95d6 * 11); i++)
+    for (i = off = 0; i < g_95d6 * 11; i++)
         off += lstrlen(ptr + off) + 2;
     for (i = 0; i < 11; i++) {
         TextOut(g_13dc, LO16(g_90ea) / 2, g_0010 / 2 + i * 24 - 115, ptr + off, lstrlen(ptr + off));
@@ -474,7 +474,7 @@ void fn_15_7cda(void)
         g_95d0 += 3;
     if (g_95d0 > 300)
         g_95d0 = 300;
-    sz = (int16_t)(size * g_95d0) / 200;
+    sz = size * g_95d0 / 200;
     SetStretchBltMode(g_13dc, COLORONCOLOR);
     StretchBlt(g_13dc, LO16(g_90ea) / 2 - sz / 2, g_0010 / 2 - sz / 2 - 20, sz, sz, g_3a14,
                (gap + size) * (g_95d2 / 10) + gap, gap, size, size, SRCCOPY);
@@ -617,7 +617,7 @@ int16_t fn_15_8174(int16_t which, int16_t n)
         }
         g_1c70 = LOWORD(GetCurrentPosition(g_13dc)) + 2000;
     }
-    w = (int16_t)(g_1c70 * n) / lstrlen(buf);
+    w = g_1c70 * n / lstrlen(buf);
     if (orig != -1) {
         p1.x = LO16(g_90ea) / 2;
         p1.y = g_0010 / 2 - 20;
@@ -855,7 +855,7 @@ void fn_15_5e22(int16_t a)
         if (g_95d2 > 13999) {
             g_95d2 = 0;
             if (g_120e == 0)
-                g_95d0 = (int16_t)(g_95d0 - 18) < 1 ? 1 : g_95d0 - 18;
+                g_95d0 = g_95d0 - 18 < 1 ? 1 : g_95d0 - 18;
         }
         if (g_120e) {
             if (GetCurrentTime() > g_120e + 1000) {
@@ -1217,9 +1217,9 @@ void fn_15_6cdc(void)
     case 3:
         fn_10_7d58(g_95c6 += 5, HI16(g_90ea) / 2);
         if (g_95ca > 190)
-            v = min((int16_t)(g_95c8 - 190), 255);
+            v = min(g_95c8 - 190, 255);
         else
-            v = max((int16_t)((24 - g_95c8) * 10), 0);
+            v = max((24 - g_95c8) * 10, 0);
         g_95c8 += 2;
         g_95ca += 2;
         if (g_95ca >= 230) {

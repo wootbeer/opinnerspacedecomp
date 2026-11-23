@@ -1,27 +1,48 @@
-/* Operation: Inner Space, native port.
- * For now: opens the window and shows a palette test pattern. The game's
- * start-up (WinMain at 2:0000 in the original) is translated next. */
+/* Operation: Inner Space, native port: sets up the screen and the native
+ * Windows calls, gives the globals their initial values from INSPACE.EXE
+ * and runs the game's WinMain (2:0000). */
 #include "video.h"
+#include "win/win.h"
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+
+static int frame_limit = -1;        /* --frames N: run N frames, then exit */
+static const char *dump_path;       /* --dump FILE: save the last frame */
+static int frame_count;
+
+static void finish(int code)
+{
+    if (dump_path)
+        video_save_ppm(dump_path);
+    video_close();
+    SDL_Quit();
+    exit(code);
+}
+
+void app_frame(void)
+{
+    video_present();
+    if (frame_limit >= 0 && ++frame_count >= frame_limit)
+        finish(0);
+}
 
 int main(int argc, char **argv)
 {
-    Framebuffer *fb;
-    int frames = -1;            /* --frames N: run N frames, then exit */
-    const char *dump = NULL;    /* --dump FILE: save the last frame */
-    int i, x, y;
+    char cmd[128] = "";
+    int i, r;
 
     for (i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "--frames") && i + 1 < argc)
-            frames = SDL_atoi(argv[++i]);
+            frame_limit = SDL_atoi(argv[++i]);
         else if (!strcmp(argv[i], "--dump") && i + 1 < argc)
-            dump = argv[++i];
+            dump_path = argv[++i];
+        else
+            SDL_strlcpy(cmd, argv[i], sizeof cmd);
     }
-
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         fprintf(stderr, "SDL_Init: %s\n", SDL_GetError());
         return 1;
@@ -30,33 +51,9 @@ int main(int argc, char **argv)
         fprintf(stderr, "video: %s\n", SDL_GetError());
         return 1;
     }
-
-    fb = video_framebuffer();
-    for (i = 0; i < 256; i++) {
-        fb->palette[i].r = (uint8_t)i;
-        fb->palette[i].g = (uint8_t)(255 - i);
-        fb->palette[i].b = (uint8_t)(i * 3);
-    }
-    for (y = 0; y < fb->height; y++)
-        for (x = 0; x < fb->width; x++)
-            fb->pixels[y * fb->width + x] = (uint8_t)(x / 2 + y / 2);
-
-    for (i = 0; frames < 0 || i < frames; i++) {
-        SDL_Event ev;
-        int quit = 0;
-
-        while (SDL_PollEvent(&ev))
-            if (ev.type == SDL_EVENT_QUIT)
-                quit = 1;
-        if (quit)
-            break;
-        video_present();
-        SDL_Delay(16);
-    }
-
-    if (dump)
-        video_save_ppm(dump);
-    video_close();
-    SDL_Quit();
-    return 0;
+    if (!win_init())
+        return 1;
+    r = win_run(cmd);
+    finish(r);
+    return r;
 }

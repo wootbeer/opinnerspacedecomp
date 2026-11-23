@@ -1683,6 +1683,7 @@ def main(argv):
     os.makedirs(OUT, exist_ok=True)
     pm.emit_game_h(mg, os.path.join(OUT, 'game.h'))
     pm.emit_win16api_h(mg, os.path.join(OUT, 'win16api.h'))
+    pm.emit_globals_c(mg, os.path.join(OUT, 'globals.c'))
     sp = pm.Speller(mg)
     files = argv or pm.src_files()
     notes = []

@@ -83,3 +83,12 @@ int video_save_ppm(const char *path)
     }
     return fclose(f) == 0;
 }
+
+void video_map_point(float wx, float wy, int *x, int *y)
+{
+    float fx = wx, fy = wy;
+
+    SDL_RenderCoordinatesFromWindow(renderer, wx, wy, &fx, &fy);
+    *x = (int)fx;
+    *y = (int)fy;
+}

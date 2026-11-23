@@ -551,124 +551,43 @@ signedness view: 664
   seg18.c:1662 fn_10_1eb6: dropped 2 extra argument(s): g_70ae[main_ship].f30, 1
   seg18.c:1997 fn_10_1eb6: dropped 2 extra argument(s): g_70ae[main_ship].f30, 1
   seg18.c:3118 fn_07_2080: dropped 1 extra argument(s): 0
-== 16-bit arithmetic casts by kind (20)
-     51  (long) cast: (int16_t), overflow
-    246  (of the overflow casts: only within 0x100 of the range ends)
-    459  compare: (int16_t), overflow
-      6  compare: (int16_t), view signedness
-      8  compare: (uint16_t), unsigned
+== 16-bit arithmetic casts by kind (16)
+     43  (long) cast: (int16_t), overflow
+    100  (of the overflow casts: only within 0x100 of the range ends)
+    154  compare: (int16_t), overflow
+      4  compare: (uint16_t), unsigned
      10  compare: constant rewritten for uint16_t
-    533  divide: (int16_t), overflow
-      2  libc int argument: (int16_t), overflow
+    244  divide: (int16_t), overflow
+      1  libc int argument: (int16_t), overflow
       2  long argument: (int16_t), overflow
-      1  long argument: (uint16_t), overflow
-     79  modulo: (int16_t), overflow
-      1  modulo: (uint16_t), unsigned
+     45  modulo: (int16_t), overflow
       4  return long: (int16_t), overflow
-    188  shift right: (int16_t), overflow
+     18  shift right: (int16_t), overflow
       9  shift right: SC() macro, 16-bit left shift first
-     48  store to long: (int16_t), overflow
-      4  store to long: (uint16_t), overflow
+     32  store to long: (int16_t), overflow
      12  va_arg of a 16-bit type: (T)va_arg(ap, int)
-    118  widen to long: (int16_t), overflow
-   1484  total
-== 16-bit arithmetic casts (1514)
-  seg02.c:60: compare: (uint16_t), unsigned: g_0016
-  seg02.c:451: compare: (uint16_t), unsigned: g_0016
+     44  widen to long: (int16_t), overflow
+    579  total
+== 16-bit arithmetic casts (601)
   seg02.c:528: compare: (uint16_t), unsigned: GetSystemMetrics(SM_CXSCREEN)
   seg02.c:529: compare: (uint16_t), unsigned: GetSystemMetrics(SM_CYSCREEN)
-  seg03.c:1227: compare: (int16_t), overflow: g_7090[o].f_026[0] + g_7090[o].f_026[1] + g_7090[o].f_026[2]
-  seg03.c:1294: compare: (int16_t), overflow: g_9316 - i + 1
-  seg03.c:1367: divide: (int16_t), overflow: g_7090[me].f_026[0] * 3
   seg03.c:1381: divide: (int16_t), overflow: LO16(g_8e00) * 3
   seg03.c:1402: divide: (int16_t), overflow: LO16(g_8e00) * 3
-  seg03.c:1652: compare: (int16_t), overflow: g_96d2[g_7090[o].f_04e].f_1e - 15
-  seg04.c:47: compare: (int16_t), overflow: g_7090[main_ship].f_0da - g_9ea0
-  seg04.c:65: widen to long: (int16_t), overflow: ((9 - g_94aa) * g_9316 + (g_94a8 + 5) * 4) * 500
-  seg04.c:66: widen to long: (int16_t), overflow: ((9 - g_94aa) * g_9316 + (g_94a8 + 5) * 4) * 500
-  seg04.c:68: widen to long: (int16_t), overflow: (g_94a8 + 8) * 500 + (8 - g_94aa) * g_9316 * 200
-  seg04.c:69: widen to long: (int16_t), overflow: (g_94a8 + 8) * 500 + (8 - g_94aa) * g_9316 * 200
-  seg04.c:75: compare: (int16_t), overflow: g_9318 * 2 + g_9ea2 + g_9ea4
-  seg04.c:161: compare: (int16_t), overflow: g_9316 + 1
-  seg04.c:190: compare: (int16_t), overflow: g_9316 + 1
-  seg04.c:345: compare: (int16_t), overflow: g_7090[n].f_0d4 - 1
-  seg04.c:434: compare: (int16_t), overflow: g_9ea2 - 1
-  seg04.c:443: shift right: (int16_t), overflow: (pos.x - wp.x) * 2
-  seg04.c:444: shift right: (int16_t), overflow: (pos.y - wp.y) * 2
   seg04.c:463: divide: (int16_t), overflow: g_1df8[14][n].f_0c * 5
   seg04.c:464: divide: (int16_t), overflow: g_1df8[14][n].f_0e * 5
-  seg04.c:468: widen to long: (int16_t), overflow: g_8e3c[n] * 6
-  seg04.c:469: widen to long: (int16_t), overflow: g_8e3c[n] * 6
-  seg04.c:471: widen to long: (int16_t), overflow: g_8e3c[n] * 6 + 40
-  seg04.c:472: widen to long: (int16_t), overflow: -40 - g_8e3c[n] * 6
-  seg04.c:474: widen to long: (int16_t), overflow: g_8e3c[n] * 6 + 52
-  seg04.c:475: widen to long: (int16_t), overflow: -52 - g_8e3c[n] * 6
-  seg04.c:477: widen to long: (int16_t), overflow: g_8e3c[n] * 6 + 65
-  seg04.c:478: widen to long: (int16_t), overflow: -65 - g_8e3c[n] * 6
-  seg04.c:482: widen to long: (int16_t), overflow: g_8e3c[n] * 7
-  seg04.c:499: shift right: (int16_t), overflow: (pos.x - wp.x) * 2
-  seg04.c:500: shift right: (int16_t), overflow: (pos.y - wp.y) * 2
-  seg04.c:514: widen to long: (int16_t), overflow: g_8e3c[n] * 5
-  seg04.c:515: widen to long: (int16_t), overflow: g_8e3c[n] * 15 + 130
-  seg04.c:519: shift right: (int16_t), overflow: (prev.x - wp.x) * 2
-  seg04.c:520: shift right: (int16_t), overflow: (prev.y - wp.y) * 2
-  seg04.c:522: widen to long: (int16_t), overflow: g_8e3c[n] - 2
-  seg04.c:523: shift right: (int16_t), overflow: (next.x - wp.x) * 2
-  seg04.c:524: shift right: (int16_t), overflow: (next.y - wp.y) * 2
-  seg04.c:561: compare: (int16_t), overflow: g_9348 - 2
-  seg04.c:565: compare: (int16_t), overflow: g_9ea2 - 1
-  seg04.c:575: shift right: (int16_t), overflow: (pos.x - next.x) * 2
-  seg04.c:576: shift right: (int16_t), overflow: (pos.y - next.y) * 2
-  seg04.c:577: widen to long: (int16_t), overflow: g_8e3c[n] * 40 + 700
-  seg04.c:579: shift right: (int16_t), overflow: (wp.x - pos.x) * 2
-  seg04.c:580: shift right: (int16_t), overflow: (wp.y - pos.y) * 2
-  seg04.c:586: widen to long: (int16_t), overflow: (8 - g_8e3c[n]) * 7
-  seg04.c:586: widen to long: (int16_t), overflow: 38 - g_8e3c[n] * 5
   seg04.c:602: compare: (int16_t), overflow: g_1df8[14][n].f_04.x + g_1df8[14][n].f_20
   seg04.c:602: compare: (int16_t), overflow: g_1df8[12][1].f_04.x + 350
   seg04.c:603: compare: (int16_t), overflow: g_1df8[12][1].f_04.x + 2000
-  seg04.c:604: compare: (int16_t), overflow: g_1df8[14][n].f_04.y + g_1df8[14][n].f_20
-  seg04.c:606: compare: (int16_t), overflow: g_7090[n].f_0da + g_9ea0
-  seg04.c:629: compare: (int16_t), overflow: g_7090[n].f_0da - g_9ea0
-  seg04.c:655: compare: (int16_t), overflow: g_9318 * 2 + g_9ea2 + g_9ea4
   seg04.c:771: store to long: (int16_t), overflow: fn_08_285a(&a, &b, g_1df8[14][i].f_04, g_1df8[14][n].f_04) + 300
   seg04.c:888: store to long: (int16_t), overflow: fn_08_285a(&a, &b, g_1df8[t][i].f_04, g_1df8[14][n].f_04) + 300
-  seg04.c:896: compare: (int16_t), overflow: g_9318 * 2
-  seg04.c:923: compare: (int16_t), overflow: g_96d2[g_7090[n].f_04e].f_1e - 100
-  seg04.c:934: widen to long: (int16_t), overflow: g_967e * 5
-  seg04.c:970: compare: (int16_t), overflow: (9 - g_9334) * 20
-  seg04.c:970: compare: (int16_t), overflow: g_967e * 2
   seg04.c:995: compare: (int16_t), overflow: fn_13_2688(n, sel5) + 100
   seg04.c:1042: compare: (int16_t), overflow: fn_13_2688(n, g_7090[sel1].f_032.b) + 100
-  seg04.c:1059: compare: (int16_t), overflow: rand() % 30 + g_967e * 2
-  seg04.c:1059: compare: (int16_t), overflow: 190 - g_9334 * 20
-  seg04.c:1103: compare: (int16_t), overflow: g_9318 * 2
-  seg04.c:1124: compare: (int16_t), overflow: (9 - g_9334) * 20
-  seg04.c:1124: compare: (int16_t), overflow: g_967e * 2
-  seg04.c:1163: compare: (int16_t), overflow: (9 - g_9334) * 20
-  seg04.c:1163: compare: (int16_t), overflow: g_967e * 2
-  seg04.c:1201: compare: (int16_t), overflow: g_9318 * 2
   seg04.c:1278: compare: (int16_t), overflow: (LO16(g_05a0)) * 8
   seg04.c:1327: compare: (int16_t), overflow: g_1df8[14][n].f_28 - old
   seg04.c:1327: compare: (int16_t), overflow: g_1df8[14][n].f_28 - old
-  seg04.c:1367: compare: (int16_t), overflow: g_96d2[g_7090[n].f_04e].f_1e - 50
-  seg04.c:1411: store to long: (int16_t), overflow: g_1df8[8][g_7090[main_ship].f_148 + g_9318 * 2].f_04.x - (LO16(g_90ea) << (g_9150 - 1))
-  seg04.c:1412: store to long: (int16_t), overflow: g_1df8[8][g_7090[main_ship].f_148 + g_9318 * 2].f_04.y - (HI16(g_90ea) << (g_9150 - 1))
-  seg04.c:1415: compare: (int16_t), overflow: g_9ea2 - 1
-  seg04.c:1424: shift right: (int16_t), overflow: (pos.x - g_1cea.x) * 2
-  seg04.c:1425: shift right: (int16_t), overflow: (pos.y - g_1cea.y) * 2
-  seg04.c:1427: shift right: (int16_t), overflow: (g_1cf2.x - g_1cea.x) * 2
-  seg04.c:1428: shift right: (int16_t), overflow: (g_1cf2.y - g_1cea.y) * 2
-  seg04.c:1431: shift right: (int16_t), overflow: (g_1cee.x - g_1cea.x) * 2
-  seg04.c:1432: shift right: (int16_t), overflow: (g_1cee.y - g_1cea.y) * 2
-  seg04.c:1452: compare: (int16_t), overflow: g_9ea2 - 1
   seg04.c:1466: compare: (int16_t), overflow: g_1df8[14][main_ship].f_04.x + g_1df8[14][main_ship].f_20
   seg04.c:1466: compare: (int16_t), overflow: g_1df8[12][1].f_04.x + 350
   seg04.c:1467: compare: (int16_t), overflow: g_1df8[12][1].f_04.x + 2000
-  seg04.c:1468: compare: (int16_t), overflow: g_1df8[14][main_ship].f_04.y + g_1df8[14][main_ship].f_20
-  seg04.c:1470: compare: (int16_t), overflow: g_7090[main_ship].f_0da + g_9ea0
-  seg04.c:1479: compare: (int16_t), overflow: g_7090[main_ship].f_0da - g_9ea0
-  seg04.c:1557: compare: (int16_t), overflow: g_9318 * 2
   seg04.c:1563: store to long: (int16_t), overflow: g_1df8[HIBYTE(v)][LOBYTE(v)].f_04.x - g_1df8[14][n].f_04.x
   seg04.c:1564: store to long: (int16_t), overflow: g_1df8[HIBYTE(v)][LOBYTE(v)].f_04.y - g_1df8[14][n].f_04.y
   seg04.c:1565: store to long: (int16_t), overflow: g_1df8[HIBYTE(v)][LOBYTE(v)].f_0c - g_1df8[14][n].f_0c
@@ -681,28 +600,7 @@ signedness view: 664
   seg04.c:1668: store to long: (int16_t), overflow: g_1df8[HIBYTE(v)][LOBYTE(v)].f_04.y - g_1df8[6][n].f_04.y
   seg04.c:1669: store to long: (int16_t), overflow: g_1df8[HIBYTE(v)][LOBYTE(v)].f_0c - g_1df8[6][n].f_0c
   seg04.c:1670: store to long: (int16_t), overflow: g_1df8[HIBYTE(v)][LOBYTE(v)].f_0e - g_1df8[6][n].f_0e
-  seg04.c:1785: divide: (int16_t), overflow: -(v - g_2f4c[w].f_32) * 3
-  seg04.c:1792: compare: (int16_t), overflow: g_2f4c[w].f_32 - 3
-  seg04.c:1830: compare: (int16_t), overflow: g_2f4c[w].f_36 * 2
-  seg04.c:1833: compare: (int16_t), overflow: (g_2f4c[w].f_34 + 5) * 5
-  seg04.c:1835: compare: (int16_t), overflow: g_2f4c[w].f_34 * 3 + 13
-  seg04.c:2094: compare: (int16_t), overflow: g_0992 + 20
-  seg04.c:2113: divide: (int16_t), overflow: (g_7090[main_ship].f_0ce - 220)
   seg04.c:2117: divide: (int16_t), overflow: f * v
-  seg04.c:2168: divide: (int16_t), overflow: (g_3824[4][g_96d2[g_7090[main_ship].f_04e].f_38] / 120 + (c6 * 2 - c8) * 2                       - g_7090[main_ship].f_026[0] / 15 + g_9334 / 2 - g_9316 + 5) * f
-  seg04.c:2225: compare: (int16_t), overflow: (LO16(g_05a0)) * 8
-  seg04.c:2229: compare: (int16_t), overflow: (HI16(g_05a0)) * 8
-  seg04.c:2245: compare: (int16_t), overflow: g_9334 * 7 + 45
-  seg04.c:2262: divide: (int16_t), overflow: count * 10
-  seg04.c:2262: divide: (int16_t), overflow: (g_9316 + 1)
-  seg04.c:2438: compare: (int16_t), overflow: g_7090[n].f_026[0] - dmg / (g_96d2[g_7090[n].f_04e].f_10)
-  seg04.c:2440: compare: (int16_t), overflow: g_7090[n].f_026[0] - dmg / (g_96d2[g_7090[n].f_04e].f_10)
-  seg04.c:2497: compare: (int16_t), overflow: c - g_7090[n].f_05d + 4
-  seg04.c:2503: compare: (int16_t), overflow: c - g_7090[n].f_0c2[m] - g_7090[n].f_05d
-  seg04.c:2518: compare: (int16_t), overflow: g_7090[n].f_05e + c + 1
-  seg04.c:2524: compare: (int16_t), overflow: g_7090[n].f_05e - g_7090[n].f_0c2[m] + c
-  seg04.c:2553: compare: (int16_t), overflow: g_7090[a].f_13e[b] + k
-  seg04.c:2554: compare: (int16_t), overflow: g_7090[b].f_13e[a] - k
   seg04.c:2633: modulo: (int16_t), overflow: (c + 8)
   seg04.c:3074: divide: (int16_t), overflow: (heading - ang) * 360
   seg04.c:3104: widen to long: (int16_t), overflow: ((c18 - 3) * 2 + c1a) * 4
@@ -711,9 +609,6 @@ signedness view: 664
   seg04.c:3318: compare: (int16_t), overflow: ++c1 * 40
   seg04.c:3340: compare: (int16_t), overflow: thr * 10
   seg04.c:3344: compare: (int16_t), overflow: c2 + c1
-  seg04.c:3347: compare: (int16_t), overflow: c1 * 9 + 14
-  seg04.c:3347: compare: (int16_t), overflow: c1 * 9 + 14
-  seg04.c:3349: compare: (int16_t), overflow: c2 * 4 + c1 * 10 + 21
   seg04.c:3351: compare: (int16_t), overflow: ((thr += 15) - c1 * 6) * 10
   seg04.c:3357: compare: (int16_t), overflow: (thr + 12) * 10
   seg04.c:3362: compare: (int16_t), overflow: (thr + 10) * 10
@@ -721,27 +616,11 @@ signedness view: 664
   seg06.c:21: divide: (int16_t), overflow: GetSystemMetrics(SM_CYSCREEN) * 4
   seg06.c:22: divide: (int16_t), overflow: (GetSystemMetrics(SM_CXSCREEN) - w)
   seg06.c:23: divide: (int16_t), overflow: (GetSystemMetrics(SM_CYSCREEN) - h)
-  seg06.c:47: compare: (int16_t), overflow: GetSystemMetrics(SM_CXSCREEN) - 10
-  seg06.c:51: compare: (int16_t), overflow: GetSystemMetrics(SM_CXSCREEN) - 10
-  seg06.c:497: divide: (int16_t), overflow: g_91f8 * g_932a
   seg06b.c:39: modulo: (int16_t), overflow: (deg + 360)
   seg06b.c:55: modulo: (int16_t), overflow: (deg + 360)
-  seg06b.c:220: store to long: (uint16_t), overflow: g_94c8 * 0x42
-  seg06b.c:295: store to long: (uint16_t), overflow: g_94c8 * 0x42
-  seg06b.c:371: compare: (uint16_t), unsigned: i
-  seg06b.c:374: long argument: (uint16_t), overflow: g_94c8 * 0x42
-  seg06b.c:402: divide: (int16_t), overflow: c * 600
-  seg06b.c:581: compare: (int16_t), overflow: g_95aa - 1
-  seg06b.c:658: compare: (int16_t), overflow: g_93a2 - 5
-  seg06b.c:658: compare: (int16_t), overflow: g_93a2 + 3
-  seg06b.c:901: compare: (int16_t), overflow: g_94d6 * 3
   seg06b.c:939: compare: (int16_t), overflow: last - col - 1
   seg06b.c:939: compare: (int16_t), overflow: last - row - 1
-  seg06b.c:961: compare: (int16_t), overflow: g_94d6 * 3
   seg06b.c:1002: divide: (int16_t), overflow: HI16(g_90ea) * 3
-  seg06b.c:1056: compare: (int16_t), overflow: -g_94d2
-  seg06b.c:1071: compare: (int16_t), overflow: g_94d2 - 4
-  seg06b.c:1089: compare: (int16_t), overflow: g_94d4 * 3
   seg06b.c:1115: divide: (int16_t), overflow: (w - 33) * 2
   seg06b.c:1135: divide: (int16_t), overflow: i * -255
   seg06b.c:1322: divide: (int16_t), overflow: i * 180
@@ -755,107 +634,17 @@ signedness view: 664
   seg06b.c:1327: divide: (int16_t), overflow: (((REC_FX *)g_6b0c)[k].f_002 - 1)
   seg06b.c:1328: widen to long: (int16_t), overflow: vy << 8
   seg06b.c:1482: (long) cast: (int16_t), overflow: (p->f_034 + 1)
-  seg06d.c:104: compare: (int16_t), overflow: g_94b6 - 1
   seg06d.c:791: compare: (uint16_t), unsigned: count - 1
   seg06d.c:906: compare: constant -> 0xffff
   seg06d.c:1073: compare: (int16_t), overflow: depth - dd
-  seg06d.c:1214: compare: (int16_t), overflow: g_69f4[idx].f_14e + g_69f4[idx].f_150
   seg06d.c:1279: compare: constant -> 0xffff
   seg06d.c:1303: compare: (int16_t), overflow: tm.tmHeight + tm.tmExternalLeading + 3
   seg07.c:17: compare: (int16_t), overflow: amount * 3 + g_1df8[0][n].f_1e
-  seg07.c:108: shift right: (int16_t), overflow: (32 << g_9156)
-  seg07.c:108: shift right: (int16_t), overflow: (32 << g_9156)
-  seg07.c:269: shift right: (int16_t), overflow: (6 << g_9156)
-  seg07.c:375: compare: (int16_t), overflow: n - 1
-  seg07.c:386: compare: (int16_t), overflow: m + n + 1
-  seg07.c:398: compare: (int16_t), overflow: m - 1
-  seg07.c:430: compare: (int16_t), overflow: m + n
-  seg07.c:501: shift right: (int16_t), overflow: 30 << g_9156
-  seg07.c:595: shift right: (int16_t), overflow: 12 << g_9156
-  seg07.c:596: shift right: (int16_t), overflow: 12 << g_9156
-  seg07.c:597: shift right: (int16_t), overflow: 12 << g_9156
-  seg07.c:766: compare: (int16_t), overflow: g_9208 + 2
-  seg07.c:767: shift right: (int16_t), overflow: (q + 5) * 2 << g_9156
-  seg07.c:768: shift right: (int16_t), overflow: 30 << g_9156
-  seg07.c:768: shift right: (int16_t), overflow: tbl[q] << g_9156
-  seg07.c:774: shift right: (int16_t), overflow: off << g_9156
-  seg07.c:775: shift right: (int16_t), overflow: off << g_9156
-  seg07.c:776: shift right: (int16_t), overflow: off << g_9156
-  seg07.c:777: shift right: (int16_t), overflow: off << g_9156
-  seg07.c:790: shift right: (int16_t), overflow: off << g_9156
-  seg07.c:791: shift right: (int16_t), overflow: off << g_9156
-  seg07.c:793: shift right: (int16_t), overflow: off << g_9156
-  seg07.c:794: shift right: (int16_t), overflow: off << g_9156
-  seg07.c:795: shift right: (int16_t), overflow: off << g_9156
-  seg07.c:796: shift right: (int16_t), overflow: off << g_9156
-  seg07.c:807: shift right: (int16_t), overflow: off << g_9156
-  seg07.c:808: shift right: (int16_t), overflow: off << g_9156
-  seg07.c:822: shift right: (int16_t), overflow: 6 << g_9156
-  seg07.c:822: shift right: (int16_t), overflow: 6 << g_9156
-  seg07.c:823: shift right: (int16_t), overflow: 24 << g_9156
-  seg07.c:823: shift right: (int16_t), overflow: 24 << g_9156
-  seg07.c:1070: shift right: (int16_t), overflow: 20 << g_9156
-  seg07.c:1071: shift right: (int16_t), overflow: 6 << g_9156
-  seg07.c:1072: shift right: (int16_t), overflow: 32 << g_9156
-  seg07.c:1073: shift right: (int16_t), overflow: 6 << g_9156
-  seg07.c:1098: shift right: (int16_t), overflow: 20 << g_9156
-  seg07.c:1100: shift right: (int16_t), overflow: 6 << g_9156
-  seg07.c:1137: shift right: (int16_t), overflow: 2 << g_9156
-  seg07.c:1137: shift right: (int16_t), overflow: 2 << g_9156
-  seg07.c:1138: shift right: (int16_t), overflow: 4 << g_9156
-  seg07.c:1138: shift right: (int16_t), overflow: 4 << g_9156
-  seg07.c:1139: shift right: (int16_t), overflow: 3 << g_9156
-  seg07.c:1139: shift right: (int16_t), overflow: 3 << g_9156
-  seg07.c:1145: shift right: (int16_t), overflow: 2 << g_9156
-  seg07.c:1145: shift right: (int16_t), overflow: 2 << g_9156
-  seg07.c:1146: shift right: (int16_t), overflow: 4 << g_9156
-  seg07.c:1146: shift right: (int16_t), overflow: 4 << g_9156
-  seg07.c:1147: shift right: (int16_t), overflow: 3 << g_9156
-  seg07.c:1153: shift right: (int16_t), overflow: 2 << g_9156
-  seg07.c:1153: shift right: (int16_t), overflow: 2 << g_9156
-  seg07.c:1154: shift right: (int16_t), overflow: 4 << g_9156
-  seg07.c:1154: shift right: (int16_t), overflow: 4 << g_9156
-  seg07.c:1155: shift right: (int16_t), overflow: 3 << g_9156
-  seg07.c:1161: shift right: (int16_t), overflow: 2 << g_9156
-  seg07.c:1161: shift right: (int16_t), overflow: 2 << g_9156
-  seg07.c:1162: shift right: (int16_t), overflow: 4 << g_9156
-  seg07.c:1162: shift right: (int16_t), overflow: 4 << g_9156
-  seg07.c:1206: shift right: (int16_t), overflow: (rand() % 12 + 10 << g_9156)
-  seg07.c:1207: shift right: (int16_t), overflow: (rand() % 12 + 10 << g_9156)
-  seg07.c:1209: shift right: (int16_t), overflow: (rand() % 10 + 22 << g_9156)
-  seg07.c:1210: shift right: (int16_t), overflow: 2 << g_9156
   seg07.c:1393: divide: (int16_t), overflow: amount * 3
-  seg07.c:1432: shift right: (int16_t), overflow: 5 << g_9156
-  seg07.c:1441: shift right: (int16_t), overflow: 22 << g_9156
-  seg07.c:1444: shift right: (int16_t), overflow: 4 << g_9156
   seg07.c:1447: divide: (int16_t), overflow: g_1df8[g_934a][n].f_22 * 2
-  seg07.c:1550: compare: (int16_t), overflow: LO16(g_90ea) / 2 - g_5eac[n][17]
-  seg07.c:1551: compare: (int16_t), overflow: HI16(g_90ea) / 2 - g_5eac[n][17]
-  seg07.c:1609: compare: (int16_t), overflow: g_5a4c[n].f_02 + 4
-  seg07b.c:324: compare: (int16_t), overflow: g_0598 + g_0594
-  seg07b.c:353: compare: (int16_t), overflow: g_059e + 1
-  seg07b.c:353: compare: (int16_t), overflow: g_059e - 1
-  seg07b.c:356: divide: (int16_t), overflow: g_914c * g_8f76
-  seg07b.c:365: compare: (int16_t), overflow: g_059c + 9
-  seg07b.c:365: compare: (int16_t), overflow: g_059c - 9
-  seg07b.c:368: divide: (int16_t), overflow: g_8f76 * g_0586
-  seg07b.c:629: shift right: (int16_t), overflow: (2 << g_9156)
-  seg07b.c:796: shift right: (int16_t), overflow: (2 << g_9156)
-  seg07b.c:796: shift right: (int16_t), overflow: (2 << g_9156)
-  seg07b.c:799: shift right: (int16_t), overflow: (2 << g_9156)
-  seg07b.c:799: shift right: (int16_t), overflow: (2 << g_9156)
   seg07b.c:840: divide: (int16_t), overflow: (g_1df8[8][r * 2 + 1].f_04.x - g_1df8[8][r * 2].f_04.x)
-  seg07b.c:966: compare: (int16_t), overflow: a + 1
-  seg07b.c:966: compare: (int16_t), overflow: a - 1
-  seg07b.c:969: divide: (int16_t), overflow: g_914c * g_9004
-  seg07b.c:977: compare: (int16_t), overflow: b + 9
-  seg07b.c:977: compare: (int16_t), overflow: b - 9
-  seg07b.c:980: divide: (int16_t), overflow: g_9004 * g_0586
-  seg08.c:255: divide: (int16_t), overflow: ((k << g_9150) + s.y)
   seg08.c:278: divide: (int16_t), overflow: dx * 12
   seg08.c:279: divide: (int16_t), overflow: dy * 12
-  seg08.c:284: compare: (int16_t), overflow: (LO16(g_05a0)) * 8
-  seg08.c:288: compare: (int16_t), overflow: HI16(g_05a0) * 8
   seg08.c:345: compare: (int16_t), overflow: s.x / 2 + m
   seg08.c:350: compare: (int16_t), overflow: s.y / 2 + m
   seg08.c:360: compare: (int16_t), overflow: w.y - s.y / 2 - m
@@ -864,38 +653,19 @@ signedness view: 664
   seg08.c:390: compare: (int16_t), overflow: w.y - s.y / 2 - m
   seg08.c:405: compare: (int16_t), overflow: s.y / 2 + m
   seg08.c:413: compare: (int16_t), overflow: w.y - s.y / 2 - m
-  seg08.c:466: shift right: (int16_t), overflow: g_6e1c[g_6e20[g_6e24[g_7090[a].f_0d6].f_00].f_21].f_1a << g_9156
-  seg08.c:469: shift right: (int16_t), overflow: g_6e1c[g_6e20[g_4ed8[g_7090[a].f_05e]].f_21].f_1a << g_9156
-  seg08.c:496: divide: (int16_t), overflow: (g_1df8[g_9324][a].f_20 - g_96d2[g_7090[a].f_04e].f_3c * 8)
-  seg08.c:498: divide: (int16_t), overflow: ((g_9156 << 6) + 32)
   seg08.c:501: divide: (int16_t), overflow: (g_1df8[g_9324][a].f_20                            - (int16_t)(g_96d2[g_7090[a].f_04e].f_3c * g_88cc / g_88c0.x))
   seg08.c:512: modulo: (int16_t), overflow: (dir + 4)
   seg08.c:513: modulo: (int16_t), overflow: (dir + 4)
   seg08.c:515: modulo: (int16_t), overflow: (dir + 12)
-  seg08.c:515: divide: (int16_t), overflow: g_066e[(dir + 12) % 16].x * r
   seg08.c:516: modulo: (int16_t), overflow: (dir + 12)
-  seg08.c:516: divide: (int16_t), overflow: g_066e[(dir + 12) % 16].y * r
   seg08.c:518: modulo: (int16_t), overflow: (dir + 4)
-  seg08.c:518: divide: (int16_t), overflow: g_066e[(dir + 4) % 16].x * r
   seg08.c:519: modulo: (int16_t), overflow: (dir + 4)
-  seg08.c:519: divide: (int16_t), overflow: g_066e[(dir + 4) % 16].y * r
-  seg08.c:521: compare: (int16_t), overflow: sz / 2 + p.x
   seg08.c:522: compare: (int16_t), overflow: p.x - sz / 2
-  seg08.c:523: compare: (int16_t), overflow: sz / 2 + p.y
   seg08.c:524: compare: (int16_t), overflow: p.y - sz / 2
   seg08.c:525: compare: (int16_t), overflow: sz / 2 - p.x
   seg08.c:526: compare: (int16_t), overflow: sz / 2 - p.y
-  seg08.c:544: shift right: (int16_t), overflow: (sz * k + o.x)
-  seg08.c:545: shift right: (int16_t), overflow: (q.x - z.x)
-  seg08.c:545: shift right: (int16_t), overflow: (q.y - z.y)
-  seg08.c:548: widen to long: (int16_t), overflow: (g_9156 * 2 + 1)
-  seg08.c:549: widen to long: (int16_t), overflow: (g_9156 * 2 + 1)
   seg08.c:552: widen to long: (int16_t), overflow: (q.x - z.x)
-  seg08.c:552: widen to long: (int16_t), overflow: (g_9156 * 2 + 1)
   seg08.c:553: widen to long: (int16_t), overflow: (q.y - z.y)
-  seg08.c:553: widen to long: (int16_t), overflow: (g_9156 * 2 + 1)
-  seg08.c:555: widen to long: (int16_t), overflow: (g_9156 * 2 + 1)
-  seg08.c:556: widen to long: (int16_t), overflow: (g_9156 * 2 + 1)
   seg08.c:594: compare: (int16_t), overflow: -v
   seg08.c:596: compare: (int16_t), overflow: -v
   seg08.c:692: compare: (int16_t), overflow: (LO16(g_05a0)) * 8
@@ -904,58 +674,22 @@ signedness view: 664
   seg08.c:794: (long) cast: (int16_t), overflow: (dv.x * dv.x + dv.y * dv.y)
   seg08.c:795: (long) cast: (int16_t), overflow: (fn_09_88ba(dv.x) + fn_09_88ba(dv.y))
   seg08.c:804: compare: (int16_t), overflow: dist - rest
-  seg08.c:824: divide: (int16_t), overflow: (g_17bc / 3 + f1) * dp.x
-  seg08.c:825: divide: (int16_t), overflow: (g_17bc / 3 + f1) * dp.y
-  seg08.c:827: divide: (int16_t), overflow: (g_17be / 3 + f2) * dp.x
-  seg08.c:828: divide: (int16_t), overflow: (g_17be / 3 + f2) * dp.y
   seg08.c:838: divide: (int16_t), overflow: (px << 3)
   seg08.c:839: divide: (int16_t), overflow: (py << 3)
   seg08.c:841: divide: (int16_t), overflow: (px << 3)
   seg08.c:842: divide: (int16_t), overflow: (py << 3)
-  seg08.c:954: shift right: (int16_t), overflow: (32 << g_9156)
-  seg08.c:956: divide: (int16_t), overflow: ((g_9156 << 6) + 32)
-  seg08.c:970: compare: (int16_t), overflow: LO16(g_90ea) + 40
-  seg08.c:971: compare: (int16_t), overflow: HI16(g_90ea) + 40
-  seg08.c:975: compare: (int16_t), overflow: LO16(g_90ea) + 40
-  seg08.c:976: compare: (int16_t), overflow: HI16(g_90ea) + 40
-  seg08.c:983: compare: (int16_t), overflow: LO16(g_90ea) + 40
-  seg08.c:984: compare: (int16_t), overflow: HI16(g_90ea) + 40
-  seg08.c:987: compare: (int16_t), overflow: LO16(g_90ea) + 40
-  seg08.c:988: compare: (int16_t), overflow: HI16(g_90ea) + 40
-  seg08.c:1013: shift right: (int16_t), overflow: (g_2394 << g_9156)
-  seg08.c:1014: shift right: (int16_t), overflow: (g_2396 << g_9156)
-  seg08.c:1016: shift right: (int16_t), overflow: (g_1df8[g_9324][main_ship].f_0c << g_9156)
-  seg08.c:1017: shift right: (int16_t), overflow: (g_1df8[g_9324][main_ship].f_0e << g_9156)
-  seg08.c:1020: shift right: (int16_t), overflow: (g_2390 << g_9156)
-  seg08.c:1021: shift right: (int16_t), overflow: (g_2392 << g_9156)
-  seg08.c:1112: shift right: (int16_t), overflow: g_2394 << t1
-  seg08.c:1113: shift right: (int16_t), overflow: g_2396 << t1
   seg08.c:1115: shift right: (int16_t), overflow: g_1df8[g_9324][main_ship].f_0c << t1
   seg08.c:1116: shift right: (int16_t), overflow: g_1df8[g_9324][main_ship].f_0e << t1
-  seg08.c:1119: shift right: (int16_t), overflow: g_2390 << t1
-  seg08.c:1120: shift right: (int16_t), overflow: g_2392 << t1
-  seg08.c:1124: modulo: (int16_t), overflow: (g_1d30.bottom - g_1d30.top)
-  seg08.c:1129: modulo: (int16_t), overflow: (g_1d30.bottom - g_1d30.top)
-  seg08.c:1135: modulo: (int16_t), overflow: (g_1d30.right - g_1d30.left)
-  seg08.c:1140: modulo: (int16_t), overflow: (g_1d30.right - g_1d30.left)
   seg08.c:1231: compare: (int16_t), overflow: (LO16(g_05a0)) * 4
   seg08.c:1233: widen to long: (int16_t), overflow: (LO16(g_05a0)) * 8
   seg08.c:1233: widen to long: (int16_t), overflow: (LO16(g_05a0)) * 8
-  seg08.c:1236: widen to long: (int16_t), overflow: (HI16(g_90ea) << (g_9150 - 1))
   seg08.c:1236: widen to long: (int16_t), overflow: HI16(g_05a0) * 4
   seg08.c:1238: widen to long: (int16_t), overflow: HI16(g_05a0) * 8
   seg08.c:1238: widen to long: (int16_t), overflow: HI16(g_05a0) * 8
-  seg08.c:1308: widen to long: (int16_t), overflow: (pt.x << g_9150)
-  seg08.c:1309: widen to long: (int16_t), overflow: (pt.y << g_9150)
   seg08.c:1310: widen to long: (int16_t), overflow: (LO16(g_05a0)) * 8
   seg08.c:1311: widen to long: (int16_t), overflow: (LO16(g_05a0)) * 8
   seg08.c:1312: widen to long: (int16_t), overflow: HI16(g_05a0) * 8
   seg08.c:1313: widen to long: (int16_t), overflow: HI16(g_05a0) * 8
-  seg08.c:1318: widen to long: (int16_t), overflow: (pt.x - g_88c4.x)
-  seg08.c:1319: widen to long: (int16_t), overflow: (pt.y - g_88c4.y)
-  seg08b.c:115: widen to long: (int16_t), overflow: g_7090[b].f_0d8 * 2
-  seg08b.c:119: widen to long: (int16_t), overflow: g_0b38[a] * c
-  seg08b.c:121: widen to long: (int16_t), overflow: g_0b38[a] * c * 2
   seg08b.c:304: divide: (int16_t), overflow: dx * 15
   seg08b.c:305: divide: (int16_t), overflow: dy * 15
   seg08b.c:316: divide: (int16_t), overflow: vx * 100
@@ -966,38 +700,14 @@ signedness view: 664
   seg08b.c:328: divide: (int16_t), overflow: (a / 2 - b / 2 - *p4 + *p2 + c) * 100
   seg08b.c:334: divide: (int16_t), overflow: k * ux
   seg08b.c:335: divide: (int16_t), overflow: k * uy
-  seg08b.c:370: shift right: (int16_t), overflow: d * 2
-  seg08b.c:371: shift right: (int16_t), overflow: dy * 2
-  seg08b.c:372: shift right: (int16_t), overflow: dx * 2
   seg08b.c:380: compare: (int16_t), overflow: (min(g_1df8[st][si_].f_48, 7) + 8) * 15
   seg08b.c:381: divide: (int16_t), overflow: g_1df8[st][si_].f_48 * 600
   seg08b.c:382: divide: (int16_t), overflow: f * 15
   seg08b.c:398: divide: (int16_t), overflow: g_1df8[st][si_].f_48 * 250
   seg08b.c:398: divide: (int16_t), overflow: (g_1df8[t][i].f_44 + 100)
-  seg08b.c:561: compare: (int16_t), overflow: g_88c4.x - g_1df8[t][idx].f_22 + g_88c0.x
-  seg08b.c:569: compare: (int16_t), overflow: g_88c4.y - g_1df8[t][idx].f_22 + g_88c0.y
-  seg08b.c:655: compare: (int16_t), overflow: g_88c4.x + g_88c0.x - 2
-  seg08b.c:663: compare: (int16_t), overflow: g_88c4.y + g_88c0.y - 2
-  seg08b.c:671: divide: (int16_t), overflow: g_6098[n].z[1][5] * 14
-  seg08b.c:680: divide: (int16_t), overflow: g_96d2[g_7090[g_6098[n].f_7c].f_04e].f_32 * k
-  seg08b.c:697: compare: (int16_t), overflow: k * g_9436
-  seg08b.c:723: shift right: (int16_t), overflow: g_9208 + 1
-  seg08b.c:753: divide: (int16_t), overflow: g_6098[n].z[1][5] * 8
   seg08b.c:760: divide: (int16_t), overflow: g_1df8[g_6098[n].f_7a][g_6098[n].f_7c].f_0c * s
   seg08b.c:761: divide: (int16_t), overflow: g_1df8[g_6098[n].f_7a][g_6098[n].f_7c].f_0e * s
-  seg08b.c:783: compare: (int16_t), overflow: LO16(g_05a0) * 8
-  seg08b.c:790: compare: (int16_t), overflow: HI16(g_05a0) * 8
-  seg08b.c:847: compare: (int16_t), overflow: g_1e90[i].f_02 - 1
-  seg08b.c:905: compare: (int16_t), overflow: g_1e90[i].f_02 - g_1e90[i].f_00
-  seg08b.c:911: divide: (int16_t), overflow: g_2414[i][a][b].f_10 * g_1e90[i].f_00 * g_1e90[i].f_00 * 9
-  seg08b.c:912: divide: (int16_t), overflow: (g_1e90[i].f_02 * g_1e90[i].f_02)
-  seg08b.c:913: compare: (int16_t), overflow: LO16(g_05a0) * 8
-  seg08b.c:917: divide: (int16_t), overflow: g_2414[i][a][b].f_12 * g_1e90[i].f_00 * g_1e90[i].f_00 * 9
-  seg08b.c:918: divide: (int16_t), overflow: (g_1e90[i].f_02 * g_1e90[i].f_02)
-  seg08b.c:919: compare: (int16_t), overflow: HI16(g_05a0) * 8
-  seg08b.c:940: compare: (int16_t), overflow: g_9430 - 1
   seg08b.c:987: divide: (int16_t), overflow: dmg * 7
-  seg08b.c:989: divide: (int16_t), overflow: (g_9000 + 6) * dmg
   seg08b.c:1018: divide: (int16_t), overflow: dmg * 3
   seg08b.c:1035: divide: (int16_t), overflow: dmg * 4
   seg08b.c:1037: compare: (int16_t), overflow: dmg * 3
@@ -1006,39 +716,16 @@ signedness view: 664
   seg08b.c:1054: divide: (int16_t), overflow: dmg * (20 - (g_6e24[g_7090[i].f_0d6].f_28 + 8)[k + 4] * 3)
   seg08b.c:1300: compare: (int16_t), overflow: smass + 100
   seg08b.c:1311: compare: (int16_t), overflow: dmg * 2
-  seg08b.c:1443: compare: (int16_t), overflow: g_9eb9[g_9322] + g_9318 * 2
   seg08b.c:1477: compare: (int16_t), overflow: dmg * 25
   seg08b.c:1479: compare: (int16_t), overflow: dmg * 6
   seg08b.c:1481: compare: (int16_t), overflow: dmg * 12
-  seg08b.c:1484: divide: (int16_t), overflow: (g_a198 + 3) * v
-  seg08b.c:1486: divide: (int16_t), overflow: v * (g_a198 + 3)
-  seg08b.c:1493: widen to long: (int16_t), overflow: dmg * 200
-  seg08b.c:1495: widen to long: (int16_t), overflow: dmg * 140
-  seg08b.c:1546: compare: (int16_t), overflow: (-25 << g_9156)
-  seg08b.c:1546: compare: (int16_t), overflow: (40 << g_9156)
-  seg08b.c:1547: compare: (int16_t), overflow: (-25 << g_9156)
-  seg08b.c:1547: compare: (int16_t), overflow: (40 << g_9156)
   seg08b.c:1548: long argument: (int16_t), overflow: g_1df8[t][i].f_22 / 2 + d.x
   seg08b.c:1548: long argument: (int16_t), overflow: g_1df8[t][i].f_22 / 2 + d.y
-  seg08b.c:1551: divide: (int16_t), overflow: ((g_1df8[t][i].f_0e / 5 - g_6098[n].z[1][3]) * d.y                          + (g_1df8[t][i].f_0c / 5 - g_6098[n].z[1][2]) * d.x)
-  seg08b.c:1552: divide: (int16_t), overflow: (dist * 8)
-  seg08b.c:1554: widen to long: (int16_t), overflow: (g_9208 + 2)
-  seg08b.c:1557: divide: (int16_t), overflow: ((g_9208 + 4) * 10)
-  seg08b.c:1566: divide: (int16_t), overflow: g_6098[n].z[1][5] * 14
   seg08b.c:1570: divide: (int16_t), overflow: k * 3
   seg08b.c:1573: divide: (int16_t), overflow: k * 5
-  seg08b.c:1575: divide: (int16_t), overflow: g_96d2[g_7090[g_6098[n].f_7c].f_04e].f_32 * k
   seg08b.c:1579: divide: (int16_t), overflow: ((g_6e24[g_7090[g_6098[n].f_7c].f_0d6].f_28 + 8)[2] + 5) * k * 20
-  seg08b.c:1607: widen to long: (int16_t), overflow: (LO16(g_05a0) << 3)
-  seg08b.c:1609: widen to long: (int16_t), overflow: (HI16(g_05a0) << 3)
   seg08b.c:1616: divide: (int16_t), overflow: (g_1df8[t][i].f_0c + vel.x)
   seg08b.c:1617: divide: (int16_t), overflow: (g_1df8[t][i].f_0e + vel.y)
-  seg08b.c:1646: compare: (int16_t), overflow: k * g_9436
-  seg08b.c:1694: compare: (int16_t), overflow: g_9eb9[g_9322] + g_9318 * 2
-  seg08b.c:1715: widen to long: (int16_t), overflow: g_9438 * 12
-  seg08b.c:1717: widen to long: (int16_t), overflow: g_9438 * 120
-  seg08c.c:47: compare: (int16_t), overflow: g_0598 + g_0594
-  seg08c.c:147: compare: (int16_t), overflow: (g_9334 + 0x1a) * 5
   seg08c.c:414: divide: (int16_t), overflow: dx * -100
   seg08c.c:415: divide: (int16_t), overflow: dy * -100
   seg08c.c:419: divide: (int16_t), overflow: (dx << 3)
@@ -1053,58 +740,25 @@ signedness view: 664
   seg08c.c:564: store to long: (int16_t), overflow: g_1df8[2][j].f_0c - g_1df8[g_52ec[j].f_18.a][g_52ec[j].f_18.b].f_0c
   seg08c.c:565: store to long: (int16_t), overflow: g_1df8[2][j].f_0e - g_1df8[g_52ec[j].f_18.a][g_52ec[j].f_18.b].f_0e
   seg08c.c:620: compare: constant -> 0xffff
-  seg09.c:60: compare: (int16_t), overflow: n * g_932e * 4 + g_0992
-  seg09.c:60: compare: (int16_t), overflow: g_932a + 10
-  seg09.c:61: divide: (int16_t), overflow: (g_932a - g_0992 + 20)
-  seg09.c:61: divide: (int16_t), overflow: (n * 4)
-  seg09.c:148: compare: (int16_t), overflow: g_0992 + 30
-  seg09.c:148: compare: (int16_t), overflow: g_91f8 - g_93ac
-  seg09.c:156: compare: (int16_t), overflow: g_91f8 - g_93ac
   seg09.c:160: divide: (int16_t), overflow: chance * 4
   seg09.c:300: divide: (int16_t), overflow: g_1df8[0][j].f_1e * -90
-  seg09.c:381: compare: (int16_t), overflow: g_6084.left - 6
-  seg09.c:382: compare: (int16_t), overflow: g_6084.right + 6
-  seg09.c:498: modulo: (int16_t), overflow: (g_094e - 1)
   seg09.c:520: compare: (int16_t), overflow: n4 - i - 1
-  seg09.c:552: compare: (int16_t), view signedness: __view_int16_t(g_94c8)
-  seg09.c:652: compare: (int16_t), view signedness: __view_int16_t(g_94c8)
   seg09.c:1037: compare: (int16_t), overflow: LO16(g_90ea) - 20
-  seg09.c:1041: compare: (int16_t), overflow: g_0010 - 20
-  seg09.c:1192: compare: (int16_t), overflow: g_6084.right - margin
   seg09a.c:230: compare: (int16_t), overflow: x + 32
   seg09a.c:231: compare: (int16_t), overflow: y + 32
-  seg09b.c:135: divide: (int16_t), overflow: g_0010 * 3
-  seg09b.c:190: store to long: (int16_t), overflow: g_1df8[8][g_9318 * 2 + i].f_04.x - (LO16(g_90ea) << (g_9150 - 1))
-  seg09b.c:191: store to long: (int16_t), overflow: g_1df8[8][g_9318 * 2 + i].f_04.y - (HI16(g_90ea) << (g_9150 - 1))
-  seg09b.c:193: compare: (int16_t), overflow: g_9ea2 - 1
   seg09b.c:230: modulo: (int16_t), overflow: ((LO16(g_05a0)) - 150)
   seg09b.c:231: modulo: (int16_t), overflow: ((HI16(g_05a0)) - 150)
-  seg09b.c:257: compare: (int16_t), overflow: g_9406[4] - 1
-  seg09b.c:260: modulo: (int16_t), overflow: (g_104c[i].a * 208 + g_1df8[4][0].f_04.y)
-  seg09b.c:260: modulo: (int16_t), overflow: ((HI16(g_05a0)) * 8)
-  seg09b.c:261: modulo: (int16_t), overflow: (g_104c[i].b * 208 + g_1df8[4][0].f_04.x)
-  seg09b.c:261: modulo: (int16_t), overflow: ((LO16(g_05a0)) * 8)
   seg09b.c:451: divide: (int16_t), overflow: g_6e24[n].f_06 * a
   seg09b.c:454: compare: (int16_t), overflow: g_6e24[n].f_06 + d
-  seg09b.c:529: compare: (int16_t), overflow: g_9318 * 2
   seg09b.c:539: modulo: (int16_t), overflow: ((LO16(g_05a0)) - 60)
   seg09b.c:540: modulo: (int16_t), overflow: ((HI16(g_05a0)) - 60)
-  seg09b.c:543: compare: (int16_t), overflow: g_9318 * 2
-  seg09b.c:549: compare: (int16_t), overflow: g_9318 * 2
   seg09b.c:566: modulo: (int16_t), overflow: ((LO16(g_05a0)) - 300)
   seg09b.c:567: modulo: (int16_t), overflow: ((HI16(g_05a0)) - 200)
   seg09b.c:579: modulo: (int16_t), overflow: ((LO16(g_05a0)) - 300)
   seg09b.c:580: modulo: (int16_t), overflow: ((HI16(g_05a0)) - 200)
   seg09b.c:593: modulo: (int16_t), overflow: (g_1df8[t][k].f_04.y + 1600)
   seg09b.c:594: modulo: (int16_t), overflow: ((HI16(g_05a0)) * 8)
-  seg09b.c:680: compare: (int16_t), overflow: g_9318 * 2 + g_933e
-  seg09b.c:687: compare: (int16_t), overflow: g_9318 * 2 + g_4ee4
-  seg09b.c:718: compare: (int16_t), overflow: g_9318 * 2 + g_933e + g_4ee0[0]
-  seg09b.c:767: modulo: (int16_t), overflow: ((g_91f8 + 1) * 200)
-  seg09b.c:804: divide: (int16_t), overflow: (g_9406[0] - 1) * 64
-  seg09b.c:869: divide: (int16_t), overflow: min(g_9334 / 2 + 5, 9) * n
   seg09b.c:883: store to long: (int16_t), overflow: (rand() % 75 + t112 * 18 + 120) << 3
-  seg09b.c:887: modulo: (int16_t), overflow: ((g_9334 + 7) * 2)
   seg09b.c:888: compare: (int16_t), overflow: remain - t112
   seg09b.c:927: (long) cast: (int16_t), overflow: ((LO16(g_05a0)) << 3)
   seg09b.c:929: (long) cast: (int16_t), overflow: ((HI16(g_05a0)) << 3)
@@ -1112,87 +766,12 @@ signedness view: 664
   seg09b.c:950: compare: (int16_t), overflow: (LO16(g_05a0)) << 3
   seg09b.c:969: compare: (int16_t), overflow: (HI16(g_05a0)) << 3
   seg09b.c:973: compare: (int16_t), overflow: (LO16(g_05a0)) << 3
-  seg09b.c:1261: divide: (int16_t), overflow: (g_0992 - g_932a)
-  seg09b.c:1275: divide: (int16_t), overflow: g_932a * 2
-  seg09b.c:1281: divide: (int16_t), overflow: g_932a * 2
-  seg09b.c:1281: compare: (int16_t), overflow: g_0994 * 100 + g_0992
-  seg09b.c:1289: compare: (int16_t), overflow: g_4f1c[l] + i
-  seg09b.c:1296: compare: (int16_t), overflow: (g_91f8 - g_4fd0[bestidx2][0] - g_0994 * 3) * 10 + best2 * 35 + 25
-  seg09b.c:1304: divide: (int16_t), overflow: g_932a * 2
-  seg09b.c:1304: compare: (int16_t), overflow: g_0994 * 75 + g_0992
   seg09b.c:1318: compare: (int16_t), overflow: best2 + 40
-  seg09b.c:1324: divide: (int16_t), overflow: g_932a * 3
-  seg09b.c:1324: compare: (int16_t), overflow: g_932a * 3 / 5 - g_0994 * 50
-  seg09b.c:1327: compare: (int16_t), overflow: g_7090[main_ship].f_0ce / 25 - g_7090[main_ship].f_026[0] / 5 + (g_9334 + 10) * 2                          - g_0992 / 5 - g_0994 * 35 + g_9000 * 3
-  seg09b.c:1334: divide: (int16_t), overflow: g_932a * 3
-  seg09b.c:1334: compare: (int16_t), overflow: g_932a * 3 / 5 - g_0994 * 45
-  seg09b.c:1361: modulo: (int16_t), overflow: ((3 - g_9338) * 10)
-  seg09b.c:1366: modulo: (int16_t), overflow: ((3 - g_9338) * 10)
-  seg09b.c:1393: modulo: (int16_t), overflow: ((6 - g_9338) * 5)
-  seg09b.c:1395: compare: (int16_t), overflow: g_9334 - 2
-  seg09b.c:1401: modulo: (int16_t), overflow: ((8 - g_9338) * 5)
-  seg09b.c:1405: modulo: (int16_t), overflow: ((7 - g_9338) * 5)
-  seg09b.c:1418: modulo: (int16_t), overflow: (18 - g_9338 * 4)
-  seg09b.c:1432: divide: (int16_t), overflow: budget * g_8ff8
-  seg09b.c:1433: divide: (int16_t), overflow: g_932a * 4
-  seg09b.c:1439: compare: (int16_t), overflow: g_91f8 - g_94ca
-  seg09b.c:1442: compare: (int16_t), overflow: (g_91f8 - g_94ca - 3) * 2 + g_9334 / 2
-  seg09b.c:1530: divide: (int16_t), overflow: (g_9208 + 3) * budget * 20
-  seg09b.c:1546: modulo: (int16_t), overflow: (g_094e - 1)
-  seg09b.c:1547: divide: (int16_t), overflow: (g_094e - 1)
-  seg09b.c:1554: modulo: (int16_t), overflow: (g_0950 - 1)
-  seg09b.c:1559: modulo: (int16_t), overflow: ((g_9338 + 1) * 4)
-  seg09b.c:1587: compare: (int16_t), overflow: g_9334 + 2
-  seg09b.c:1593: compare: (int16_t), overflow: g_933c + g_933a[0]
-  seg09b.c:1615: divide: (int16_t), overflow: g_932a * 3
-  seg09b.c:1615: compare: (int16_t), overflow: (g_9338 * 2 + g_0994) * 15 + sumcost + g_0992
-  seg09b.c:1747: widen to long: (int16_t), overflow: (g_9338 + 1)
-  seg09b.c:1893: compare: (int16_t), overflow: g_9338 * -40 - g_0992 + g_932a
-  seg09b.c:1894: divide: (int16_t), overflow: (g_9338 * -40 - g_0992 + g_932a + 60)
-  seg09b.c:1895: divide: (int16_t), overflow: (g_9338 * -40 - g_0992 + g_932a + 60)
-  seg09b.c:1898: compare: (int16_t), overflow: g_9338 * 45 + g_0992
-  seg09b.c:1899: divide: (int16_t), overflow: (g_0992 - g_932a)
-  seg09b.c:1930: divide: (int16_t), overflow: g_0010 * 3
-  seg09b.c:1969: divide: (int16_t), overflow: g_9432 * 7
-  seg09b.c:1971: divide: (int16_t), overflow: g_9432 * 9
-  seg09b.c:2070: divide: (int16_t), overflow: g_0010 * 3
   seg10.c:140: divide: (int16_t), overflow: n * 3
-  seg10.c:375: shift right: (int16_t), overflow: (VIEW(union {         int32_t l;         POINT pt;     }, g_1df8[g_9324][main_ship].f_04, 0).pt.x - ((int16_t)g_90ea / 2 << g_9150))
-  seg10.c:379: shift right: (int16_t), overflow: (VIEW(union {         int32_t l;         POINT pt;     }, g_1df8[g_9324][main_ship].f_04, 0).pt.y - (HI16(g_90ea) / 2 << g_9150))
-  seg10.c:434: shift right: (int16_t), overflow: dd.x * 2
-  seg10.c:435: shift right: (int16_t), overflow: dd.y * 2
-  seg10.c:471: shift right: (int16_t), overflow: (VIEW(union {         int32_t l;         POINT pt;     }, g_1df8[g_9324][main_ship].f_04, 0).pt.x - ((int16_t)g_90ea / 2 << g_9150))
-  seg10.c:475: shift right: (int16_t), overflow: (VIEW(union {         int32_t l;         POINT pt;     }, g_1df8[g_9324][main_ship].f_04, 0).pt.y - (HI16(g_90ea) / 2 << g_9150))
-  seg10.c:516: shift right: (int16_t), overflow: dd.x * 2
-  seg10.c:517: shift right: (int16_t), overflow: dd.y * 2
-  seg10.c:542: shift right: (int16_t), overflow: (VIEW(union {         int32_t l;         POINT pt;     }, g_1df8[g_9324][main_ship].f_04, 0).pt.x - ((int16_t)g_90ea / 2 << g_9150))
-  seg10.c:546: shift right: (int16_t), overflow: (VIEW(union {         int32_t l;         POINT pt;     }, g_1df8[g_9324][main_ship].f_04, 0).pt.y - (HI16(g_90ea) / 2 << g_9150))
-  seg10.c:597: shift right: (int16_t), overflow: dd.x * 2
-  seg10.c:598: shift right: (int16_t), overflow: dd.y * 2
   seg10.c:991: compare: (int16_t), overflow: nw - old
   seg10.c:995: compare: (int16_t), overflow: nw - old
-  seg10.c:1095: shift right: (int16_t), overflow: (w << g_9156)
-  seg10.c:1096: shift right: (int16_t), overflow: (h << g_9156)
-  seg10.c:1108: shift right: (int16_t), overflow: (w << g_9156)
-  seg10.c:1109: shift right: (int16_t), overflow: (h << g_9156)
-  seg10.c:1117: shift right: (int16_t), overflow: (w << g_9156)
-  seg10.c:1117: shift right: (int16_t), overflow: (h << g_9156)
-  seg10.c:1122: shift right: (int16_t), overflow: (w << g_9156)
-  seg10.c:1122: shift right: (int16_t), overflow: (h << g_9156)
-  seg10.c:1317: shift right: (int16_t), overflow: (9 << g_9156)
-  seg10.c:1354: shift right: (int16_t), overflow: (9 << g_9156)
-  seg10.c:1440: compare: (int16_t), overflow: d + g_9156
-  seg10.c:1440: compare: (int16_t), overflow: d + g_9156
-  seg10.c:1464: compare: (int16_t), overflow: g_92ec[0] + 0xe
   seg10.c:1480: shift right: (int16_t), overflow: g_1df8[i][j].f_22 << (d + 1)
   seg10.c:1481: shift right: (int16_t), overflow: g_1df8[i][j].f_24 << (d + 1)
-  seg10.c:1483: compare: (int16_t), overflow: 12 << g_9156
-  seg10.c:1485: compare: (int16_t), overflow: 12 << g_9156
-  seg10.c:1512: shift right: (int16_t), overflow: v << g_9156
-  seg10.c:1513: shift right: (int16_t), overflow: w << g_9156
-  seg10.c:1536: shift right: (int16_t), overflow: g_4d90[g_3d50[i].f_30].f_09 << g_9156
-  seg10.c:1537: shift right: (int16_t), overflow: g_4d90[g_3d50[i].f_30].f_08 << g_9156
-  seg10.c:1566: divide: (int16_t), overflow: (v >> g_9156) * 2
   seg10.c:1602: compare: (int16_t), overflow: b.bmPlanes * b.bmBitsPixel
   seg10.c:1606: compare: (int16_t), overflow: ws * 2
   seg10.c:1606: compare: (int16_t), overflow: hs * 2
@@ -1200,21 +779,12 @@ signedness view: 664
   seg10.c:1655: compare: (int16_t), overflow: v + 30
   seg10.c:1657: compare: (int16_t), overflow: v + 30
   seg10.c:1659: compare: (int16_t), overflow: v + 30
-  seg10.c:1925: divide: (int16_t), overflow: (4 - g_9156 * 3)
-  seg10.c:1926: divide: (int16_t), overflow: (4 - g_9156 * 3)
-  seg10.c:1931: divide: (int16_t), overflow: (4 - g_9156 * 3)
-  seg10.c:1931: divide: (int16_t), overflow: (4 - g_9156 * 3)
-  seg10.c:1934: divide: (int16_t), overflow: (4 - g_9156 * 3)
-  seg10.c:1935: divide: (int16_t), overflow: (4 - g_9156 * 3)
-  seg10.c:3003: divide: (int16_t), overflow: (g_1122 + 1)
-  seg10.c:3180: shift right: (int16_t), overflow: (sz << g_9156)
   seg10.c:3223: compare: (int16_t), overflow: -pt.y
   seg10.c:3224: compare: (int16_t), overflow: -pt.x
   seg10.c:3225: compare: (int16_t), overflow: w - pt.y
   seg10.c:3226: compare: (int16_t), overflow: pt.y - w + sz
   seg10.c:3227: compare: (int16_t), overflow: w - pt.x - 1
   seg10.c:3228: compare: (int16_t), overflow: pt.x - w + sz + 1
-  seg10.c:3309: compare: (int16_t), overflow: d - g_9eb9[g_9322] - g_9318 * 2
   seg10.c:3349: divide: (int16_t), overflow: g_1df8[14][main_ship].f_20 / 8 * w
   seg10.c:3350: divide: (int16_t), overflow: g_1df8[14][main_ship].f_20 / 8 * w
   seg10.c:3351: divide: (int16_t), overflow: g_1df8[14][main_ship].f_20 / 8 * w
@@ -1231,16 +801,7 @@ signedness view: 664
   seg10b.c:1493: modulo: (int16_t), overflow: ((HI16(g_05a0)) - 150)
   seg10b.c:1522: modulo: (int16_t), overflow: ((LO16(g_05a0)) - 150)
   seg10b.c:1523: modulo: (int16_t), overflow: ((HI16(g_05a0)) - 150)
-  seg10b.c:1635: divide: (int16_t), overflow: g_96d2[i].f_2a * (g_9156 * 2 + 1)
-  seg10b.c:1637: shift right: (int16_t), overflow: (g_96d2[i].f_2a << g_9156)
-  seg10b.c:1668: divide: (int16_t), overflow: g_06d6[j] * r
-  seg10b.c:1668: divide: (int16_t), overflow: g_06d6[j] * r / 256 * (g_9156 * 2 + 1)
   seg10b.c:1669: divide: (int16_t), overflow: (u1 = -1 - g_9156 * 2) * a
-  seg10b.c:1670: divide: (int16_t), overflow: (-1 - g_9156 * 2) * b
-  seg10b.c:1671: divide: (int16_t), overflow: g_06e0[j] * r
-  seg10b.c:1671: divide: (int16_t), overflow: g_06e0[j] * r / 256 * (g_9156 * 2 + 1)
-  seg10b.c:1673: divide: (int16_t), overflow: g_06d6[j] * r
-  seg10b.c:1675: divide: (int16_t), overflow: g_06e0[j] * r
   seg10b.c:2108: compare: (int16_t), overflow: sz * 2
   seg10b.c:2133: divide: (int16_t), overflow: (m - sz0)
   seg10b.c:2133: divide: (int16_t), overflow: (m - sz0)
@@ -1248,88 +809,39 @@ signedness view: 664
   seg10b.c:2148: divide: (int16_t), overflow: fn_06_71b2(ang) * r
   seg10b.c:2156: divide: (int16_t), overflow: (m - sz)
   seg10b.c:2156: divide: (int16_t), overflow: (m - sz)
-  seg10b.c:2230: compare: (int16_t), overflow: g_92ec[3] - g_92ea
-  seg11.c:182: divide: (int16_t), overflow: ((g_0594 - 2) * 10)
-  seg11.c:194: compare: (int16_t), overflow: 7 - g_9000 * 2 - g_9334
   seg11.c:246: widen to long: (int16_t), overflow: ((LO16(g_05a0)) << 3)
   seg11.c:248: widen to long: (int16_t), overflow: ((HI16(g_05a0)) << 3)
   seg11.c:263: widen to long: (int16_t), overflow: ((LO16(g_05a0)) << 3)
   seg11.c:265: widen to long: (int16_t), overflow: ((HI16(g_05a0)) << 3)
-  seg11.c:267: store to long: (int16_t), overflow: g_6098[i].f_30[1][0] - g_6098[i].f_30[0][0]
-  seg11.c:268: store to long: (int16_t), overflow: g_6098[i].f_48[1][0] - g_6098[i].f_48[0][0]
-  seg11.c:353: compare: (int16_t), overflow: g_7090[n].f_01c - 1
-  seg11.c:372: divide: (int16_t), overflow: g_7090[n].f_00c * 19
-  seg11.c:383: divide: (int16_t), overflow: g_7090[n].f_0da * 7
-  seg11.c:385: divide: (int16_t), overflow: g_7090[n].f_0da * 2
-  seg11.c:391: compare: (int16_t), overflow: fn_09_88ba(g_1df8[g_9324][n].f_0c) + fn_09_88ba(g_1df8[g_9324][n].f_0e)
-  seg11.c:394: divide: (int16_t), overflow: g_7090[n].f_0da * 5
-  seg11.c:396: divide: (int16_t), overflow: g_7090[n].f_0da * 4
-  seg11.c:398: divide: (int16_t), overflow: g_7090[n].f_0da * 3
-  seg11.c:399: divide: (int16_t), overflow: g_7090[n].f_0da * 3
-  seg11.c:401: divide: (int16_t), overflow: g_7090[n].f_0da * 4
-  seg11.c:403: divide: (int16_t), overflow: g_7090[n].f_0da * 5
-  seg11.c:405: divide: (int16_t), overflow: g_7090[n].f_0da * 35
-  seg11.c:405: divide: (int16_t), overflow: (g_7090[n].f_014 + 10)
   seg11.c:409: divide: (int16_t), overflow: lim * 3
   seg11.c:440: divide: (int16_t), overflow: accel * g_1df8[g_9324][n].f_0c
   seg11.c:440: divide: (int16_t), overflow: (g_1df8[g_9324][n].f_44 << 2)
   seg11.c:441: divide: (int16_t), overflow: g_1df8[g_9324][n].f_0e * accel
   seg11.c:441: divide: (int16_t), overflow: (g_1df8[g_9324][n].f_44 << 2)
-  seg11.c:443: divide: (int16_t), overflow: (g_1df8[g_9324][n].f_44 / -60 - g_7090[n].f_002 / 8 - g_7090[n].f_00e - 30)                    * g_1df8[g_9324][n].f_0c
-  seg11.c:445: divide: (int16_t), overflow: (g_1df8[g_9324][n].f_44 / -60 - g_7090[n].f_002 / 8 - g_7090[n].f_00e - 30)                    * g_1df8[g_9324][n].f_0e
   seg11.c:455: divide: (int16_t), overflow: a1 * 4
   seg11.c:456: divide: (int16_t), overflow: a2 * 4
   seg11.c:458: modulo: (int16_t), overflow: (facing + 4)
-  seg11.c:458: divide: (int16_t), overflow: (g_1050[facing].x * a1 + g_1050[(facing + 4) % 16].x * a2)
   seg11.c:459: modulo: (int16_t), overflow: (facing + 4)
-  seg11.c:459: divide: (int16_t), overflow: (g_1050[facing].y * a1 + g_1050[(facing + 4) % 16].y * a2)
   seg11.c:461: divide: (int16_t), overflow: g_1df8[g_9324][n].f_0c * accel
   seg11.c:461: divide: (int16_t), overflow: (g_1df8[g_9324][n].f_44 << 3)
   seg11.c:462: divide: (int16_t), overflow: g_1df8[g_9324][n].f_0e * accel
   seg11.c:462: divide: (int16_t), overflow: (g_1df8[g_9324][n].f_44 << 3)
   seg11.c:472: divide: (int16_t), overflow: g_1df8[g_9324][n].f_0c * 3
   seg11.c:473: divide: (int16_t), overflow: g_1df8[g_9324][n].f_0e * 3
-  seg11.c:497: shift right: (int16_t), overflow: (8 - g_9208) * 16
-  seg11.c:497: compare: (int16_t), overflow: ((8 - g_9208) * 16 >> 6) * g_93d6
   seg11.c:1111: divide: (int16_t), overflow: ((int16_t)g_0a6c - 200)
   seg11.c:1112: divide: (int16_t), overflow: ((int16_t)g_0a6c - 200)
-  seg11.c:1129: compare: (int16_t), overflow: g_9318 * 2
   seg11.c:1145: divide: (int16_t), overflow: ((int16_t)g_0a6c - 200)
   seg11.c:1146: divide: (int16_t), overflow: ((int16_t)g_0a6c - 200)
-  seg11.c:1212: compare: (int16_t), overflow: g_9318 * 2 + g_9ea2
   seg11.c:1283: compare: (int16_t), overflow: lstrlen(s) - 3
-  seg11.c:1460: compare: (int16_t), overflow: (0x4b - g_7090[i].f_026[1]) * 4
   seg11.c:1574: divide: (int16_t), overflow: lstrlen(s) * w
-  seg11.c:1902: compare: (int16_t), overflow: g_7090[main_ship].f_01e + 250
-  seg11.c:2151: (long) cast: (int16_t), overflow: (g_1df8[g_9324][n].f_44 / 30 + g_7090[n].f_00c / 8                   + g_7090[n].f_00e + 30)
-  seg11.c:2154: (long) cast: (int16_t), overflow: (g_1df8[g_9324][n].f_44 / 30 + g_7090[n].f_00c / 8                   + g_7090[n].f_00e + 30)
   seg11.c:2245: divide: (int16_t), overflow: (height - s2)
   seg11.c:2248: divide: (int16_t), overflow: (height - bh)
-  seg11.c:2260: divide: (int16_t), overflow: g_2f4c[a].f_00 * 4
-  seg11.c:2275: shift right: (int16_t), overflow: (h << g_9156)
-  seg11.c:2276: shift right: (int16_t), overflow: (w << g_9156)
-  seg11.c:2323: widen to long: (int16_t), overflow: g_9008 * 1000
-  seg11.c:2337: widen to long: (int16_t), overflow: (LO16(g_90ea) << g_9150)
-  seg11.c:2339: widen to long: (int16_t), overflow: (HI16(g_90ea) << g_9150)
   seg11.c:2518: divide: (int16_t), overflow: w * 10
   seg11.c:2519: (long) cast: (int16_t), overflow: (w * w - k * k)
   seg11.c:2519: (long) cast: (int16_t), overflow: (w - k / 4)
-  seg11.c:2532: widen to long: (int16_t), overflow: delay * step
-  seg11.c:2547: widen to long: (int16_t), overflow: (5 - step) * delay
-  seg11.c:2562: widen to long: (int16_t), overflow: (step + 5) * delay
-  seg11.c:2577: widen to long: (int16_t), overflow: (10 - step) * delay
-  seg11.c:2592: widen to long: (int16_t), overflow: (20 - step) * delay
-  seg11.c:2607: widen to long: (int16_t), overflow: (step + 15) * delay
-  seg11.c:2622: widen to long: (int16_t), overflow: (15 - step) * delay
-  seg11.c:2637: widen to long: (int16_t), overflow: (step + 10) * delay
-  seg11.c:2659: widen to long: (int16_t), overflow: (15 - step) * delay * m
-  seg11.c:2761: shift right: (int16_t), overflow: (g_1df8[6][i].f_22 + 1 << g_9156)
-  seg11.c:2762: shift right: (int16_t), overflow: (4 << g_9156)
-  seg11.c:2764: shift right: (int16_t), overflow: (6 << g_9156)
   seg11.c:3037: compare: (int16_t), overflow: (dir = fn_08_19b0(pa, pb)) - 1
   seg11.c:3038: compare: (int16_t), overflow: dir + 1
   seg11.c:3043: (long) cast: (int16_t), overflow: (range - dist)
-  seg11.c:3055: compare: (int16_t), overflow: g_7090[n].f_01e - g_2f4c[3].f_36
   seg11.c:3108: divide: (int16_t), overflow: dmg * 3
   seg11.c:3203: (long) cast: (int16_t), overflow: (fn_09_88ba(d.x) + fn_09_88ba(d.y))
   seg11.c:3211: (long) cast: (int16_t), overflow: (rand() % 10 + (i + 1) * seg - 5)
@@ -1343,69 +855,40 @@ signedness view: 664
   seg11.c:3233: (long) cast: (int16_t), overflow: (rand() % 16 + ((k + 2) * (i % 2) * 2 - k) * 12 - 32)
   seg11.c:3234: (long) cast: (int16_t), overflow: (rand() % 15 + (k + 2) * 15)
   seg11.c:3245: compare: (int16_t), overflow: i + 1
-  seg11.c:3294: (long) cast: (int16_t), overflow: (g_1df8[8][j + 2].f_04.x - g_6098[i].f_30[0][0] + 56)
-  seg11.c:3295: (long) cast: (int16_t), overflow: (g_1df8[8][j + 2].f_04.y - g_6098[i].f_48[0][0] + 56)
   seg11.c:3296: (long) cast: (int16_t), overflow: (g_1df8[8][g_9ec2[g_9322][j] + 2].f_04.x - g_1df8[8][j + 2].f_04.x + 56)
   seg11.c:3297: (long) cast: (int16_t), overflow: (g_1df8[8][g_9ec2[g_9322][j] + 2].f_04.y - g_1df8[8][j + 2].f_04.y + 56)
-  seg11.c:3403: shift right: (int16_t), overflow: (40 - g_7090[n].f_026[2]) * s
-  seg11.c:3408: divide: (int16_t), overflow: (g_1050[e].x * s * p - t * v.x)
-  seg11.c:3409: divide: (int16_t), overflow: (g_1050[e].y * s * p - t * v.y)
   seg11.c:3425: divide: (int16_t), overflow: s * p
   seg11.c:3544: shift right: (int16_t), overflow: (g_1df8[12][1].f_04.x - g_1df8[14][main_ship].f_04.x)
   seg11.c:3657: compare: (int16_t), overflow: g_1df8[t][j].f_44 + 400
   seg11.c:3659: compare: (int16_t), overflow: dir - 1
   seg11.c:3659: compare: (int16_t), overflow: dir + 1
   seg11.c:3671: widen to long: (int16_t), overflow: (maxd * 2 - dist)
-  seg11.c:3686: divide: (int16_t), overflow: g_7b60[g_7090[n].f_04e][g_1df8[10][slot].f_28].x * 4
-  seg11.c:3687: divide: (int16_t), overflow: g_7b60[g_7090[n].f_04e][g_1df8[10][slot].f_28].y * 4
-  seg11.c:3689: divide: (int16_t), overflow: g_1df8[type][n].f_20 / 2 * g_1050[g_1df8[10][slot].f_28].x
-  seg11.c:3691: divide: (int16_t), overflow: g_1df8[type][n].f_20 / 2 * g_1050[g_1df8[10][slot].f_28].y
-  seg11.c:3724: divide: (int16_t), overflow: g_7b60[g_7090[n].f_04e][g_1df8[10][slot].f_28].x * 4
-  seg11.c:3725: divide: (int16_t), overflow: g_7b60[g_7090[n].f_04e][g_1df8[10][slot].f_28].y * 4
-  seg11.c:3727: divide: (int16_t), overflow: g_1df8[type][n].f_20 / 2 * g_1050[g_1df8[10][slot].f_28].x
-  seg11.c:3729: divide: (int16_t), overflow: g_1df8[type][n].f_20 / 2 * g_1050[g_1df8[10][slot].f_28].y
   seg11.c:3874: compare: (int16_t), overflow: n + 1
-  seg11.c:4128: compare: (int16_t), overflow: g_7090[n].f_01e - g_2f4c[k].f_36
   seg11.c:4212: divide: (int16_t), overflow: dist * 3
   seg11.c:4224: compare: (int16_t), overflow: ang - 1
   seg11.c:4224: compare: (int16_t), overflow: ang + 1
   seg11.c:4225: divide: (int16_t), overflow: dist * 2
-  seg11.c:4238: divide: (int16_t), overflow: (g_1df8[6][s].f_20 / 2 + g_1df8[type][n].f_20 / 8)                                           * g_1050[ang].x * 5
-  seg11.c:4240: divide: (int16_t), overflow: (g_1df8[6][s].f_20 / 2 + g_1df8[type][n].f_20 / 8)                                           * g_1050[ang].y * 5
-  seg11.c:4249: divide: (int16_t), overflow: (g_1df8[6][s].f_20 / 2 + g_1df8[type][n].f_20 / 2)                                           * g_1050[ang].x
-  seg11.c:4251: divide: (int16_t), overflow: (g_1df8[6][s].f_20 / 2 + g_1df8[type][n].f_20 / 2)                                           * g_1050[ang].y
   seg11.c:4255: divide: (int16_t), overflow: (g_1df8[type][n].f_20 - g_1df8[6][s].f_20)
   seg11.c:4256: divide: (int16_t), overflow: (g_1df8[type][n].f_20 + g_1df8[6][s].f_20)
-  seg11.c:4256: divide: (int16_t), overflow: (g_1df8[type][n].f_20 + g_1df8[6][s].f_20) / 2                       * g_1050[g_1df8[type][n].f_28].x
   seg11.c:4258: divide: (int16_t), overflow: (g_1df8[type][n].f_20 - g_1df8[6][s].f_20)
   seg11.c:4259: divide: (int16_t), overflow: (g_1df8[type][n].f_20 + g_1df8[6][s].f_20)
-  seg11.c:4259: divide: (int16_t), overflow: (g_1df8[type][n].f_20 + g_1df8[6][s].f_20) / 2                       * g_1050[g_1df8[type][n].f_28].y
   seg11.c:4267: modulo: (int16_t), overflow: (g_1df8[type][n].f_28 + 8)
-  seg11.c:4267: divide: (int16_t), overflow: g_1050[(g_1df8[type][n].f_28 + 8) % 16].x * 11
   seg11.c:4270: modulo: (int16_t), overflow: (g_1df8[type][n].f_28 + 8)
-  seg11.c:4270: divide: (int16_t), overflow: g_1050[(g_1df8[type][n].f_28 + 8) % 16].y * 11
   seg11b.c:27: return long: (int16_t), overflow: -d1
   seg11b.c:34: return long: (int16_t), overflow: -d2
   seg11b.c:54: return long: (int16_t), overflow: -d1
   seg11b.c:61: return long: (int16_t), overflow: -d2
-  seg11c.c:59: compare: (int16_t), overflow: g_9318 * 2 + g_9ea2 + g_9ea4
-  seg11c.c:174: compare: (int16_t), overflow: (u4 = LO16(g_7090[main_ship].f_0dc)) + g_7090[main_ship].f_0ce
   seg12.c:181: divide: (int16_t), overflow: g_1df8[type][idx].f_48 * 30
   seg12.c:184: divide: (int16_t), overflow: g_1df8[type][idx].f_48 * 60
   seg12.c:190: divide: (int16_t), overflow: g_1df8[type][idx].f_48 * 130
-  seg12.c:196: divide: (int16_t), overflow: (35 - g_9430) * n
-  seg12.c:196: divide: (int16_t), overflow: (35 - g_9430) * n
   seg12.c:207: widen to long: (int16_t), overflow: k * 30
   seg12.c:220: modulo: (int16_t), overflow: ((n + 40) * 2)
   seg12.c:222: modulo: (int16_t), overflow: ((n + 40) * 2)
-  seg12.c:363: compare: (int16_t), overflow: g_2f4c[g_6670[idx + 4].f_04.x].f_2e - 1
   seg12.c:443: compare: (int16_t), overflow: (a + 1) * 2
   seg12.c:450: compare: (int16_t), overflow: (a + 1) * 2
   seg12.c:452: compare: (int16_t), overflow: a * 2 - i + 1
   seg12.c:454: compare: (int16_t), overflow: a * 2
   seg12.c:471: compare: (int16_t), overflow: a * 2 - i + 1
-  seg12.c:478: compare: (int16_t), overflow: g_1df8[8][i].f_2f - g_9492
-  seg12.c:480: compare: (int16_t), overflow: g_1df8[8][i].f_2f + g_9492 - 1
   seg12.c:496: modulo: (int16_t), overflow: (i - a * 2)
   seg12.c:502: compare: (int16_t), overflow: a * 2 - i + 1
   seg12.c:610: (long) cast: (int16_t), overflow: (b.y - a.y)
@@ -1414,36 +897,18 @@ signedness view: 664
   seg12.c:640: (long) cast: (int16_t), overflow: (b.x - a.x)
   seg12.c:640: widen to long: (int16_t), overflow: (b.y - a.y)
   seg12.c:641: compare: (int16_t), overflow: a.y - b.y
-  seg12.c:700: divide: (int16_t), overflow: t * (min(g_9334, 10) + 10)
   seg12.c:774: compare: (int16_t), overflow: ((LO16(g_05a0)) >> 1 << 3)
   seg12.c:777: compare: (int16_t), overflow: (HI16(g_05a0) >> 1 << 3)
   seg12.c:788: compare: (int16_t), overflow: cur - dir
   seg12.c:796: compare: (int16_t), overflow: dir - cur
-  seg12.c:886: compare: (int16_t), overflow: g_9334 / 3 + g_9208 + 2
-  seg12.c:905: divide: (int16_t), overflow: (g_9208 + 1)
-  seg12.c:933: shift right: (int16_t), overflow: (2 << g_9156)
-  seg12.c:933: shift right: (int16_t), overflow: (2 << g_9156)
   seg12.c:1016: compare: (int16_t), overflow: cur - dir
   seg12.c:1024: compare: (int16_t), overflow: dir - cur
   seg12.c:1050: shift right: (int16_t), overflow: (g_1df8[12][1].f_04.x - g_1df8[14][main_ship].f_04.x)
-  seg12.c:1052: shift right: (int16_t), overflow: (g_9ea8[g_9322].y - g_1df8[14][main_ship].f_04.y + 50)
-  seg12.c:1054: shift right: (int16_t), overflow: (g_9ea8[g_9322].x - g_1df8[14][main_ship].f_04.y + 50)
-  seg12.c:1071: compare: (int16_t), overflow: g_1df8[14][main_ship].f_22 + g_1df8[14][main_ship].f_00.x
-  seg12.c:1072: compare: (int16_t), overflow: g_1c18.right + 2
-  seg12.c:1254: shift right: (int16_t), overflow: (fn_09_88ba(g_1df8[14][main_ship].f_0c) + fn_09_88ba(g_1df8[14][main_ship].f_0e))         << g_9156
   seg12.c:1266: compare: (int16_t), overflow: g_1df8[8][i + 2].f_51 - i
   seg12.c:1267: shift right: (int16_t), overflow: (g_1df8[8][i + 2].f_04.x - g_1df8[14][main_ship].f_04.x)
   seg12.c:1269: shift right: (int16_t), overflow: (g_1df8[8][i + 2].f_04.y - g_1df8[14][main_ship].f_04.y)
   seg12.c:1271: shift right: (int16_t), overflow: (g_1df8[8][g_1df8[8][i + 2].f_51].f_04.x - g_1df8[14][main_ship].f_04.x)
   seg12.c:1273: shift right: (int16_t), overflow: (g_1df8[8][g_1df8[8][i + 2].f_51].f_04.y - g_1df8[14][main_ship].f_04.y)
-  seg12.c:1275: divide: (int16_t), overflow: (LO16(g_90ea) << g_9150)
-  seg12.c:1276: divide: (int16_t), overflow: (LO16(g_90ea) << g_9150)
-  seg12.c:1276: compare: (int16_t), overflow: g_1df8[14][main_ship].f_04.x - (LO16(g_90ea) << g_9150) / 2 - 1500
-  seg12.c:1277: divide: (int16_t), overflow: (HI16(g_90ea) << g_9150)
-  seg12.c:1278: divide: (int16_t), overflow: (HI16(g_90ea) << g_9150)
-  seg12.c:1278: compare: (int16_t), overflow: g_1df8[14][main_ship].f_04.y - (HI16(g_90ea) << g_9150) / 2 - 1500
-  seg12.c:1279: compare: (int16_t), overflow: (4 - g_9208) * 5
-  seg12.c:1281: compare: (int16_t), overflow: 10 - g_9208 * 3
   seg12.c:1293: compare: (int16_t), overflow: g_1df8[8][i + 2].f_51 - i
   seg12.c:1338: compare: (int16_t), overflow: g_1df8[t][j].f_04.x - 300
   seg12.c:1340: compare: (int16_t), overflow: g_1df8[t][j].f_04.y - 300
@@ -1461,7 +926,6 @@ signedness view: 664
   seg12.c:1399: widen to long: (int16_t), overflow: g_1df8[g_7090[j].f_032.a][g_7090[j].f_032.b].f_04.x                                         - g_1df8[t][j].f_04.x + 50
   seg12.c:1402: widen to long: (int16_t), overflow: n.y * 200
   seg12.c:1401: widen to long: (int16_t), overflow: g_1df8[g_7090[j].f_032.a][g_7090[j].f_032.b].f_04.y                                         - g_1df8[t][j].f_04.y + 50
-  seg12.c:1433: compare: (int16_t), overflow: g_9ea2 - i + g_9ea4
   seg12.c:1488: divide: (int16_t), overflow: d * 2
   seg12.c:1536: compare: (int16_t), overflow: HI16(g_05a0) * 8
   seg12.c:1540: compare: (int16_t), overflow: (LO16(g_05a0)) * 8
@@ -1476,52 +940,18 @@ signedness view: 664
   seg12.c:1727: modulo: (int16_t), overflow: ((n + 40) * 2)
   seg12.c:1729: modulo: (int16_t), overflow: ((n + 40) * 2)
   seg12.c:2013: compare: (int16_t), overflow: g_1df8[8][1].f_04.x - g_1df8[8][0].f_04.x - g_1df8[8][0].f_20
-  seg12.c:2046: libc int argument: (int16_t), overflow: g_6670[p].r.right - g_6670[p].r.left - 480
   seg12.c:2087: divide: (int16_t), overflow: HI16(g_90ea) * 8
-  seg12.c:2153: compare: (int16_t), overflow: g_1df8[8][n].f_2f - g_0d08
-  seg12.c:2156: compare: (int16_t), overflow: g_1df8[8][n].f_2f + g_0d08 - 2
   seg12.c:2174: divide: (int16_t), overflow: g_1df8[8][n].f_1e * 100
-  seg12.c:2180: divide: (int16_t), overflow: g_1df8[8][n].f_22 / 2 * g_1050[r * 4].x
-  seg12.c:2181: divide: (int16_t), overflow: g_1df8[8][n].f_22 / 2 * g_1050[r * 4].y
-  seg12.c:2271: divide: (int16_t), overflow: g_6670[i + 4].r.right * g_2f4c[k].f_2e
-  seg12.c:2299: compare: (int16_t), overflow: g_2f4c[k].f_26 - 8
   seg12.c:2417: divide: (int16_t), overflow: g_1df8[8][n].f_1e * 100
   seg12.c:2443: divide: (int16_t), overflow: (g_1df8[g_507c[i]][g_50e0[i]].f_44 + 100)
-  seg12.c:2452: compare: (int16_t), overflow: g_0598 + g_0594
-  seg12.c:2458: compare: (int16_t), overflow: g_9334 * 150
-  seg12.c:2458: widen to long: (int16_t), overflow: (max(g_9334 * 150, 3000) + 1500)
   seg12.c:2471: (long) cast: (int16_t), overflow: (1000 - d)
   seg12.c:2471: widen to long: (int16_t), overflow: (1000 - d)
-  seg12.c:2481: compare: (int16_t), overflow: (LO16(g_05a0)) * 8
-  seg12.c:2486: compare: (int16_t), overflow: HI16(g_05a0) * 8
-  seg12.c:2559: divide: (int16_t), overflow: (g_1050[g_1df8[8][n].f_28].x << 8)
-  seg12.c:2561: divide: (int16_t), overflow: (g_1050[g_1df8[8][n].f_28].y << 8)
-  seg12.c:2565: divide: (int16_t), overflow: (g_1050[g_1df8[8][n].f_28].x << 7)
-  seg12.c:2567: divide: (int16_t), overflow: (g_1050[g_1df8[8][n].f_28].y << 7)
-  seg13.c:133: compare: (int16_t), overflow: g_9208 * 2
-  seg13.c:133: modulo: (int16_t), overflow: (10 - max(g_9208 * 2, 5))
-  seg13.c:134: modulo: (int16_t), overflow: (18 - g_9208 * 4)
-  seg13.c:136: modulo: (int16_t), overflow: (((&g_7090[i].f_026[2])[1]) * 2 + 1)
-  seg13.c:140: modulo: (int16_t), overflow: (((&g_7090[i].f_026[2])[1]) * 2 + 1)
-  seg13.c:160: compare: (int16_t), overflow: ((i - g_9316) * 40 - 90 << g_9156) + p.y
   seg13.c:164: compare: (int16_t), overflow: g_1df8[14][i].f_28 + 1
-  seg13.c:187: modulo: (int16_t), overflow: (g_7090[i].f_026[0] + 30)
-  seg13.c:346: (long) cast: (int16_t), overflow: (1000 - g_7090[i].f_082)
-  seg13.c:348: (long) cast: (int16_t), overflow: (g_7090[i].f_082 + d)
   seg13.c:348: widen to long: (int16_t), overflow: (d + 1000)
   seg13.c:427: compare: (int16_t), overflow: cur - d
   seg13.c:432: compare: (int16_t), overflow: d - cur
-  seg13.c:464: shift right: (int16_t), overflow: (g_6e38[k].f_10 + g_6e38[k].f_16.x)
-  seg13.c:465: shift right: (int16_t), overflow: (g_6e38[k].f_12 + g_6e38[k].f_16.y)
-  seg13.c:1239: shift right: (int16_t), overflow: (24 << g_9156)
-  seg13.c:1240: shift right: (int16_t), overflow: (4 << g_9156)
-  seg13.c:1245: divide: (int16_t), overflow: g_1050[(g_1df8[g_9324][a].f_28 + 8) & 0xf].x         * g_1df8[g_9324][a].f_20
   seg13.c:1247: modulo: (int16_t), overflow: (LO16(g_05a0)) * 8
-  seg13.c:1250: divide: (int16_t), overflow: g_1050[(g_1df8[g_9324][a].f_28 + 8) & 0xf].y         * g_1df8[g_9324][a].f_20
-  seg13.c:1251: modulo: (int16_t), overflow: (HI16(g_05a0) * 8)
   seg13.c:1252: modulo: (int16_t), overflow: HI16(g_05a0) * 8
-  seg13.c:1374: shift right: (int16_t), overflow: (g_6e38[k].f_10 + g_6e38[k].f_16.x)
-  seg13.c:1375: shift right: (int16_t), overflow: (g_6e38[k].f_12 + g_6e38[k].f_16.y)
   seg13.c:1409: divide: (int16_t), overflow: h1 * c
   seg13.c:1410: divide: (int16_t), overflow: (h1 - sc)
   seg13.c:1418: compare: (int16_t), overflow: -2 - h2
@@ -1555,36 +985,16 @@ signedness view: 664
   seg13.c:1799: compare: (int16_t), overflow: dir2 - dir
   seg13.c:1804: compare: (int16_t), overflow: dir - dir2
   seg13.c:1888: (long) cast: (int16_t), overflow: (fn_09_88ba(dy) + fn_09_88ba(dx))
-  seg13.c:1910: shift right: (int16_t), overflow: (32 << g_9156)
   seg13.c:1927: divide: (int16_t), overflow: (w - size)
-  seg13.c:1928: shift right: (int16_t), overflow: (9 << g_9156)
-  seg13.c:1979: shift right: (int16_t), overflow: (32 << g_9156)
-  seg13.c:1981: divide: (int16_t), overflow: ((g_9156 << 6) + 32)
-  seg13.c:2005: shift right: (int16_t), overflow: (32 << g_9156)
-  seg13.c:2007: divide: (int16_t), overflow: ((g_9156 << 6) + 32)
-  seg13.c:2061: compare: (int16_t), overflow: g_9208 + 3
-  seg13.c:2062: compare: (int16_t), overflow: g_0992 + 20
-  seg13.c:2063: divide: (int16_t), overflow: (g_7090[n].f_0ce - 200)
-  seg13.c:2111: divide: (int16_t), overflow: (3 - g_7090[a].f_05e) * d * 10
-  seg13.c:2113: divide: (int16_t), overflow: (3 - g_7090[b].f_05d) * d * 10
-  seg13.c:2121: compare: (int16_t), overflow: g_3824[ca][cb] * c
   seg13.c:2140: compare: (int16_t), overflow: fn_13_2688(a, b) * d
   seg13.c:2141: divide: (int16_t), overflow: d * 2
   seg13.c:2170: divide: (int16_t), overflow: c * 3
   seg13.c:2171: divide: (int16_t), overflow: c * 3
   seg13.c:2173: divide: (int16_t), overflow: d * 3
   seg13.c:2174: divide: (int16_t), overflow: d * 3
-  seg13.c:2240: compare: (int16_t), overflow: g_9318 + g_9146
   seg13.c:2255: store to long: (int16_t), overflow: g_1df8[type][n].f_0c - g_1df8[t][k].f_0c
   seg13.c:2256: store to long: (int16_t), overflow: g_1df8[type][n].f_0e - g_1df8[t][k].f_0e
-  seg13.c:2264: compare: (int16_t), overflow: g_9318 * 2
-  seg13.c:2289: divide: (int16_t), overflow: g_96d2[g_7090[n].f_04e].f_12 * 100
-  seg13.c:2290: divide: (int16_t), overflow: g_96d2[g_7090[n].f_04e].f_14 * 80
-  seg13.c:2291: divide: (int16_t), overflow: g_96d2[g_7090[n].f_04e].f_10 * 80
-  seg13.c:2293: divide: (int16_t), overflow: g_96d2[g_7090[n].f_04e].f_16 * 100
   seg13.c:2299: (long) cast: (int16_t), overflow: (g_1df8[g_9324][n].f_44 + v10)
-  seg13.c:2303: divide: (int16_t), overflow: (v14 * 2 - g_7090[n].f_00e) * 10
-  seg13.c:2303: divide: (int16_t), overflow: (g_1df8[g_9324][n].f_44 + v10)
   seg13.c:2307: divide: (int16_t), overflow: (i + 1)
   seg13.c:2309: divide: (int16_t), overflow: v6 * 3
   seg13.c:2311: divide: (int16_t), overflow: v6 * 6
@@ -1595,76 +1005,24 @@ signedness view: 664
   seg13.c:2318: compare: (int16_t), overflow: v6 * 5
   seg13.c:2320: compare: (int16_t), overflow: va * 5
   seg13.c:2322: widen to long: (int16_t), overflow: (va + v8 + v6)
-  seg13.c:2338: compare: (int16_t), overflow: g_7090[n].f_01e - g_2f4c[g_7090[n].f_0b8[j]].f_36
-  seg13.c:2347: compare: (int16_t), overflow: (g_9208 + 2) * 2
   seg13.c:2462: divide: (int16_t), overflow: dy * 70
   seg13.c:2463: divide: (int16_t), overflow: dx * 70
   seg13.c:2501: divide: (int16_t), overflow: dy * -50
   seg13.c:2502: divide: (int16_t), overflow: dx * -50
-  seg13.c:2564: compare: (int16_t), overflow: g_7090[n].f_0ce - 100
   seg13.c:2613: divide: (int16_t), overflow: g_1df8[t][k].f_1e * -90
-  seg13.c:2645: widen to long: (int16_t), overflow: (g_9602 + 4) * 1000
-  seg13.c:2646: widen to long: (int16_t), overflow: (g_9602 + 4) * 1000
-  seg13.c:2654: compare: (int16_t), overflow: g_7090[n].f_01e + 250
-  seg13.c:2683: compare: (int16_t), overflow: g_7090[n].f_0ae[i]                                                  + g_8560[k].f_20[m]
-  seg13.c:2700: compare: (int16_t), overflow: g_7090[n].f_01e + 20
   seg13b.c:84: compare: (int16_t), overflow: rel2 + 70
   seg13b.c:107: divide: (int16_t), overflow: rel * 3
-  seg13b.c:190: widen to long: (int16_t), overflow: g_7090[j].f_05e * 2000
-  seg13b.c:284: compare: (int16_t), overflow: g_9318 * 2
   seg13b.c:553: compare: (int16_t), overflow: (b + 2) * 20 + s / 10
-  seg13b.c:552: compare: (int16_t), overflow: g_7090[i].f_026[0] + g_7090[i].f_026[1] + g_7090[i].f_026[2]
-  seg13b.c:554: compare: (int16_t), overflow: (g_9334 + 20) * 35
-  seg13b.c:600: widen to long: (int16_t), overflow: g_7090[t].f_05e * 2000
-  seg13b.c:1006: divide: (int16_t), overflow: g_7090[a].f_05d * d
-  seg13b.c:1079: compare: (int16_t), overflow: g_7090[n].f_05e * cnt * 6 + 15
-  seg13b.c:1080: compare: (int16_t), overflow: g_7090[n].f_05e * cnt * 6 + 17
   seg13b.c:1083: compare: (int16_t), overflow: cnt * 20 + 35
   seg13b.c:1114: compare: (int16_t), overflow: cnt * 20 + 35
-  seg13b.c:1121: compare: (int16_t), overflow: cnt * 20 + 25
-  seg13b.c:1229: widen to long: (int16_t), overflow: g_7090[j].f_05d * 2000
-  seg13b.c:1241: compare: (int16_t), overflow: 12 - g_9208
-  seg13b.c:1242: compare: (int16_t), overflow: g_0992 + 20
   seg13b.c:1305: libc int argument: (int16_t), overflow: 100 - dist
-  seg13b.c:1370: widen to long: (int16_t), overflow: g_7090[k].f_05e * 2000
-  seg13b.c:1387: widen to long: (int16_t), overflow: g_7090[n].f_05e * 2000
-  seg13b.c:1837: compare: (int16_t), overflow: g_9318 * 2
-  seg13b.c:1907: compare: (int16_t), overflow: g_9318 * 2
-  seg13b.c:2007: compare: (int16_t), overflow: g_9208 * 2 + 1
-  seg13b.c:2009: compare: (int16_t), overflow: g_9208 + 3
-  seg13b.c:2167: divide: (int16_t), overflow: g_1050[dir].x * r
-  seg13b.c:2168: divide: (int16_t), overflow: g_1050[dir].y * r
-  seg14.c:77: store to long: (uint16_t), overflow: g_95ae * sizeof(REC2C)
-  seg14.c:116: store to long: (uint16_t), overflow: g_95aa * sizeof(REC_41)
   seg14.c:140: compare: (uint16_t), unsigned: n
   seg14.c:178: divide: (int16_t), overflow: a * 3
   seg14.c:180: divide: (int16_t), overflow: a * 6
   seg14.c:182: divide: (int16_t), overflow: a * 6
   seg14.c:184: divide: (int16_t), overflow: b * 5
-  seg14.c:298: compare: (int16_t), overflow: (8 - g_7090[n].f_05d) * s1
-  seg14.c:298: compare: (int16_t), overflow: (8 - g_7090[n].f_05e) * s2
-  seg14.c:372: (long) cast: (int16_t), overflow: (g_931a + 1)
-  seg14.c:401: modulo: (int16_t), overflow: ((g_9334 + 1) * 10)
-  seg14.c:402: modulo: (int16_t), overflow: ((g_9334 + 1) * 50)
-  seg14.c:419: compare: (int16_t), overflow: g_91f8 - 1
-  seg14.c:420: compare: (int16_t), overflow: (g_91f8 - g_6e24[k].f_79) * (g_9334 + 15)
-  seg14.c:437: compare: (int16_t), overflow: g_95aa - 1
-  seg14.c:525: divide: (int16_t), overflow: g_96d2[c].f_1e * 2
-  seg14.c:542: compare: (int16_t), overflow: g_6e24[t].f_79 - g_91f8
-  seg14.c:723: divide: (int16_t), overflow: g_7090[n].f_014 * 3
-  seg14.c:766: compare: (int16_t), overflow: 7 - g_932c
-  seg14.c:777: compare: (int16_t), overflow: g_9208 + 3
-  seg14.c:793: divide: (int16_t), overflow: (g_6e24[i].f_3c[j] * 10 - g_3824[g_6e24[i].f_64][g_6e24[i].f_64]) * 9
-  seg14.c:794: divide: (int16_t), overflow: (t + g_3824[g_6e24[i].f_64][g_6e24[i].f_64])
-  seg14.c:881: compare: (int16_t), overflow: g_0994 * 30 + g_0992
-  seg14.c:897: compare: (int16_t), overflow: g_0994 * 30 + g_0992 + 40
-  seg14.c:911: compare: (int16_t), overflow: c32 + n - 1
-  seg14.c:932: compare: (int16_t), overflow: c32 + n - 1
-  seg14.c:961: compare: (int16_t), overflow: g_0992 + 25
-  seg14.c:1006: compare: (int16_t), view signedness: __view_int16_t_arr(g_39e8)[j + 40]
   seg14.c:1077: divide: (int16_t), overflow: (bm.bmHeight - g_1df8[g_9324][i].f_24)
   seg14.c:1078: divide: (int16_t), overflow: (g_1df8[g_9324][i].f_22 + g_1df8[g_9324][i].f_24)
-  seg14.c:1112: modulo: (int16_t), overflow: (g_95aa - 1)
   seg14.c:1185: divide: (int16_t), overflow: (u6c * 2 - g_6e1c[g_6e20[me].f_21].f_1c) * 10
   seg14.c:1196: divide: (int16_t), overflow: (u6c * 2 - u6e) * 10
   seg14.c:1196: divide: (int16_t), overflow: ((int16_t)L78 + u66)
@@ -1690,18 +1048,8 @@ signedness view: 664
   seg14.c:1282: divide: (int16_t), overflow: a74 * 2
   seg14.c:1284: (long) cast: (int16_t), overflow: (a82 - a86)
   seg14.c:1285: (long) cast: (int16_t), overflow: (a74 - a72)
-  seg14.c:1302: compare: (int16_t), overflow: v - g_9332
-  seg14.c:1302: compare: (int16_t), overflow: v - g_9332
-  seg14.c:1307: compare: (int16_t), overflow: g_9334 + 1
-  seg14.c:1327: compare: (int16_t), overflow: v - g_9332
-  seg14.c:1327: compare: (int16_t), overflow: v - g_9332
-  seg14.c:1331: compare: (int16_t), overflow: g_9334 + 1
-  seg14.c:1343: compare: (int16_t), overflow: (g_9208 + 4) * 100
   seg14.c:1355: (long) cast: (int16_t), overflow: (s26 + 85)
   seg14.c:1355: widen to long: (int16_t), overflow: (s26 + 1)
-  seg14.c:1366: compare: (int16_t), overflow: g_9334 + 2
-  seg14.c:1406: compare: (int16_t), overflow: g_0992 + 30
-  seg14.c:1422: modulo: (int16_t), overflow: (g_95aa - 1)
   seg14.c:1441: divide: (int16_t), overflow: (u3a * 2 - g_6e1c[g_6e20[me].f_21].f_1c) * 10
   seg14.c:1454: divide: (int16_t), overflow: (u3a * 2 - uc) * 10
   seg14.c:1461: divide: (int16_t), overflow: a38 * 5
@@ -1712,24 +1060,8 @@ signedness view: 664
   seg14.c:1473: divide: (int16_t), overflow: a40 * 3
   seg14.c:1474: (long) cast: (int16_t), overflow: (a38 - a36)
   seg14.c:1475: (long) cast: (int16_t), overflow: (a40 - a42)
-  seg14.c:1496: compare: (int16_t), overflow: ue - g_9332
-  seg14.c:1496: compare: (int16_t), overflow: ue - g_9332
-  seg14.c:1500: compare: (int16_t), overflow: g_9334 + 1
-  seg14.c:1505: compare: (int16_t), overflow: g_91f8 - 1
-  seg14.c:1511: store to long: (int16_t), overflow: g_91f8 - g_6e24[k].f_79 - 1
-  seg14.c:1535: compare: (int16_t), overflow: ue - g_9332
-  seg14.c:1535: compare: (int16_t), overflow: ue - g_9332
-  seg14.c:1539: compare: (int16_t), overflow: g_9334 + 1
-  seg14.c:1553: compare: (int16_t), overflow: g_91f8 - 1
-  seg14.c:1559: store to long: (int16_t), overflow: g_91f8 - g_6e24[k].f_79 - 1
   seg14.c:1583: (long) cast: (int16_t), overflow: (s24 + 85)
   seg14.c:1583: widen to long: (int16_t), overflow: (s24 + 1)
-  seg15.c:261: compare: (int16_t), overflow: g_95d6 * 11
-  seg15.c:477: divide: (int16_t), overflow: size * g_95d0
-  seg15.c:620: divide: (int16_t), overflow: g_1c70 * n
-  seg15.c:858: compare: (int16_t), overflow: g_95d0 - 18
-  seg15.c:1220: compare: (int16_t), overflow: g_95c8 - 190
-  seg15.c:1222: compare: (int16_t), overflow: (24 - g_95c8) * 10
   seg15.c:1365: divide: (int16_t), overflow: w * 7
   seg15.c:1366: divide: (int16_t), overflow: h * 5
   seg15.c:1366: divide: (int16_t), overflow: w * 3
@@ -1745,43 +1077,16 @@ signedness view: 664
   seg15.c:1388: divide: (int16_t), overflow: h * 17
   seg15b.c:99: divide: (int16_t), overflow: unit2 * -27
   seg15b.c:99: divide: (int16_t), overflow: (unit2 * -27 / 100 + unit * 4)
-  seg15b.c:106: divide: (int16_t), overflow: g_3d08[i].x * pct
-  seg15b.c:112: divide: (int16_t), overflow: g_3d08[i].x * pct
-  seg15b.c:638: compare: (int16_t), overflow: g_3c8c[3].y - 2
   seg15b.c:657: compare: (int16_t), overflow: c + step
   seg15b.c:717: widen to long: (int16_t), overflow: i * i
-  seg15b.c:718: divide: (int16_t), overflow: g_3d08[i].x * (i * 6 + 10)
   seg15b.c:720: (long) cast: (int16_t), overflow: (i * i)
-  seg15b.c:721: divide: (int16_t), overflow: g_3d08[i].x * 40
-  seg15b.c:730: divide: (int16_t), overflow: g_3d08[0].x / div * (a / 10)
-  seg15b.c:731: divide: (int16_t), overflow: g_3d08[i].x * 40
-  seg15b.c:738: divide: (int16_t), overflow: g_3d08[0].x / div * a
-  seg15b.c:739: divide: (int16_t), overflow: g_3d08[15 - i].x * b
-  seg15b.c:843: compare: (int16_t), overflow: (g_92d6 - 10) * 10
-  seg15b.c:845: compare: (int16_t), overflow: (g_92d6 - 60) * 10
-  seg15b.c:847: compare: (int16_t), overflow: (g_92d8 + 60) * 10
-  seg15b.c:850: compare: (int16_t), overflow: g_17f6 - 3
-  seg15b.c:852: compare: (int16_t), overflow: g_17f6 - 5
-  seg15b.c:896: divide: (int16_t), overflow: g_17f6 * 2
-  seg15b.c:898: divide: (int16_t), overflow: g_17f6 * 2
-  seg15b.c:899: compare: (int16_t), overflow: g_92d6 * 10
   seg15b.c:912: divide: (int16_t), overflow: HI16(g_90ea) * 4
   seg15b.c:913: divide: (int16_t), overflow: HI16(g_90ea) * 4
   seg15b.c:920: divide: (int16_t), overflow: HI16(g_90ea) * 4
-  seg15b.c:923: divide: (int16_t), overflow: (g_3c8c[0].y - g_3c8c[3].y) * 100
-  seg15b.c:923: divide: (int16_t), overflow: (g_3c8c[0].x - g_3c8c[3].x)
-  seg15b.c:924: divide: (int16_t), overflow: (g_3c8c[1].y - g_3c8c[2].y) * 100
-  seg15b.c:924: divide: (int16_t), overflow: (g_3c8c[1].x - g_3c8c[2].x)
   seg15b.c:925: divide: (int16_t), overflow: HI16(g_90ea) * 4
-  seg15b.c:928: widen to long: (int16_t), overflow: (g_3ca0 - g_3c9c)
   seg15b.c:1015: divide: (int16_t), overflow: (sz - v1a)
   seg15b.c:1057: divide: (int16_t), overflow: (sz - 9)
-  seg15b.c:1196: compare: (int16_t), overflow: g_0010 - sz4 - 0x3e
-  seg15b.c:1291: divide: (int16_t), overflow: (g_3ca8.right - g_3ca8.left - 63)
   seg15b.c:1292: divide: (int16_t), overflow: h * 8
-  seg15b.c:1338: compare: (int16_t), overflow: g_6084.right - m
-  seg15b.c:1346: divide: (int16_t), overflow: (g_92d2 - 58)
-  seg15b.c:1346: divide: (int16_t), overflow: (h + 1)
   seg15b.c:1350: compare: (int16_t), overflow: h + 1
   seg15b.c:1361: divide: (int16_t), overflow: h * 10
   seg15b.c:1361: divide: (int16_t), overflow: h * 6
@@ -1790,300 +1095,78 @@ signedness view: 664
   seg15b.c:1367: divide: (int16_t), overflow: h * 6
   seg15b.c:1367: divide: (int16_t), overflow: h * 10
   seg15b.c:1560: (long) cast: (int16_t), overflow: (mid - xa - 90)
-  seg15b.c:1560: widen to long: (int16_t), overflow: (g_3ca2 - g_6db6)
-  seg15b.c:1560: widen to long: (int16_t), overflow: (mid - xa)
   seg15b.c:1561: (long) cast: (int16_t), overflow: (mid - xa - 90)
-  seg15b.c:1561: widen to long: (int16_t), overflow: (g_3ca2 - ytop)
-  seg15b.c:1561: widen to long: (int16_t), overflow: (mid - xa)
   seg15b.c:1562: store to long: (int16_t), overflow: xb - x0
   seg15b.c:1563: store to long: (int16_t), overflow: ytop - (ybot = g_6db6)
-  seg15b.c:1564: store to long: (int16_t), overflow: y1 - g_6db6
   seg15b.c:1565: store to long: (int16_t), overflow: y2 - ytop
-  seg15b.c:1625: divide: (int16_t), overflow: g_0010 * 4
-  seg15b.c:1683: divide: (int16_t), overflow: (g_3ca8.bottom - g_3ca8.top) * 2
-  seg15b.c:1684: divide: (int16_t), overflow: g_0010 * 7
-  seg15b.c:1759: divide: (int16_t), overflow: (g_3ca8.bottom - g_3ca8.top)
-  seg15b.c:1773: divide: (int16_t), overflow: (g_92d8 - g_92d6)
-  seg15b.c:1778: divide: (int16_t), overflow: (g_92d6 - g_92d8)
-  seg15b.c:1779: divide: (int16_t), overflow: (g_92d8 - g_92d6)
-  seg15b.c:1782: compare: (int16_t), overflow: p / g_17c6 + 10
-  seg15b.c:1791: divide: (int16_t), overflow: g_17ca * -100
-  seg15b.c:1794: divide: (int16_t), overflow: g_17d0 * 100
   seg15b.c:1796: divide: (int16_t), overflow: (v + 200)
-  seg15b.c:1817: compare: (int16_t), overflow: g_17c2 / 10 - g_92d6
-  seg15b.c:1842: divide: (int16_t), overflow: g_17c8 * 5
-  seg15b.c:1844: divide: (int16_t), overflow: g_17c8 * 3
-  seg15b.c:1845: compare: (int16_t), overflow: g_92d6 * 10
-  seg15b.c:1865: divide: (int16_t), overflow: (g_17da.right - g_17da.left)
   seg15b.c:2028: divide: (int16_t), overflow: sz * 16
   seg15b.c:2036: divide: (int16_t), overflow: sz * 24
   seg15b.c:2040: divide: (int16_t), overflow: sz * 28
-  seg15b.c:2082: divide: (int16_t), overflow: (g_92d8 - g_92d6)
-  seg15b.c:2099: (long) cast: (int16_t), overflow: (g_180c / 10 - g_92d8)
-  seg15b.c:2099: widen to long: (int16_t), overflow: (g_92d6 - g_92d8)
-  seg15b.c:2113: divide: (int16_t), overflow: g_180a * 100
-  seg15b.c:2115: divide: (int16_t), overflow: g_180a * -100
-  seg15b.c:2118: divide: (int16_t), overflow: g_1812 * 100
   seg15b.c:2120: divide: (int16_t), overflow: (v + 200)
-  seg15b.c:2136: compare: (int16_t), overflow: 150 - g_180a * 4
-  seg15b.c:2166: compare: (int16_t), overflow: g_180c / 10 + g_3d08[g_180a].y
-  seg15b.c:2182: divide: (int16_t), overflow: g_1808 * 2
-  seg15b.c:2183: compare: (int16_t), overflow: g_92d6 * 10
-  seg15b.c:2186: divide: (int16_t), overflow: g_0010 * 7
-  seg15b.c:2198: divide: (int16_t), overflow: g_1808 * 2
-  seg15b.c:2199: compare: (int16_t), overflow: g_92d6 * 10
-  seg15b.c:2209: compare: (int16_t), overflow: g_1808 - 5
-  seg15b.c:2242: divide: (int16_t), overflow: g_1808 * 2
-  seg15b.c:2243: compare: (int16_t), overflow: (g_92d6 + 44) * 10
-  seg16.c:212: divide: (int16_t), overflow: (g_1050[idx].x * 500 - v.x * 40)
-  seg16.c:213: divide: (int16_t), overflow: (g_1050[idx].y * 500 - v.y * 40)
-  seg16.c:220: divide: (int16_t), overflow: g_1050[idx].x * 3
-  seg16.c:221: divide: (int16_t), overflow: g_1050[idx].y * 3
   seg16.c:222: divide: (int16_t), overflow: a * 42
   seg16.c:223: divide: (int16_t), overflow: b * 42
   seg16.c:224: divide: (int16_t), overflow: b * -25
   seg16.c:225: divide: (int16_t), overflow: a * 25
   seg16.c:245: compare: constant -> 0xffff
-  seg16.c:296: divide: (int16_t), overflow: (g_96d2[g_7090[i].f_04e].f_1e - g_7090[i].f_01e)
   seg16.c:309: compare: constant -> 0xffff
   seg16.c:710: compare: constant -> 0xffff
-  seg16.c:889: compare: (uint16_t), unsigned: g_959c
-  seg16.c:1166: widen to long: (int16_t), overflow: (g_7090[idx].f_026[0] + 200)
-  seg16.c:1257: widen to long: (int16_t), overflow: 100 - g_7090[idx].f_026[i]
-  seg16.c:1263: divide: (int16_t), overflow: (g_96d2[g_7090[idx].f_04e].f_1e - g_7090[idx].f_01e)
-  seg16.c:1264: divide: (int16_t), overflow: (g_96d2[g_7090[idx].f_04e].f_1e - g_7090[idx].f_01e)
   seg16.c:1422: compare: constant -> 0xffff
-  seg16.c:1513: compare: (int16_t), overflow: g_9318 * 2
-  seg16.c:1594: shift right: (int16_t), overflow: g_1df8[14][main_ship].f_22 << 3
-  seg16.c:1892: compare: (int16_t), overflow: g_7090[g_952e].f_01e + 16
   seg16.c:2126: compare: (int16_t), overflow: (LO16(g_05a0) - 0x82) * 8
   seg16.c:2127: compare: (int16_t), overflow: (HI16(g_05a0) - 0x5a) * 8
   seg16.c:2138: compare: (int16_t), overflow: LO16(g_05a0) * 8
   seg16.c:2140: compare: (int16_t), overflow: HI16(g_05a0) * 8
-  seg16.c:2178: divide: (int16_t), overflow: (LO16(g_90ea) - g_3ce6)
-  seg16.c:2182: divide: (int16_t), overflow: g_0010 * 2
-  seg16.c:2182: compare: (int16_t), overflow: g_0010 - 370
-  seg16.c:2188: compare: (int16_t), overflow: LO16(g_90ea) - g_6dac
-  seg16.c:2189: compare: (int16_t), overflow: LO16(g_90ea) / 2 - LO16(g_90ea) / 13 - g_6dac - 90
-  seg16.c:2194: shift right: (int16_t), overflow: (g_1df8[14][main_ship].f_22 << 3)
-  seg16.c:2408: shift right: (int16_t), overflow: (g_1df8[14][main_ship].f_22 << 3)
-  seg16.c:2474: shift right: (int16_t), overflow: (a << g_9156)
-  seg16.c:2475: shift right: (int16_t), overflow: (b << g_9156)
   seg16.c:2479: divide: (int16_t), overflow: (bm.bmHeight - g_1df8[g_9324][i].f_24)
   seg16.c:2480: divide: (int16_t), overflow: (g_1df8[g_9324][i].f_22 + g_1df8[g_9324][i].f_24)
-  seg16.c:2651: widen to long: (int16_t), overflow: (d - 1) * (g_116a[i] / 5)
-  seg16.c:2803: divide: (int16_t), overflow: (g_96d2[g_7090[main_ship].f_04e].f_1e - g_7090[main_ship].f_01e)
   seg16.c:2958: divide: (int16_t), overflow: price * q
-  seg16.c:3065: widen to long: (int16_t), overflow: k * 20
   seg16.c:3182: compare: (int16_t), overflow: rc.right - margin
-  seg16.c:3192: compare: (int16_t), overflow: g_6e18.y + g_6e14.y + g_3d4a - 13
   seg16b.c:127: divide: (int16_t), overflow: days * 10
   seg17.c:60: divide: (int16_t), overflow: (i * 2 + 3) * (a + 2) * (i + 6) * (i + 7) * 2
   seg17.c:60: divide: (int16_t), overflow: (a + 3)
-  seg17.c:77: divide: (int16_t), overflow: (g_9468 - 1)
-  seg17.c:234: divide: (int16_t), overflow: (g_6084.right - g_6084.left)
-  seg17.c:242: divide: (int16_t), overflow: (g_6084.right - g_6084.left)
   seg17.c:719: compare: constant -> 0xffff
-  seg17.c:837: compare: (int16_t), overflow: g_946a - g_9468
-  seg17.c:975: divide: (int16_t), overflow: (g_9468 - 1)
-  seg17.c:976: divide: (int16_t), overflow: (g_9468 - 1)
-  seg17.c:978: compare: (int16_t), view signedness: __view_int16_t(g_94c8)
-  seg17.c:981: compare: (int16_t), view signedness: __view_int16_t(g_94c8)
-  seg17.c:1130: compare: (int16_t), overflow: g_6084.right - margin
-  seg17.c:1302: compare: (int16_t), overflow: g_9468 - side - 1
-  seg17.c:1324: compare: (int16_t), overflow: g_9468 - side - 1
-  seg17.c:1329: compare: (int16_t), overflow: g_96d2[g_7090[i].f_04e].f_38 - g_9468 + 1
-  seg17.c:1415: divide: (int16_t), overflow: g_7090[idx].f_00c * 3
   seg17.c:1418: divide: (int16_t), overflow: i9a * 10
   seg17.c:1419: widen to long: (int16_t), overflow: (g_1df8[14][idx].f_44 * 3)
   seg17.c:1423: divide: (int16_t), overflow: g_1df8[14][idx].f_44 * 3
   seg17.c:1423: divide: (int16_t), overflow: (ia4 * 12)
-  seg17.c:1425: divide: (int16_t), overflow: g_96d2[g_7090[idx].f_04e].f_12 * 100
-  seg17.c:1426: divide: (int16_t), overflow: g_96d2[g_7090[idx].f_04e].f_14 * 80
-  seg17.c:1427: divide: (int16_t), overflow: g_96d2[g_7090[idx].f_04e].f_10 * 80
-  seg17.c:1425: store to long: (int16_t), overflow: g_96d2[g_7090[idx].f_04e].f_12 * 100 / (20 - 3 * g_6e24[g_7090[idx].f_0d6].f_35)             + g_96d2[g_7090[idx].f_04e].f_14 * 80 / (20 - 3 * g_6e24[g_7090[idx].f_0d6].f_36)             + g_96d2[g_7090[idx].f_04e].f_10 * 80 / (20 - 3 * g_6e24[g_7090[idx].f_0d6].f_34)
-  seg17.c:1429: divide: (int16_t), overflow: g_96d2[g_7090[idx].f_04e].f_16 * 100
   seg17.c:1435: widen to long: (int16_t), overflow: (g_1df8[14][idx].f_44 + 350)
-  seg17.c:1645: divide: (int16_t), overflow: (g_6084.right - g_6084.left)
-  seg17.c:2124: compare: (int16_t), overflow: g_0956[10] * 100
-  seg17.c:2126: compare: (int16_t), overflow: g_0956[9] * 100
-  seg17.c:2128: compare: (int16_t), overflow: g_0956[8] * 100
-  seg17.c:2130: compare: (int16_t), overflow: g_0956[7] * 100
-  seg17.c:2132: compare: (int16_t), overflow: g_0956[6] * 100
-  seg17.c:2134: compare: (int16_t), overflow: g_0956[5] * 100
-  seg17.c:2136: compare: (int16_t), overflow: g_0956[4] * 100
-  seg17.c:2138: compare: (int16_t), overflow: g_0956[3] * 100
-  seg17.c:2140: compare: (int16_t), overflow: g_0956[2] * 100
-  seg17.c:2142: compare: (int16_t), overflow: g_0956[1] * 100
-  seg17.c:2144: compare: (int16_t), overflow: g_0956[0] * 100
-  seg17.c:2171: modulo: (int16_t), overflow: (g_9468 + 1)
-  seg17.c:2176: divide: (int16_t), overflow: (g_9468 - 1)
-  seg17.c:2189: modulo: (int16_t), overflow: (g_9468 + 1)
-  seg17.c:2515: divide: (int16_t), overflow: (g_094e - 1)
-  seg17.c:2740: divide: (int16_t), overflow: (g_9468 - 1)
-  seg17.c:2743: divide: (int16_t), overflow: (g_9468 - 1)
-  seg17.c:2744: divide: (int16_t), overflow: (g_9468 - 1)
-  seg17.c:2748: compare: (int16_t), view signedness: __view_int16_t(g_94c8)
-  seg17.c:2786: divide: (int16_t), overflow: (g_9468 - 1)
-  seg17.c:2793: divide: (int16_t), overflow: (g_094e - 1)
-  seg17.c:2861: compare: (int16_t), overflow: g_9468 - 1
-  seg17.c:3219: divide: (int16_t), overflow: (g_6084.top - g_6084.bottom)
-  seg17.c:3227: divide: (int16_t), overflow: (g_6084.right - g_6084.left)
-  seg17.c:3227: divide: (int16_t), overflow: (g_6084.top - g_6084.bottom)
-  seg17.c:3238: divide: (int16_t), overflow: (g_6084.right - total - g_6084.left)
-  seg17.c:3239: divide: (int16_t), overflow: (g_1882 + 4)
-  seg17.c:3240: divide: (int16_t), overflow: (g_6084.top - g_6084.bottom)
-  seg17.c:3240: divide: (int16_t), overflow: (g_1882 + 4)
-  seg17.c:3258: divide: (int16_t), overflow: (g_6084.right - g_6084.left)
-  seg17.c:3269: divide: (int16_t), overflow: (g_6084.top - g_6084.bottom)
-  seg17.c:3270: divide: (int16_t), overflow: (g_6084.right - g_6084.left)
-  seg17.c:3281: divide: (int16_t), overflow: (g_6084.right - total - g_6084.left)
-  seg17.c:3306: divide: (int16_t), overflow: (g_6084.right - total - g_6084.left)
-  seg17.c:3307: divide: (int16_t), overflow: (g_1884 + 4)
-  seg17.c:3308: divide: (int16_t), overflow: (g_6084.top - g_6084.bottom)
-  seg17.c:3308: divide: (int16_t), overflow: (g_1882 + 4)
-  seg17.c:3322: divide: (int16_t), overflow: (g_6084.top - g_6084.bottom)
-  seg17.c:3358: divide: (int16_t), overflow: g_188a * 36
-  seg17.c:3362: divide: (int16_t), overflow: (g_6084.top - g_6084.bottom)
-  seg17.c:3380: divide: (int16_t), overflow: (g_6084.top - g_6084.bottom)
-  seg17.c:3401: divide: (int16_t), overflow: g_188c * 36
-  seg17.c:3406: divide: (int16_t), overflow: (g_6084.top - g_6084.bottom)
-  seg17.c:3482: divide: (int16_t), overflow: base * g_18ba
-  seg17.c:3482: compare: (int16_t), overflow: base * 2
   seg17.c:3484: compare: (int16_t), overflow: base * 2
-  seg17.c:3487: divide: (int16_t), overflow: (g_6084.top - g_6084.bottom)
-  seg17.c:3493: compare: (int16_t), overflow: frames * 2
-  seg17.c:3509: divide: (int16_t), overflow: (g_6084.top - g_6084.bottom)
-  seg17.c:3520: divide: (int16_t), overflow: base * g_18ba
-  seg17.c:3520: compare: (int16_t), overflow: base * 2
   seg17.c:3522: compare: (int16_t), overflow: base * 2
-  seg17.c:3525: divide: (int16_t), overflow: (g_6084.top - g_6084.bottom)
-  seg17.c:3530: compare: (int16_t), overflow: frames * 2
-  seg17.c:3543: divide: (int16_t), overflow: base * g_18bc
-  seg17.c:3543: compare: (int16_t), overflow: base * 2
   seg17.c:3545: compare: (int16_t), overflow: base * 2
-  seg17.c:3548: divide: (int16_t), overflow: (g_6084.top - g_6084.bottom)
-  seg17.c:3604: divide: (int16_t), overflow: (g_6084.top - g_6084.bottom)
   seg17.c:3644: widen to long: (int16_t), overflow: mult * 100
-  seg17.c:3645: divide: (int16_t), overflow: (g_6084.top - g_6084.bottom)
-  seg17.c:3645: store to long: (int16_t), overflow: (g_6084.top - g_6084.bottom) / 2 + g_6084.bottom
-  seg17.c:3651: store to long: (int16_t), overflow: (g_6084.left + 40) * 10
-  seg17.c:3652: divide: (int16_t), overflow: (g_6084.right - g_6084.left) * 11
   seg17.c:3681: divide: (int16_t), overflow: size * h4
   seg17.c:3683: divide: (int16_t), overflow: ha * h1c
   seg17.c:3685: divide: (int16_t), overflow: ha * h1c
-  seg17.c:3697: store to long: (int16_t), overflow: mult * 100
-  seg17.c:3722: divide: (int16_t), overflow: (g_6084.top - g_6084.bottom)
-  seg17.c:3737: divide: (int16_t), overflow: (g_6084.top - g_6084.bottom)
   seg17.c:3764: divide: (int16_t), overflow: size * h4
   seg17.c:3766: divide: (int16_t), overflow: ha * h1c
   seg17.c:3768: divide: (int16_t), overflow: ha * h1c
   seg17.c:3770: divide: (int16_t), overflow: ha * h1c
   seg17.c:3771: divide: (int16_t), overflow: ha * h1c
-  seg17.c:3783: store to long: (int16_t), overflow: mult * 100
-  seg17.c:3790: widen to long: (int16_t), overflow: g_6084.right * 10
   seg17.c:3809: widen to long: (int16_t), overflow: mult * 100
-  seg17.c:3810: divide: (int16_t), overflow: (g_6084.top - g_6084.bottom)
-  seg17.c:3810: store to long: (int16_t), overflow: (g_6084.top - g_6084.bottom) / 2 + g_6084.bottom
-  seg17.c:3816: store to long: (int16_t), overflow: (g_6084.left + 40) * 10
-  seg17.c:3817: divide: (int16_t), overflow: (g_6084.right - g_6084.left) * 11
   seg17.c:4077: compare: constant -> 0xffff
   seg17.c:4104: compare: (int16_t), overflow: tm.tmExternalLeading + tm.tmHeight + 3
   seg18.c:380: divide: (int16_t), overflow: HI16(g_90ea) * 4
   seg18.c:381: divide: (int16_t), overflow: (LO16(g_90ea) - t)
-  seg18.c:384: divide: (int16_t), overflow: g_0010 * 2
-  seg18.c:384: compare: (int16_t), overflow: g_0010 - 370
   seg18.c:385: compare: (int16_t), overflow: LO16(g_90ea) / -13 - x + LO16(g_90ea) / 2 - 90
-  seg18.c:433: divide: (int16_t), overflow: (g_8870[k].f_00.bottom - g_8870[k].f_00.top)
   seg18.c:434: modulo: (int16_t), overflow: (4 - k) * 4
-  seg18.c:545: compare: (int16_t), overflow: g_7090[main_ship].f_0b8[j] - i
-  seg18.c:611: divide: (int16_t), overflow: size * (g_9156 * 2 + 1)
-  seg18.c:643: divide: (int16_t), overflow: g_6e1c[g_6e20[t].f_21].f_1a * (g_9156 * 2 + 1)
   seg18.c:695: modulo: (int16_t), overflow: (fn_08_19b0(d.x, d.y) + 8)
-  seg18.c:703: divide: (int16_t), overflow: (21 - g_a198 * 5) * t * k * 2
-  seg18.c:703: compare: (int16_t), overflow: max((21 - g_a198 * 5) * t * k * 2 / 20, (6 - g_a198) * 4) + g_9676
-  seg18.c:706: divide: (int16_t), overflow: (8 - g_a198) * t * k * 6
-  seg18.c:706: compare: (int16_t), overflow: max((8 - g_a198) * t * k * 6 / 20, (13 - g_a198) * 2) + g_9676
   seg18.c:729: divide: (int16_t), overflow: (m + 28) * g_1df8[18]->f_0c
   seg18.c:729: divide: (int16_t), overflow: (m + 29)
   seg18.c:730: divide: (int16_t), overflow: g_1df8[18]->f_0e * (m + 28)
   seg18.c:730: divide: (int16_t), overflow: (m + 29)
-  seg18.c:768: divide: (int16_t), overflow: g_88c0.x * 2
-  seg18.c:921: shift right: (int16_t), overflow: 0x35 << g_9156 * 2
-  seg18.c:1031: divide: (int16_t), overflow: (4 - g_9156 * 3)
-  seg18.c:1032: divide: (int16_t), overflow: (4 - g_9156 * 3)
-  seg18.c:1033: divide: (int16_t), overflow: (4 - g_9156 * 3)
-  seg18.c:1034: divide: (int16_t), overflow: (4 - g_9156 * 3)
-  seg18.c:1035: divide: (int16_t), overflow: (4 - g_9156 * 3)
-  seg18.c:1036: divide: (int16_t), overflow: (4 - g_9156 * 3)
-  seg18.c:1037: divide: (int16_t), overflow: (4 - g_9156 * 3)
-  seg18.c:1038: divide: (int16_t), overflow: (4 - g_9156 * 3)
-  seg18.c:1039: divide: (int16_t), overflow: (4 - g_9156 * 3)
-  seg18.c:1040: divide: (int16_t), overflow: (4 - g_9156 * 3)
-  seg18.c:1041: divide: (int16_t), overflow: (4 - g_9156 * 3)
-  seg18.c:1042: divide: (int16_t), overflow: (4 - g_9156 * 3)
-  seg18.c:1043: divide: (int16_t), overflow: (4 - g_9156 * 3)
-  seg18.c:1044: divide: (int16_t), overflow: (4 - g_9156 * 3)
-  seg18.c:1045: divide: (int16_t), overflow: (4 - g_9156 * 3)
-  seg18.c:1046: divide: (int16_t), overflow: (4 - g_9156 * 3)
-  seg18.c:1067: shift right: (int16_t), overflow: 0x2c << g_959e
-  seg18.c:1068: shift right: (int16_t), overflow: 4 << g_959e
-  seg18.c:1069: shift right: (int16_t), overflow: 0x2c << g_9156
-  seg18.c:1070: shift right: (int16_t), overflow: 4 << g_9156
   seg18.c:1072: divide: (int16_t), overflow: dw * 2
-  seg18.c:1218: divide: (int16_t), overflow: g_88c0.x * 10
-  seg18.c:1219: divide: (int16_t), overflow: g_88c0.y * 10
-  seg18.c:1281: compare: (int16_t), overflow: g_0992 + 60
-  seg18.c:1281: compare: (int16_t), overflow: g_91f8 - g_93ac
   seg18.c:1286: divide: (int16_t), overflow: ((int16_t)g_1e68 - 300)
   seg18.c:1291: modulo: (int16_t), overflow: (LO16(g_90ea) * 2)
   seg18.c:1292: modulo: (int16_t), overflow: (HI16(g_90ea) * 2)
   seg18.c:1298: divide: (int16_t), overflow: LO16(g_90ea) * 4
-  seg18.c:1409: compare: (int16_t), overflow: g_0598 + g_0594
-  seg18.c:1632: compare: (int16_t), overflow: g_88c0.x - g_9678
-  seg18.c:1633: compare: (int16_t), overflow: g_88c0.y - g_9678
-  seg18.c:1670: modulo: (uint16_t), unsigned: (13 - g_9208 * 2)
-  seg18.c:1676: compare: (int16_t), overflow: g_9208 * 2 + 9
-  seg18.c:1685: widen to long: (int16_t), overflow: (g_88c0.x * 2)
-  seg18.c:1740: compare: (int16_t), overflow: (g_9208 + 4) * 2
-  seg18.c:1781: compare: (int16_t), overflow: g_9676 - 1
   seg18.c:1813: modulo: (int16_t), overflow: (g_1df8[15]->f_28 + 8)
   seg18.c:1829: modulo: (int16_t), overflow: (g_1df8[15]->f_28 + 1)
-  seg18.c:1845: divide: (int16_t), overflow: g_1df8[15]->f_22 * (g_1318 - 30)
-  seg18.c:1872: modulo: (int16_t), overflow: (((uint8_t)g_a17b[i] >> 1) + g_a16a[i])
   seg18.c:2063: store to long: (int16_t), overflow: p0.x - p1.x
   seg18.c:2064: store to long: (int16_t), overflow: p0.y - p1.y
-  seg18.c:2077: divide: (int16_t), overflow: g_88c0.x * 9
-  seg18.c:2077: compare: (int16_t), overflow: g_1df8[g_9324][main_ship].f_22 / 2 + g_1df8[g_9324][main_ship].f_00.x
-  seg18.c:2078: divide: (int16_t), overflow: g_88c0.x * 11
-  seg18.c:2078: compare: (int16_t), overflow: g_1df8[g_9324][main_ship].f_22 / 2 + g_1df8[g_9324][main_ship].f_00.x
-  seg18.c:2079: divide: (int16_t), overflow: g_88c0.y * 12
-  seg18.c:2085: modulo: (int16_t), overflow: (g_7090[main_ship].f_026[0] + 20)
-  seg18.c:2139: compare: (int16_t), overflow: (unused8 = g_88c0.x - g_9678) - object_sizes[1]
-  seg18.c:2140: compare: (int16_t), overflow: g_88c0.y - g_9678 - object_sizes[1]
-  seg18.c:2147: divide: (int16_t), overflow: g_6098[idx].z[1][5] * 14
-  seg18.c:2151: divide: (int16_t), overflow: g_96d2[g_7090[g_6098[idx].f_7c].f_04e].f_32 * object_masses[1]
-  seg18.c:2155: divide: (int16_t), overflow: (24 - 5 * g_a198) * object_masses[1] * 3
-  seg18.c:2157: divide: (int16_t), overflow: (9 - g_a198) * object_masses[1] * 3
-  seg18.c:2310: shift right: (int16_t), overflow: g_1050[dir].x * r
-  seg18.c:2311: shift right: (int16_t), overflow: g_1050[dir].y * r
   seg18.c:2322: divide: (int16_t), overflow: dist * 15
   seg18.c:2341: divide: (int16_t), overflow: dist * 15
   seg18.c:2357: divide: (int16_t), overflow: dist * 15
-  seg18.c:2391: divide: (int16_t), overflow: (g_8870[i].f_00.right - g_8870[i].f_00.left)
-  seg18.c:2392: divide: (int16_t), overflow: (g_8870[i].f_00.bottom - g_8870[i].f_00.top)
   seg18.c:2409: modulo: (int16_t), overflow: (g_1df8[15]->f_28 + 8)
-  seg18.c:2417: divide: (int16_t), overflow: (8 - g_a198) * dist
-  seg18.c:2419: divide: (int16_t), overflow: (14 - g_a198) * dist
   seg18.c:2425: compare: (int16_t), overflow: m - 1
-  seg18.c:2497: shift right: (int16_t), overflow: (44 << g_9156)
   seg18.c:2499: divide: (int16_t), overflow: g_1df8[g_934a][i].f_22 * 2
-  seg18.c:2501: shift right: (int16_t), overflow: (4 << g_9156)
   seg18.c:2508: modulo: (int16_t), overflow: (g_1df8[15]->f_28 + 8)
-  seg18.c:2508: shift right: (int16_t), overflow: (44 << g_9156)
-  seg18.c:2508: divide: (int16_t), overflow: g_1050[(g_1df8[15]->f_28 + 8) % 16].x * (g_1df8[15]->f_22 / 2 + ((44 << g_9156) >> 2))
-  seg18.c:2509: shift right: (int16_t), overflow: (44 << g_9156)
   seg18.c:2510: modulo: (int16_t), overflow: (g_1df8[15]->f_28 + 8)
-  seg18.c:2510: shift right: (int16_t), overflow: (44 << g_9156)
-  seg18.c:2510: divide: (int16_t), overflow: g_1050[(g_1df8[15]->f_28 + 8) % 16].y * (g_1df8[15]->f_22 / 2 + ((44 << g_9156) >> 2))
-  seg18.c:2511: shift right: (int16_t), overflow: (44 << g_9156)

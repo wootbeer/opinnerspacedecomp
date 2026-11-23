@@ -1,0 +1,299 @@
+/* KERNEL: global memory, files, DOS paths, time and system queries. */
+#include <SDL3/SDL_stdinc.h>
+#include <ctype.h>
+#include <stdio.h>
+#include <string.h>
+
+#include "winrt.h"
+#include "platform/platform.h"
+
+/* Some records are larger natively than in 1994 (REC_70 holds far
+ * function pointers, see NOTES-port.md), so every block gets slack. */
+#define MEM_SLACK(n) ((n) / 4 + 64)
+
+typedef struct {
+    void *p;
+    DWORD size;
+} Mem;
+
+HGLOBAL GlobalAlloc(UINT flags, DWORD size)
+{
+    Mem *m = calloc(1, sizeof *m);
+    HGLOBAL h;
+
+    (void)flags;
+    if (!m || !(m->p = calloc(1, size + MEM_SLACK(size)))) {
+        free(m);
+        return 0;
+    }
+    m->size = size;
+    h = handle_new(H_MEM, m);
+    if (!h) {
+        free(m->p);
+        free(m);
+    }
+    return h;
+}
+
+void *GlobalLock(HGLOBAL h)
+{
+    Mem *m = handle_get(h, H_MEM);
+
+    return m ? m->p : NULL;
+}
+
+BOOL GlobalUnlock(HGLOBAL h)
+{
+    (void)h;
+    return 0;
+}
+
+DWORD GlobalSize(HGLOBAL h)
+{
+    Mem *m = handle_get(h, H_MEM);
+
+    return m ? m->size : 0;
+}
+
+HGLOBAL GlobalReAlloc(HGLOBAL h, DWORD size, UINT flags)
+{
+    Mem *m = handle_get(h, H_MEM);
+    void *p;
+
+    if (!m)
+        return 0;
+    p = realloc(m->p, size + MEM_SLACK(size));
+    if (!p)
+        return 0;
+    if (size > m->size && (flags & GMEM_ZEROINIT))
+        memset((char *)p + m->size, 0, size - m->size);
+    m->p = p;
+    m->size = size;
+    return h;
+}
+
+HGLOBAL GlobalFree(HGLOBAL h)
+{
+    Mem *m = handle_get(h, H_MEM);
+
+    if (!m)
+        return h;
+    free(m->p);
+    free(m);
+    handle_free(h);
+    return 0;
+}
+
+DWORD GlobalCompact(DWORD n)
+{
+    (void)n;
+    return 0x7fffffff;
+}
+
+/* DOS paths. */
+static int has_prefix(const char *s, const char *prefix)
+{
+    for (; *prefix; s++, prefix++)
+        if (toupper((unsigned char)*s) != *prefix)
+            return 0;
+    return 1;
+}
+
+int dos_to_host(const char *dos, char *out, size_t size)
+{
+    char tmp[1024];
+    const char *base, *rest;
+    char *p;
+
+    if (has_prefix(dos, "C:\\SPACE\\") || (has_prefix(dos, "C:\\SPACE") && !dos[8])) {
+        base = platform_data_dir();
+        rest = dos + (dos[8] ? 9 : 8);
+    } else if (has_prefix(dos, "C:\\WINDOWS\\") || (has_prefix(dos, "C:\\WINDOWS") && !dos[10])) {
+        base = platform_pref_dir();
+        rest = dos + (dos[10] ? 11 : 10);
+    } else if (dos[0] && dos[1] != ':' && dos[0] != '\\') {
+        base = platform_data_dir();
+        rest = dos;
+    } else {
+        return 0;
+    }
+    snprintf(tmp, sizeof tmp, "%s/%s", base, rest);
+    for (p = tmp; *p; p++)
+        if (*p == '\\')
+            *p = '/';
+    platform_find_path(tmp, out, (int)size);
+    return 1;
+}
+
+/* Files: DOS handles 5 and up. */
+#define MAX_FILES 32
+#define FILE_BASE 5
+static FILE *files[MAX_FILES];
+
+static FILE *file_of(HFILE h)
+{
+    int k = h - FILE_BASE;
+
+    return k >= 0 && k < MAX_FILES ? files[k] : NULL;
+}
+
+HFILE OpenFile(LPCSTR path, OFSTRUCT *of, UINT mode)
+{
+    char host[1024];
+    const char *how;
+    FILE *fp;
+    int k;
+
+    memset(of, 0, sizeof *of);
+    of->cBytes = sizeof *of;
+    of->fFixedDisk = 1;
+    snprintf(of->szPathName, sizeof of->szPathName, "%s", path);
+    if (!dos_to_host(path, host, sizeof host)) {
+        of->nErrCode = 3;
+        return HFILE_ERROR;
+    }
+    if (mode & OF_DELETE)
+        return remove(host) == 0 ? 1 : HFILE_ERROR;
+    if (mode & OF_CREATE)
+        how = "w+b";
+    else if (mode & 3)        /* OF_WRITE or OF_READWRITE */
+        how = "r+b";
+    else
+        how = "rb";
+    fp = fopen(host, how);
+    if (!fp) {
+        of->nErrCode = 2;
+        return HFILE_ERROR;
+    }
+    if (mode & OF_EXIST) {
+        fclose(fp);
+        return 1;
+    }
+    for (k = 0; k < MAX_FILES && files[k]; k++)
+        ;
+    if (k == MAX_FILES) {
+        fclose(fp);
+        of->nErrCode = 4;
+        return HFILE_ERROR;
+    }
+    files[k] = fp;
+    return (HFILE)(FILE_BASE + k);
+}
+
+UINT _lread(HFILE h, void *buf, UINT n)
+{
+    FILE *fp = file_of(h);
+
+    return fp ? (UINT)fread(buf, 1, n, fp) : (UINT)-1;
+}
+
+UINT _lwrite(HFILE h, const void *buf, UINT n)
+{
+    FILE *fp = file_of(h);
+
+    return fp ? (UINT)fwrite(buf, 1, n, fp) : (UINT)-1;
+}
+
+HFILE _lclose(HFILE h)
+{
+    FILE *fp = file_of(h);
+
+    if (!fp)
+        return HFILE_ERROR;
+    fclose(fp);
+    files[h - FILE_BASE] = NULL;
+    return 0;
+}
+
+int32_t _filelength(int16_t h)
+{
+    FILE *fp = file_of(h);
+    long pos, len;
+
+    if (!fp)
+        return -1;
+    pos = ftell(fp);
+    fseek(fp, 0, SEEK_END);
+    len = ftell(fp);
+    fseek(fp, pos, SEEK_SET);
+    return (int32_t)len;
+}
+
+/* Time. */
+DWORD GetCurrentTime(void)
+{
+    return platform_time_ms();
+}
+
+DWORD timeGetTime(void)
+{
+    return platform_time_ms();
+}
+
+UINT timeGetDevCaps(TIMECAPS *tc, UINT size)
+{
+    (void)size;
+    tc->wPeriodMin = 1;
+    tc->wPeriodMax = 0xffff;
+    return 0;
+}
+
+/* System. */
+UINT GetWindowsDirectory(LPSTR buf, UINT size)
+{
+    snprintf(buf, size, "%s", WIN_DIR);
+    return (UINT)strlen(buf);
+}
+
+DWORD GetVersion(void)
+{
+    return 0x05000a03;      /* Windows 3.10 on DOS 5.0 */
+}
+
+UINT GetFreeSystemResources(UINT what)
+{
+    (void)what;
+    return 80;
+}
+
+int16_t GetInstanceData(HINSTANCE h, BYTE *buf, int16_t n)
+{
+    (void)h;
+    (void)buf;
+    (void)n;
+    return 0;
+}
+
+BOOL SetMessageQueue(int16_t n)
+{
+    (void)n;
+    return 1;
+}
+
+void OutputDebugString(LPCSTR s)
+{
+    if (SDL_getenv("INSPACE_DEBUG"))
+        fputs(s, stderr);
+}
+
+UINT WinExec(LPCSTR cmd, UINT show)
+{
+    (void)cmd;
+    (void)show;
+    STUB();
+    return 2;
+}
+
+void win_stub(const char *name)
+{
+    static const char *seen[512];
+    static int n;
+    int i;
+
+    for (i = 0; i < n; i++)
+        if (seen[i] == name)
+            return;
+    if (n < 512)
+        seen[n++] = name;
+    fprintf(stderr, "stub: %s\n", name);
+}

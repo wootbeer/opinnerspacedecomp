@@ -1060,422 +1060,427 @@ typedef void (*FNPTR)(int16_t, int16_t);
 typedef int16_t (*FNSPLIT)(int16_t, int16_t);
 typedef void (*FNVOID)(void);
 
-/* DGROUP globals, by DS offset. */
-extern int16_t g_0010; /* DS:0010 */
-extern HRGN g_0012; /* DS:0012 */
-extern HMENU g_0014; /* DS:0014 */
-extern int16_t g_0016; /* DS:0016 */
-extern int16_t g_0018; /* DS:0018 */
-extern int16_t g_001a; /* DS:001a */
-extern int16_t g_001c; /* DS:001c */
-extern int16_t g_001e; /* DS:001e */
-extern int16_t g_0020; /* DS:0020 */
-extern int16_t g_0022; /* DS:0022 */
-extern int16_t g_0024; /* DS:0024 */
+/* DGROUP globals, by DS offset.  Plain data lives in the DGROUP image
+ * at its 1994 offset, so neighbours, overlapping views and overruns
+ * behave as they did; globals holding native pointers are variables
+ * (globals.c).  The image starts as the data segment of INSPACE.EXE. */
+extern uint8_t dgroup[0x10000];
+#define DGROUP_AT(T, off) (*(T)(dgroup + (off)))
+#define g_0010 DGROUP_AT(int16_t (*), 0x0010) /* DS:0010 */
+#define g_0012 DGROUP_AT(HRGN (*), 0x0012) /* DS:0012 */
+#define g_0014 DGROUP_AT(HMENU (*), 0x0014) /* DS:0014 */
+#define g_0016 DGROUP_AT(int16_t (*), 0x0016) /* DS:0016 */
+#define g_0018 DGROUP_AT(int16_t (*), 0x0018) /* DS:0018 */
+#define g_001a DGROUP_AT(int16_t (*), 0x001a) /* DS:001a */
+#define g_001c DGROUP_AT(int16_t (*), 0x001c) /* DS:001c */
+#define g_001e DGROUP_AT(int16_t (*), 0x001e) /* DS:001e */
+#define g_0020 DGROUP_AT(int16_t (*), 0x0020) /* DS:0020 */
+#define g_0022 DGROUP_AT(int16_t (*), 0x0022) /* DS:0022 */
+#define g_0024 DGROUP_AT(int16_t (*), 0x0024) /* DS:0024 */
 extern char *g_0078; /* DS:0078 */
 extern char *g_007a; /* DS:007a */
 extern char *g_007c; /* DS:007c */
 extern char *g_007e; /* DS:007e */
 extern char *g_0080; /* DS:0080 */
-extern int16_t g_0128; /* DS:0128 */
-extern int16_t g_012a; /* DS:012a */
-extern int16_t g_012c; /* DS:012c */
-extern int16_t g_049e; /* DS:049e */
-extern int16_t g_0586; /* DS:0586 */
-extern int16_t g_0588; /* DS:0588 */
-extern int16_t hazards_ship_redraw_pending; /* DS:058a */
-extern int16_t g_058c; /* DS:058c */
-extern int16_t g_058e; /* DS:058e */
-extern int16_t g_0592; /* DS:0592 */
-extern int16_t g_0594; /* DS:0594 */
-extern int16_t g_0596; /* DS:0596 */
-extern int16_t g_0598; /* DS:0598 */
-extern int16_t g_059a; /* DS:059a */
-extern int16_t g_059c; /* DS:059c */
-extern int16_t g_059e; /* DS:059e */
-extern int32_t g_05a0; /* DS:05a0 */
-extern DWORD g_05a4; /* DS:05a4 */
-extern DWORD g_05a8; /* DS:05a8 */
-extern DWORD g_05ac; /* DS:05ac */
-extern DWORD g_05b0; /* DS:05b0 */
-extern DWORD g_05b4; /* DS:05b4 */
-extern DWORD g_05b8; /* DS:05b8 */
-extern DWORD g_05bc; /* DS:05bc */
-extern DWORD g_05c0; /* DS:05c0 */
-extern DWORD g_05c4; /* DS:05c4 */
-extern DWORD g_05c8; /* DS:05c8 */
-extern DWORD g_05cc; /* DS:05cc */
-extern int16_t g_05d0; /* DS:05d0 */
-extern int16_t g_05d2; /* DS:05d2 */
-extern POINT g_066e[]; /* DS:066e */
-extern int16_t g_06ae; /* DS:06ae */
-extern char g_06b0[]; /* DS:06b0 */
-extern WORD g_06b6[8]; /* DS:06b6 */
-extern WORD g_06c6[8]; /* DS:06c6 */
-extern int16_t g_06d6[5]; /* DS:06d6 */
-extern int16_t g_06e0[5]; /* DS:06e0 */
-extern int16_t g_073e; /* DS:073e */
-extern int16_t g_0740; /* DS:0740 */
-extern int16_t g_0742; /* DS:0742 */
-extern char g_07de[]; /* DS:07de */
-extern char g_07e0[]; /* DS:07e0 */
-extern int16_t g_0928; /* DS:0928 */
-extern int16_t g_092a; /* DS:092a */
-extern int16_t g_093c; /* DS:093c */
-extern int16_t g_094e; /* DS:094e */
-extern int16_t g_0950; /* DS:0950 */
-extern int16_t g_0952[]; /* DS:0952 */
-extern int16_t g_0956[11]; /* DS:0956 */
-extern int16_t g_096c[]; /* DS:096c */
-extern int16_t g_0986[6]; /* DS:0986 */
-extern int16_t g_0992; /* DS:0992 */
-extern int16_t g_0994; /* DS:0994 */
-extern int32_t g_09bc[6]; /* DS:09bc */
-extern char g_09d6[]; /* DS:09d6 */
-extern char g_09ee[]; /* DS:09ee */
-extern char g_09f2[]; /* DS:09f2 */
-extern int16_t g_0a5a; /* DS:0a5a */
-extern int16_t g_0a5c; /* DS:0a5c */
-extern int16_t g_0a62; /* DS:0a62 */
-extern int32_t g_0a64; /* DS:0a64 */
-extern int32_t g_0a68; /* DS:0a68 */
-extern int32_t g_0a6c; /* DS:0a6c */
-extern int16_t g_0a70; /* DS:0a70 */
-extern int16_t g_0a72; /* DS:0a72 */
-extern int16_t g_0a74; /* DS:0a74 */
-extern int16_t g_0a76; /* DS:0a76 */
-extern int16_t g_0a78; /* DS:0a78 */
-extern HWND g_0a7a; /* DS:0a7a */
-extern HWND g_0a7c; /* DS:0a7c */
-extern HWND g_0a7e; /* DS:0a7e */
-extern int16_t g_0aa2[4]; /* DS:0aa2 */
-extern int16_t g_0b0a; /* DS:0b0a */
-extern int16_t g_0b0c; /* DS:0b0c */
-extern int16_t g_0b0e[]; /* DS:0b0e */
-extern int16_t g_0b38[]; /* DS:0b38 */
-extern int16_t g_0b6a; /* DS:0b6a */
-extern int16_t g_0b6c; /* DS:0b6c */
-extern int16_t g_0b6e; /* DS:0b6e */
-extern int16_t g_0b70[]; /* DS:0b70 */
-extern int16_t g_0ba2; /* DS:0ba2 */
-extern int16_t g_0d06; /* DS:0d06 */
-extern int16_t g_0d08; /* DS:0d08 */
-extern int16_t g_0d0a; /* DS:0d0a */
-extern int16_t g_0d16; /* DS:0d16 */
-extern char g_0d18[]; /* DS:0d18 */
-extern int16_t g_0d1c; /* DS:0d1c */
-extern HWND g_0d1e; /* DS:0d1e */
-extern int16_t g_0d20; /* DS:0d20 */
-extern int16_t g_0d24; /* DS:0d24 */
-extern int16_t g_0d26; /* DS:0d26 */
-extern int16_t g_0e32; /* DS:0e32 */
-extern uint8_t g_0f00[]; /* DS:0f00 */
-extern int16_t g_1016; /* DS:1016 */
-extern char g_1018[5][5]; /* DS:1018 */
-extern int16_t g_1032; /* DS:1032 */
-extern int16_t g_1034; /* DS:1034 */
-extern int16_t g_1036; /* DS:1036 */
-extern int16_t g_1038; /* DS:1038 */
-extern int16_t g_103a; /* DS:103a */
-extern int16_t g_103c; /* DS:103c */
-extern int16_t g_103e; /* DS:103e */
-extern int16_t g_1040; /* DS:1040 */
-extern int16_t g_1042; /* DS:1042 */
-extern int16_t g_1044; /* DS:1044 */
-extern int16_t g_1046; /* DS:1046 */
-extern int16_t g_1048; /* DS:1048 new_defenders_enabled [inferred] */
-extern int16_t g_104a; /* DS:104a */
-extern PAIR g_104c[1]; /* DS:104c cheat_invulnerable [inferred] */
-extern POINT g_1050[]; /* DS:1050 */
-extern char g_111a[]; /* DS:111a */
-extern int16_t g_111e; /* DS:111e */
-extern int16_t g_1120; /* DS:1120 */
-extern int16_t g_1122; /* DS:1122 */
-extern int16_t g_116a[]; /* DS:116a */
-extern int16_t g_11aa; /* DS:11aa */
-extern DWORD g_120e; /* DS:120e */
-extern int16_t g_1212; /* DS:1212 */
-extern int16_t g_1214; /* DS:1214 */
-extern DWORD g_130c; /* DS:130c */
-extern int16_t g_1318; /* DS:1318 */
-extern int16_t g_131a; /* DS:131a */
-extern int16_t g_131c; /* DS:131c */
-extern int16_t g_131e[]; /* DS:131e */
-extern char g_1332[]; /* DS:1332 */
-extern int16_t g_134e; /* DS:134e */
-extern DWORD g_1350; /* DS:1350 */
-extern int16_t g_13a0; /* DS:13a0 */
-extern int16_t g_13ae[]; /* DS:13ae */
-extern int16_t g_13dc; /* DS:13dc */
-extern int16_t g_13de; /* DS:13de */
-extern int16_t g_17b6; /* DS:17b6 */
-extern DWORD g_17b8; /* DS:17b8 */
-extern int16_t g_17bc; /* DS:17bc */
-extern int16_t g_17be; /* DS:17be */
-extern int16_t g_17c2; /* DS:17c2 */
-extern int16_t g_17c6; /* DS:17c6 */
-extern int16_t g_17c8; /* DS:17c8 */
-extern int16_t g_17ca; /* DS:17ca */
-extern int16_t g_17cc; /* DS:17cc */
-extern int16_t g_17ce; /* DS:17ce */
-extern int16_t g_17d0; /* DS:17d0 */
-extern RECT g_17d2; /* DS:17d2 */
-extern RECT g_17da; /* DS:17da */
-extern POINT g_17e2; /* DS:17e2 */
-extern POINT g_17e6; /* DS:17e6 */
-extern int16_t g_17ea; /* DS:17ea */
-extern int16_t g_17ec; /* DS:17ec */
-extern DWORD g_17ee; /* DS:17ee */
-extern DWORD g_17f2; /* DS:17f2 */
-extern int16_t g_17f6; /* DS:17f6 */
-extern int16_t g_17f8; /* DS:17f8 */
-extern int16_t g_17fa; /* DS:17fa */
-extern int16_t g_17fc; /* DS:17fc */
-extern RECT g_17fe; /* DS:17fe */
-extern int16_t g_1806; /* DS:1806 */
-extern int16_t g_1808; /* DS:1808 */
-extern int16_t g_180a; /* DS:180a */
-extern int16_t g_180c; /* DS:180c */
-extern int16_t g_180e; /* DS:180e */
-extern int16_t g_1810; /* DS:1810 */
-extern int16_t g_1812; /* DS:1812 */
-extern RECT g_1814; /* DS:1814 */
-extern int16_t g_181c; /* DS:181c */
-extern HBITMAP g_181e; /* DS:181e */
-extern HGDIOBJ g_1820; /* DS:1820 */
-extern char g_1822[]; /* DS:1822 */
-extern POINT g_1830; /* DS:1830 */
-extern POINT g_1834; /* DS:1834 */
-extern int16_t g_1838; /* DS:1838 */
-extern int16_t g_183a; /* DS:183a */
-extern DWORD g_183c; /* DS:183c */
-extern int16_t g_1840[]; /* DS:1840 */
-extern int16_t g_1852; /* DS:1852 */
-extern DWORD g_1854; /* DS:1854 */
-extern int16_t g_1858[]; /* DS:1858 */
-extern int16_t g_1868; /* DS:1868 */
-extern int16_t g_186a; /* DS:186a */
-extern DWORD g_186c; /* DS:186c */
-extern DWORD g_1870; /* DS:1870 */
-extern int16_t g_1874; /* DS:1874 */
-extern DWORD g_1876; /* DS:1876 */
-extern DWORD g_187a; /* DS:187a */
-extern int16_t g_187e; /* DS:187e */
-extern int16_t g_1880; /* DS:1880 */
-extern int16_t g_1882; /* DS:1882 */
-extern int16_t g_1884; /* DS:1884 */
-extern DWORD g_1886; /* DS:1886 */
-extern int16_t g_188a; /* DS:188a */
-extern int16_t g_188c; /* DS:188c */
-extern int16_t g_188e; /* DS:188e */
-extern int32_t g_1890; /* DS:1890 */
-extern int32_t g_1894; /* DS:1894 */
-extern int32_t g_1898; /* DS:1898 */
-extern int32_t g_189c; /* DS:189c */
-extern int32_t g_18a0; /* DS:18a0 */
-extern int32_t g_18a4; /* DS:18a4 */
-extern DWORD g_18a8; /* DS:18a8 */
-extern POINT g_18ac; /* DS:18ac */
-extern DWORD g_18b0; /* DS:18b0 */
-extern int16_t g_18b4; /* DS:18b4 */
-extern DWORD g_18b6; /* DS:18b6 */
-extern int16_t g_18ba; /* DS:18ba */
-extern int16_t g_18bc; /* DS:18bc */
-extern int16_t g_18be; /* DS:18be */
-extern int16_t g_18c0; /* DS:18c0 */
-extern DWORD g_18c2; /* DS:18c2 */
-extern int32_t g_18c6; /* DS:18c6 */
-extern int32_t g_18ca; /* DS:18ca */
-extern int32_t g_18ce; /* DS:18ce */
-extern int32_t g_18d2; /* DS:18d2 */
-extern int32_t g_18d6; /* DS:18d6 */
-extern int32_t g_18da; /* DS:18da */
-extern int32_t g_18de; /* DS:18de */
-extern int32_t g_18e2; /* DS:18e2 */
-extern int32_t g_18e6; /* DS:18e6 */
-extern int32_t g_18ea; /* DS:18ea */
-extern int32_t g_18ee; /* DS:18ee */
-extern int32_t g_18f2; /* DS:18f2 */
-extern int32_t g_18f6; /* DS:18f6 */
-extern int32_t g_18fa; /* DS:18fa */
-extern int32_t g_18fe; /* DS:18fe */
-extern int16_t g_1902; /* DS:1902 */
-extern int16_t g_1904; /* DS:1904 */
-extern POINT g_1906; /* DS:1906 */
-extern POINT g_190a; /* DS:190a */
-extern POINT g_190e; /* DS:190e */
-extern int16_t g_1912; /* DS:1912 */
-extern int16_t g_1914; /* DS:1914 */
-extern DWORD g_1916; /* DS:1916 */
-extern DWORD g_191a; /* DS:191a */
-extern HGDIOBJ g_191e; /* DS:191e */
-extern DWORD g_1920; /* DS:1920 */
-extern int16_t g_1924; /* DS:1924 */
-extern int16_t g_1926; /* DS:1926 */
-extern DWORD g_1928; /* DS:1928 */
-extern POINT g_1934[]; /* DS:1934 */
-extern POINT g_19d4[]; /* DS:19d4 */
-extern DWORD g_1bb4; /* DS:1bb4 */
-extern int16_t g_1bb8[]; /* DS:1bb8 */
-extern int16_t g_1c08[]; /* DS:1c08 */
-extern int16_t g_1c10[]; /* DS:1c10 */
-extern RECT g_1c18; /* DS:1c18 */
-extern int16_t g_1c2c; /* DS:1c2c */
-extern uint32_t g_1c2e; /* DS:1c2e */
-extern int16_t g_1c32; /* DS:1c32 */
-extern int32_t g_1c34; /* DS:1c34 */
-extern DWORD fireworks_next_launch_ms; /* DS:1c38 */
-extern int16_t g_1c3c; /* DS:1c3c */
-extern DWORD g_1c3e; /* DS:1c3e */
-extern int16_t g_1c42; /* DS:1c42 */
-extern DWORD g_1c44; /* DS:1c44 */
-extern DWORD g_1c48; /* DS:1c48 */
-extern int16_t g_1c4c; /* DS:1c4c */
-extern int16_t g_1c4e; /* DS:1c4e */
-extern int16_t g_1c50; /* DS:1c50 */
-extern int16_t g_1c52; /* DS:1c52 */
-extern POINT g_1c54; /* DS:1c54 */
-extern POINT g_1c58; /* DS:1c58 */
-extern int16_t g_1c5c; /* DS:1c5c */
-extern int16_t g_1c5e; /* DS:1c5e */
-extern DWORD g_1c60; /* DS:1c60 */
-extern DWORD g_1c64; /* DS:1c64 */
-extern DWORD g_1c68; /* DS:1c68 */
-extern DWORD g_1c6c; /* DS:1c6c */
-extern int16_t g_1c70; /* DS:1c70 */
-extern int16_t g_1c72[]; /* DS:1c72 */
-extern DWORD g_1c8a; /* DS:1c8a */
-extern int16_t g_1c8e[]; /* DS:1c8e */
-extern int16_t g_1c9e; /* DS:1c9e */
-extern int16_t g_1ca0; /* DS:1ca0 */
-extern int16_t g_1ca2; /* DS:1ca2 */
-extern int16_t g_1ca4; /* DS:1ca4 */
-extern int16_t g_1ca6; /* DS:1ca6 */
-extern int16_t g_1ca8; /* DS:1ca8 */
-extern POINT g_1caa; /* DS:1caa */
-extern int16_t g_1cae; /* DS:1cae */
-extern int16_t g_1cb0; /* DS:1cb0 */
-extern int16_t g_1cb2; /* DS:1cb2 */
-extern DWORD g_1cb4; /* DS:1cb4 */
-extern int16_t g_1cb8[]; /* DS:1cb8 */
-extern int32_t g_1cca[]; /* DS:1cca */
-extern POINT g_1cea; /* DS:1cea */
-extern POINT g_1cee; /* DS:1cee */
-extern POINT g_1cf2; /* DS:1cf2 */
-extern int32_t g_1d02; /* DS:1d02 */
-extern DWORD g_1d06; /* DS:1d06 */
-extern DWORD g_1d0a; /* DS:1d0a */
-extern DWORD g_1d0e; /* DS:1d0e */
-extern DWORD g_1d12; /* DS:1d12 */
-extern RECT g_1d20; /* DS:1d20 */
-extern RECT g_1d28; /* DS:1d28 */
-extern RECT g_1d30; /* DS:1d30 */
-extern LPARAM g_1d38; /* DS:1d38 */
-extern DWORD g_1d3c; /* DS:1d3c */
-extern DWORD g_1d40; /* DS:1d40 */
-extern DWORD g_1d44; /* DS:1d44 */
-extern int16_t g_1d48; /* DS:1d48 */
-extern int16_t g_1d4a; /* DS:1d4a */
+#define g_0128 DGROUP_AT(int16_t (*), 0x0128) /* DS:0128 */
+#define g_012a DGROUP_AT(int16_t (*), 0x012a) /* DS:012a */
+#define g_012c DGROUP_AT(int16_t (*), 0x012c) /* DS:012c */
+#define g_049e DGROUP_AT(int16_t (*), 0x049e) /* DS:049e */
+#define g_0586 DGROUP_AT(int16_t (*), 0x0586) /* DS:0586 */
+#define g_0588 DGROUP_AT(int16_t (*), 0x0588) /* DS:0588 */
+#define hazards_ship_redraw_pending DGROUP_AT(int16_t (*), 0x058a) /* DS:058a */
+#define g_058c DGROUP_AT(int16_t (*), 0x058c) /* DS:058c */
+#define g_058e DGROUP_AT(int16_t (*), 0x058e) /* DS:058e */
+#define g_0592 DGROUP_AT(int16_t (*), 0x0592) /* DS:0592 */
+#define g_0594 DGROUP_AT(int16_t (*), 0x0594) /* DS:0594 */
+#define g_0596 DGROUP_AT(int16_t (*), 0x0596) /* DS:0596 */
+#define g_0598 DGROUP_AT(int16_t (*), 0x0598) /* DS:0598 */
+#define g_059a DGROUP_AT(int16_t (*), 0x059a) /* DS:059a */
+#define g_059c DGROUP_AT(int16_t (*), 0x059c) /* DS:059c */
+#define g_059e DGROUP_AT(int16_t (*), 0x059e) /* DS:059e */
+#define g_05a0 DGROUP_AT(int32_t (*), 0x05a0) /* DS:05a0 */
+#define g_05a4 DGROUP_AT(DWORD (*), 0x05a4) /* DS:05a4 */
+#define g_05a8 DGROUP_AT(DWORD (*), 0x05a8) /* DS:05a8 */
+#define g_05ac DGROUP_AT(DWORD (*), 0x05ac) /* DS:05ac */
+#define g_05b0 DGROUP_AT(DWORD (*), 0x05b0) /* DS:05b0 */
+#define g_05b4 DGROUP_AT(DWORD (*), 0x05b4) /* DS:05b4 */
+#define g_05b8 DGROUP_AT(DWORD (*), 0x05b8) /* DS:05b8 */
+#define g_05bc DGROUP_AT(DWORD (*), 0x05bc) /* DS:05bc */
+#define g_05c0 DGROUP_AT(DWORD (*), 0x05c0) /* DS:05c0 */
+#define g_05c4 DGROUP_AT(DWORD (*), 0x05c4) /* DS:05c4 */
+#define g_05c8 DGROUP_AT(DWORD (*), 0x05c8) /* DS:05c8 */
+#define g_05cc DGROUP_AT(DWORD (*), 0x05cc) /* DS:05cc */
+#define g_05d0 DGROUP_AT(int16_t (*), 0x05d0) /* DS:05d0 */
+#define g_05d2 DGROUP_AT(int16_t (*), 0x05d2) /* DS:05d2 */
+#define g_066e DGROUP_AT(POINT (*)[], 0x066e) /* DS:066e */
+#define g_06ae DGROUP_AT(int16_t (*), 0x06ae) /* DS:06ae */
+#define g_06b0 DGROUP_AT(char (*)[], 0x06b0) /* DS:06b0 */
+#define g_06b6 DGROUP_AT(WORD (*)[8], 0x06b6) /* DS:06b6 */
+#define g_06c6 DGROUP_AT(WORD (*)[8], 0x06c6) /* DS:06c6 */
+#define g_06d6 DGROUP_AT(int16_t (*)[5], 0x06d6) /* DS:06d6 */
+#define g_06e0 DGROUP_AT(int16_t (*)[5], 0x06e0) /* DS:06e0 */
+#define g_073e DGROUP_AT(int16_t (*), 0x073e) /* DS:073e */
+#define g_0740 DGROUP_AT(int16_t (*), 0x0740) /* DS:0740 */
+#define g_0742 DGROUP_AT(int16_t (*), 0x0742) /* DS:0742 */
+#define g_07de DGROUP_AT(char (*)[], 0x07de) /* DS:07de */
+#define g_07e0 DGROUP_AT(char (*)[], 0x07e0) /* DS:07e0 */
+#define g_0928 DGROUP_AT(int16_t (*), 0x0928) /* DS:0928 */
+#define g_092a DGROUP_AT(int16_t (*), 0x092a) /* DS:092a */
+#define g_093c DGROUP_AT(int16_t (*), 0x093c) /* DS:093c */
+#define g_094e DGROUP_AT(int16_t (*), 0x094e) /* DS:094e */
+#define g_0950 DGROUP_AT(int16_t (*), 0x0950) /* DS:0950 */
+#define g_0952 DGROUP_AT(int16_t (*)[], 0x0952) /* DS:0952 */
+#define g_0956 DGROUP_AT(int16_t (*)[11], 0x0956) /* DS:0956 */
+#define g_096c DGROUP_AT(int16_t (*)[], 0x096c) /* DS:096c */
+#define g_0986 DGROUP_AT(int16_t (*)[6], 0x0986) /* DS:0986 */
+#define g_0992 DGROUP_AT(int16_t (*), 0x0992) /* DS:0992 */
+#define g_0994 DGROUP_AT(int16_t (*), 0x0994) /* DS:0994 */
+#define g_09bc DGROUP_AT(int32_t (*)[6], 0x09bc) /* DS:09bc */
+#define g_09d6 DGROUP_AT(char (*)[], 0x09d6) /* DS:09d6 */
+#define g_09ee DGROUP_AT(char (*)[], 0x09ee) /* DS:09ee */
+#define g_09f2 DGROUP_AT(char (*)[], 0x09f2) /* DS:09f2 */
+#define g_0a5a DGROUP_AT(int16_t (*), 0x0a5a) /* DS:0a5a */
+#define g_0a5c DGROUP_AT(int16_t (*), 0x0a5c) /* DS:0a5c */
+#define g_0a62 DGROUP_AT(int16_t (*), 0x0a62) /* DS:0a62 */
+#define g_0a64 DGROUP_AT(int32_t (*), 0x0a64) /* DS:0a64 */
+#define g_0a68 DGROUP_AT(int32_t (*), 0x0a68) /* DS:0a68 */
+#define g_0a6c DGROUP_AT(int32_t (*), 0x0a6c) /* DS:0a6c */
+#define g_0a70 DGROUP_AT(int16_t (*), 0x0a70) /* DS:0a70 */
+#define g_0a72 DGROUP_AT(int16_t (*), 0x0a72) /* DS:0a72 */
+#define g_0a74 DGROUP_AT(int16_t (*), 0x0a74) /* DS:0a74 */
+#define g_0a76 DGROUP_AT(int16_t (*), 0x0a76) /* DS:0a76 */
+#define g_0a78 DGROUP_AT(int16_t (*), 0x0a78) /* DS:0a78 */
+#define g_0a7a DGROUP_AT(HWND (*), 0x0a7a) /* DS:0a7a */
+#define g_0a7c DGROUP_AT(HWND (*), 0x0a7c) /* DS:0a7c */
+#define g_0a7e DGROUP_AT(HWND (*), 0x0a7e) /* DS:0a7e */
+#define g_0aa2 DGROUP_AT(int16_t (*)[4], 0x0aa2) /* DS:0aa2 */
+#define g_0b0a DGROUP_AT(int16_t (*), 0x0b0a) /* DS:0b0a */
+#define g_0b0c DGROUP_AT(int16_t (*), 0x0b0c) /* DS:0b0c */
+#define g_0b0e DGROUP_AT(int16_t (*)[], 0x0b0e) /* DS:0b0e */
+#define g_0b38 DGROUP_AT(int16_t (*)[], 0x0b38) /* DS:0b38 */
+#define g_0b6a DGROUP_AT(int16_t (*), 0x0b6a) /* DS:0b6a */
+#define g_0b6c DGROUP_AT(int16_t (*), 0x0b6c) /* DS:0b6c */
+#define g_0b6e DGROUP_AT(int16_t (*), 0x0b6e) /* DS:0b6e */
+#define g_0b70 DGROUP_AT(int16_t (*)[], 0x0b70) /* DS:0b70 */
+#define g_0ba2 DGROUP_AT(int16_t (*), 0x0ba2) /* DS:0ba2 */
+#define g_0d06 DGROUP_AT(int16_t (*), 0x0d06) /* DS:0d06 */
+#define g_0d08 DGROUP_AT(int16_t (*), 0x0d08) /* DS:0d08 */
+#define g_0d0a DGROUP_AT(int16_t (*), 0x0d0a) /* DS:0d0a */
+#define g_0d16 DGROUP_AT(int16_t (*), 0x0d16) /* DS:0d16 */
+#define g_0d18 DGROUP_AT(char (*)[], 0x0d18) /* DS:0d18 */
+#define g_0d1c DGROUP_AT(int16_t (*), 0x0d1c) /* DS:0d1c */
+#define g_0d1e DGROUP_AT(HWND (*), 0x0d1e) /* DS:0d1e */
+#define g_0d20 DGROUP_AT(int16_t (*), 0x0d20) /* DS:0d20 */
+#define g_0d24 DGROUP_AT(int16_t (*), 0x0d24) /* DS:0d24 */
+#define g_0d26 DGROUP_AT(int16_t (*), 0x0d26) /* DS:0d26 */
+#define g_0e32 DGROUP_AT(int16_t (*), 0x0e32) /* DS:0e32 */
+#define g_0f00 DGROUP_AT(uint8_t (*)[], 0x0f00) /* DS:0f00 */
+#define g_1016 DGROUP_AT(int16_t (*), 0x1016) /* DS:1016 */
+#define g_1018 DGROUP_AT(char (*)[5][5], 0x1018) /* DS:1018 */
+#define g_1032 DGROUP_AT(int16_t (*), 0x1032) /* DS:1032 */
+#define g_1034 DGROUP_AT(int16_t (*), 0x1034) /* DS:1034 */
+#define g_1036 DGROUP_AT(int16_t (*), 0x1036) /* DS:1036 */
+#define g_1038 DGROUP_AT(int16_t (*), 0x1038) /* DS:1038 */
+#define g_103a DGROUP_AT(int16_t (*), 0x103a) /* DS:103a */
+#define g_103c DGROUP_AT(int16_t (*), 0x103c) /* DS:103c */
+#define g_103e DGROUP_AT(int16_t (*), 0x103e) /* DS:103e */
+#define g_1040 DGROUP_AT(int16_t (*), 0x1040) /* DS:1040 */
+#define g_1042 DGROUP_AT(int16_t (*), 0x1042) /* DS:1042 */
+#define g_1044 DGROUP_AT(int16_t (*), 0x1044) /* DS:1044 */
+#define g_1046 DGROUP_AT(int16_t (*), 0x1046) /* DS:1046 */
+#define g_1048 DGROUP_AT(int16_t (*), 0x1048) /* DS:1048 new_defenders_enabled [inferred] */
+#define g_104a DGROUP_AT(int16_t (*), 0x104a) /* DS:104a */
+#define g_104c DGROUP_AT(PAIR (*)[1], 0x104c) /* DS:104c cheat_invulnerable [inferred] */
+#define g_1050 DGROUP_AT(POINT (*)[], 0x1050) /* DS:1050 */
+#define g_111a DGROUP_AT(char (*)[], 0x111a) /* DS:111a */
+#define g_111e DGROUP_AT(int16_t (*), 0x111e) /* DS:111e */
+#define g_1120 DGROUP_AT(int16_t (*), 0x1120) /* DS:1120 */
+#define g_1122 DGROUP_AT(int16_t (*), 0x1122) /* DS:1122 */
+#define g_116a DGROUP_AT(int16_t (*)[], 0x116a) /* DS:116a */
+#define g_11aa DGROUP_AT(int16_t (*), 0x11aa) /* DS:11aa */
+#define g_120e DGROUP_AT(DWORD (*), 0x120e) /* DS:120e */
+#define g_1212 DGROUP_AT(int16_t (*), 0x1212) /* DS:1212 */
+#define g_1214 DGROUP_AT(int16_t (*), 0x1214) /* DS:1214 */
+#define g_130c DGROUP_AT(DWORD (*), 0x130c) /* DS:130c */
+#define g_1318 DGROUP_AT(int16_t (*), 0x1318) /* DS:1318 */
+#define g_131a DGROUP_AT(int16_t (*), 0x131a) /* DS:131a */
+#define g_131c DGROUP_AT(int16_t (*), 0x131c) /* DS:131c */
+#define g_131e DGROUP_AT(int16_t (*)[], 0x131e) /* DS:131e */
+#define g_1332 DGROUP_AT(char (*)[], 0x1332) /* DS:1332 */
+#define g_134e DGROUP_AT(int16_t (*), 0x134e) /* DS:134e */
+#define g_1350 DGROUP_AT(DWORD (*), 0x1350) /* DS:1350 */
+#define g_13a0 DGROUP_AT(int16_t (*), 0x13a0) /* DS:13a0 */
+#define g_13ae DGROUP_AT(int16_t (*)[], 0x13ae) /* DS:13ae */
+#define g_13dc DGROUP_AT(int16_t (*), 0x13dc) /* DS:13dc */
+#define g_13de DGROUP_AT(int16_t (*), 0x13de) /* DS:13de */
+#define g_17b6 DGROUP_AT(int16_t (*), 0x17b6) /* DS:17b6 */
+#define g_17b8 DGROUP_AT(DWORD (*), 0x17b8) /* DS:17b8 */
+#define g_17bc DGROUP_AT(int16_t (*), 0x17bc) /* DS:17bc */
+#define g_17be DGROUP_AT(int16_t (*), 0x17be) /* DS:17be */
+#define g_17c2 DGROUP_AT(int16_t (*), 0x17c2) /* DS:17c2 */
+#define g_17c6 DGROUP_AT(int16_t (*), 0x17c6) /* DS:17c6 */
+#define g_17c8 DGROUP_AT(int16_t (*), 0x17c8) /* DS:17c8 */
+#define g_17ca DGROUP_AT(int16_t (*), 0x17ca) /* DS:17ca */
+#define g_17cc DGROUP_AT(int16_t (*), 0x17cc) /* DS:17cc */
+#define g_17ce DGROUP_AT(int16_t (*), 0x17ce) /* DS:17ce */
+#define g_17d0 DGROUP_AT(int16_t (*), 0x17d0) /* DS:17d0 */
+#define g_17d2 DGROUP_AT(RECT (*), 0x17d2) /* DS:17d2 */
+#define g_17da DGROUP_AT(RECT (*), 0x17da) /* DS:17da */
+#define g_17e2 DGROUP_AT(POINT (*), 0x17e2) /* DS:17e2 */
+#define g_17e6 DGROUP_AT(POINT (*), 0x17e6) /* DS:17e6 */
+#define g_17ea DGROUP_AT(int16_t (*), 0x17ea) /* DS:17ea */
+#define g_17ec DGROUP_AT(int16_t (*), 0x17ec) /* DS:17ec */
+#define g_17ee DGROUP_AT(DWORD (*), 0x17ee) /* DS:17ee */
+#define g_17f2 DGROUP_AT(DWORD (*), 0x17f2) /* DS:17f2 */
+#define g_17f6 DGROUP_AT(int16_t (*), 0x17f6) /* DS:17f6 */
+#define g_17f8 DGROUP_AT(int16_t (*), 0x17f8) /* DS:17f8 */
+#define g_17fa DGROUP_AT(int16_t (*), 0x17fa) /* DS:17fa */
+#define g_17fc DGROUP_AT(int16_t (*), 0x17fc) /* DS:17fc */
+#define g_17fe DGROUP_AT(RECT (*), 0x17fe) /* DS:17fe */
+#define g_1806 DGROUP_AT(int16_t (*), 0x1806) /* DS:1806 */
+#define g_1808 DGROUP_AT(int16_t (*), 0x1808) /* DS:1808 */
+#define g_180a DGROUP_AT(int16_t (*), 0x180a) /* DS:180a */
+#define g_180c DGROUP_AT(int16_t (*), 0x180c) /* DS:180c */
+#define g_180e DGROUP_AT(int16_t (*), 0x180e) /* DS:180e */
+#define g_1810 DGROUP_AT(int16_t (*), 0x1810) /* DS:1810 */
+#define g_1812 DGROUP_AT(int16_t (*), 0x1812) /* DS:1812 */
+#define g_1814 DGROUP_AT(RECT (*), 0x1814) /* DS:1814 */
+#define g_181c DGROUP_AT(int16_t (*), 0x181c) /* DS:181c */
+#define g_181e DGROUP_AT(HBITMAP (*), 0x181e) /* DS:181e */
+#define g_1820 DGROUP_AT(HGDIOBJ (*), 0x1820) /* DS:1820 */
+#define g_1822 DGROUP_AT(char (*)[], 0x1822) /* DS:1822 */
+#define g_1830 DGROUP_AT(POINT (*), 0x1830) /* DS:1830 */
+#define g_1834 DGROUP_AT(POINT (*), 0x1834) /* DS:1834 */
+#define g_1838 DGROUP_AT(int16_t (*), 0x1838) /* DS:1838 */
+#define g_183a DGROUP_AT(int16_t (*), 0x183a) /* DS:183a */
+#define g_183c DGROUP_AT(DWORD (*), 0x183c) /* DS:183c */
+#define g_1840 DGROUP_AT(int16_t (*)[], 0x1840) /* DS:1840 */
+#define g_1852 DGROUP_AT(int16_t (*), 0x1852) /* DS:1852 */
+#define g_1854 DGROUP_AT(DWORD (*), 0x1854) /* DS:1854 */
+#define g_1858 DGROUP_AT(int16_t (*)[], 0x1858) /* DS:1858 */
+#define g_1868 DGROUP_AT(int16_t (*), 0x1868) /* DS:1868 */
+#define g_186a DGROUP_AT(int16_t (*), 0x186a) /* DS:186a */
+#define g_186c DGROUP_AT(DWORD (*), 0x186c) /* DS:186c */
+#define g_1870 DGROUP_AT(DWORD (*), 0x1870) /* DS:1870 */
+#define g_1874 DGROUP_AT(int16_t (*), 0x1874) /* DS:1874 */
+#define g_1876 DGROUP_AT(DWORD (*), 0x1876) /* DS:1876 */
+#define g_187a DGROUP_AT(DWORD (*), 0x187a) /* DS:187a */
+#define g_187e DGROUP_AT(int16_t (*), 0x187e) /* DS:187e */
+#define g_1880 DGROUP_AT(int16_t (*), 0x1880) /* DS:1880 */
+#define g_1882 DGROUP_AT(int16_t (*), 0x1882) /* DS:1882 */
+#define g_1884 DGROUP_AT(int16_t (*), 0x1884) /* DS:1884 */
+#define g_1886 DGROUP_AT(DWORD (*), 0x1886) /* DS:1886 */
+#define g_188a DGROUP_AT(int16_t (*), 0x188a) /* DS:188a */
+#define g_188c DGROUP_AT(int16_t (*), 0x188c) /* DS:188c */
+#define g_188e DGROUP_AT(int16_t (*), 0x188e) /* DS:188e */
+#define g_1890 DGROUP_AT(int32_t (*), 0x1890) /* DS:1890 */
+#define g_1894 DGROUP_AT(int32_t (*), 0x1894) /* DS:1894 */
+#define g_1898 DGROUP_AT(int32_t (*), 0x1898) /* DS:1898 */
+#define g_189c DGROUP_AT(int32_t (*), 0x189c) /* DS:189c */
+#define g_18a0 DGROUP_AT(int32_t (*), 0x18a0) /* DS:18a0 */
+#define g_18a4 DGROUP_AT(int32_t (*), 0x18a4) /* DS:18a4 */
+#define g_18a8 DGROUP_AT(DWORD (*), 0x18a8) /* DS:18a8 */
+#define g_18ac DGROUP_AT(POINT (*), 0x18ac) /* DS:18ac */
+#define g_18b0 DGROUP_AT(DWORD (*), 0x18b0) /* DS:18b0 */
+#define g_18b4 DGROUP_AT(int16_t (*), 0x18b4) /* DS:18b4 */
+#define g_18b6 DGROUP_AT(DWORD (*), 0x18b6) /* DS:18b6 */
+#define g_18ba DGROUP_AT(int16_t (*), 0x18ba) /* DS:18ba */
+#define g_18bc DGROUP_AT(int16_t (*), 0x18bc) /* DS:18bc */
+#define g_18be DGROUP_AT(int16_t (*), 0x18be) /* DS:18be */
+#define g_18c0 DGROUP_AT(int16_t (*), 0x18c0) /* DS:18c0 */
+#define g_18c2 DGROUP_AT(DWORD (*), 0x18c2) /* DS:18c2 */
+#define g_18c6 DGROUP_AT(int32_t (*), 0x18c6) /* DS:18c6 */
+#define g_18ca DGROUP_AT(int32_t (*), 0x18ca) /* DS:18ca */
+#define g_18ce DGROUP_AT(int32_t (*), 0x18ce) /* DS:18ce */
+#define g_18d2 DGROUP_AT(int32_t (*), 0x18d2) /* DS:18d2 */
+#define g_18d6 DGROUP_AT(int32_t (*), 0x18d6) /* DS:18d6 */
+#define g_18da DGROUP_AT(int32_t (*), 0x18da) /* DS:18da */
+#define g_18de DGROUP_AT(int32_t (*), 0x18de) /* DS:18de */
+#define g_18e2 DGROUP_AT(int32_t (*), 0x18e2) /* DS:18e2 */
+#define g_18e6 DGROUP_AT(int32_t (*), 0x18e6) /* DS:18e6 */
+#define g_18ea DGROUP_AT(int32_t (*), 0x18ea) /* DS:18ea */
+#define g_18ee DGROUP_AT(int32_t (*), 0x18ee) /* DS:18ee */
+#define g_18f2 DGROUP_AT(int32_t (*), 0x18f2) /* DS:18f2 */
+#define g_18f6 DGROUP_AT(int32_t (*), 0x18f6) /* DS:18f6 */
+#define g_18fa DGROUP_AT(int32_t (*), 0x18fa) /* DS:18fa */
+#define g_18fe DGROUP_AT(int32_t (*), 0x18fe) /* DS:18fe */
+#define g_1902 DGROUP_AT(int16_t (*), 0x1902) /* DS:1902 */
+#define g_1904 DGROUP_AT(int16_t (*), 0x1904) /* DS:1904 */
+#define g_1906 DGROUP_AT(POINT (*), 0x1906) /* DS:1906 */
+#define g_190a DGROUP_AT(POINT (*), 0x190a) /* DS:190a */
+#define g_190e DGROUP_AT(POINT (*), 0x190e) /* DS:190e */
+#define g_1912 DGROUP_AT(int16_t (*), 0x1912) /* DS:1912 */
+#define g_1914 DGROUP_AT(int16_t (*), 0x1914) /* DS:1914 */
+#define g_1916 DGROUP_AT(DWORD (*), 0x1916) /* DS:1916 */
+#define g_191a DGROUP_AT(DWORD (*), 0x191a) /* DS:191a */
+#define g_191e DGROUP_AT(HGDIOBJ (*), 0x191e) /* DS:191e */
+#define g_1920 DGROUP_AT(DWORD (*), 0x1920) /* DS:1920 */
+#define g_1924 DGROUP_AT(int16_t (*), 0x1924) /* DS:1924 */
+#define g_1926 DGROUP_AT(int16_t (*), 0x1926) /* DS:1926 */
+#define g_1928 DGROUP_AT(DWORD (*), 0x1928) /* DS:1928 */
+#define g_1934 DGROUP_AT(POINT (*)[], 0x1934) /* DS:1934 */
+#define g_19d4 DGROUP_AT(POINT (*)[], 0x19d4) /* DS:19d4 */
+#define g_1bb4 DGROUP_AT(DWORD (*), 0x1bb4) /* DS:1bb4 */
+#define g_1bb8 DGROUP_AT(int16_t (*)[], 0x1bb8) /* DS:1bb8 */
+#define g_1c08 DGROUP_AT(int16_t (*)[], 0x1c08) /* DS:1c08 */
+#define g_1c10 DGROUP_AT(int16_t (*)[], 0x1c10) /* DS:1c10 */
+#define g_1c18 DGROUP_AT(RECT (*), 0x1c18) /* DS:1c18 */
+#define g_1c2c DGROUP_AT(int16_t (*), 0x1c2c) /* DS:1c2c */
+#define g_1c2e DGROUP_AT(uint32_t (*), 0x1c2e) /* DS:1c2e */
+#define g_1c32 DGROUP_AT(int16_t (*), 0x1c32) /* DS:1c32 */
+#define g_1c34 DGROUP_AT(int32_t (*), 0x1c34) /* DS:1c34 */
+#define fireworks_next_launch_ms DGROUP_AT(DWORD (*), 0x1c38) /* DS:1c38 */
+#define g_1c3c DGROUP_AT(int16_t (*), 0x1c3c) /* DS:1c3c */
+#define g_1c3e DGROUP_AT(DWORD (*), 0x1c3e) /* DS:1c3e */
+#define g_1c42 DGROUP_AT(int16_t (*), 0x1c42) /* DS:1c42 */
+#define g_1c44 DGROUP_AT(DWORD (*), 0x1c44) /* DS:1c44 */
+#define g_1c48 DGROUP_AT(DWORD (*), 0x1c48) /* DS:1c48 */
+#define g_1c4c DGROUP_AT(int16_t (*), 0x1c4c) /* DS:1c4c */
+#define g_1c4e DGROUP_AT(int16_t (*), 0x1c4e) /* DS:1c4e */
+#define g_1c50 DGROUP_AT(int16_t (*), 0x1c50) /* DS:1c50 */
+#define g_1c52 DGROUP_AT(int16_t (*), 0x1c52) /* DS:1c52 */
+#define g_1c54 DGROUP_AT(POINT (*), 0x1c54) /* DS:1c54 */
+#define g_1c58 DGROUP_AT(POINT (*), 0x1c58) /* DS:1c58 */
+#define g_1c5c DGROUP_AT(int16_t (*), 0x1c5c) /* DS:1c5c */
+#define g_1c5e DGROUP_AT(int16_t (*), 0x1c5e) /* DS:1c5e */
+#define g_1c60 DGROUP_AT(DWORD (*), 0x1c60) /* DS:1c60 */
+#define g_1c64 DGROUP_AT(DWORD (*), 0x1c64) /* DS:1c64 */
+#define g_1c68 DGROUP_AT(DWORD (*), 0x1c68) /* DS:1c68 */
+#define g_1c6c DGROUP_AT(DWORD (*), 0x1c6c) /* DS:1c6c */
+#define g_1c70 DGROUP_AT(int16_t (*), 0x1c70) /* DS:1c70 */
+#define g_1c72 DGROUP_AT(int16_t (*)[], 0x1c72) /* DS:1c72 */
+#define g_1c8a DGROUP_AT(DWORD (*), 0x1c8a) /* DS:1c8a */
+#define g_1c8e DGROUP_AT(int16_t (*)[], 0x1c8e) /* DS:1c8e */
+#define g_1c9e DGROUP_AT(int16_t (*), 0x1c9e) /* DS:1c9e */
+#define g_1ca0 DGROUP_AT(int16_t (*), 0x1ca0) /* DS:1ca0 */
+#define g_1ca2 DGROUP_AT(int16_t (*), 0x1ca2) /* DS:1ca2 */
+#define g_1ca4 DGROUP_AT(int16_t (*), 0x1ca4) /* DS:1ca4 */
+#define g_1ca6 DGROUP_AT(int16_t (*), 0x1ca6) /* DS:1ca6 */
+#define g_1ca8 DGROUP_AT(int16_t (*), 0x1ca8) /* DS:1ca8 */
+#define g_1caa DGROUP_AT(POINT (*), 0x1caa) /* DS:1caa */
+#define g_1cae DGROUP_AT(int16_t (*), 0x1cae) /* DS:1cae */
+#define g_1cb0 DGROUP_AT(int16_t (*), 0x1cb0) /* DS:1cb0 */
+#define g_1cb2 DGROUP_AT(int16_t (*), 0x1cb2) /* DS:1cb2 */
+#define g_1cb4 DGROUP_AT(DWORD (*), 0x1cb4) /* DS:1cb4 */
+#define g_1cb8 DGROUP_AT(int16_t (*)[], 0x1cb8) /* DS:1cb8 */
+#define g_1cca DGROUP_AT(int32_t (*)[], 0x1cca) /* DS:1cca */
+#define g_1cea DGROUP_AT(POINT (*), 0x1cea) /* DS:1cea */
+#define g_1cee DGROUP_AT(POINT (*), 0x1cee) /* DS:1cee */
+#define g_1cf2 DGROUP_AT(POINT (*), 0x1cf2) /* DS:1cf2 */
+#define g_1d02 DGROUP_AT(int32_t (*), 0x1d02) /* DS:1d02 */
+#define g_1d06 DGROUP_AT(DWORD (*), 0x1d06) /* DS:1d06 */
+#define g_1d0a DGROUP_AT(DWORD (*), 0x1d0a) /* DS:1d0a */
+#define g_1d0e DGROUP_AT(DWORD (*), 0x1d0e) /* DS:1d0e */
+#define g_1d12 DGROUP_AT(DWORD (*), 0x1d12) /* DS:1d12 */
+#define g_1d20 DGROUP_AT(RECT (*), 0x1d20) /* DS:1d20 */
+#define g_1d28 DGROUP_AT(RECT (*), 0x1d28) /* DS:1d28 */
+#define g_1d30 DGROUP_AT(RECT (*), 0x1d30) /* DS:1d30 */
+#define g_1d38 DGROUP_AT(LPARAM (*), 0x1d38) /* DS:1d38 */
+#define g_1d3c DGROUP_AT(DWORD (*), 0x1d3c) /* DS:1d3c */
+#define g_1d40 DGROUP_AT(DWORD (*), 0x1d40) /* DS:1d40 */
+#define g_1d44 DGROUP_AT(DWORD (*), 0x1d44) /* DS:1d44 */
+#define g_1d48 DGROUP_AT(int16_t (*), 0x1d48) /* DS:1d48 */
+#define g_1d4a DGROUP_AT(int16_t (*), 0x1d4a) /* DS:1d4a */
 extern void (*g_1d4c)(HINSTANCE); /* DS:1d4c */
 extern void (*g_1d50)(HINSTANCE); /* DS:1d50 */
 extern void (*g_1d54)(HINSTANCE); /* DS:1d54 */
 extern int16_t (*g_fp_1d58)(int16_t); /* DS:1d58 */
 extern int16_t (*g_fp_1d5c)(int16_t, int16_t, int32_t); /* DS:1d5c */
-extern char g_1d60[]; /* DS:1d60 */
-extern int16_t g_1dc4; /* DS:1dc4 */
-extern int16_t g_1dc6; /* DS:1dc6 */
-extern int16_t g_1dc8; /* DS:1dc8 */
-extern int16_t g_1dca; /* DS:1dca */
-extern int16_t g_1dcc[4]; /* DS:1dcc */
-extern int16_t g_1dd4; /* DS:1dd4 */
-extern int16_t g_1dd6; /* DS:1dd6 */
-extern int16_t g_1ddc; /* DS:1ddc */
-extern int16_t g_1dde; /* DS:1dde */
-extern int16_t g_1de0; /* DS:1de0 */
-extern RECT g_1de4; /* DS:1de4 */
-extern int16_t g_1dec; /* DS:1dec */
-extern int16_t g_1dee; /* DS:1dee */
-extern int32_t g_1df4; /* DS:1df4 */
+#define g_1d60 DGROUP_AT(char (*)[], 0x1d60) /* DS:1d60 */
+#define g_1dc4 DGROUP_AT(int16_t (*), 0x1dc4) /* DS:1dc4 */
+#define g_1dc6 DGROUP_AT(int16_t (*), 0x1dc6) /* DS:1dc6 */
+#define g_1dc8 DGROUP_AT(int16_t (*), 0x1dc8) /* DS:1dc8 */
+#define g_1dca DGROUP_AT(int16_t (*), 0x1dca) /* DS:1dca */
+#define g_1dcc DGROUP_AT(int16_t (*)[4], 0x1dcc) /* DS:1dcc */
+#define g_1dd4 DGROUP_AT(int16_t (*), 0x1dd4) /* DS:1dd4 */
+#define g_1dd6 DGROUP_AT(int16_t (*), 0x1dd6) /* DS:1dd6 */
+#define g_1ddc DGROUP_AT(int16_t (*), 0x1ddc) /* DS:1ddc */
+#define g_1dde DGROUP_AT(int16_t (*), 0x1dde) /* DS:1dde */
+#define g_1de0 DGROUP_AT(int16_t (*), 0x1de0) /* DS:1de0 */
+#define g_1de4 DGROUP_AT(RECT (*), 0x1de4) /* DS:1de4 */
+#define g_1dec DGROUP_AT(int16_t (*), 0x1dec) /* DS:1dec */
+#define g_1dee DGROUP_AT(int16_t (*), 0x1dee) /* DS:1dee */
+#define g_1df4 DGROUP_AT(int32_t (*), 0x1df4) /* DS:1df4 */
 extern REC_70 *g_1df8[0x15]; /* DS:1df8 */
-extern int32_t g_1e4c; /* DS:1e4c */
-extern DWORD g_1e50; /* DS:1e50 */
-extern DWORD g_1e54; /* DS:1e54 */
-extern int32_t g_1e58; /* DS:1e58 */
-extern RECT g_1e5c; /* DS:1e5c */
-extern DWORD g_1e64; /* DS:1e64 */
-extern DWORD g_1e68; /* DS:1e68 */
-extern DWORD g_1e6c; /* DS:1e6c */
-extern DWORD g_1e70; /* DS:1e70 */
-extern DWORD g_1e74; /* DS:1e74 */
-extern DWORD g_1e78; /* DS:1e78 */
-extern DWORD g_1e7c; /* DS:1e7c */
-extern DWORD g_1e80; /* DS:1e80 */
-extern DWORD g_1e84; /* DS:1e84 */
-extern DWORD g_1e88; /* DS:1e88 */
-extern DWORD g_1e8c; /* DS:1e8c */
-extern REC_14B g_1e90[0x2d]; /* DS:1e90 */
-extern DWORD g_2214; /* DS:2214 */
-extern DWORD g_2218; /* DS:2218 */
-extern REC_5A g_221c[4]; /* DS:221c */
-extern DWORD g_2384; /* DS:2384 */
-extern DWORD g_2388; /* DS:2388 */
-extern int16_t g_238c; /* DS:238c */
-extern int16_t g_238e; /* DS:238e */
-extern int16_t g_2390; /* DS:2390 */
-extern int16_t g_2392; /* DS:2392 */
-extern int16_t g_2394; /* DS:2394 */
-extern int16_t g_2396; /* DS:2396 */
-extern POINT g_2398[]; /* DS:2398 */
-extern RECT g_23e0[4]; /* DS:23e0 */
-extern int16_t g_2400; /* DS:2400 */
-extern int16_t g_2402; /* DS:2402 */
-extern int16_t g_2404; /* DS:2404 */
-extern int16_t g_2406; /* DS:2406 */
-extern DWORD g_2408; /* DS:2408 */
-extern int32_t g_240c; /* DS:240c */
-extern int32_t g_2410; /* DS:2410 */
-extern REC_1_2414 g_2414[][5][5]; /* DS:2414 */
-extern COLORREF g_2f04[]; /* DS:2f04 */
-extern REC_50 g_2f4c[0x1c]; /* DS:2f4c */
-extern char g_380c[]; /* DS:380c */
-extern REC_6_381A g_381a[1]; /* DS:381a */
-extern HGDIOBJ g_3820[2]; /* DS:3820 */
-extern int16_t g_3824[8][8]; /* DS:3824 */
-extern REC_6_38A4 g_38a4[6]; /* DS:38a4 */
-extern char g_38c8[]; /* DS:38c8 */
-extern char g_38c9; /* DS:38c9 */
-extern struct _find_t g_3948; /* DS:3948 */
-extern HBITMAP g_3974[]; /* DS:3974 */
-extern HGDIOBJ g_3990[8]; /* DS:3990 */
-extern HBITMAP g_39c4[]; /* DS:39c4 */
-extern HDC g_39e8[]; /* DS:39e8 */
-extern HDC g_39ea; /* DS:39ea */
-extern int16_t g_39ee; /* DS:39ee */
-extern HDC g_39f0; /* DS:39f0 */
-extern HDC g_39f2; /* DS:39f2 */
-extern HDC g_39fc; /* DS:39fc */
-extern int16_t g_3a00; /* DS:3a00 */
-extern HDC g_3a02; /* DS:3a02 */
-extern HDC g_3a04[8]; /* DS:3a04 */
-extern HDC g_3a14; /* DS:3a14 */
-extern HDC g_3a24; /* DS:3a24 */
-extern HDC g_3a28; /* DS:3a28 */
-extern int16_t g_3a36; /* DS:3a36 */
-extern HDC g_3a38[]; /* DS:3a38 */
-extern HPALETTE g_3a5c[]; /* DS:3a5c */
-extern HPALETTE g_3a78[8]; /* DS:3a78 */
-extern HBITMAP g_3ad0[]; /* DS:3ad0 */
-extern HGDIOBJ g_3aec[8]; /* DS:3aec */
-extern HBITMAP g_3b20[]; /* DS:3b20 */
-extern HBRUSH g_3b38[]; /* DS:3b38 */
-extern HPEN g_3b44[4]; /* DS:3b44 */
-extern HGDIOBJ g_3b4c[0x14]; /* DS:3b4c */
-extern HBRUSH g_3b74[10]; /* DS:3b74 */
-extern HBRUSH g_3b88[6]; /* DS:3b88 */
-extern DWORD g_3b94; /* DS:3b94 */
-extern POINT g_3b98; /* DS:3b98 */
-extern int16_t g_3b9c[]; /* DS:3b9c */
-extern struct utimbuf g_3c10[3]; /* DS:3c10 */
+#define g_1e4c DGROUP_AT(int32_t (*), 0x1e4c) /* DS:1e4c */
+#define g_1e50 DGROUP_AT(DWORD (*), 0x1e50) /* DS:1e50 */
+#define g_1e54 DGROUP_AT(DWORD (*), 0x1e54) /* DS:1e54 */
+#define g_1e58 DGROUP_AT(int32_t (*), 0x1e58) /* DS:1e58 */
+#define g_1e5c DGROUP_AT(RECT (*), 0x1e5c) /* DS:1e5c */
+#define g_1e64 DGROUP_AT(DWORD (*), 0x1e64) /* DS:1e64 */
+#define g_1e68 DGROUP_AT(DWORD (*), 0x1e68) /* DS:1e68 */
+#define g_1e6c DGROUP_AT(DWORD (*), 0x1e6c) /* DS:1e6c */
+#define g_1e70 DGROUP_AT(DWORD (*), 0x1e70) /* DS:1e70 */
+#define g_1e74 DGROUP_AT(DWORD (*), 0x1e74) /* DS:1e74 */
+#define g_1e78 DGROUP_AT(DWORD (*), 0x1e78) /* DS:1e78 */
+#define g_1e7c DGROUP_AT(DWORD (*), 0x1e7c) /* DS:1e7c */
+#define g_1e80 DGROUP_AT(DWORD (*), 0x1e80) /* DS:1e80 */
+#define g_1e84 DGROUP_AT(DWORD (*), 0x1e84) /* DS:1e84 */
+#define g_1e88 DGROUP_AT(DWORD (*), 0x1e88) /* DS:1e88 */
+#define g_1e8c DGROUP_AT(DWORD (*), 0x1e8c) /* DS:1e8c */
+#define g_1e90 DGROUP_AT(REC_14B (*)[0x2d], 0x1e90) /* DS:1e90 */
+#define g_2214 DGROUP_AT(DWORD (*), 0x2214) /* DS:2214 */
+#define g_2218 DGROUP_AT(DWORD (*), 0x2218) /* DS:2218 */
+#define g_221c DGROUP_AT(REC_5A (*)[4], 0x221c) /* DS:221c */
+#define g_2384 DGROUP_AT(DWORD (*), 0x2384) /* DS:2384 */
+#define g_2388 DGROUP_AT(DWORD (*), 0x2388) /* DS:2388 */
+#define g_238c DGROUP_AT(int16_t (*), 0x238c) /* DS:238c */
+#define g_238e DGROUP_AT(int16_t (*), 0x238e) /* DS:238e */
+#define g_2390 DGROUP_AT(int16_t (*), 0x2390) /* DS:2390 */
+#define g_2392 DGROUP_AT(int16_t (*), 0x2392) /* DS:2392 */
+#define g_2394 DGROUP_AT(int16_t (*), 0x2394) /* DS:2394 */
+#define g_2396 DGROUP_AT(int16_t (*), 0x2396) /* DS:2396 */
+#define g_2398 DGROUP_AT(POINT (*)[], 0x2398) /* DS:2398 */
+#define g_23e0 DGROUP_AT(RECT (*)[4], 0x23e0) /* DS:23e0 */
+#define g_2400 DGROUP_AT(int16_t (*), 0x2400) /* DS:2400 */
+#define g_2402 DGROUP_AT(int16_t (*), 0x2402) /* DS:2402 */
+#define g_2404 DGROUP_AT(int16_t (*), 0x2404) /* DS:2404 */
+#define g_2406 DGROUP_AT(int16_t (*), 0x2406) /* DS:2406 */
+#define g_2408 DGROUP_AT(DWORD (*), 0x2408) /* DS:2408 */
+#define g_240c DGROUP_AT(int32_t (*), 0x240c) /* DS:240c */
+#define g_2410 DGROUP_AT(int32_t (*), 0x2410) /* DS:2410 */
+#define g_2414 DGROUP_AT(REC_1_2414 (*)[][5][5], 0x2414) /* DS:2414 */
+#define g_2f04 DGROUP_AT(COLORREF (*)[], 0x2f04) /* DS:2f04 */
+#define g_2f4c DGROUP_AT(REC_50 (*)[0x1c], 0x2f4c) /* DS:2f4c */
+#define g_380c DGROUP_AT(char (*)[], 0x380c) /* DS:380c */
+#define g_381a DGROUP_AT(REC_6_381A (*)[1], 0x381a) /* DS:381a */
+#define g_3820 DGROUP_AT(HGDIOBJ (*)[2], 0x3820) /* DS:3820 */
+#define g_3824 DGROUP_AT(int16_t (*)[8][8], 0x3824) /* DS:3824 */
+#define g_38a4 DGROUP_AT(REC_6_38A4 (*)[6], 0x38a4) /* DS:38a4 */
+#define g_38c8 DGROUP_AT(char (*)[], 0x38c8) /* DS:38c8 */
+#define g_38c9 DGROUP_AT(char (*), 0x38c9) /* DS:38c9 */
+#define g_3948 DGROUP_AT(struct _find_t (*), 0x3948) /* DS:3948 */
+#define g_3974 DGROUP_AT(HBITMAP (*)[], 0x3974) /* DS:3974 */
+#define g_3990 DGROUP_AT(HGDIOBJ (*)[8], 0x3990) /* DS:3990 */
+#define g_39c4 DGROUP_AT(HBITMAP (*)[], 0x39c4) /* DS:39c4 */
+#define g_39e8 DGROUP_AT(HDC (*)[], 0x39e8) /* DS:39e8 */
+#define g_39ea DGROUP_AT(HDC (*), 0x39ea) /* DS:39ea */
+#define g_39ee DGROUP_AT(int16_t (*), 0x39ee) /* DS:39ee */
+#define g_39f0 DGROUP_AT(HDC (*), 0x39f0) /* DS:39f0 */
+#define g_39f2 DGROUP_AT(HDC (*), 0x39f2) /* DS:39f2 */
+#define g_39fc DGROUP_AT(HDC (*), 0x39fc) /* DS:39fc */
+#define g_3a00 DGROUP_AT(int16_t (*), 0x3a00) /* DS:3a00 */
+#define g_3a02 DGROUP_AT(HDC (*), 0x3a02) /* DS:3a02 */
+#define g_3a04 DGROUP_AT(HDC (*)[8], 0x3a04) /* DS:3a04 */
+#define g_3a14 DGROUP_AT(HDC (*), 0x3a14) /* DS:3a14 */
+#define g_3a24 DGROUP_AT(HDC (*), 0x3a24) /* DS:3a24 */
+#define g_3a28 DGROUP_AT(HDC (*), 0x3a28) /* DS:3a28 */
+#define g_3a36 DGROUP_AT(int16_t (*), 0x3a36) /* DS:3a36 */
+#define g_3a38 DGROUP_AT(HDC (*)[], 0x3a38) /* DS:3a38 */
+#define g_3a5c DGROUP_AT(HPALETTE (*)[], 0x3a5c) /* DS:3a5c */
+#define g_3a78 DGROUP_AT(HPALETTE (*)[8], 0x3a78) /* DS:3a78 */
+#define g_3ad0 DGROUP_AT(HBITMAP (*)[], 0x3ad0) /* DS:3ad0 */
+#define g_3aec DGROUP_AT(HGDIOBJ (*)[8], 0x3aec) /* DS:3aec */
+#define g_3b20 DGROUP_AT(HBITMAP (*)[], 0x3b20) /* DS:3b20 */
+#define g_3b38 DGROUP_AT(HBRUSH (*)[], 0x3b38) /* DS:3b38 */
+#define g_3b44 DGROUP_AT(HPEN (*)[4], 0x3b44) /* DS:3b44 */
+#define g_3b4c DGROUP_AT(HGDIOBJ (*)[0x14], 0x3b4c) /* DS:3b4c */
+#define g_3b74 DGROUP_AT(HBRUSH (*)[10], 0x3b74) /* DS:3b74 */
+#define g_3b88 DGROUP_AT(HBRUSH (*)[6], 0x3b88) /* DS:3b88 */
+#define g_3b94 DGROUP_AT(DWORD (*), 0x3b94) /* DS:3b94 */
+#define g_3b98 DGROUP_AT(POINT (*), 0x3b98) /* DS:3b98 */
+#define g_3b9c DGROUP_AT(int16_t (*)[], 0x3b9c) /* DS:3b9c */
+#define g_3c10 DGROUP_AT(struct utimbuf (*)[3], 0x3c10) /* DS:3c10 */
 extern int16_t (*g_fp_3c28)(int16_t, int16_t, char *, int16_t, int16_t, int16_t); /* DS:3c28 */
 extern int16_t (*g_fp_3c2c)(LPCSTR); /* DS:3c2c */
 extern int16_t (*g_fp_3c30)(int16_t, int16_t, int32_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, char, char, char, int16_t); /* DS:3c30 */
@@ -1490,7 +1495,7 @@ extern int16_t (*g_fp_3c50)(int16_t, int16_t, int16_t, int16_t, int32_t, int16_t
 extern void (*g_fp_3c54)(int32_t, int16_t); /* DS:3c54 */
 extern int16_t (*g_fp_3c58)(POINT, int16_t, int16_t, int32_t); /* DS:3c58 */
 extern int16_t (*g_fp_3c5c)(int16_t, POINT, int16_t, int32_t, int32_t, DWORD, LPCSTR); /* DS:3c5c */
-extern HGDIOBJ g_3c60[2]; /* DS:3c60 */
+#define g_3c60 DGROUP_AT(HGDIOBJ (*)[2], 0x3c60) /* DS:3c60 */
 extern int16_t (*g_fp_3c64)(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t); /* DS:3c64 */
 extern int16_t (*g_fp_3c68)(char *, char *, int16_t); /* DS:3c68 */
 extern int16_t (*g_fp_3c6c)(int16_t *, int16_t *, int16_t *, int16_t *, int16_t *, int16_t *, int16_t *, int16_t *, int16_t, int16_t, int16_t, int16_t, int16_t *, int16_t *); /* DS:3c6c */
@@ -1500,740 +1505,741 @@ extern HBITMAP (*g_fp_3c78)(int16_t, int16_t, RECT *, HGLOBAL, int16_t, int32_t,
 extern void (*g_fp_3c7c)(int16_t, int16_t, int16_t, int16_t, int16_t); /* DS:3c7c */
 extern void (*g_fp_3c80)(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t); /* DS:3c80 */
 extern int16_t (*g_fp_3c84)(int16_t, int32_t); /* DS:3c84 */
-extern DWORD g_3c88; /* DS:3c88 */
-extern POINT g_3c8c[3]; /* DS:3c8c */
-extern int16_t g_3c9a; /* DS:3c9a */
-extern int16_t g_3c9c; /* DS:3c9c */
-extern int16_t g_3c9e; /* DS:3c9e */
-extern int16_t g_3ca0; /* DS:3ca0 */
-extern int16_t g_3ca2; /* DS:3ca2 */
-extern int16_t g_3ca4; /* DS:3ca4 */
-extern int16_t g_3ca6; /* DS:3ca6 */
-extern RECT g_3ca8; /* DS:3ca8 */
-extern RECT g_3cb0; /* DS:3cb0 */
-extern RECT g_3cb8; /* DS:3cb8 */
+#define g_3c88 DGROUP_AT(DWORD (*), 0x3c88) /* DS:3c88 */
+#define g_3c8c DGROUP_AT(POINT (*)[3], 0x3c8c) /* DS:3c8c */
+#define g_3c9a DGROUP_AT(int16_t (*), 0x3c9a) /* DS:3c9a */
+#define g_3c9c DGROUP_AT(int16_t (*), 0x3c9c) /* DS:3c9c */
+#define g_3c9e DGROUP_AT(int16_t (*), 0x3c9e) /* DS:3c9e */
+#define g_3ca0 DGROUP_AT(int16_t (*), 0x3ca0) /* DS:3ca0 */
+#define g_3ca2 DGROUP_AT(int16_t (*), 0x3ca2) /* DS:3ca2 */
+#define g_3ca4 DGROUP_AT(int16_t (*), 0x3ca4) /* DS:3ca4 */
+#define g_3ca6 DGROUP_AT(int16_t (*), 0x3ca6) /* DS:3ca6 */
+#define g_3ca8 DGROUP_AT(RECT (*), 0x3ca8) /* DS:3ca8 */
+#define g_3cb0 DGROUP_AT(RECT (*), 0x3cb0) /* DS:3cb0 */
+#define g_3cb8 DGROUP_AT(RECT (*), 0x3cb8) /* DS:3cb8 */
 extern RECT *g_3cc0; /* DS:3cc0 */
-extern DWORD g_3cc4; /* DS:3cc4 */
-extern int16_t g_3cc8[2]; /* DS:3cc8 */
-extern HBITMAP g_3ccc[2]; /* DS:3ccc */
-extern HGDIOBJ g_3cd0[2]; /* DS:3cd0 */
-extern RECT g_3cd4; /* DS:3cd4 */
-extern HDC g_3cdc[2]; /* DS:3cdc */
-extern HPALETTE g_3ce0[2]; /* DS:3ce0 */
-extern int16_t g_3ce4; /* DS:3ce4 */
-extern int16_t g_3ce6; /* DS:3ce6 */
-extern int16_t g_3ce8[0x10]; /* DS:3ce8 */
-extern POINT g_3d08[0x10]; /* DS:3d08 */
-extern int16_t g_3d48; /* DS:3d48 */
-extern int16_t g_3d4a; /* DS:3d4a */
+#define g_3cc4 DGROUP_AT(DWORD (*), 0x3cc4) /* DS:3cc4 */
+#define g_3cc8 DGROUP_AT(int16_t (*)[2], 0x3cc8) /* DS:3cc8 */
+#define g_3ccc DGROUP_AT(HBITMAP (*)[2], 0x3ccc) /* DS:3ccc */
+#define g_3cd0 DGROUP_AT(HGDIOBJ (*)[2], 0x3cd0) /* DS:3cd0 */
+#define g_3cd4 DGROUP_AT(RECT (*), 0x3cd4) /* DS:3cd4 */
+#define g_3cdc DGROUP_AT(HDC (*)[2], 0x3cdc) /* DS:3cdc */
+#define g_3ce0 DGROUP_AT(HPALETTE (*)[2], 0x3ce0) /* DS:3ce0 */
+#define g_3ce4 DGROUP_AT(int16_t (*), 0x3ce4) /* DS:3ce4 */
+#define g_3ce6 DGROUP_AT(int16_t (*), 0x3ce6) /* DS:3ce6 */
+#define g_3ce8 DGROUP_AT(int16_t (*)[0x10], 0x3ce8) /* DS:3ce8 */
+#define g_3d08 DGROUP_AT(POINT (*)[0x10], 0x3d08) /* DS:3d08 */
+#define g_3d48 DGROUP_AT(int16_t (*), 0x3d48) /* DS:3d48 */
+#define g_3d4a DGROUP_AT(int16_t (*), 0x3d4a) /* DS:3d4a */
 extern DWORD *g_3d4c; /* DS:3d4c */
-extern REC_34 g_3d50[0x50]; /* DS:3d50 */
-extern REC_14_4D90 g_4d90[13]; /* DS:4d90 */
-extern HGDIOBJ g_4e94[0x20]; /* DS:4e94 */
-extern int16_t g_4ed4[2]; /* DS:4ed4 */
-extern int16_t g_4ed8[]; /* DS:4ed8 */
-extern int16_t g_4ee0[2]; /* DS:4ee0 */
-extern int16_t g_4ee4; /* DS:4ee4 */
-extern int16_t g_4ee6; /* DS:4ee6 */
-extern int16_t g_4ee8[2]; /* DS:4ee8 */
-extern int16_t g_4eec[8][3]; /* DS:4eec */
-extern int16_t g_4f1c[]; /* DS:4f1c */
-extern REC_10 g_4f2c[10]; /* DS:4f2c */
+#define g_3d50 DGROUP_AT(REC_34 (*)[0x50], 0x3d50) /* DS:3d50 */
+#define g_4d90 DGROUP_AT(REC_14_4D90 (*)[13], 0x4d90) /* DS:4d90 */
+#define g_4e94 DGROUP_AT(HGDIOBJ (*)[0x20], 0x4e94) /* DS:4e94 */
+#define g_4ed4 DGROUP_AT(int16_t (*)[2], 0x4ed4) /* DS:4ed4 */
+#define g_4ed8 DGROUP_AT(int16_t (*)[], 0x4ed8) /* DS:4ed8 */
+#define g_4ee0 DGROUP_AT(int16_t (*)[2], 0x4ee0) /* DS:4ee0 */
+#define g_4ee4 DGROUP_AT(int16_t (*), 0x4ee4) /* DS:4ee4 */
+#define g_4ee6 DGROUP_AT(int16_t (*), 0x4ee6) /* DS:4ee6 */
+#define g_4ee8 DGROUP_AT(int16_t (*)[2], 0x4ee8) /* DS:4ee8 */
+#define g_4eec DGROUP_AT(int16_t (*)[8][3], 0x4eec) /* DS:4eec */
+#define g_4f1c DGROUP_AT(int16_t (*)[], 0x4f1c) /* DS:4f1c */
+#define g_4f2c DGROUP_AT(REC_10 (*)[10], 0x4f2c) /* DS:4f2c */
 extern char *g_4fcc; /* DS:4fcc */
-extern int16_t g_4fd0[8][3]; /* DS:4fd0 */
-extern int16_t g_5000; /* DS:5000 */
-extern int16_t g_5002; /* DS:5002 */
-extern HBRUSH g_5004[]; /* DS:5004 */
-extern HBRUSH g_5006; /* DS:5006 */
-extern HBRUSH g_5008; /* DS:5008 */
-extern HBRUSH g_500a; /* DS:500a */
-extern HBRUSH g_500c; /* DS:500c */
-extern uint32_t g_5014; /* DS:5014 */
-extern int32_t g_5018; /* DS:5018 */
-extern int32_t g_501c; /* DS:501c */
-extern int32_t g_5020; /* DS:5020 */
-extern int16_t g_5024; /* DS:5024 */
-extern int16_t g_5026; /* DS:5026 */
-extern uint32_t g_5028; /* DS:5028 */
-extern DWORD g_502c; /* DS:502c */
-extern HBITMAP g_5030[12]; /* DS:5030 */
-extern RECT g_5048; /* DS:5048 */
-extern int16_t g_5050; /* DS:5050 */
-extern int16_t g_5052; /* DS:5052 */
-extern POINT g_5054[]; /* DS:5054 */
-extern DWORD g_5074; /* DS:5074 */
-extern int32_t g_5078; /* DS:5078 */
-extern char g_507c[]; /* DS:507c */
-extern char g_50e0[]; /* DS:50e0 */
-extern POINT g_5144; /* DS:5144 */
-extern RECT g_5148; /* DS:5148 */
-extern RECT g_5150; /* DS:5150 */
-extern RECT g_5158; /* DS:5158 */
-extern RECT g_5160; /* DS:5160 */
-extern POINT g_5168[]; /* DS:5168 */
-extern POINT g_5170[0x2d]; /* DS:5170 */
-extern POINT g_5224[0x2d]; /* DS:5224 */
-extern DWORD g_52d8; /* DS:52d8 */
-extern POINT g_52dc; /* DS:52dc */
-extern POINT g_52e0; /* DS:52e0 */
-extern POINT g_52e4; /* DS:52e4 */
-extern POINT g_52e8; /* DS:52e8 */
-extern REC_24 g_52ec[0x20]; /* DS:52ec */
-extern HBRUSH g_576c[0x14]; /* DS:576c */
-extern int16_t g_5794; /* DS:5794 */
-extern int16_t g_5796; /* DS:5796 */
-extern DWORD g_579c; /* DS:579c */
-extern DWORD g_57a0; /* DS:57a0 */
-extern REC_23 g_57a8[7]; /* DS:57a8 */
-extern REC_14_58BC g_58bc[0x14]; /* DS:58bc */
-extern REC_14C g_5a4c[11]; /* DS:5a4c */
-extern REC_16 g_5b28[][4]; /* DS:5b28 */
-extern HDC g_5e98[4]; /* DS:5e98 */
-extern HGDIOBJ g_5ea0[4]; /* DS:5ea0 */
-extern HBRUSH g_5ea8[2]; /* DS:5ea8 */
-extern int16_t g_5eac[][0x12]; /* DS:5eac */
-extern int16_t g_6038[]; /* DS:6038 */
-extern LPSTR g_6078; /* DS:6078 */
-extern RECT g_607c; /* DS:607c */
-extern RECT g_6084; /* DS:6084 */
-extern int16_t g_608c; /* DS:608c */
-extern int16_t g_608e; /* DS:608e */
-extern int32_t g_6090; /* DS:6090 */
-extern HGDIOBJ g_6094[2]; /* DS:6094 */
-extern REC_94 g_6098[9]; /* DS:6098 */
-extern REC_20 g_65cc[5]; /* DS:65cc */
-extern int32_t g_666c; /* DS:666c */
-extern REC_1_6670 g_6670[14]; /* DS:6670 */
-extern RECT g_67f8[]; /* DS:67f8 */
-extern REC_10D g_6938[5]; /* DS:6938 */
-extern int32_t g_6988; /* DS:6988 */
-extern uint32_t g_698c; /* DS:698c */
-extern char g_6990[]; /* DS:6990 */
+#define g_4fd0 DGROUP_AT(int16_t (*)[8][3], 0x4fd0) /* DS:4fd0 */
+#define g_5000 DGROUP_AT(int16_t (*), 0x5000) /* DS:5000 */
+#define g_5002 DGROUP_AT(int16_t (*), 0x5002) /* DS:5002 */
+#define g_5004 DGROUP_AT(HBRUSH (*)[], 0x5004) /* DS:5004 */
+#define g_5006 DGROUP_AT(HBRUSH (*), 0x5006) /* DS:5006 */
+#define g_5008 DGROUP_AT(HBRUSH (*), 0x5008) /* DS:5008 */
+#define g_500a DGROUP_AT(HBRUSH (*), 0x500a) /* DS:500a */
+#define g_500c DGROUP_AT(HBRUSH (*), 0x500c) /* DS:500c */
+#define g_5014 DGROUP_AT(uint32_t (*), 0x5014) /* DS:5014 */
+#define g_5018 DGROUP_AT(int32_t (*), 0x5018) /* DS:5018 */
+#define g_501c DGROUP_AT(int32_t (*), 0x501c) /* DS:501c */
+#define g_5020 DGROUP_AT(int32_t (*), 0x5020) /* DS:5020 */
+#define g_5024 DGROUP_AT(int16_t (*), 0x5024) /* DS:5024 */
+#define g_5026 DGROUP_AT(int16_t (*), 0x5026) /* DS:5026 */
+#define g_5028 DGROUP_AT(uint32_t (*), 0x5028) /* DS:5028 */
+#define g_502c DGROUP_AT(DWORD (*), 0x502c) /* DS:502c */
+#define g_5030 DGROUP_AT(HBITMAP (*)[12], 0x5030) /* DS:5030 */
+#define g_5048 DGROUP_AT(RECT (*), 0x5048) /* DS:5048 */
+#define g_5050 DGROUP_AT(int16_t (*), 0x5050) /* DS:5050 */
+#define g_5052 DGROUP_AT(int16_t (*), 0x5052) /* DS:5052 */
+#define g_5054 DGROUP_AT(POINT (*)[], 0x5054) /* DS:5054 */
+#define g_5074 DGROUP_AT(DWORD (*), 0x5074) /* DS:5074 */
+#define g_5078 DGROUP_AT(int32_t (*), 0x5078) /* DS:5078 */
+#define g_507c DGROUP_AT(char (*)[], 0x507c) /* DS:507c */
+#define g_50e0 DGROUP_AT(char (*)[], 0x50e0) /* DS:50e0 */
+#define g_5144 DGROUP_AT(POINT (*), 0x5144) /* DS:5144 */
+#define g_5148 DGROUP_AT(RECT (*), 0x5148) /* DS:5148 */
+#define g_5150 DGROUP_AT(RECT (*), 0x5150) /* DS:5150 */
+#define g_5158 DGROUP_AT(RECT (*), 0x5158) /* DS:5158 */
+#define g_5160 DGROUP_AT(RECT (*), 0x5160) /* DS:5160 */
+#define g_5168 DGROUP_AT(POINT (*)[], 0x5168) /* DS:5168 */
+#define g_5170 DGROUP_AT(POINT (*)[0x2d], 0x5170) /* DS:5170 */
+#define g_5224 DGROUP_AT(POINT (*)[0x2d], 0x5224) /* DS:5224 */
+#define g_52d8 DGROUP_AT(DWORD (*), 0x52d8) /* DS:52d8 */
+#define g_52dc DGROUP_AT(POINT (*), 0x52dc) /* DS:52dc */
+#define g_52e0 DGROUP_AT(POINT (*), 0x52e0) /* DS:52e0 */
+#define g_52e4 DGROUP_AT(POINT (*), 0x52e4) /* DS:52e4 */
+#define g_52e8 DGROUP_AT(POINT (*), 0x52e8) /* DS:52e8 */
+#define g_52ec DGROUP_AT(REC_24 (*)[0x20], 0x52ec) /* DS:52ec */
+#define g_576c DGROUP_AT(HBRUSH (*)[0x14], 0x576c) /* DS:576c */
+#define g_5794 DGROUP_AT(int16_t (*), 0x5794) /* DS:5794 */
+#define g_5796 DGROUP_AT(int16_t (*), 0x5796) /* DS:5796 */
+#define g_579c DGROUP_AT(DWORD (*), 0x579c) /* DS:579c */
+#define g_57a0 DGROUP_AT(DWORD (*), 0x57a0) /* DS:57a0 */
+#define g_57a8 DGROUP_AT(REC_23 (*)[7], 0x57a8) /* DS:57a8 */
+#define g_58bc DGROUP_AT(REC_14_58BC (*)[0x14], 0x58bc) /* DS:58bc */
+#define g_5a4c DGROUP_AT(REC_14C (*)[11], 0x5a4c) /* DS:5a4c */
+#define g_5b28 DGROUP_AT(REC_16 (*)[][4], 0x5b28) /* DS:5b28 */
+#define g_5e98 DGROUP_AT(HDC (*)[4], 0x5e98) /* DS:5e98 */
+#define g_5ea0 DGROUP_AT(HGDIOBJ (*)[4], 0x5ea0) /* DS:5ea0 */
+#define g_5ea8 DGROUP_AT(HBRUSH (*)[2], 0x5ea8) /* DS:5ea8 */
+#define g_5eac DGROUP_AT(int16_t (*)[][0x12], 0x5eac) /* DS:5eac */
+#define g_6038 DGROUP_AT(int16_t (*)[], 0x6038) /* DS:6038 */
+#define g_6078 DGROUP_AT(LPSTR (*), 0x6078) /* DS:6078 */
+#define g_607c DGROUP_AT(RECT (*), 0x607c) /* DS:607c */
+#define g_6084 DGROUP_AT(RECT (*), 0x6084) /* DS:6084 */
+#define g_608c DGROUP_AT(int16_t (*), 0x608c) /* DS:608c */
+#define g_608e DGROUP_AT(int16_t (*), 0x608e) /* DS:608e */
+#define g_6090 DGROUP_AT(int32_t (*), 0x6090) /* DS:6090 */
+#define g_6094 DGROUP_AT(HGDIOBJ (*)[2], 0x6094) /* DS:6094 */
+#define g_6098 DGROUP_AT(REC_94 (*)[9], 0x6098) /* DS:6098 */
+#define g_65cc DGROUP_AT(REC_20 (*)[5], 0x65cc) /* DS:65cc */
+#define g_666c DGROUP_AT(int32_t (*), 0x666c) /* DS:666c */
+#define g_6670 DGROUP_AT(REC_1_6670 (*)[14], 0x6670) /* DS:6670 */
+#define g_67f8 DGROUP_AT(RECT (*)[], 0x67f8) /* DS:67f8 */
+#define g_6938 DGROUP_AT(REC_10D (*)[5], 0x6938) /* DS:6938 */
+#define g_6988 DGROUP_AT(int32_t (*), 0x6988) /* DS:6988 */
+#define g_698c DGROUP_AT(uint32_t (*), 0x698c) /* DS:698c */
+#define g_6990 DGROUP_AT(char (*)[], 0x6990) /* DS:6990 */
 extern REC_297 *g_69f4; /* DS:69f4 */
-extern struct find_t g_69f8; /* DS:69f8 */
-extern char g_6a24[]; /* DS:6a24 */
-extern HGDIOBJ g_6aec[2]; /* DS:6aec */
-extern RECT g_6af0; /* DS:6af0 */
+#define g_69f8 DGROUP_AT(struct find_t (*), 0x69f8) /* DS:69f8 */
+#define g_6a24 DGROUP_AT(char (*)[], 0x6a24) /* DS:6a24 */
+#define g_6aec DGROUP_AT(HGDIOBJ (*)[2], 0x6aec) /* DS:6aec */
+#define g_6af0 DGROUP_AT(RECT (*), 0x6af0) /* DS:6af0 */
 extern REC_31 *g_6af8; /* DS:6af8 */
 extern REC_42 *g_6afc; /* DS:6afc */
-extern DWORD fireworks_end_ms; /* DS:6b00 */
+#define fireworks_end_ms DGROUP_AT(DWORD (*), 0x6b00) /* DS:6b00 */
 extern REC_2E *g_6b04; /* DS:6b04 */
 extern REC_229 *g_6b08; /* DS:6b08 */
 extern REC_4B0 *g_6b0c; /* DS:6b0c */
-extern int16_t g_6b10[8][3]; /* DS:6b10 */
-extern int16_t g_6b40[8]; /* DS:6b40 */
-extern POINT g_6b50; /* DS:6b50 */
-extern int16_t g_6b54[]; /* DS:6b54 */
-extern POINT g_6b5c[]; /* DS:6b5c */
-extern POINT g_6bbc[][5]; /* DS:6bbc */
-extern POINT g_6cfc[][3]; /* DS:6cfc */
+#define g_6b10 DGROUP_AT(int16_t (*)[8][3], 0x6b10) /* DS:6b10 */
+#define g_6b40 DGROUP_AT(int16_t (*)[8], 0x6b40) /* DS:6b40 */
+#define g_6b50 DGROUP_AT(POINT (*), 0x6b50) /* DS:6b50 */
+#define g_6b54 DGROUP_AT(int16_t (*)[], 0x6b54) /* DS:6b54 */
+#define g_6b5c DGROUP_AT(POINT (*)[], 0x6b5c) /* DS:6b5c */
+#define g_6bbc DGROUP_AT(POINT (*)[][5], 0x6bbc) /* DS:6bbc */
+#define g_6cfc DGROUP_AT(POINT (*)[][3], 0x6cfc) /* DS:6cfc */
 extern REC_6DA4 *g_6da4; /* DS:6da4 */
-extern DWORD g_6da8; /* DS:6da8 */
-extern int16_t g_6dac; /* DS:6dac */
-extern int16_t g_6dae; /* DS:6dae */
-extern int16_t g_6db0; /* DS:6db0 */
-extern int16_t g_6db2; /* DS:6db2 */
-extern int16_t g_6db4; /* DS:6db4 */
-extern int16_t g_6db6; /* DS:6db6 */
-extern char ambulance_line[0x50]; /* DS:6db8 */
-extern RECT demon_host_rect; /* DS:6e08 */
-extern DWORD g_6e10; /* DS:6e10 */
-extern POINT g_6e14; /* DS:6e14 */
-extern POINT g_6e18; /* DS:6e18 */
+#define g_6da8 DGROUP_AT(DWORD (*), 0x6da8) /* DS:6da8 */
+#define g_6dac DGROUP_AT(int16_t (*), 0x6dac) /* DS:6dac */
+#define g_6dae DGROUP_AT(int16_t (*), 0x6dae) /* DS:6dae */
+#define g_6db0 DGROUP_AT(int16_t (*), 0x6db0) /* DS:6db0 */
+#define g_6db2 DGROUP_AT(int16_t (*), 0x6db2) /* DS:6db2 */
+#define g_6db4 DGROUP_AT(int16_t (*), 0x6db4) /* DS:6db4 */
+#define g_6db6 DGROUP_AT(int16_t (*), 0x6db6) /* DS:6db6 */
+#define ambulance_line DGROUP_AT(char (*)[0x50], 0x6db8) /* DS:6db8 */
+#define demon_host_rect DGROUP_AT(RECT (*), 0x6e08) /* DS:6e08 */
+#define g_6e10 DGROUP_AT(DWORD (*), 0x6e10) /* DS:6e10 */
+#define g_6e14 DGROUP_AT(POINT (*), 0x6e14) /* DS:6e14 */
+#define g_6e18 DGROUP_AT(POINT (*), 0x6e18) /* DS:6e18 */
 extern REC2C *g_6e1c; /* DS:6e1c */
 extern REC_41 *g_6e20; /* DS:6e20 */
 extern REC_7C *g_6e24; /* DS:6e24 */
-extern DWORD g_6e28; /* DS:6e28 */
-extern int32_t g_6e2c; /* DS:6e2c */
-extern RECT g_6e30; /* DS:6e30 */
-extern REC_1E g_6e38[12]; /* DS:6e38 */
-extern REC_15A g_7090[8]; /* DS:7090 */
-extern POINT g_7b60[][0x40]; /* DS:7b60 */
-extern POINT g_7ba0[][0x40]; /* DS:7ba0 */
-extern POINT g_7be0[][4][0x10]; /* DS:7be0 */
-extern REC_34C g_8560[4]; /* DS:8560 */
-extern char g_8630[]; /* DS:8630 */
-extern int16_t g_8680[8]; /* DS:8680 */
-extern DWORD g_8690; /* DS:8690 */
-extern char g_8694[]; /* DS:8694 */
-extern char g_86d0[]; /* DS:86d0 */
-extern DWORD g_870c; /* DS:870c */
-extern uint32_t g_8710; /* DS:8710 */
-extern DWORD g_8714; /* DS:8714 */
-extern char g_8718[]; /* DS:8718 */
-extern char g_8740[]; /* DS:8740 */
-extern char g_8768[]; /* DS:8768 */
-extern char g_87b8[]; /* DS:87b8 */
-extern char g_87e0[]; /* DS:87e0 */
-extern char g_881c[]; /* DS:881c */
-extern uint32_t g_8858; /* DS:8858 */
-extern uint32_t g_885c; /* DS:885c */
-extern RECT g_8860[]; /* DS:8860 */
-extern REC_18 g_8870[3]; /* DS:8870 */
-extern POINT g_88c0; /* DS:88c0 */
-extern POINT g_88c4; /* DS:88c4 */
-extern POINT g_88c8; /* DS:88c8 */
-extern int32_t g_88cc; /* DS:88cc */
-extern int32_t g_88d0; /* DS:88d0 */
-extern int32_t g_88d4; /* DS:88d4 */
-extern HANDLE g_88d8[8]; /* DS:88d8 */
-extern int16_t g_88e8; /* DS:88e8 */
-extern int16_t g_88ea; /* DS:88ea */
-extern int16_t g_88ec; /* DS:88ec */
-extern int16_t g_88ee; /* DS:88ee */
-extern int16_t g_88f0; /* DS:88f0 */
-extern int16_t g_88f2; /* DS:88f2 */
-extern POINT g_88f4[]; /* DS:88f4 */
-extern POINT g_8904[]; /* DS:8904 */
-extern POINT g_8914[]; /* DS:8914 */
-extern POINT g_8924[15][4]; /* DS:8924 */
-extern POINT g_8a14[15][4][3]; /* DS:8a14 */
-extern POINT g_8ce4[]; /* DS:8ce4 */
-extern int16_t g_8d14; /* DS:8d14 */
-extern int16_t g_8d16; /* DS:8d16 */
-extern int16_t g_8d18; /* DS:8d18 */
-extern int16_t g_8d1a; /* DS:8d1a */
-extern int16_t g_8d1c[]; /* DS:8d1c */
-extern int32_t g_8d34; /* DS:8d34 */
-extern char g_8d38[]; /* DS:8d38 */
-extern char g_8db0[]; /* DS:8db0 */
-extern int32_t g_8e00; /* DS:8e00 */
-extern int32_t g_8e04; /* DS:8e04 */
-extern int32_t g_8e08[]; /* DS:8e08 */
-extern DWORD g_8e28; /* DS:8e28 */
-extern DWORD g_8e2c; /* DS:8e2c */
-extern DWORD g_8e30; /* DS:8e30 */
-extern int16_t g_8e34[4]; /* DS:8e34 */
-extern int16_t g_8e3c[]; /* DS:8e3c */
-extern DWORD g_8e44; /* DS:8e44 */
-extern int16_t g_8e48[]; /* DS:8e48 */
-extern int16_t g_8e58; /* DS:8e58 */
-extern int16_t g_8e5a; /* DS:8e5a */
-extern int16_t g_8e5c; /* DS:8e5c */
-extern int16_t g_8e5e; /* DS:8e5e */
-extern int16_t g_8e60; /* DS:8e60 */
-extern int16_t g_8e62; /* DS:8e62 */
-extern int16_t g_8e64; /* DS:8e64 */
-extern HINSTANCE g_8e66; /* DS:8e66 */
-extern char g_8e68[]; /* DS:8e68 */
-extern int16_t g_8f62; /* DS:8f62 */
-extern int16_t g_8f64; /* DS:8f64 */
-extern int16_t g_8f66; /* DS:8f66 */
-extern int16_t g_8f68; /* DS:8f68 */
-extern int16_t g_8f6a; /* DS:8f6a */
-extern int16_t g_8f6c; /* DS:8f6c */
-extern int16_t g_8f6e; /* DS:8f6e */
-extern int16_t g_8f70; /* DS:8f70 */
-extern int16_t g_8f72; /* DS:8f72 */
-extern int16_t g_8f74; /* DS:8f74 */
-extern int16_t g_8f76; /* DS:8f76 */
-extern int16_t g_8f78; /* DS:8f78 */
-extern char g_8f7a[]; /* DS:8f7a */
-extern int16_t g_8fe8; /* DS:8fe8 */
-extern int16_t g_8fea; /* DS:8fea */
-extern int16_t g_8fec; /* DS:8fec */
-extern int16_t g_8fee; /* DS:8fee */
-extern int16_t g_8ff0; /* DS:8ff0 */
-extern int16_t g_8ff2; /* DS:8ff2 */
-extern int16_t g_8ff4; /* DS:8ff4 */
-extern int16_t g_8ff6; /* DS:8ff6 */
-extern int16_t g_8ff8; /* DS:8ff8 */
-extern int16_t g_8ffa; /* DS:8ffa */
-extern int16_t g_8ffc; /* DS:8ffc */
-extern int16_t g_8ffe; /* DS:8ffe */
-extern int16_t g_9000; /* DS:9000 */
-extern int16_t g_9002; /* DS:9002 */
-extern int16_t g_9004; /* DS:9004 */
-extern int16_t g_9006; /* DS:9006 */
-extern int16_t g_9008; /* DS:9008 */
-extern char g_900a[]; /* DS:900a */
-extern char g_9078[]; /* DS:9078 */
-extern int16_t g_90e6; /* DS:90e6 */
-extern int16_t g_90e8; /* DS:90e8 */
-extern int32_t g_90ea; /* DS:90ea */
-extern int16_t g_90ee; /* DS:90ee */
-extern int16_t g_90f0; /* DS:90f0 */
-extern int16_t g_90f2; /* DS:90f2 */
-extern int16_t g_90f4; /* DS:90f4 */
-extern int16_t g_90f6; /* DS:90f6 */
-extern int16_t g_90f8; /* DS:90f8 */
-extern HMENU g_90fa; /* DS:90fa */
-extern HWND g_90fc; /* DS:90fc */
-extern HFONT g_90fe; /* DS:90fe */
-extern HGLOBAL g_9100[15]; /* DS:9100 */
-extern HGLOBAL g_912a; /* DS:912a */
-extern HGDIOBJ g_912c; /* DS:912c */
-extern int16_t g_912e; /* DS:912e */
-extern int16_t subgame_active; /* DS:9130 */
-extern int16_t g_9132; /* DS:9132 */
-extern int16_t g_9134; /* DS:9134 */
-extern int16_t g_9136; /* DS:9136 */
-extern int16_t g_9138; /* DS:9138 */
-extern int16_t g_913a; /* DS:913a */
-extern int16_t g_913c; /* DS:913c */
-extern int16_t g_913e; /* DS:913e */
-extern int16_t g_9140; /* DS:9140 */
-extern int16_t g_9142; /* DS:9142 */
-extern int16_t g_9144; /* DS:9144 */
-extern int16_t g_9146; /* DS:9146 */
-extern int16_t dissolve_active_count; /* DS:9148 */
-extern int16_t g_914a; /* DS:914a */
-extern int16_t g_914c; /* DS:914c */
-extern int16_t g_914e; /* DS:914e */
-extern int16_t g_9150; /* DS:9150 */
-extern int16_t g_9152; /* DS:9152 */
-extern int16_t g_9154; /* DS:9154 */
-extern int16_t g_9156; /* DS:9156 */
-extern int16_t g_9158; /* DS:9158 */
-extern int16_t g_915a; /* DS:915a */
-extern SURF_22 g_915c[3]; /* DS:915c */
-extern char g_91c2[]; /* DS:91c2 */
-extern char g_91d4[]; /* DS:91d4 */
-extern char g_91e6[]; /* DS:91e6 */
-extern int16_t g_91f8; /* DS:91f8 */
-extern int16_t g_91fa; /* DS:91fa */
-extern int16_t g_91fc; /* DS:91fc */
-extern int16_t g_91fe; /* DS:91fe */
-extern int16_t g_9200; /* DS:9200 */
-extern int16_t g_9202; /* DS:9202 */
-extern int16_t g_9204; /* DS:9204 */
-extern int16_t g_9206; /* DS:9206 */
-extern int16_t g_9208; /* DS:9208 */
-extern int16_t g_920a; /* DS:920a */
-extern int16_t g_920c; /* DS:920c */
-extern int16_t g_920e; /* DS:920e */
-extern HINSTANCE g_9210; /* DS:9210 */
-extern HINSTANCE g_9212; /* DS:9212 */
-extern int16_t g_9214; /* DS:9214 */
-extern int16_t g_9216; /* DS:9216 */
-extern int16_t g_9218; /* DS:9218 */
-extern int16_t g_921a; /* DS:921a */
-extern int16_t g_921c; /* DS:921c */
-extern int16_t g_921e; /* DS:921e */
-extern int16_t g_9220; /* DS:9220 */
-extern int16_t music_pause_state; /* DS:9222 */
-extern int16_t g_9224; /* DS:9224 */
-extern int16_t g_9226; /* DS:9226 */
-extern int16_t g_9228; /* DS:9228 */
-extern int16_t g_922a; /* DS:922a */
-extern int16_t g_922c; /* DS:922c */
-extern struct stat g_922e; /* DS:922e */
-extern struct stat g_924c; /* DS:924c */
-extern struct stat g_926a; /* DS:926a */
-extern HDC g_9288; /* DS:9288 */
-extern int16_t g_928a; /* DS:928a */
-extern int16_t g_928c; /* DS:928c */
-extern int16_t g_928e; /* DS:928e */
-extern int16_t g_9290; /* DS:9290 */
-extern int16_t g_9292; /* DS:9292 */
-extern HBITMAP g_9294; /* DS:9294 */
-extern HBITMAP g_9296; /* DS:9296 */
-extern int16_t g_9298; /* DS:9298 */
-extern HDC g_929a; /* DS:929a */
-extern int16_t g_929c; /* DS:929c */
-extern HDC g_929e; /* DS:929e */
-extern HPALETTE g_92a0; /* DS:92a0 */
-extern int16_t g_92a2; /* DS:92a2 */
-extern int16_t g_92a4; /* DS:92a4 */
-extern HGLOBAL g_92a6; /* DS:92a6 */
-extern int16_t g_92a8; /* DS:92a8 */
-extern int16_t g_92aa; /* DS:92aa */
-extern int16_t g_92ac; /* DS:92ac */
-extern int16_t g_92ae; /* DS:92ae */
-extern int16_t g_92b0[3]; /* DS:92b0 */
-extern HDC g_92b6; /* DS:92b6 */
-extern int16_t g_92b8; /* DS:92b8 */
-extern int16_t g_92ba; /* DS:92ba */
-extern int16_t g_92bc; /* DS:92bc */
-extern int16_t g_92be; /* DS:92be */
-extern int16_t g_92c0; /* DS:92c0 */
-extern int16_t g_92c2; /* DS:92c2 */
-extern int16_t g_92c6; /* DS:92c6 */
-extern int16_t g_92c8; /* DS:92c8 */
-extern int16_t g_92d2; /* DS:92d2 */
-extern int16_t g_92d4; /* DS:92d4 */
-extern int16_t g_92d6; /* DS:92d6 */
-extern int16_t g_92d8; /* DS:92d8 */
-extern int16_t g_92da; /* DS:92da */
-extern int16_t g_92dc; /* DS:92dc */
-extern int16_t g_92de; /* DS:92de */
-extern HGLOBAL g_92e0; /* DS:92e0 */
-extern int16_t g_92e2; /* DS:92e2 */
-extern int16_t g_92e4; /* DS:92e4 */
-extern int16_t g_92e6; /* DS:92e6 */
-extern int16_t g_92e8; /* DS:92e8 in_demons_gate [inferred] */
-extern int16_t g_92ea; /* DS:92ea */
-extern int16_t g_92ec[15]; /* DS:92ec */
-extern int16_t g_930a; /* DS:930a */
-extern int16_t g_930e; /* DS:930e */
-extern int16_t g_9312; /* DS:9312 */
-extern int16_t g_9314; /* DS:9314 */
-extern int16_t g_9316; /* DS:9316 */
-extern int16_t g_9318; /* DS:9318 */
-extern int16_t g_931a; /* DS:931a */
-extern int16_t g_931c; /* DS:931c */
-extern int16_t g_931e; /* DS:931e */
-extern int16_t g_9320; /* DS:9320 wave_type [inferred] */
-extern int16_t g_9322; /* DS:9322 */
-extern int16_t g_9324; /* DS:9324 */
-extern int16_t g_9326; /* DS:9326 */
-extern int16_t g_9328; /* DS:9328 */
-extern int16_t g_932a; /* DS:932a */
-extern int16_t g_932c; /* DS:932c */
-extern int16_t g_932e; /* DS:932e */
-extern int16_t g_9330; /* DS:9330 */
-extern int16_t g_9332; /* DS:9332 */
-extern int16_t g_9334; /* DS:9334 */
-extern int16_t session_helper_groups; /* DS:9336 */
-extern int16_t g_9338; /* DS:9338 */
-extern int16_t g_933a[]; /* DS:933a */
-extern int16_t g_933c; /* DS:933c */
-extern int16_t g_933e; /* DS:933e */
-extern int16_t g_9340; /* DS:9340 */
-extern int16_t g_9342; /* DS:9342 */
-extern int16_t g_9344; /* DS:9344 */
-extern int16_t g_9346; /* DS:9346 */
-extern int16_t g_9348; /* DS:9348 */
-extern int16_t g_934a; /* DS:934a */
-extern HWND g_934c; /* DS:934c */
-extern int16_t g_934e; /* DS:934e */
-extern int16_t g_9350[8]; /* DS:9350 */
-extern int16_t g_9360[8]; /* DS:9360 */
-extern int16_t g_9370; /* DS:9370 */
-extern int16_t g_9372; /* DS:9372 */
-extern int16_t g_9374[2]; /* DS:9374 */
-extern int16_t g_9378; /* DS:9378 */
-extern int16_t g_937a[8]; /* DS:937a */
-extern char g_938a[8]; /* DS:938a */
-extern char g_9392[8]; /* DS:9392 */
-extern int32_t g_939a; /* DS:939a */
-extern int32_t g_939e; /* DS:939e */
-extern int16_t g_93a2; /* DS:93a2 */
-extern int16_t g_93a4; /* DS:93a4 */
-extern int16_t g_93a6; /* DS:93a6 */
-extern HGLOBAL g_93a8; /* DS:93a8 */
-extern int16_t g_93aa; /* DS:93aa */
-extern int16_t g_93ac; /* DS:93ac */
-extern HGDIOBJ g_93ae; /* DS:93ae */
-extern int16_t g_93b0; /* DS:93b0 */
-extern int16_t g_93b2; /* DS:93b2 */
-extern HGLOBAL g_93b4; /* DS:93b4 */
-extern int16_t g_93b6; /* DS:93b6 */
-extern int16_t g_93b8; /* DS:93b8 */
-extern int16_t g_93ba; /* DS:93ba */
-extern int16_t g_93bc; /* DS:93bc */
-extern int16_t g_93be; /* DS:93be */
-extern int16_t g_93c0; /* DS:93c0 */
-extern int16_t g_93c2; /* DS:93c2 */
-extern int16_t g_93c4; /* DS:93c4 */
-extern int16_t g_93c6; /* DS:93c6 */
-extern HBITMAP g_93c8; /* DS:93c8 */
-extern HGDIOBJ g_93ca; /* DS:93ca */
-extern HDC g_93cc; /* DS:93cc */
-extern HDC g_93ce; /* DS:93ce */
-extern HDC g_93d0; /* DS:93d0 */
-extern HPALETTE g_93d2; /* DS:93d2 */
-extern int16_t g_93d4; /* DS:93d4 */
-extern int16_t g_93d6; /* DS:93d6 */
-extern int16_t g_93d8; /* DS:93d8 */
-extern int16_t g_93da; /* DS:93da */
-extern int16_t g_93dc; /* DS:93dc */
-extern int16_t g_93de; /* DS:93de */
-extern char g_93e0[]; /* DS:93e0 */
-extern int16_t g_93fe; /* DS:93fe */
-extern HBITMAP g_9400; /* DS:9400 */
-extern HBITMAP g_9402; /* DS:9402 */
-extern HPALETTE g_9404; /* DS:9404 */
-extern int16_t g_9406[15]; /* DS:9406 */
-extern int16_t g_9424; /* DS:9424 */
-extern int16_t g_9428; /* DS:9428 */
-extern int16_t g_942a; /* DS:942a */
-extern int16_t g_942c; /* DS:942c */
-extern int16_t g_942e; /* DS:942e */
-extern int16_t g_9430; /* DS:9430 */
-extern int16_t g_9432; /* DS:9432 */
-extern int16_t g_9434; /* DS:9434 */
-extern int16_t g_9436; /* DS:9436 */
-extern int16_t g_9438; /* DS:9438 */
-extern int16_t g_943a; /* DS:943a */
-extern int16_t g_943c; /* DS:943c */
-extern int16_t g_943e; /* DS:943e */
-extern int16_t g_9440; /* DS:9440 */
-extern int16_t object_sizes[2]; /* DS:9442 */
-extern int16_t object_masses[2]; /* DS:9446 */
-extern int16_t g_944a; /* DS:944a */
-extern int16_t g_944c; /* DS:944c */
-extern int16_t g_944e; /* DS:944e */
-extern int16_t g_9450; /* DS:9450 */
-extern int16_t g_9452; /* DS:9452 */
-extern int16_t g_9454; /* DS:9454 */
-extern int16_t g_9456; /* DS:9456 */
-extern HWND g_9458; /* DS:9458 */
-extern HMENU g_945a; /* DS:945a */
-extern int16_t g_945c; /* DS:945c */
-extern int16_t g_945e; /* DS:945e */
-extern HWND g_9460; /* DS:9460 */
-extern int16_t g_9462; /* DS:9462 */
-extern int16_t g_9464; /* DS:9464 */
-extern int16_t g_9466; /* DS:9466 */
-extern int16_t g_9468; /* DS:9468 */
-extern int16_t g_946a; /* DS:946a */
-extern int16_t g_946c; /* DS:946c */
-extern int16_t g_946e; /* DS:946e */
-extern int16_t g_9470; /* DS:9470 */
-extern int16_t g_9472; /* DS:9472 */
-extern int16_t g_9474; /* DS:9474 */
-extern int16_t g_9476; /* DS:9476 */
-extern int16_t g_9478; /* DS:9478 */
-extern HWND g_947a[9]; /* DS:947a */
-extern HWND g_948c; /* DS:948c */
-extern HGLOBAL g_948e; /* DS:948e */
-extern HGDIOBJ g_9490; /* DS:9490 */
-extern int16_t g_9492; /* DS:9492 */
-extern int16_t g_9494; /* DS:9494 */
-extern int16_t g_9496; /* DS:9496 */
-extern int16_t g_9498; /* DS:9498 */
-extern int16_t g_949a; /* DS:949a */
-extern int16_t g_949c; /* DS:949c */
-extern int16_t g_949e; /* DS:949e */
-extern int16_t g_94a0; /* DS:94a0 */
-extern int16_t g_94a2; /* DS:94a2 */
-extern int16_t g_94a4; /* DS:94a4 */
-extern int16_t g_94a6; /* DS:94a6 */
-extern int16_t g_94a8; /* DS:94a8 */
-extern int16_t g_94aa; /* DS:94aa */
-extern int16_t g_94ac; /* DS:94ac */
-extern HGLOBAL g_94ae; /* DS:94ae */
-extern int16_t g_94b0; /* DS:94b0 */
-extern int16_t g_94b2; /* DS:94b2 */
-extern int16_t g_94b4; /* DS:94b4 */
-extern int16_t g_94b6; /* DS:94b6 */
-extern int16_t g_94b8; /* DS:94b8 */
-extern HGDIOBJ g_94ba; /* DS:94ba */
-extern int16_t g_94bc; /* DS:94bc */
-extern int16_t g_94be; /* DS:94be */
-extern int16_t g_94c0; /* DS:94c0 */
-extern int16_t g_94c2; /* DS:94c2 */
-extern int16_t g_94c4; /* DS:94c4 */
-extern int16_t g_94c6; /* DS:94c6 */
-extern uint16_t g_94c8; /* DS:94c8 */
-extern int16_t g_94ca; /* DS:94ca */
-extern int16_t g_94cc; /* DS:94cc */
-extern int16_t g_94ce; /* DS:94ce */
-extern int16_t g_94d0; /* DS:94d0 */
-extern int16_t g_94d2; /* DS:94d2 */
-extern int16_t g_94d4; /* DS:94d4 */
-extern int16_t g_94d6; /* DS:94d6 */
-extern HGLOBAL g_94d8; /* DS:94d8 */
-extern HGLOBAL g_94da; /* DS:94da */
-extern HGLOBAL g_94dc; /* DS:94dc */
-extern HGLOBAL g_94de; /* DS:94de */
-extern HGLOBAL g_94e0; /* DS:94e0 */
-extern int16_t g_94e2; /* DS:94e2 */
-extern char g_94e4[0x16]; /* DS:94e4 */
-extern char g_94fa[0x16]; /* DS:94fa */
-extern int16_t g_9510; /* DS:9510 */
-extern int16_t g_9512; /* DS:9512 */
-extern int16_t g_9514; /* DS:9514 */
-extern int16_t g_9516; /* DS:9516 */
-extern int16_t g_9518; /* DS:9518 */
-extern int16_t g_951a; /* DS:951a */
-extern int16_t g_951c; /* DS:951c */
-extern int16_t g_951e; /* DS:951e */
-extern int16_t g_9520; /* DS:9520 */
-extern int16_t g_9522; /* DS:9522 */
-extern int16_t g_9524; /* DS:9524 */
-extern int16_t g_9526; /* DS:9526 */
-extern int16_t g_9528; /* DS:9528 */
-extern int16_t g_952a; /* DS:952a */
-extern int16_t g_952c; /* DS:952c */
-extern int16_t g_952e; /* DS:952e */
-extern int16_t g_9530; /* DS:9530 */
-extern HWND g_9532; /* DS:9532 */
-extern int16_t g_9534[3]; /* DS:9534 */
-extern HBITMAP g_953a; /* DS:953a */
-extern HBITMAP g_953c; /* DS:953c */
-extern char g_953e; /* DS:953e */
-extern char g_953f; /* DS:953f */
-extern char g_9540; /* DS:9540 */
-extern char g_9541; /* DS:9541 */
-extern char g_9542[0x1b]; /* DS:9542 */
-extern char g_955d[]; /* DS:955d */
-extern char g_9563; /* DS:9563 */
-extern char g_9564[0x1b]; /* DS:9564 */
-extern char g_957f; /* DS:957f */
-extern HDC g_9580; /* DS:9580 */
-extern HPALETTE g_9582; /* DS:9582 */
-extern HBITMAP g_9584; /* DS:9584 */
-extern HBITMAP g_9586; /* DS:9586 */
-extern HINSTANCE g_9588; /* DS:9588 */
-extern int16_t g_958a; /* DS:958a */
-extern int16_t g_958c; /* DS:958c */
-extern int16_t g_958e; /* DS:958e */
-extern HBITMAP g_9590; /* DS:9590 */
-extern HGDIOBJ g_9592; /* DS:9592 */
-extern HPALETTE g_9594; /* DS:9594 */
-extern int16_t g_9596; /* DS:9596 */
-extern int16_t g_9598; /* DS:9598 */
-extern int16_t g_959a; /* DS:959a */
-extern int16_t g_959c; /* DS:959c */
-extern int16_t g_959e; /* DS:959e */
-extern HDC g_95a0; /* DS:95a0 */
-extern HGLOBAL g_95a2; /* DS:95a2 */
-extern HGLOBAL g_95a4; /* DS:95a4 */
-extern HGLOBAL g_95a6; /* DS:95a6 */
-extern int16_t g_95a8; /* DS:95a8 */
-extern int16_t g_95aa; /* DS:95aa */
-extern HGLOBAL g_95ac; /* DS:95ac */
-extern int16_t g_95ae; /* DS:95ae */
-extern int16_t g_95b0; /* DS:95b0 */
-extern int16_t g_95b2; /* DS:95b2 */
-extern int16_t g_95b4; /* DS:95b4 */
-extern int16_t g_95b6; /* DS:95b6 */
-extern int16_t g_95b8; /* DS:95b8 */
-extern int16_t g_95ba; /* DS:95ba */
-extern int16_t flow_interactive; /* DS:95bc */
-extern HBITMAP g_95be; /* DS:95be */
-extern HBITMAP g_95c0; /* DS:95c0 */
-extern HDC g_95c2; /* DS:95c2 */
-extern HPALETTE g_95c4; /* DS:95c4 */
-extern int16_t g_95c6; /* DS:95c6 */
-extern int16_t g_95c8; /* DS:95c8 */
-extern int16_t g_95ca; /* DS:95ca */
-extern int16_t g_95cc; /* DS:95cc */
-extern int16_t g_95ce; /* DS:95ce */
-extern int16_t g_95d0; /* DS:95d0 */
-extern int16_t g_95d2; /* DS:95d2 */
-extern int16_t g_95d4; /* DS:95d4 */
-extern int16_t g_95d6; /* DS:95d6 */
-extern int16_t g_95d8; /* DS:95d8 */
-extern int16_t g_95da; /* DS:95da */
-extern int16_t g_95dc; /* DS:95dc */
-extern int16_t g_95de; /* DS:95de */
-extern BYTE g_95e0[0x12]; /* DS:95e0 */
-extern int16_t g_95f2; /* DS:95f2 */
-extern int16_t g_95f4; /* DS:95f4 */
-extern int16_t g_95f6; /* DS:95f6 */
-extern int16_t g_95f8; /* DS:95f8 */
-extern int16_t g_95fa; /* DS:95fa */
-extern HWND g_95fc; /* DS:95fc */
-extern HWND g_95fe; /* DS:95fe */
-extern int16_t g_9600; /* DS:9600 */
-extern int16_t g_9602; /* DS:9602 */
-extern int16_t g_9604; /* DS:9604 */
-extern HMENU g_9606; /* DS:9606 */
-extern int16_t g_9608; /* DS:9608 */
-extern char g_960a[]; /* DS:960a */
-extern char g_9628[]; /* DS:9628 */
-extern int16_t main_ship; /* DS:9646 */
-extern int16_t g_9648; /* DS:9648 */
-extern int16_t g_964a; /* DS:964a */
-extern int16_t g_964c; /* DS:964c */
-extern int16_t g_964e; /* DS:964e */
-extern int16_t g_9650; /* DS:9650 */
-extern int16_t g_9652; /* DS:9652 */
-extern int16_t g_9654; /* DS:9654 */
-extern HDC g_9656; /* DS:9656 */
-extern HBITMAP g_9658; /* DS:9658 */
-extern HBITMAP g_965a; /* DS:965a */
-extern HPALETTE g_965c; /* DS:965c */
-extern int16_t g_965e; /* DS:965e */
-extern int16_t g_9660; /* DS:9660 */
-extern int16_t g_9662; /* DS:9662 */
-extern int16_t g_9664; /* DS:9664 */
-extern uint16_t g_9666; /* DS:9666 */
-extern int16_t g_9668; /* DS:9668 */
-extern HDC g_966a; /* DS:966a */
-extern HBITMAP g_966c; /* DS:966c */
-extern HBITMAP g_966e; /* DS:966e */
-extern HPALETTE g_9670; /* DS:9670 */
-extern int16_t g_9672; /* DS:9672 */
-extern int16_t g_9674; /* DS:9674 */
-extern int16_t g_9676; /* DS:9676 */
-extern int16_t g_9678; /* DS:9678 */
-extern int16_t g_967a; /* DS:967a */
-extern int16_t g_967c; /* DS:967c */
-extern int16_t g_967e; /* DS:967e */
-extern int16_t g_9680; /* DS:9680 */
-extern int16_t g_9682; /* DS:9682 */
-extern int16_t g_9684; /* DS:9684 */
-extern int16_t g_9686; /* DS:9686 */
-extern int16_t g_9688; /* DS:9688 */
-extern int16_t g_968a; /* DS:968a */
-extern int16_t g_968c; /* DS:968c */
-extern int16_t g_968e; /* DS:968e */
-extern char g_9690[]; /* DS:9690 */
-extern char g_96a9[]; /* DS:96a9 */
-extern char g_96b8[]; /* DS:96b8 */
-extern char g_96c5[]; /* DS:96c5 */
-extern REC_AD g_96d2[11]; /* DS:96d2 */
-extern struct {
+#define g_6e28 DGROUP_AT(DWORD (*), 0x6e28) /* DS:6e28 */
+#define g_6e2c DGROUP_AT(int32_t (*), 0x6e2c) /* DS:6e2c */
+#define g_6e30 DGROUP_AT(RECT (*), 0x6e30) /* DS:6e30 */
+#define g_6e38 DGROUP_AT(REC_1E (*)[12], 0x6e38) /* DS:6e38 */
+#define g_7090 DGROUP_AT(REC_15A (*)[8], 0x7090) /* DS:7090 */
+#define g_7b60 DGROUP_AT(POINT (*)[][0x40], 0x7b60) /* DS:7b60 */
+#define g_7ba0 DGROUP_AT(POINT (*)[][0x40], 0x7ba0) /* DS:7ba0 */
+#define g_7be0 DGROUP_AT(POINT (*)[][4][0x10], 0x7be0) /* DS:7be0 */
+#define g_8560 DGROUP_AT(REC_34C (*)[4], 0x8560) /* DS:8560 */
+#define g_8630 DGROUP_AT(char (*)[], 0x8630) /* DS:8630 */
+#define g_8680 DGROUP_AT(int16_t (*)[8], 0x8680) /* DS:8680 */
+#define g_8690 DGROUP_AT(DWORD (*), 0x8690) /* DS:8690 */
+#define g_8694 DGROUP_AT(char (*)[], 0x8694) /* DS:8694 */
+#define g_86d0 DGROUP_AT(char (*)[], 0x86d0) /* DS:86d0 */
+#define g_870c DGROUP_AT(DWORD (*), 0x870c) /* DS:870c */
+#define g_8710 DGROUP_AT(uint32_t (*), 0x8710) /* DS:8710 */
+#define g_8714 DGROUP_AT(DWORD (*), 0x8714) /* DS:8714 */
+#define g_8718 DGROUP_AT(char (*)[], 0x8718) /* DS:8718 */
+#define g_8740 DGROUP_AT(char (*)[], 0x8740) /* DS:8740 */
+#define g_8768 DGROUP_AT(char (*)[], 0x8768) /* DS:8768 */
+#define g_87b8 DGROUP_AT(char (*)[], 0x87b8) /* DS:87b8 */
+#define g_87e0 DGROUP_AT(char (*)[], 0x87e0) /* DS:87e0 */
+#define g_881c DGROUP_AT(char (*)[], 0x881c) /* DS:881c */
+#define g_8858 DGROUP_AT(uint32_t (*), 0x8858) /* DS:8858 */
+#define g_885c DGROUP_AT(uint32_t (*), 0x885c) /* DS:885c */
+#define g_8860 DGROUP_AT(RECT (*)[], 0x8860) /* DS:8860 */
+#define g_8870 DGROUP_AT(REC_18 (*)[3], 0x8870) /* DS:8870 */
+#define g_88c0 DGROUP_AT(POINT (*), 0x88c0) /* DS:88c0 */
+#define g_88c4 DGROUP_AT(POINT (*), 0x88c4) /* DS:88c4 */
+#define g_88c8 DGROUP_AT(POINT (*), 0x88c8) /* DS:88c8 */
+#define g_88cc DGROUP_AT(int32_t (*), 0x88cc) /* DS:88cc */
+#define g_88d0 DGROUP_AT(int32_t (*), 0x88d0) /* DS:88d0 */
+#define g_88d4 DGROUP_AT(int32_t (*), 0x88d4) /* DS:88d4 */
+#define g_88d8 DGROUP_AT(HANDLE (*)[8], 0x88d8) /* DS:88d8 */
+#define g_88e8 DGROUP_AT(int16_t (*), 0x88e8) /* DS:88e8 */
+#define g_88ea DGROUP_AT(int16_t (*), 0x88ea) /* DS:88ea */
+#define g_88ec DGROUP_AT(int16_t (*), 0x88ec) /* DS:88ec */
+#define g_88ee DGROUP_AT(int16_t (*), 0x88ee) /* DS:88ee */
+#define g_88f0 DGROUP_AT(int16_t (*), 0x88f0) /* DS:88f0 */
+#define g_88f2 DGROUP_AT(int16_t (*), 0x88f2) /* DS:88f2 */
+#define g_88f4 DGROUP_AT(POINT (*)[], 0x88f4) /* DS:88f4 */
+#define g_8904 DGROUP_AT(POINT (*)[], 0x8904) /* DS:8904 */
+#define g_8914 DGROUP_AT(POINT (*)[], 0x8914) /* DS:8914 */
+#define g_8924 DGROUP_AT(POINT (*)[15][4], 0x8924) /* DS:8924 */
+#define g_8a14 DGROUP_AT(POINT (*)[15][4][3], 0x8a14) /* DS:8a14 */
+#define g_8ce4 DGROUP_AT(POINT (*)[], 0x8ce4) /* DS:8ce4 */
+#define g_8d14 DGROUP_AT(int16_t (*), 0x8d14) /* DS:8d14 */
+#define g_8d16 DGROUP_AT(int16_t (*), 0x8d16) /* DS:8d16 */
+#define g_8d18 DGROUP_AT(int16_t (*), 0x8d18) /* DS:8d18 */
+#define g_8d1a DGROUP_AT(int16_t (*), 0x8d1a) /* DS:8d1a */
+#define g_8d1c DGROUP_AT(int16_t (*)[], 0x8d1c) /* DS:8d1c */
+#define g_8d34 DGROUP_AT(int32_t (*), 0x8d34) /* DS:8d34 */
+#define g_8d38 DGROUP_AT(char (*)[], 0x8d38) /* DS:8d38 */
+#define g_8db0 DGROUP_AT(char (*)[], 0x8db0) /* DS:8db0 */
+#define g_8e00 DGROUP_AT(int32_t (*), 0x8e00) /* DS:8e00 */
+#define g_8e04 DGROUP_AT(int32_t (*), 0x8e04) /* DS:8e04 */
+#define g_8e08 DGROUP_AT(int32_t (*)[], 0x8e08) /* DS:8e08 */
+#define g_8e28 DGROUP_AT(DWORD (*), 0x8e28) /* DS:8e28 */
+#define g_8e2c DGROUP_AT(DWORD (*), 0x8e2c) /* DS:8e2c */
+#define g_8e30 DGROUP_AT(DWORD (*), 0x8e30) /* DS:8e30 */
+#define g_8e34 DGROUP_AT(int16_t (*)[4], 0x8e34) /* DS:8e34 */
+#define g_8e3c DGROUP_AT(int16_t (*)[], 0x8e3c) /* DS:8e3c */
+#define g_8e44 DGROUP_AT(DWORD (*), 0x8e44) /* DS:8e44 */
+#define g_8e48 DGROUP_AT(int16_t (*)[], 0x8e48) /* DS:8e48 */
+#define g_8e58 DGROUP_AT(int16_t (*), 0x8e58) /* DS:8e58 */
+#define g_8e5a DGROUP_AT(int16_t (*), 0x8e5a) /* DS:8e5a */
+#define g_8e5c DGROUP_AT(int16_t (*), 0x8e5c) /* DS:8e5c */
+#define g_8e5e DGROUP_AT(int16_t (*), 0x8e5e) /* DS:8e5e */
+#define g_8e60 DGROUP_AT(int16_t (*), 0x8e60) /* DS:8e60 */
+#define g_8e62 DGROUP_AT(int16_t (*), 0x8e62) /* DS:8e62 */
+#define g_8e64 DGROUP_AT(int16_t (*), 0x8e64) /* DS:8e64 */
+#define g_8e66 DGROUP_AT(HINSTANCE (*), 0x8e66) /* DS:8e66 */
+#define g_8e68 DGROUP_AT(char (*)[], 0x8e68) /* DS:8e68 */
+#define g_8f62 DGROUP_AT(int16_t (*), 0x8f62) /* DS:8f62 */
+#define g_8f64 DGROUP_AT(int16_t (*), 0x8f64) /* DS:8f64 */
+#define g_8f66 DGROUP_AT(int16_t (*), 0x8f66) /* DS:8f66 */
+#define g_8f68 DGROUP_AT(int16_t (*), 0x8f68) /* DS:8f68 */
+#define g_8f6a DGROUP_AT(int16_t (*), 0x8f6a) /* DS:8f6a */
+#define g_8f6c DGROUP_AT(int16_t (*), 0x8f6c) /* DS:8f6c */
+#define g_8f6e DGROUP_AT(int16_t (*), 0x8f6e) /* DS:8f6e */
+#define g_8f70 DGROUP_AT(int16_t (*), 0x8f70) /* DS:8f70 */
+#define g_8f72 DGROUP_AT(int16_t (*), 0x8f72) /* DS:8f72 */
+#define g_8f74 DGROUP_AT(int16_t (*), 0x8f74) /* DS:8f74 */
+#define g_8f76 DGROUP_AT(int16_t (*), 0x8f76) /* DS:8f76 */
+#define g_8f78 DGROUP_AT(int16_t (*), 0x8f78) /* DS:8f78 */
+#define g_8f7a DGROUP_AT(char (*)[], 0x8f7a) /* DS:8f7a */
+#define g_8fe8 DGROUP_AT(int16_t (*), 0x8fe8) /* DS:8fe8 */
+#define g_8fea DGROUP_AT(int16_t (*), 0x8fea) /* DS:8fea */
+#define g_8fec DGROUP_AT(int16_t (*), 0x8fec) /* DS:8fec */
+#define g_8fee DGROUP_AT(int16_t (*), 0x8fee) /* DS:8fee */
+#define g_8ff0 DGROUP_AT(int16_t (*), 0x8ff0) /* DS:8ff0 */
+#define g_8ff2 DGROUP_AT(int16_t (*), 0x8ff2) /* DS:8ff2 */
+#define g_8ff4 DGROUP_AT(int16_t (*), 0x8ff4) /* DS:8ff4 */
+#define g_8ff6 DGROUP_AT(int16_t (*), 0x8ff6) /* DS:8ff6 */
+#define g_8ff8 DGROUP_AT(int16_t (*), 0x8ff8) /* DS:8ff8 */
+#define g_8ffa DGROUP_AT(int16_t (*), 0x8ffa) /* DS:8ffa */
+#define g_8ffc DGROUP_AT(int16_t (*), 0x8ffc) /* DS:8ffc */
+#define g_8ffe DGROUP_AT(int16_t (*), 0x8ffe) /* DS:8ffe */
+#define g_9000 DGROUP_AT(int16_t (*), 0x9000) /* DS:9000 */
+#define g_9002 DGROUP_AT(int16_t (*), 0x9002) /* DS:9002 */
+#define g_9004 DGROUP_AT(int16_t (*), 0x9004) /* DS:9004 */
+#define g_9006 DGROUP_AT(int16_t (*), 0x9006) /* DS:9006 */
+#define g_9008 DGROUP_AT(int16_t (*), 0x9008) /* DS:9008 */
+#define g_900a DGROUP_AT(char (*)[], 0x900a) /* DS:900a */
+#define g_9078 DGROUP_AT(char (*)[], 0x9078) /* DS:9078 */
+#define g_90e6 DGROUP_AT(int16_t (*), 0x90e6) /* DS:90e6 */
+#define g_90e8 DGROUP_AT(int16_t (*), 0x90e8) /* DS:90e8 */
+#define g_90ea DGROUP_AT(int32_t (*), 0x90ea) /* DS:90ea */
+#define g_90ee DGROUP_AT(int16_t (*), 0x90ee) /* DS:90ee */
+#define g_90f0 DGROUP_AT(int16_t (*), 0x90f0) /* DS:90f0 */
+#define g_90f2 DGROUP_AT(int16_t (*), 0x90f2) /* DS:90f2 */
+#define g_90f4 DGROUP_AT(int16_t (*), 0x90f4) /* DS:90f4 */
+#define g_90f6 DGROUP_AT(int16_t (*), 0x90f6) /* DS:90f6 */
+#define g_90f8 DGROUP_AT(int16_t (*), 0x90f8) /* DS:90f8 */
+#define g_90fa DGROUP_AT(HMENU (*), 0x90fa) /* DS:90fa */
+#define g_90fc DGROUP_AT(HWND (*), 0x90fc) /* DS:90fc */
+#define g_90fe DGROUP_AT(HFONT (*), 0x90fe) /* DS:90fe */
+#define g_9100 DGROUP_AT(HGLOBAL (*)[15], 0x9100) /* DS:9100 */
+#define g_912a DGROUP_AT(HGLOBAL (*), 0x912a) /* DS:912a */
+#define g_912c DGROUP_AT(HGDIOBJ (*), 0x912c) /* DS:912c */
+#define g_912e DGROUP_AT(int16_t (*), 0x912e) /* DS:912e */
+#define subgame_active DGROUP_AT(int16_t (*), 0x9130) /* DS:9130 */
+#define g_9132 DGROUP_AT(int16_t (*), 0x9132) /* DS:9132 */
+#define g_9134 DGROUP_AT(int16_t (*), 0x9134) /* DS:9134 */
+#define g_9136 DGROUP_AT(int16_t (*), 0x9136) /* DS:9136 */
+#define g_9138 DGROUP_AT(int16_t (*), 0x9138) /* DS:9138 */
+#define g_913a DGROUP_AT(int16_t (*), 0x913a) /* DS:913a */
+#define g_913c DGROUP_AT(int16_t (*), 0x913c) /* DS:913c */
+#define g_913e DGROUP_AT(int16_t (*), 0x913e) /* DS:913e */
+#define g_9140 DGROUP_AT(int16_t (*), 0x9140) /* DS:9140 */
+#define g_9142 DGROUP_AT(int16_t (*), 0x9142) /* DS:9142 */
+#define g_9144 DGROUP_AT(int16_t (*), 0x9144) /* DS:9144 */
+#define g_9146 DGROUP_AT(int16_t (*), 0x9146) /* DS:9146 */
+#define dissolve_active_count DGROUP_AT(int16_t (*), 0x9148) /* DS:9148 */
+#define g_914a DGROUP_AT(int16_t (*), 0x914a) /* DS:914a */
+#define g_914c DGROUP_AT(int16_t (*), 0x914c) /* DS:914c */
+#define g_914e DGROUP_AT(int16_t (*), 0x914e) /* DS:914e */
+#define g_9150 DGROUP_AT(int16_t (*), 0x9150) /* DS:9150 */
+#define g_9152 DGROUP_AT(int16_t (*), 0x9152) /* DS:9152 */
+#define g_9154 DGROUP_AT(int16_t (*), 0x9154) /* DS:9154 */
+#define g_9156 DGROUP_AT(int16_t (*), 0x9156) /* DS:9156 */
+#define g_9158 DGROUP_AT(int16_t (*), 0x9158) /* DS:9158 */
+#define g_915a DGROUP_AT(int16_t (*), 0x915a) /* DS:915a */
+#define g_915c DGROUP_AT(SURF_22 (*)[3], 0x915c) /* DS:915c */
+#define g_91c2 DGROUP_AT(char (*)[], 0x91c2) /* DS:91c2 */
+#define g_91d4 DGROUP_AT(char (*)[], 0x91d4) /* DS:91d4 */
+#define g_91e6 DGROUP_AT(char (*)[], 0x91e6) /* DS:91e6 */
+#define g_91f8 DGROUP_AT(int16_t (*), 0x91f8) /* DS:91f8 */
+#define g_91fa DGROUP_AT(int16_t (*), 0x91fa) /* DS:91fa */
+#define g_91fc DGROUP_AT(int16_t (*), 0x91fc) /* DS:91fc */
+#define g_91fe DGROUP_AT(int16_t (*), 0x91fe) /* DS:91fe */
+#define g_9200 DGROUP_AT(int16_t (*), 0x9200) /* DS:9200 */
+#define g_9202 DGROUP_AT(int16_t (*), 0x9202) /* DS:9202 */
+#define g_9204 DGROUP_AT(int16_t (*), 0x9204) /* DS:9204 */
+#define g_9206 DGROUP_AT(int16_t (*), 0x9206) /* DS:9206 */
+#define g_9208 DGROUP_AT(int16_t (*), 0x9208) /* DS:9208 */
+#define g_920a DGROUP_AT(int16_t (*), 0x920a) /* DS:920a */
+#define g_920c DGROUP_AT(int16_t (*), 0x920c) /* DS:920c */
+#define g_920e DGROUP_AT(int16_t (*), 0x920e) /* DS:920e */
+#define g_9210 DGROUP_AT(HINSTANCE (*), 0x9210) /* DS:9210 */
+#define g_9212 DGROUP_AT(HINSTANCE (*), 0x9212) /* DS:9212 */
+#define g_9214 DGROUP_AT(int16_t (*), 0x9214) /* DS:9214 */
+#define g_9216 DGROUP_AT(int16_t (*), 0x9216) /* DS:9216 */
+#define g_9218 DGROUP_AT(int16_t (*), 0x9218) /* DS:9218 */
+#define g_921a DGROUP_AT(int16_t (*), 0x921a) /* DS:921a */
+#define g_921c DGROUP_AT(int16_t (*), 0x921c) /* DS:921c */
+#define g_921e DGROUP_AT(int16_t (*), 0x921e) /* DS:921e */
+#define g_9220 DGROUP_AT(int16_t (*), 0x9220) /* DS:9220 */
+#define music_pause_state DGROUP_AT(int16_t (*), 0x9222) /* DS:9222 */
+#define g_9224 DGROUP_AT(int16_t (*), 0x9224) /* DS:9224 */
+#define g_9226 DGROUP_AT(int16_t (*), 0x9226) /* DS:9226 */
+#define g_9228 DGROUP_AT(int16_t (*), 0x9228) /* DS:9228 */
+#define g_922a DGROUP_AT(int16_t (*), 0x922a) /* DS:922a */
+#define g_922c DGROUP_AT(int16_t (*), 0x922c) /* DS:922c */
+#define g_922e DGROUP_AT(struct stat (*), 0x922e) /* DS:922e */
+#define g_924c DGROUP_AT(struct stat (*), 0x924c) /* DS:924c */
+#define g_926a DGROUP_AT(struct stat (*), 0x926a) /* DS:926a */
+#define g_9288 DGROUP_AT(HDC (*), 0x9288) /* DS:9288 */
+#define g_928a DGROUP_AT(int16_t (*), 0x928a) /* DS:928a */
+#define g_928c DGROUP_AT(int16_t (*), 0x928c) /* DS:928c */
+#define g_928e DGROUP_AT(int16_t (*), 0x928e) /* DS:928e */
+#define g_9290 DGROUP_AT(int16_t (*), 0x9290) /* DS:9290 */
+#define g_9292 DGROUP_AT(int16_t (*), 0x9292) /* DS:9292 */
+#define g_9294 DGROUP_AT(HBITMAP (*), 0x9294) /* DS:9294 */
+#define g_9296 DGROUP_AT(HBITMAP (*), 0x9296) /* DS:9296 */
+#define g_9298 DGROUP_AT(int16_t (*), 0x9298) /* DS:9298 */
+#define g_929a DGROUP_AT(HDC (*), 0x929a) /* DS:929a */
+#define g_929c DGROUP_AT(int16_t (*), 0x929c) /* DS:929c */
+#define g_929e DGROUP_AT(HDC (*), 0x929e) /* DS:929e */
+#define g_92a0 DGROUP_AT(HPALETTE (*), 0x92a0) /* DS:92a0 */
+#define g_92a2 DGROUP_AT(int16_t (*), 0x92a2) /* DS:92a2 */
+#define g_92a4 DGROUP_AT(int16_t (*), 0x92a4) /* DS:92a4 */
+#define g_92a6 DGROUP_AT(HGLOBAL (*), 0x92a6) /* DS:92a6 */
+#define g_92a8 DGROUP_AT(int16_t (*), 0x92a8) /* DS:92a8 */
+#define g_92aa DGROUP_AT(int16_t (*), 0x92aa) /* DS:92aa */
+#define g_92ac DGROUP_AT(int16_t (*), 0x92ac) /* DS:92ac */
+#define g_92ae DGROUP_AT(int16_t (*), 0x92ae) /* DS:92ae */
+#define g_92b0 DGROUP_AT(int16_t (*)[3], 0x92b0) /* DS:92b0 */
+#define g_92b6 DGROUP_AT(HDC (*), 0x92b6) /* DS:92b6 */
+#define g_92b8 DGROUP_AT(int16_t (*), 0x92b8) /* DS:92b8 */
+#define g_92ba DGROUP_AT(int16_t (*), 0x92ba) /* DS:92ba */
+#define g_92bc DGROUP_AT(int16_t (*), 0x92bc) /* DS:92bc */
+#define g_92be DGROUP_AT(int16_t (*), 0x92be) /* DS:92be */
+#define g_92c0 DGROUP_AT(int16_t (*), 0x92c0) /* DS:92c0 */
+#define g_92c2 DGROUP_AT(int16_t (*), 0x92c2) /* DS:92c2 */
+#define g_92c6 DGROUP_AT(int16_t (*), 0x92c6) /* DS:92c6 */
+#define g_92c8 DGROUP_AT(int16_t (*), 0x92c8) /* DS:92c8 */
+#define g_92d2 DGROUP_AT(int16_t (*), 0x92d2) /* DS:92d2 */
+#define g_92d4 DGROUP_AT(int16_t (*), 0x92d4) /* DS:92d4 */
+#define g_92d6 DGROUP_AT(int16_t (*), 0x92d6) /* DS:92d6 */
+#define g_92d8 DGROUP_AT(int16_t (*), 0x92d8) /* DS:92d8 */
+#define g_92da DGROUP_AT(int16_t (*), 0x92da) /* DS:92da */
+#define g_92dc DGROUP_AT(int16_t (*), 0x92dc) /* DS:92dc */
+#define g_92de DGROUP_AT(int16_t (*), 0x92de) /* DS:92de */
+#define g_92e0 DGROUP_AT(HGLOBAL (*), 0x92e0) /* DS:92e0 */
+#define g_92e2 DGROUP_AT(int16_t (*), 0x92e2) /* DS:92e2 */
+#define g_92e4 DGROUP_AT(int16_t (*), 0x92e4) /* DS:92e4 */
+#define g_92e6 DGROUP_AT(int16_t (*), 0x92e6) /* DS:92e6 */
+#define g_92e8 DGROUP_AT(int16_t (*), 0x92e8) /* DS:92e8 in_demons_gate [inferred] */
+#define g_92ea DGROUP_AT(int16_t (*), 0x92ea) /* DS:92ea */
+#define g_92ec DGROUP_AT(int16_t (*)[15], 0x92ec) /* DS:92ec */
+#define g_930a DGROUP_AT(int16_t (*), 0x930a) /* DS:930a */
+#define g_930e DGROUP_AT(int16_t (*), 0x930e) /* DS:930e */
+#define g_9312 DGROUP_AT(int16_t (*), 0x9312) /* DS:9312 */
+#define g_9314 DGROUP_AT(int16_t (*), 0x9314) /* DS:9314 */
+#define g_9316 DGROUP_AT(int16_t (*), 0x9316) /* DS:9316 */
+#define g_9318 DGROUP_AT(int16_t (*), 0x9318) /* DS:9318 */
+#define g_931a DGROUP_AT(int16_t (*), 0x931a) /* DS:931a */
+#define g_931c DGROUP_AT(int16_t (*), 0x931c) /* DS:931c */
+#define g_931e DGROUP_AT(int16_t (*), 0x931e) /* DS:931e */
+#define g_9320 DGROUP_AT(int16_t (*), 0x9320) /* DS:9320 wave_type [inferred] */
+#define g_9322 DGROUP_AT(int16_t (*), 0x9322) /* DS:9322 */
+#define g_9324 DGROUP_AT(int16_t (*), 0x9324) /* DS:9324 */
+#define g_9326 DGROUP_AT(int16_t (*), 0x9326) /* DS:9326 */
+#define g_9328 DGROUP_AT(int16_t (*), 0x9328) /* DS:9328 */
+#define g_932a DGROUP_AT(int16_t (*), 0x932a) /* DS:932a */
+#define g_932c DGROUP_AT(int16_t (*), 0x932c) /* DS:932c */
+#define g_932e DGROUP_AT(int16_t (*), 0x932e) /* DS:932e */
+#define g_9330 DGROUP_AT(int16_t (*), 0x9330) /* DS:9330 */
+#define g_9332 DGROUP_AT(int16_t (*), 0x9332) /* DS:9332 */
+#define g_9334 DGROUP_AT(int16_t (*), 0x9334) /* DS:9334 */
+#define session_helper_groups DGROUP_AT(int16_t (*), 0x9336) /* DS:9336 */
+#define g_9338 DGROUP_AT(int16_t (*), 0x9338) /* DS:9338 */
+#define g_933a DGROUP_AT(int16_t (*)[], 0x933a) /* DS:933a */
+#define g_933c DGROUP_AT(int16_t (*), 0x933c) /* DS:933c */
+#define g_933e DGROUP_AT(int16_t (*), 0x933e) /* DS:933e */
+#define g_9340 DGROUP_AT(int16_t (*), 0x9340) /* DS:9340 */
+#define g_9342 DGROUP_AT(int16_t (*), 0x9342) /* DS:9342 */
+#define g_9344 DGROUP_AT(int16_t (*), 0x9344) /* DS:9344 */
+#define g_9346 DGROUP_AT(int16_t (*), 0x9346) /* DS:9346 */
+#define g_9348 DGROUP_AT(int16_t (*), 0x9348) /* DS:9348 */
+#define g_934a DGROUP_AT(int16_t (*), 0x934a) /* DS:934a */
+#define g_934c DGROUP_AT(HWND (*), 0x934c) /* DS:934c */
+#define g_934e DGROUP_AT(int16_t (*), 0x934e) /* DS:934e */
+#define g_9350 DGROUP_AT(int16_t (*)[8], 0x9350) /* DS:9350 */
+#define g_9360 DGROUP_AT(int16_t (*)[8], 0x9360) /* DS:9360 */
+#define g_9370 DGROUP_AT(int16_t (*), 0x9370) /* DS:9370 */
+#define g_9372 DGROUP_AT(int16_t (*), 0x9372) /* DS:9372 */
+#define g_9374 DGROUP_AT(int16_t (*)[2], 0x9374) /* DS:9374 */
+#define g_9378 DGROUP_AT(int16_t (*), 0x9378) /* DS:9378 */
+#define g_937a DGROUP_AT(int16_t (*)[8], 0x937a) /* DS:937a */
+#define g_938a DGROUP_AT(char (*)[8], 0x938a) /* DS:938a */
+#define g_9392 DGROUP_AT(char (*)[8], 0x9392) /* DS:9392 */
+#define g_939a DGROUP_AT(int32_t (*), 0x939a) /* DS:939a */
+#define g_939e DGROUP_AT(int32_t (*), 0x939e) /* DS:939e */
+#define g_93a2 DGROUP_AT(int16_t (*), 0x93a2) /* DS:93a2 */
+#define g_93a4 DGROUP_AT(int16_t (*), 0x93a4) /* DS:93a4 */
+#define g_93a6 DGROUP_AT(int16_t (*), 0x93a6) /* DS:93a6 */
+#define g_93a8 DGROUP_AT(HGLOBAL (*), 0x93a8) /* DS:93a8 */
+#define g_93aa DGROUP_AT(int16_t (*), 0x93aa) /* DS:93aa */
+#define g_93ac DGROUP_AT(int16_t (*), 0x93ac) /* DS:93ac */
+#define g_93ae DGROUP_AT(HGDIOBJ (*), 0x93ae) /* DS:93ae */
+#define g_93b0 DGROUP_AT(int16_t (*), 0x93b0) /* DS:93b0 */
+#define g_93b2 DGROUP_AT(int16_t (*), 0x93b2) /* DS:93b2 */
+#define g_93b4 DGROUP_AT(HGLOBAL (*), 0x93b4) /* DS:93b4 */
+#define g_93b6 DGROUP_AT(int16_t (*), 0x93b6) /* DS:93b6 */
+#define g_93b8 DGROUP_AT(int16_t (*), 0x93b8) /* DS:93b8 */
+#define g_93ba DGROUP_AT(int16_t (*), 0x93ba) /* DS:93ba */
+#define g_93bc DGROUP_AT(int16_t (*), 0x93bc) /* DS:93bc */
+#define g_93be DGROUP_AT(int16_t (*), 0x93be) /* DS:93be */
+#define g_93c0 DGROUP_AT(int16_t (*), 0x93c0) /* DS:93c0 */
+#define g_93c2 DGROUP_AT(int16_t (*), 0x93c2) /* DS:93c2 */
+#define g_93c4 DGROUP_AT(int16_t (*), 0x93c4) /* DS:93c4 */
+#define g_93c6 DGROUP_AT(int16_t (*), 0x93c6) /* DS:93c6 */
+#define g_93c8 DGROUP_AT(HBITMAP (*), 0x93c8) /* DS:93c8 */
+#define g_93ca DGROUP_AT(HGDIOBJ (*), 0x93ca) /* DS:93ca */
+#define g_93cc DGROUP_AT(HDC (*), 0x93cc) /* DS:93cc */
+#define g_93ce DGROUP_AT(HDC (*), 0x93ce) /* DS:93ce */
+#define g_93d0 DGROUP_AT(HDC (*), 0x93d0) /* DS:93d0 */
+#define g_93d2 DGROUP_AT(HPALETTE (*), 0x93d2) /* DS:93d2 */
+#define g_93d4 DGROUP_AT(int16_t (*), 0x93d4) /* DS:93d4 */
+#define g_93d6 DGROUP_AT(int16_t (*), 0x93d6) /* DS:93d6 */
+#define g_93d8 DGROUP_AT(int16_t (*), 0x93d8) /* DS:93d8 */
+#define g_93da DGROUP_AT(int16_t (*), 0x93da) /* DS:93da */
+#define g_93dc DGROUP_AT(int16_t (*), 0x93dc) /* DS:93dc */
+#define g_93de DGROUP_AT(int16_t (*), 0x93de) /* DS:93de */
+#define g_93e0 DGROUP_AT(char (*)[], 0x93e0) /* DS:93e0 */
+#define g_93fe DGROUP_AT(int16_t (*), 0x93fe) /* DS:93fe */
+#define g_9400 DGROUP_AT(HBITMAP (*), 0x9400) /* DS:9400 */
+#define g_9402 DGROUP_AT(HBITMAP (*), 0x9402) /* DS:9402 */
+#define g_9404 DGROUP_AT(HPALETTE (*), 0x9404) /* DS:9404 */
+#define g_9406 DGROUP_AT(int16_t (*)[15], 0x9406) /* DS:9406 */
+#define g_9424 DGROUP_AT(int16_t (*), 0x9424) /* DS:9424 */
+#define g_9428 DGROUP_AT(int16_t (*), 0x9428) /* DS:9428 */
+#define g_942a DGROUP_AT(int16_t (*), 0x942a) /* DS:942a */
+#define g_942c DGROUP_AT(int16_t (*), 0x942c) /* DS:942c */
+#define g_942e DGROUP_AT(int16_t (*), 0x942e) /* DS:942e */
+#define g_9430 DGROUP_AT(int16_t (*), 0x9430) /* DS:9430 */
+#define g_9432 DGROUP_AT(int16_t (*), 0x9432) /* DS:9432 */
+#define g_9434 DGROUP_AT(int16_t (*), 0x9434) /* DS:9434 */
+#define g_9436 DGROUP_AT(int16_t (*), 0x9436) /* DS:9436 */
+#define g_9438 DGROUP_AT(int16_t (*), 0x9438) /* DS:9438 */
+#define g_943a DGROUP_AT(int16_t (*), 0x943a) /* DS:943a */
+#define g_943c DGROUP_AT(int16_t (*), 0x943c) /* DS:943c */
+#define g_943e DGROUP_AT(int16_t (*), 0x943e) /* DS:943e */
+#define g_9440 DGROUP_AT(int16_t (*), 0x9440) /* DS:9440 */
+#define object_sizes DGROUP_AT(int16_t (*)[2], 0x9442) /* DS:9442 */
+#define object_masses DGROUP_AT(int16_t (*)[2], 0x9446) /* DS:9446 */
+#define g_944a DGROUP_AT(int16_t (*), 0x944a) /* DS:944a */
+#define g_944c DGROUP_AT(int16_t (*), 0x944c) /* DS:944c */
+#define g_944e DGROUP_AT(int16_t (*), 0x944e) /* DS:944e */
+#define g_9450 DGROUP_AT(int16_t (*), 0x9450) /* DS:9450 */
+#define g_9452 DGROUP_AT(int16_t (*), 0x9452) /* DS:9452 */
+#define g_9454 DGROUP_AT(int16_t (*), 0x9454) /* DS:9454 */
+#define g_9456 DGROUP_AT(int16_t (*), 0x9456) /* DS:9456 */
+#define g_9458 DGROUP_AT(HWND (*), 0x9458) /* DS:9458 */
+#define g_945a DGROUP_AT(HMENU (*), 0x945a) /* DS:945a */
+#define g_945c DGROUP_AT(int16_t (*), 0x945c) /* DS:945c */
+#define g_945e DGROUP_AT(int16_t (*), 0x945e) /* DS:945e */
+#define g_9460 DGROUP_AT(HWND (*), 0x9460) /* DS:9460 */
+#define g_9462 DGROUP_AT(int16_t (*), 0x9462) /* DS:9462 */
+#define g_9464 DGROUP_AT(int16_t (*), 0x9464) /* DS:9464 */
+#define g_9466 DGROUP_AT(int16_t (*), 0x9466) /* DS:9466 */
+#define g_9468 DGROUP_AT(int16_t (*), 0x9468) /* DS:9468 */
+#define g_946a DGROUP_AT(int16_t (*), 0x946a) /* DS:946a */
+#define g_946c DGROUP_AT(int16_t (*), 0x946c) /* DS:946c */
+#define g_946e DGROUP_AT(int16_t (*), 0x946e) /* DS:946e */
+#define g_9470 DGROUP_AT(int16_t (*), 0x9470) /* DS:9470 */
+#define g_9472 DGROUP_AT(int16_t (*), 0x9472) /* DS:9472 */
+#define g_9474 DGROUP_AT(int16_t (*), 0x9474) /* DS:9474 */
+#define g_9476 DGROUP_AT(int16_t (*), 0x9476) /* DS:9476 */
+#define g_9478 DGROUP_AT(int16_t (*), 0x9478) /* DS:9478 */
+#define g_947a DGROUP_AT(HWND (*)[9], 0x947a) /* DS:947a */
+#define g_948c DGROUP_AT(HWND (*), 0x948c) /* DS:948c */
+#define g_948e DGROUP_AT(HGLOBAL (*), 0x948e) /* DS:948e */
+#define g_9490 DGROUP_AT(HGDIOBJ (*), 0x9490) /* DS:9490 */
+#define g_9492 DGROUP_AT(int16_t (*), 0x9492) /* DS:9492 */
+#define g_9494 DGROUP_AT(int16_t (*), 0x9494) /* DS:9494 */
+#define g_9496 DGROUP_AT(int16_t (*), 0x9496) /* DS:9496 */
+#define g_9498 DGROUP_AT(int16_t (*), 0x9498) /* DS:9498 */
+#define g_949a DGROUP_AT(int16_t (*), 0x949a) /* DS:949a */
+#define g_949c DGROUP_AT(int16_t (*), 0x949c) /* DS:949c */
+#define g_949e DGROUP_AT(int16_t (*), 0x949e) /* DS:949e */
+#define g_94a0 DGROUP_AT(int16_t (*), 0x94a0) /* DS:94a0 */
+#define g_94a2 DGROUP_AT(int16_t (*), 0x94a2) /* DS:94a2 */
+#define g_94a4 DGROUP_AT(int16_t (*), 0x94a4) /* DS:94a4 */
+#define g_94a6 DGROUP_AT(int16_t (*), 0x94a6) /* DS:94a6 */
+#define g_94a8 DGROUP_AT(int16_t (*), 0x94a8) /* DS:94a8 */
+#define g_94aa DGROUP_AT(int16_t (*), 0x94aa) /* DS:94aa */
+#define g_94ac DGROUP_AT(int16_t (*), 0x94ac) /* DS:94ac */
+#define g_94ae DGROUP_AT(HGLOBAL (*), 0x94ae) /* DS:94ae */
+#define g_94b0 DGROUP_AT(int16_t (*), 0x94b0) /* DS:94b0 */
+#define g_94b2 DGROUP_AT(int16_t (*), 0x94b2) /* DS:94b2 */
+#define g_94b4 DGROUP_AT(int16_t (*), 0x94b4) /* DS:94b4 */
+#define g_94b6 DGROUP_AT(int16_t (*), 0x94b6) /* DS:94b6 */
+#define g_94b8 DGROUP_AT(int16_t (*), 0x94b8) /* DS:94b8 */
+#define g_94ba DGROUP_AT(HGDIOBJ (*), 0x94ba) /* DS:94ba */
+#define g_94bc DGROUP_AT(int16_t (*), 0x94bc) /* DS:94bc */
+#define g_94be DGROUP_AT(int16_t (*), 0x94be) /* DS:94be */
+#define g_94c0 DGROUP_AT(int16_t (*), 0x94c0) /* DS:94c0 */
+#define g_94c2 DGROUP_AT(int16_t (*), 0x94c2) /* DS:94c2 */
+#define g_94c4 DGROUP_AT(int16_t (*), 0x94c4) /* DS:94c4 */
+#define g_94c6 DGROUP_AT(int16_t (*), 0x94c6) /* DS:94c6 */
+#define g_94c8 DGROUP_AT(uint16_t (*), 0x94c8) /* DS:94c8 */
+#define g_94ca DGROUP_AT(int16_t (*), 0x94ca) /* DS:94ca */
+#define g_94cc DGROUP_AT(int16_t (*), 0x94cc) /* DS:94cc */
+#define g_94ce DGROUP_AT(int16_t (*), 0x94ce) /* DS:94ce */
+#define g_94d0 DGROUP_AT(int16_t (*), 0x94d0) /* DS:94d0 */
+#define g_94d2 DGROUP_AT(int16_t (*), 0x94d2) /* DS:94d2 */
+#define g_94d4 DGROUP_AT(int16_t (*), 0x94d4) /* DS:94d4 */
+#define g_94d6 DGROUP_AT(int16_t (*), 0x94d6) /* DS:94d6 */
+#define g_94d8 DGROUP_AT(HGLOBAL (*), 0x94d8) /* DS:94d8 */
+#define g_94da DGROUP_AT(HGLOBAL (*), 0x94da) /* DS:94da */
+#define g_94dc DGROUP_AT(HGLOBAL (*), 0x94dc) /* DS:94dc */
+#define g_94de DGROUP_AT(HGLOBAL (*), 0x94de) /* DS:94de */
+#define g_94e0 DGROUP_AT(HGLOBAL (*), 0x94e0) /* DS:94e0 */
+#define g_94e2 DGROUP_AT(int16_t (*), 0x94e2) /* DS:94e2 */
+#define g_94e4 DGROUP_AT(char (*)[0x16], 0x94e4) /* DS:94e4 */
+#define g_94fa DGROUP_AT(char (*)[0x16], 0x94fa) /* DS:94fa */
+#define g_9510 DGROUP_AT(int16_t (*), 0x9510) /* DS:9510 */
+#define g_9512 DGROUP_AT(int16_t (*), 0x9512) /* DS:9512 */
+#define g_9514 DGROUP_AT(int16_t (*), 0x9514) /* DS:9514 */
+#define g_9516 DGROUP_AT(int16_t (*), 0x9516) /* DS:9516 */
+#define g_9518 DGROUP_AT(int16_t (*), 0x9518) /* DS:9518 */
+#define g_951a DGROUP_AT(int16_t (*), 0x951a) /* DS:951a */
+#define g_951c DGROUP_AT(int16_t (*), 0x951c) /* DS:951c */
+#define g_951e DGROUP_AT(int16_t (*), 0x951e) /* DS:951e */
+#define g_9520 DGROUP_AT(int16_t (*), 0x9520) /* DS:9520 */
+#define g_9522 DGROUP_AT(int16_t (*), 0x9522) /* DS:9522 */
+#define g_9524 DGROUP_AT(int16_t (*), 0x9524) /* DS:9524 */
+#define g_9526 DGROUP_AT(int16_t (*), 0x9526) /* DS:9526 */
+#define g_9528 DGROUP_AT(int16_t (*), 0x9528) /* DS:9528 */
+#define g_952a DGROUP_AT(int16_t (*), 0x952a) /* DS:952a */
+#define g_952c DGROUP_AT(int16_t (*), 0x952c) /* DS:952c */
+#define g_952e DGROUP_AT(int16_t (*), 0x952e) /* DS:952e */
+#define g_9530 DGROUP_AT(int16_t (*), 0x9530) /* DS:9530 */
+#define g_9532 DGROUP_AT(HWND (*), 0x9532) /* DS:9532 */
+#define g_9534 DGROUP_AT(int16_t (*)[3], 0x9534) /* DS:9534 */
+#define g_953a DGROUP_AT(HBITMAP (*), 0x953a) /* DS:953a */
+#define g_953c DGROUP_AT(HBITMAP (*), 0x953c) /* DS:953c */
+#define g_953e DGROUP_AT(char (*), 0x953e) /* DS:953e */
+#define g_953f DGROUP_AT(char (*), 0x953f) /* DS:953f */
+#define g_9540 DGROUP_AT(char (*), 0x9540) /* DS:9540 */
+#define g_9541 DGROUP_AT(char (*), 0x9541) /* DS:9541 */
+#define g_9542 DGROUP_AT(char (*)[0x1b], 0x9542) /* DS:9542 */
+#define g_955d DGROUP_AT(char (*)[], 0x955d) /* DS:955d */
+#define g_9563 DGROUP_AT(char (*), 0x9563) /* DS:9563 */
+#define g_9564 DGROUP_AT(char (*)[0x1b], 0x9564) /* DS:9564 */
+#define g_957f DGROUP_AT(char (*), 0x957f) /* DS:957f */
+#define g_9580 DGROUP_AT(HDC (*), 0x9580) /* DS:9580 */
+#define g_9582 DGROUP_AT(HPALETTE (*), 0x9582) /* DS:9582 */
+#define g_9584 DGROUP_AT(HBITMAP (*), 0x9584) /* DS:9584 */
+#define g_9586 DGROUP_AT(HBITMAP (*), 0x9586) /* DS:9586 */
+#define g_9588 DGROUP_AT(HINSTANCE (*), 0x9588) /* DS:9588 */
+#define g_958a DGROUP_AT(int16_t (*), 0x958a) /* DS:958a */
+#define g_958c DGROUP_AT(int16_t (*), 0x958c) /* DS:958c */
+#define g_958e DGROUP_AT(int16_t (*), 0x958e) /* DS:958e */
+#define g_9590 DGROUP_AT(HBITMAP (*), 0x9590) /* DS:9590 */
+#define g_9592 DGROUP_AT(HGDIOBJ (*), 0x9592) /* DS:9592 */
+#define g_9594 DGROUP_AT(HPALETTE (*), 0x9594) /* DS:9594 */
+#define g_9596 DGROUP_AT(int16_t (*), 0x9596) /* DS:9596 */
+#define g_9598 DGROUP_AT(int16_t (*), 0x9598) /* DS:9598 */
+#define g_959a DGROUP_AT(int16_t (*), 0x959a) /* DS:959a */
+#define g_959c DGROUP_AT(int16_t (*), 0x959c) /* DS:959c */
+#define g_959e DGROUP_AT(int16_t (*), 0x959e) /* DS:959e */
+#define g_95a0 DGROUP_AT(HDC (*), 0x95a0) /* DS:95a0 */
+#define g_95a2 DGROUP_AT(HGLOBAL (*), 0x95a2) /* DS:95a2 */
+#define g_95a4 DGROUP_AT(HGLOBAL (*), 0x95a4) /* DS:95a4 */
+#define g_95a6 DGROUP_AT(HGLOBAL (*), 0x95a6) /* DS:95a6 */
+#define g_95a8 DGROUP_AT(int16_t (*), 0x95a8) /* DS:95a8 */
+#define g_95aa DGROUP_AT(int16_t (*), 0x95aa) /* DS:95aa */
+#define g_95ac DGROUP_AT(HGLOBAL (*), 0x95ac) /* DS:95ac */
+#define g_95ae DGROUP_AT(int16_t (*), 0x95ae) /* DS:95ae */
+#define g_95b0 DGROUP_AT(int16_t (*), 0x95b0) /* DS:95b0 */
+#define g_95b2 DGROUP_AT(int16_t (*), 0x95b2) /* DS:95b2 */
+#define g_95b4 DGROUP_AT(int16_t (*), 0x95b4) /* DS:95b4 */
+#define g_95b6 DGROUP_AT(int16_t (*), 0x95b6) /* DS:95b6 */
+#define g_95b8 DGROUP_AT(int16_t (*), 0x95b8) /* DS:95b8 */
+#define g_95ba DGROUP_AT(int16_t (*), 0x95ba) /* DS:95ba */
+#define flow_interactive DGROUP_AT(int16_t (*), 0x95bc) /* DS:95bc */
+#define g_95be DGROUP_AT(HBITMAP (*), 0x95be) /* DS:95be */
+#define g_95c0 DGROUP_AT(HBITMAP (*), 0x95c0) /* DS:95c0 */
+#define g_95c2 DGROUP_AT(HDC (*), 0x95c2) /* DS:95c2 */
+#define g_95c4 DGROUP_AT(HPALETTE (*), 0x95c4) /* DS:95c4 */
+#define g_95c6 DGROUP_AT(int16_t (*), 0x95c6) /* DS:95c6 */
+#define g_95c8 DGROUP_AT(int16_t (*), 0x95c8) /* DS:95c8 */
+#define g_95ca DGROUP_AT(int16_t (*), 0x95ca) /* DS:95ca */
+#define g_95cc DGROUP_AT(int16_t (*), 0x95cc) /* DS:95cc */
+#define g_95ce DGROUP_AT(int16_t (*), 0x95ce) /* DS:95ce */
+#define g_95d0 DGROUP_AT(int16_t (*), 0x95d0) /* DS:95d0 */
+#define g_95d2 DGROUP_AT(int16_t (*), 0x95d2) /* DS:95d2 */
+#define g_95d4 DGROUP_AT(int16_t (*), 0x95d4) /* DS:95d4 */
+#define g_95d6 DGROUP_AT(int16_t (*), 0x95d6) /* DS:95d6 */
+#define g_95d8 DGROUP_AT(int16_t (*), 0x95d8) /* DS:95d8 */
+#define g_95da DGROUP_AT(int16_t (*), 0x95da) /* DS:95da */
+#define g_95dc DGROUP_AT(int16_t (*), 0x95dc) /* DS:95dc */
+#define g_95de DGROUP_AT(int16_t (*), 0x95de) /* DS:95de */
+#define g_95e0 DGROUP_AT(BYTE (*)[0x12], 0x95e0) /* DS:95e0 */
+#define g_95f2 DGROUP_AT(int16_t (*), 0x95f2) /* DS:95f2 */
+#define g_95f4 DGROUP_AT(int16_t (*), 0x95f4) /* DS:95f4 */
+#define g_95f6 DGROUP_AT(int16_t (*), 0x95f6) /* DS:95f6 */
+#define g_95f8 DGROUP_AT(int16_t (*), 0x95f8) /* DS:95f8 */
+#define g_95fa DGROUP_AT(int16_t (*), 0x95fa) /* DS:95fa */
+#define g_95fc DGROUP_AT(HWND (*), 0x95fc) /* DS:95fc */
+#define g_95fe DGROUP_AT(HWND (*), 0x95fe) /* DS:95fe */
+#define g_9600 DGROUP_AT(int16_t (*), 0x9600) /* DS:9600 */
+#define g_9602 DGROUP_AT(int16_t (*), 0x9602) /* DS:9602 */
+#define g_9604 DGROUP_AT(int16_t (*), 0x9604) /* DS:9604 */
+#define g_9606 DGROUP_AT(HMENU (*), 0x9606) /* DS:9606 */
+#define g_9608 DGROUP_AT(int16_t (*), 0x9608) /* DS:9608 */
+#define g_960a DGROUP_AT(char (*)[], 0x960a) /* DS:960a */
+#define g_9628 DGROUP_AT(char (*)[], 0x9628) /* DS:9628 */
+#define main_ship DGROUP_AT(int16_t (*), 0x9646) /* DS:9646 */
+#define g_9648 DGROUP_AT(int16_t (*), 0x9648) /* DS:9648 */
+#define g_964a DGROUP_AT(int16_t (*), 0x964a) /* DS:964a */
+#define g_964c DGROUP_AT(int16_t (*), 0x964c) /* DS:964c */
+#define g_964e DGROUP_AT(int16_t (*), 0x964e) /* DS:964e */
+#define g_9650 DGROUP_AT(int16_t (*), 0x9650) /* DS:9650 */
+#define g_9652 DGROUP_AT(int16_t (*), 0x9652) /* DS:9652 */
+#define g_9654 DGROUP_AT(int16_t (*), 0x9654) /* DS:9654 */
+#define g_9656 DGROUP_AT(HDC (*), 0x9656) /* DS:9656 */
+#define g_9658 DGROUP_AT(HBITMAP (*), 0x9658) /* DS:9658 */
+#define g_965a DGROUP_AT(HBITMAP (*), 0x965a) /* DS:965a */
+#define g_965c DGROUP_AT(HPALETTE (*), 0x965c) /* DS:965c */
+#define g_965e DGROUP_AT(int16_t (*), 0x965e) /* DS:965e */
+#define g_9660 DGROUP_AT(int16_t (*), 0x9660) /* DS:9660 */
+#define g_9662 DGROUP_AT(int16_t (*), 0x9662) /* DS:9662 */
+#define g_9664 DGROUP_AT(int16_t (*), 0x9664) /* DS:9664 */
+#define g_9666 DGROUP_AT(uint16_t (*), 0x9666) /* DS:9666 */
+#define g_9668 DGROUP_AT(int16_t (*), 0x9668) /* DS:9668 */
+#define g_966a DGROUP_AT(HDC (*), 0x966a) /* DS:966a */
+#define g_966c DGROUP_AT(HBITMAP (*), 0x966c) /* DS:966c */
+#define g_966e DGROUP_AT(HBITMAP (*), 0x966e) /* DS:966e */
+#define g_9670 DGROUP_AT(HPALETTE (*), 0x9670) /* DS:9670 */
+#define g_9672 DGROUP_AT(int16_t (*), 0x9672) /* DS:9672 */
+#define g_9674 DGROUP_AT(int16_t (*), 0x9674) /* DS:9674 */
+#define g_9676 DGROUP_AT(int16_t (*), 0x9676) /* DS:9676 */
+#define g_9678 DGROUP_AT(int16_t (*), 0x9678) /* DS:9678 */
+#define g_967a DGROUP_AT(int16_t (*), 0x967a) /* DS:967a */
+#define g_967c DGROUP_AT(int16_t (*), 0x967c) /* DS:967c */
+#define g_967e DGROUP_AT(int16_t (*), 0x967e) /* DS:967e */
+#define g_9680 DGROUP_AT(int16_t (*), 0x9680) /* DS:9680 */
+#define g_9682 DGROUP_AT(int16_t (*), 0x9682) /* DS:9682 */
+#define g_9684 DGROUP_AT(int16_t (*), 0x9684) /* DS:9684 */
+#define g_9686 DGROUP_AT(int16_t (*), 0x9686) /* DS:9686 */
+#define g_9688 DGROUP_AT(int16_t (*), 0x9688) /* DS:9688 */
+#define g_968a DGROUP_AT(int16_t (*), 0x968a) /* DS:968a */
+#define g_968c DGROUP_AT(int16_t (*), 0x968c) /* DS:968c */
+#define g_968e DGROUP_AT(int16_t (*), 0x968e) /* DS:968e */
+#define g_9690 DGROUP_AT(char (*)[], 0x9690) /* DS:9690 */
+#define g_96a9 DGROUP_AT(char (*)[], 0x96a9) /* DS:96a9 */
+#define g_96b8 DGROUP_AT(char (*)[], 0x96b8) /* DS:96b8 */
+#define g_96c5 DGROUP_AT(char (*)[], 0x96c5) /* DS:96c5 */
+#define g_96d2 DGROUP_AT(REC_AD (*)[11], 0x96d2) /* DS:96d2 */
+typedef struct {
         int16_t f_00;
         int16_t f_02;
-    } g_9e41; /* DS:9e41 */
-extern int16_t g_9e45; /* DS:9e45 */
-extern int16_t g_9e47; /* DS:9e47 */
-extern int16_t g_9e49; /* DS:9e49 */
-extern int16_t g_9e4b; /* DS:9e4b */
-extern int16_t g_9e4d; /* DS:9e4d */
-extern int16_t g_9e4f; /* DS:9e4f */
-extern int16_t g_9e51; /* DS:9e51 */
-extern int16_t g_9e53; /* DS:9e53 */
-extern int16_t g_9e55; /* DS:9e55 */
-extern int32_t g_9e57; /* DS:9e57 */
-extern int16_t g_9e5b; /* DS:9e5b */
-extern int16_t g_9e5d; /* DS:9e5d */
-extern DWORD g_9e60[]; /* DS:9e60 */
-extern DWORD g_9e70[]; /* DS:9e70 */
-extern DWORD g_9e80[]; /* DS:9e80 */
-extern DWORD g_9e90[]; /* DS:9e90 */
-extern int16_t g_9ea0; /* DS:9ea0 */
-extern int16_t g_9ea2; /* DS:9ea2 */
-extern int16_t g_9ea4; /* DS:9ea4 */
-extern int16_t g_9ea6; /* DS:9ea6 */
-extern POINT g_9ea8[3]; /* DS:9ea8 */
-extern char g_9eb4; /* DS:9eb4 */
-extern char g_9eb5; /* DS:9eb5 */
-extern char g_9eb6[3]; /* DS:9eb6 */
-extern char g_9eb9[3]; /* DS:9eb9 */
-extern char g_9ebc[3]; /* DS:9ebc */
-extern char g_9ebf[3]; /* DS:9ebf */
-extern char g_9ec2[3][0x28]; /* DS:9ec2 */
-extern char g_9f3a[3][2]; /* DS:9f3a */
-extern PAIR g_9f40[3][0x28]; /* DS:9f40 */
-extern POINT g_a120[3]; /* DS:a120 */
-extern char g_a12c[3][9]; /* DS:a12c */
-extern int32_t g_a147; /* DS:a147 */
-extern int16_t g_a14b; /* DS:a14b */
-extern char g_a14d[10]; /* DS:a14d */
-extern char g_a157[10]; /* DS:a157 */
-extern char g_a161; /* DS:a161 */
-extern char g_a162; /* DS:a162 */
-extern char g_a163; /* DS:a163 */
-extern int16_t g_a16a[]; /* DS:a16a */
-extern uint8_t g_a172[4]; /* DS:a172 */
-extern uint8_t g_a176; /* DS:a176 */
-extern uint8_t g_a177; /* DS:a177 */
-extern char g_a178; /* DS:a178 */
-extern char g_a179; /* DS:a179 */
-extern char g_a17a; /* DS:a17a */
-extern char g_a17b[]; /* DS:a17b */
-extern int16_t g_a17f[]; /* DS:a17f */
-extern int16_t g_a187[]; /* DS:a187 */
-extern char g_a18f[4]; /* DS:a18f */
-extern char g_a193[4]; /* DS:a193 */
-extern char g_a197; /* DS:a197 */
-extern char g_a198; /* DS:a198 */
-extern POINT g_a199[]; /* DS:a199 */
-extern POINT g_a1a9[]; /* DS:a1a9 */
-extern POINT g_a1b9[]; /* DS:a1b9 */
-extern int16_t g_a1c9; /* DS:a1c9 */
-extern int16_t g_a1cb; /* DS:a1cb */
-extern int16_t g_a1cd; /* DS:a1cd */
-extern int16_t g_a1cf; /* DS:a1cf */
-extern int16_t g_a1d1; /* DS:a1d1 */
-extern int16_t g_a1d3; /* DS:a1d3 */
-extern char g_a1d5[]; /* DS:a1d5 */
+    } ANON_9E41;
+#define g_9e41 DGROUP_AT(ANON_9E41 (*), 0x9e41) /* DS:9e41 */
+#define g_9e45 DGROUP_AT(int16_t (*), 0x9e45) /* DS:9e45 */
+#define g_9e47 DGROUP_AT(int16_t (*), 0x9e47) /* DS:9e47 */
+#define g_9e49 DGROUP_AT(int16_t (*), 0x9e49) /* DS:9e49 */
+#define g_9e4b DGROUP_AT(int16_t (*), 0x9e4b) /* DS:9e4b */
+#define g_9e4d DGROUP_AT(int16_t (*), 0x9e4d) /* DS:9e4d */
+#define g_9e4f DGROUP_AT(int16_t (*), 0x9e4f) /* DS:9e4f */
+#define g_9e51 DGROUP_AT(int16_t (*), 0x9e51) /* DS:9e51 */
+#define g_9e53 DGROUP_AT(int16_t (*), 0x9e53) /* DS:9e53 */
+#define g_9e55 DGROUP_AT(int16_t (*), 0x9e55) /* DS:9e55 */
+#define g_9e57 DGROUP_AT(int32_t (*), 0x9e57) /* DS:9e57 */
+#define g_9e5b DGROUP_AT(int16_t (*), 0x9e5b) /* DS:9e5b */
+#define g_9e5d DGROUP_AT(int16_t (*), 0x9e5d) /* DS:9e5d */
+#define g_9e60 DGROUP_AT(DWORD (*)[], 0x9e60) /* DS:9e60 */
+#define g_9e70 DGROUP_AT(DWORD (*)[], 0x9e70) /* DS:9e70 */
+#define g_9e80 DGROUP_AT(DWORD (*)[], 0x9e80) /* DS:9e80 */
+#define g_9e90 DGROUP_AT(DWORD (*)[], 0x9e90) /* DS:9e90 */
+#define g_9ea0 DGROUP_AT(int16_t (*), 0x9ea0) /* DS:9ea0 */
+#define g_9ea2 DGROUP_AT(int16_t (*), 0x9ea2) /* DS:9ea2 */
+#define g_9ea4 DGROUP_AT(int16_t (*), 0x9ea4) /* DS:9ea4 */
+#define g_9ea6 DGROUP_AT(int16_t (*), 0x9ea6) /* DS:9ea6 */
+#define g_9ea8 DGROUP_AT(POINT (*)[3], 0x9ea8) /* DS:9ea8 */
+#define g_9eb4 DGROUP_AT(char (*), 0x9eb4) /* DS:9eb4 */
+#define g_9eb5 DGROUP_AT(char (*), 0x9eb5) /* DS:9eb5 */
+#define g_9eb6 DGROUP_AT(char (*)[3], 0x9eb6) /* DS:9eb6 */
+#define g_9eb9 DGROUP_AT(char (*)[3], 0x9eb9) /* DS:9eb9 */
+#define g_9ebc DGROUP_AT(char (*)[3], 0x9ebc) /* DS:9ebc */
+#define g_9ebf DGROUP_AT(char (*)[3], 0x9ebf) /* DS:9ebf */
+#define g_9ec2 DGROUP_AT(char (*)[3][0x28], 0x9ec2) /* DS:9ec2 */
+#define g_9f3a DGROUP_AT(char (*)[3][2], 0x9f3a) /* DS:9f3a */
+#define g_9f40 DGROUP_AT(PAIR (*)[3][0x28], 0x9f40) /* DS:9f40 */
+#define g_a120 DGROUP_AT(POINT (*)[3], 0xa120) /* DS:a120 */
+#define g_a12c DGROUP_AT(char (*)[3][9], 0xa12c) /* DS:a12c */
+#define g_a147 DGROUP_AT(int32_t (*), 0xa147) /* DS:a147 */
+#define g_a14b DGROUP_AT(int16_t (*), 0xa14b) /* DS:a14b */
+#define g_a14d DGROUP_AT(char (*)[10], 0xa14d) /* DS:a14d */
+#define g_a157 DGROUP_AT(char (*)[10], 0xa157) /* DS:a157 */
+#define g_a161 DGROUP_AT(char (*), 0xa161) /* DS:a161 */
+#define g_a162 DGROUP_AT(char (*), 0xa162) /* DS:a162 */
+#define g_a163 DGROUP_AT(char (*), 0xa163) /* DS:a163 */
+#define g_a16a DGROUP_AT(int16_t (*)[], 0xa16a) /* DS:a16a */
+#define g_a172 DGROUP_AT(uint8_t (*)[4], 0xa172) /* DS:a172 */
+#define g_a176 DGROUP_AT(uint8_t (*), 0xa176) /* DS:a176 */
+#define g_a177 DGROUP_AT(uint8_t (*), 0xa177) /* DS:a177 */
+#define g_a178 DGROUP_AT(char (*), 0xa178) /* DS:a178 */
+#define g_a179 DGROUP_AT(char (*), 0xa179) /* DS:a179 */
+#define g_a17a DGROUP_AT(char (*), 0xa17a) /* DS:a17a */
+#define g_a17b DGROUP_AT(char (*)[], 0xa17b) /* DS:a17b */
+#define g_a17f DGROUP_AT(int16_t (*)[], 0xa17f) /* DS:a17f */
+#define g_a187 DGROUP_AT(int16_t (*)[], 0xa187) /* DS:a187 */
+#define g_a18f DGROUP_AT(char (*)[4], 0xa18f) /* DS:a18f */
+#define g_a193 DGROUP_AT(char (*)[4], 0xa193) /* DS:a193 */
+#define g_a197 DGROUP_AT(char (*), 0xa197) /* DS:a197 */
+#define g_a198 DGROUP_AT(char (*), 0xa198) /* DS:a198 */
+#define g_a199 DGROUP_AT(POINT (*)[], 0xa199) /* DS:a199 */
+#define g_a1a9 DGROUP_AT(POINT (*)[], 0xa1a9) /* DS:a1a9 */
+#define g_a1b9 DGROUP_AT(POINT (*)[], 0xa1b9) /* DS:a1b9 */
+#define g_a1c9 DGROUP_AT(int16_t (*), 0xa1c9) /* DS:a1c9 */
+#define g_a1cb DGROUP_AT(int16_t (*), 0xa1cb) /* DS:a1cb */
+#define g_a1cd DGROUP_AT(int16_t (*), 0xa1cd) /* DS:a1cd */
+#define g_a1cf DGROUP_AT(int16_t (*), 0xa1cf) /* DS:a1cf */
+#define g_a1d1 DGROUP_AT(int16_t (*), 0xa1d1) /* DS:a1d1 */
+#define g_a1d3 DGROUP_AT(int16_t (*), 0xa1d3) /* DS:a1d3 */
+#define g_a1d5 DGROUP_AT(char (*)[], 0xa1d5) /* DS:a1d5 */
 
 /* Game functions. */
 int16_t WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR cmd, int16_t show);

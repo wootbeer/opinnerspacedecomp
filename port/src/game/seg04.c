@@ -44,7 +44,7 @@ void fn_04_2da2(void)
         if (v < g_9ea0)
             g_9eb5 = 0;
     }
-    if ((int16_t)(g_7090[main_ship].f_0da - g_9ea0) == 1)
+    if (g_7090[main_ship].f_0da - g_9ea0 == 1)
         g_9eb5 = 1;
     else {
         if (g_9684 == 1) {
@@ -62,17 +62,17 @@ void fn_04_2da2(void)
         if (g_91fc)
             g_9eb5 = 1;
         if (g_9684 == 1 && g_9316 != 0) {
-            g_5078 += (int16_t)(((9 - g_94aa) * g_9316 + (g_94a8 + 5) * 4) * 500);
-            g_1e58 += (int16_t)(((9 - g_94aa) * g_9316 + (g_94a8 + 5) * 4) * 500);
+            g_5078 += ((9 - g_94aa) * g_9316 + (g_94a8 + 5) * 4) * 500;
+            g_1e58 += ((9 - g_94aa) * g_9316 + (g_94a8 + 5) * 4) * 500;
         } else if (g_9684 == 2 && g_9316 > 1) {
-            g_5078 += (int16_t)((g_94a8 + 8) * 500 + (8 - g_94aa) * g_9316 * 200);
-            g_1e58 += (int16_t)((g_94a8 + 8) * 500 + (8 - g_94aa) * g_9316 * 200);
+            g_5078 += (g_94a8 + 8) * 500 + (8 - g_94aa) * g_9316 * 200;
+            g_1e58 += (g_94a8 + 8) * 500 + (8 - g_94aa) * g_9316 * 200;
         }
     }
     if (g_9eb5) {
         fn_10_744c(20);
         race_radar_background(0);
-        for (i = g_9318 * 2; i < (int16_t)(g_9318 * 2 + g_9ea2 + g_9ea4); i++)
+        for (i = g_9318 * 2; i < g_9318 * 2 + g_9ea2 + g_9ea4; i++)
             fn_12_3e98(i);
         for (i = 0; i <= g_9316; i++) {
             g_7090[i].f_148 = -2;
@@ -158,7 +158,7 @@ void fn_04_0078(int16_t n)
                     g_7090[n].f_056 = i;
                     break;
                 }
-            if (i == (int16_t)(g_9316 + 1) && g_7090[n].f_032.a != 12) {
+            if (i == g_9316 + 1 && g_7090[n].f_032.a != 12) {
                 if (g_7090[n].f_032.a != 12)        /* sic: tested twice */
                     fn_03_06ec(main_ship, 14, n, 0xb7);
                 g_7090[n].f_032.a = 12;
@@ -187,7 +187,7 @@ void fn_04_0078(int16_t n)
                         g_7090[n].f_056 = i;
                         break;
                     }
-                if (i != (int16_t)(g_9316 + 1))
+                if (i != g_9316 + 1)
                     goto skip;
             }
             g_7090[n].f_052 = 0;
@@ -342,7 +342,7 @@ void fn_04_0078(int16_t n)
     }
     g_7090[n].f_0ca = g_7090[n].f_0ca - 1 < 0 ? 0 : g_7090[n].f_0ca - 1;
     g_7090[n].f_0cc = g_7090[n].f_0cc - 1 < 0 ? 0 : g_7090[n].f_0cc - 1;
-    g_7090[n].f_0d4 = (int16_t)(g_7090[n].f_0d4 - 1) < 0 ? 0 : g_7090[n].f_0d4 - 1;
+    g_7090[n].f_0d4 = g_7090[n].f_0d4 - 1 < 0 ? 0 : g_7090[n].f_0d4 - 1;
     if (g_7090[n].f_036 == 1) {
         if (dist < 400 && (g_9208 > 1 || g_1df8[14][n].f_1a != 0)) {
             if (n != main_ship && g_7090[n].f_0a4 + 19000 < g_1e50
@@ -431,7 +431,7 @@ void fn_04_144c(int16_t n, int16_t flag)
         wp = fn_08_29ea(g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_04);
     wp.x += 7 << g_9156;
     wp.y += 7 << g_9156;
-    if (g_7090[n].f_148 < (int16_t)(g_9ea2 - 1))
+    if (g_7090[n].f_148 < g_9ea2 - 1)
         next = fn_08_29ea(g_1df8[8][g_7090[n].f_148 + g_9318 * 2 + 1].f_04);
     else
         next = fn_08_29ea(g_1df8[8][g_9318 * 2].f_04);
@@ -440,8 +440,8 @@ void fn_04_144c(int16_t n, int16_t flag)
     else
         prev = fn_08_29ea(g_1df8[8][g_9318 * 2 + g_9ea2 - 1].f_04);
     vel = VIEW(POINT, g_1df8[14][n].f_0c, 0);
-    g_8e48[n] = dist = fn_08_35d0(d1.x = (int16_t)((pos.x - wp.x) * 2) >> g_9156,
-                                  d1.y = (int16_t)((pos.y - wp.y) * 2) >> g_9156);
+    g_8e48[n] = dist = fn_08_35d0(d1.x = (pos.x - wp.x) * 2 >> g_9156,
+                                  d1.y = (pos.y - wp.y) * 2 >> g_9156);
     spd = fn_08_35d0(vel.x, vel.y);
     r1 = -((((int32_t)vel.x * d1.x + (int32_t)vel.y * d1.y) << 7) / (dist * spd));
     r2 = (((int32_t)vel.y * d1.x - (int32_t)vel.x * d1.y) << 7) / (dist * spd);
@@ -465,21 +465,21 @@ void fn_04_144c(int16_t n, int16_t flag)
                 }
             } else {
                 turn = 0;
-                if ((!g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_52 && 1000 / dist + (int16_t)(g_8e3c[n] * 6) + 14 > r2
-                     || g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_52 && -1000 / dist - (int16_t)(g_8e3c[n] * 6) - 14 < r2) && dist < 800)
+                if ((!g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_52 && 1000 / dist + g_8e3c[n] * 6 + 14 > r2
+                     || g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_52 && -1000 / dist - g_8e3c[n] * 6 - 14 < r2) && dist < 800)
                     turn = 2;
-                else if ((!g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_52 && (int16_t)(g_8e3c[n] * 6 + 40) > r2
-                          || g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_52 && (int16_t)(-40 - g_8e3c[n] * 6) < r2) && dist < 1000)
+                else if ((!g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_52 && g_8e3c[n] * 6 + 40 > r2
+                          || g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_52 && -40 - g_8e3c[n] * 6 < r2) && dist < 1000)
                     turn = 1;
-                if ((!g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_52 && (int16_t)(g_8e3c[n] * 6 + 52) < r2
-                     || g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_52 && (int16_t)(-52 - g_8e3c[n] * 6) > r2) && dist > 70)
+                if ((!g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_52 && g_8e3c[n] * 6 + 52 < r2
+                     || g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_52 && -52 - g_8e3c[n] * 6 > r2) && dist > 70)
                     turn = -1;
-                if ((!g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_52 && (int16_t)(g_8e3c[n] * 6 + 65) < r2
-                     || g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_52 && (int16_t)(-65 - g_8e3c[n] * 6) > r2) && dist > 70)
+                if ((!g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_52 && g_8e3c[n] * 6 + 65 < r2
+                     || g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_52 && -65 - g_8e3c[n] * 6 > r2) && dist > 70)
                     turn = -2;
             }
         }
-        if (dist / 4 - (int16_t)(g_8e3c[n] * 7) + 80 < r1 && 140 - spd / 2 > dist && g_8e34[n] == -1) {
+        if (dist / 4 - g_8e3c[n] * 7 + 80 < r1 && 140 - spd / 2 > dist && g_8e34[n] == -1) {
             if (g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_52)
                 g_7090[n].f_03c = 3;
             else
@@ -496,8 +496,8 @@ void fn_04_144c(int16_t n, int16_t flag)
         }
         if (g_8e34[n] != -1) {
             wp = fn_08_29ea(g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_04);
-            g_8e48[n] = dist = fn_08_35d0(d1.x = (int16_t)((pos.x - wp.x) * 2) >> g_9156,
-                                          d1.y = (int16_t)((pos.y - wp.y) * 2) >> g_9156);
+            g_8e48[n] = dist = fn_08_35d0(d1.x = (pos.x - wp.x) * 2 >> g_9156,
+                                          d1.y = (pos.y - wp.y) * 2 >> g_9156);
             if (g_1df8[4][g_8e34[n]].f_18)
                 g_8e34[n] = -1;
             if (r1 < 0 && (int32_t)g_7090[n].f_01e * 100 / g_96d2[g_7090[n].f_04e].f_1e > 20)
@@ -511,17 +511,17 @@ void fn_04_144c(int16_t n, int16_t flag)
             g_7090[n].f_032.b = g_7090[n].f_148 + g_9318 * 2;
         }
         g_7090[n].f_038 = 2;
-        if (spd / 3 - (int16_t)(g_8e3c[n] * 5) + 37 < r1 && g_7090[n].f_03c == 2
-            && (int16_t)(g_8e3c[n] * 15 + 130) > dist && g_8e34[n] == -1)
+        if (spd / 3 - g_8e3c[n] * 5 + 37 < r1 && g_7090[n].f_03c == 2
+            && g_8e3c[n] * 15 + 130 > dist && g_8e34[n] == -1)
             g_7090[n].f_038 = 5;
     }
     if ((dist < 350 || rand() % 5 == 0) && g_8e34[n] == -1) {
-        dist2 = fn_08_35d0(d2.x = (int16_t)((prev.x - wp.x) * 2) >> g_9156,
-                           d2.y = (int16_t)((prev.y - wp.y) * 2) >> g_9156);
+        dist2 = fn_08_35d0(d2.x = (prev.x - wp.x) * 2 >> g_9156,
+                           d2.y = (prev.y - wp.y) * 2 >> g_9156);
         r1 = (((int32_t)d2.x * d1.x + (int32_t)d2.y * d1.y) << 7) / (dist * dist2);
-        if (r1 < (int16_t)(g_8e3c[n] - 2)) {
-            dist2 = fn_08_35d0(d2.x = (int16_t)((next.x - wp.x) * 2) >> g_9156,
-                               d2.y = (int16_t)((next.y - wp.y) * 2) >> g_9156);
+        if (r1 < g_8e3c[n] - 2) {
+            dist2 = fn_08_35d0(d2.x = (next.x - wp.x) * 2 >> g_9156,
+                               d2.y = (next.y - wp.y) * 2 >> g_9156);
             r3 = (((int32_t)d2.x * d1.x + (int32_t)d2.y * d1.y) << 7) / (dist * dist2);
             r2 = (((int32_t)d2.y * d1.x - (int32_t)d2.x * d1.y) << 7) / (dist * dist2);
             if (r3 > spd / -24 + r1 - 2) {
@@ -558,11 +558,11 @@ void fn_04_144c(int16_t n, int16_t flag)
                     else if (g_8e08[n] > 40)
                         g_8e3c[n] = g_9348 - 1;
                     else if (g_8e08[n] > 100)
-                        g_8e3c[n] = (int16_t)(g_9348 - 2) < 0 ? 0 : g_9348 - 2;
+                        g_8e3c[n] = g_9348 - 2 < 0 ? 0 : g_9348 - 2;
                     else
                         g_8e3c[n] = g_9348;
                 }
-                if (g_7090[n].f_148 < (int16_t)(g_9ea2 - 1)) {
+                if (g_7090[n].f_148 < g_9ea2 - 1) {
                     g_7090[n].f_148++;
                     g_7090[n].f_032.a = 8;
                     g_7090[n].f_032.b = g_7090[n].f_148 + g_9318 * 2;
@@ -572,18 +572,18 @@ void fn_04_144c(int16_t n, int16_t flag)
                     g_7090[n].f_032.b = g_9318 * 2;
                     g_7090[n].f_0da = -1 - g_7090[n].f_0da;
                 }
-                dist = fn_08_35d0(d1.x = (int16_t)((pos.x - next.x) * 2) >> g_9156,
-                                  d1.y = (int16_t)((pos.y - next.y) * 2) >> g_9156);
-                if ((int16_t)(g_8e3c[n] * 40 + 700) < dist
+                dist = fn_08_35d0(d1.x = (pos.x - next.x) * 2 >> g_9156,
+                                  d1.y = (pos.y - next.y) * 2 >> g_9156);
+                if (g_8e3c[n] * 40 + 700 < dist
                     && (int16_t)((int32_t)g_7090[n].f_01e * 100 / g_96d2[g_7090[n].f_04e].f_1e) > rand() % 110) {
-                    dist = fn_08_35d0(d1.x = (int16_t)((wp.x - pos.x) * 2) >> g_9156,
-                                      d1.y = (int16_t)((wp.y - pos.y) * 2) >> g_9156);
+                    dist = fn_08_35d0(d1.x = (wp.x - pos.x) * 2 >> g_9156,
+                                      d1.y = (wp.y - pos.y) * 2 >> g_9156);
                     r1 = ((int32_t)g_1050[g_1df8[14][n].f_28].y * d1.y
                           + (int32_t)g_1050[g_1df8[14][n].f_28].x * d1.x) * 10 / (dist * 8 / 5);
                     r3 = ((int32_t)g_1df8[14][n].f_0e * d1.y + (int32_t)g_1df8[14][n].f_0c * d1.x) * 10
                          / (dist * spd / 10);
                     if (g_1df8[14][n].f_51 == 0 && g_7090[n].f_01e > 200
-                        && r1 < (int16_t)((8 - g_8e3c[n]) * 7) && r3 < (int16_t)(38 - g_8e3c[n] * 5))
+                        && r1 < (8 - g_8e3c[n]) * 7 && r3 < 38 - g_8e3c[n] * 5)
                         fn_11_5ab6(n, 2);
                 }
                 g_8e34[n] = -1;
@@ -601,9 +601,9 @@ void fn_04_144c(int16_t n, int16_t flag)
     if (g_7090[n].f_0da < 0) {
         if ((int16_t)(g_1df8[14][n].f_04.x + g_1df8[14][n].f_20) > (int16_t)(g_1df8[12][1].f_04.x + 350)
             && g_1df8[14][n].f_04.x < (int16_t)(g_1df8[12][1].f_04.x + 2000)
-            && (int16_t)(g_1df8[14][n].f_04.y + g_1df8[14][n].f_20) > g_9ea8[g_9322].x
+            && g_1df8[14][n].f_04.y + g_1df8[14][n].f_20 > g_9ea8[g_9322].x
             && g_1df8[14][n].f_04.y < g_9ea8[g_9322].y
-            && (g_1df8[14][n].f_0c > 0 || (int16_t)(g_7090[n].f_0da + g_9ea0) == -1)) {
+            && (g_1df8[14][n].f_0c > 0 || g_7090[n].f_0da + g_9ea0 == -1)) {
             fn_10_754a(0x72, 14, n, 1);
             if (g_1df8[14][n].f_51 == 0) {
                 g_9e80[n] = g_9e70[n];
@@ -626,7 +626,7 @@ void fn_04_144c(int16_t n, int16_t flag)
                             g_9eb5 = 0;
                     }
                 if (n == main_ship) {
-                    if ((int16_t)(g_7090[n].f_0da - g_9ea0) == 1)
+                    if (g_7090[n].f_0da - g_9ea0 == 1)
                         g_9eb5 = 1;
                     else {
                         if (g_9684 == 1)
@@ -652,7 +652,7 @@ void fn_04_144c(int16_t n, int16_t flag)
                 if (g_9eb5) {
                     fn_10_744c(0x14);
                     race_radar_background(0);
-                    for (i = g_9318 * 2; i < (int16_t)(g_9318 * 2 + g_9ea2 + g_9ea4); i++)
+                    for (i = g_9318 * 2; i < g_9318 * 2 + g_9ea2 + g_9ea4; i++)
                         fn_12_3e98(i);
                     for (i = 0; i <= g_9316; i++)
                         if (i != n || g_7090[i].f_032.a != 0) {
@@ -893,7 +893,7 @@ void fn_04_2f98(int16_t n, int16_t k)
                         sc = (sc + 450) << 2;
                         break;
                     case 8:
-                        if ((int16_t)(g_9318 * 2) > i)
+                        if (g_9318 * 2 > i)
                             sc = (sc + 1500) << 3;
                         else if (g_3d50[t].f_1c != 2)
                             sc = (sc + 350) * 2;
@@ -920,7 +920,7 @@ void fn_04_2f98(int16_t n, int16_t k)
                                 sc = sc * 3;
                         } else if (g_7090[n].f_01e > 200) {
                             sc <<= 2;
-                            if ((int16_t)(g_96d2[g_7090[n].f_04e].f_1e - 100) < g_7090[n].f_01e)
+                            if (g_96d2[g_7090[n].f_04e].f_1e - 100 < g_7090[n].f_01e)
                                 sc += 80000;
                         } else if (g_7090[n].f_01e < 150)
                             sc >>= 3;
@@ -931,7 +931,7 @@ void fn_04_2f98(int16_t n, int16_t k)
                                 sc -= sc >> 2;
                             if (g_9000 < 2 && n != main_ship) {
                                 if (t == 0)
-                                    sc = (sc - (int16_t)(g_967e * 5) + 300) * 100 / max(10, g_967e);
+                                    sc = (sc - g_967e * 5 + 300) * 100 / max(10, g_967e);
                                 else
                                     sc = sc * max(10, g_967e) / 100;
                             }
@@ -967,7 +967,7 @@ void fn_04_2f98(int16_t n, int16_t k)
                             || (int32_t)g_7090[n].f_0ce + g_7090[n].f_0dc <= 200) {
                             if (t == 0)
                                 sc *= 3;
-                            else if ((int16_t)((9 - g_9334) * 20) < (int16_t)(g_967e * 2))
+                            else if ((9 - g_9334) * 20 < g_967e * 2)
                                 sc += 80000;
                             else
                                 sc <<= 2;
@@ -1056,7 +1056,7 @@ void fn_04_2f98(int16_t n, int16_t k)
                 return;
         }
         if (c[2] < 80000
-            && ((int16_t)(rand() % 30 + g_967e * 2) > (int16_t)(190 - g_9334 * 20) || n == main_ship || g_9000 == 2
+            && (rand() % 30 + g_967e * 2 > 190 - g_9334 * 20 || n == main_ship || g_9000 == 2
                 || g_7090[n].f_032.a == 0 && g_7090[n].f_038 == 2))
             sel6 = 2;
         else
@@ -1100,7 +1100,7 @@ d1:
                     sel6 = 2;
                 else {
                     best5 = 30000;
-                    for (t = 0; t < (int16_t)(g_9318 * 2); t += 2) {
+                    for (t = 0; t < g_9318 * 2; t += 2) {
                         sc = fn_08_285a(&a, &b, g_1df8[14][n].f_04, g_1df8[12][t].f_04);
                         if (sc < best5) {
                             fn_13_9ae8(n);
@@ -1121,7 +1121,7 @@ d1:
             return;
         }
         if (c[2] < 80000
-            && ((int16_t)((9 - g_9334) * 20) < (int16_t)(g_967e * 2) || n == main_ship || g_9000 == 2 || c[3] >= 80000))
+            && ((9 - g_9334) * 20 < g_967e * 2 || n == main_ship || g_9000 == 2 || c[3] >= 80000))
             sel6 = 2;
         else if (c[3] < 80000)
             sel6 = 3;
@@ -1160,7 +1160,7 @@ d1:
             g_7090[n].f_006 = sel4t;
             g_7090[n].f_008 = sel4i;
             g_7090[n].f_036 = 2;
-            if ((int16_t)((9 - g_9334) * 20) > (int16_t)(g_967e * 2) && n != main_ship && g_9000 < 2)
+            if ((9 - g_9334) * 20 > g_967e * 2 && n != main_ship && g_9000 < 2)
                 g_7090[n].f_036 = 3;
             g_7090[n].f_03a = 2;
             if (sel4t == 0 && g_1df8[0][sel4i].f_2f < 0) {
@@ -1198,7 +1198,7 @@ d1:
     }
     best5 = 20000;
     if (g_1e68 > 800 || g_7090[n].f_006 == 8 && g_7090[n].f_008 == 0 && g_7090[n].f_036 == 3) {
-        for (t = 0; t < (int16_t)(g_9318 * 2); t += 2) {
+        for (t = 0; t < g_9318 * 2; t += 2) {
             sc = fn_08_285a(&a, &b, g_1df8[14][n].f_04, g_1df8[12][t].f_04);
             if (sc < best5) {
                 best5 = sc;
@@ -1364,7 +1364,7 @@ void fn_04_0bde(int16_t n)
                     if (g_7090[n].f_0b8[i] == 2) {
                         if (g_1df8[14][n].f_36 != 10 && g_1df8[14][n].f_36 != g_7090[n].f_032.a
                             && (kind != 0 || (int32_t)g_7090[n].f_0ce + g_7090[n].f_0dc >= 400)
-                            && (kind != 4 || (int16_t)(g_96d2[g_7090[n].f_04e].f_1e - 50) >= g_7090[n].f_01e))
+                            && (kind != 4 || g_96d2[g_7090[n].f_04e].f_1e - 50 >= g_7090[n].f_01e))
                             fn_04_584c(i, n, 0);
                         break;
                     }
@@ -1408,11 +1408,11 @@ void fn_04_277a(void)
     }
     save.x = g_240c;
     save.y = g_2410;
-    g_240c = (int16_t)(g_1df8[8][g_7090[main_ship].f_148 + g_9318 * 2].f_04.x - (LO16(g_90ea) << (g_9150 - 1)));
-    g_2410 = (int16_t)(g_1df8[8][g_7090[main_ship].f_148 + g_9318 * 2].f_04.y - (HI16(g_90ea) << (g_9150 - 1)));
+    g_240c = g_1df8[8][g_7090[main_ship].f_148 + g_9318 * 2].f_04.x - (LO16(g_90ea) << (g_9150 - 1));
+    g_2410 = g_1df8[8][g_7090[main_ship].f_148 + g_9318 * 2].f_04.y - (HI16(g_90ea) << (g_9150 - 1));
     pos = fn_08_29ea(g_1df8[14][main_ship].f_04);
     g_1cea = fn_08_29ea(g_1df8[8][g_7090[main_ship].f_148 + g_9318 * 2].f_04);
-    if (g_7090[main_ship].f_148 < (int16_t)(g_9ea2 - 1))
+    if (g_7090[main_ship].f_148 < g_9ea2 - 1)
         g_1cee = fn_08_29ea(g_1df8[8][g_7090[main_ship].f_148 + g_9318 * 2 + 1].f_04);
     else
         g_1cee = fn_08_29ea(g_1df8[8][g_9318 * 2].f_04);
@@ -1421,15 +1421,15 @@ void fn_04_277a(void)
     else
         g_1cf2 = fn_08_29ea(g_1df8[8][g_9318 * 2 + g_9ea2 - 1].f_04);
     vel = VIEW(POINT, g_1df8[14][main_ship].f_0c, 0);
-    g_8e48[main_ship] = dist = fn_08_35d0(d1.x = (int16_t)((pos.x - g_1cea.x) * 2) >> g_9156,
-                                       d1.y = (int16_t)((pos.y - g_1cea.y) * 2) >> g_9156);
+    g_8e48[main_ship] = dist = fn_08_35d0(d1.x = (pos.x - g_1cea.x) * 2 >> g_9156,
+                                       d1.y = (pos.y - g_1cea.y) * 2 >> g_9156);
     if (dist < 350 || rand() % 5 == 0) {
-        dist2 = fn_08_35d0(d2.x = (int16_t)((g_1cf2.x - g_1cea.x) * 2) >> g_9156,
-                           d2.y = (int16_t)((g_1cf2.y - g_1cea.y) * 2) >> g_9156);
+        dist2 = fn_08_35d0(d2.x = (g_1cf2.x - g_1cea.x) * 2 >> g_9156,
+                           d2.y = (g_1cf2.y - g_1cea.y) * 2 >> g_9156);
         r1 = (((int32_t)d2.x * d1.x + (int32_t)d2.y * d1.y) << 7) / (dist * dist2);
         if (r1 < 0) {
-            dist2 = fn_08_35d0(d2.x = (int16_t)((g_1cee.x - g_1cea.x) * 2) >> g_9156,
-                               d2.y = (int16_t)((g_1cee.y - g_1cea.y) * 2) >> g_9156);
+            dist2 = fn_08_35d0(d2.x = (g_1cee.x - g_1cea.x) * 2 >> g_9156,
+                               d2.y = (g_1cee.y - g_1cea.y) * 2 >> g_9156);
             r2 = (((int32_t)d2.x * d1.x + (int32_t)d2.y * d1.y) << 7) / (dist * dist2);
             r3 = (((int32_t)d2.y * d1.x - (int32_t)d2.x * d1.y) << 7) / (dist * dist2);
             if (r2 > r1) {
@@ -1449,7 +1449,7 @@ void fn_04_277a(void)
                                 - g_3d4c[(main_ship * g_9ea0 + v) * g_9ea2 + g_7090[main_ship].f_148 + 1];
                         else if (g_8e08[i] < 0)
                             g_8e08[i] = 50000;
-                    if (g_7090[main_ship].f_148 < (int16_t)(g_9ea2 - 1))
+                    if (g_7090[main_ship].f_148 < g_9ea2 - 1)
                         g_7090[main_ship].f_148++;
                     else {
                         g_7090[main_ship].f_148 = 0;
@@ -1465,9 +1465,9 @@ void fn_04_277a(void)
     if (g_7090[main_ship].f_0da < 0) {
         if ((int16_t)(g_1df8[14][main_ship].f_04.x + g_1df8[14][main_ship].f_20) > (int16_t)(g_1df8[12][1].f_04.x + 350)
             && g_1df8[14][main_ship].f_04.x < (int16_t)(g_1df8[12][1].f_04.x + 2000)
-            && (int16_t)(g_1df8[14][main_ship].f_04.y + g_1df8[14][main_ship].f_20) > g_9ea8[g_9322].x
+            && g_1df8[14][main_ship].f_04.y + g_1df8[14][main_ship].f_20 > g_9ea8[g_9322].x
             && g_1df8[14][main_ship].f_04.y < g_9ea8[g_9322].y
-            && (g_1df8[14][main_ship].f_0c > 0 || (int16_t)(g_7090[main_ship].f_0da + g_9ea0) == -1)) {
+            && (g_1df8[14][main_ship].f_0c > 0 || g_7090[main_ship].f_0da + g_9ea0 == -1)) {
             fn_10_744c(0x72);
             if (g_1df8[14][main_ship].f_51 == 0) {
                 g_9e80[main_ship] = g_9e70[main_ship];
@@ -1476,7 +1476,7 @@ void fn_04_277a(void)
                     g_9e90[main_ship] = g_9e70[main_ship] - g_9e80[main_ship];
             }
             g_7090[main_ship].f_0da = -g_7090[main_ship].f_0da;
-            if ((int16_t)(g_7090[main_ship].f_0da - g_9ea0) == -1)
+            if (g_7090[main_ship].f_0da - g_9ea0 == -1)
                 fn_10_744c(0x4f);
             if (g_7090[main_ship].f_0da >= g_9ea0 && g_9eb5 == 0)
                 fn_04_2da2();
@@ -1554,7 +1554,7 @@ void fn_04_4fc8(int16_t n)
             if (HIBYTE(v) == 8 && g_3d50[LOBYTE(v)].f_0a == -3)
                 g_7090[n].f_03a = 5;
             else if (g_7090[n].f_032.a == 12 && g_7090[n].f_038 == 2 && HIBYTE(v) == 8
-                     && LOBYTE(v) < (int16_t)(g_9318 * 2)) {
+                     && LOBYTE(v) < g_9318 * 2) {
                 if (!(LOBYTE(v) & 1))
                     g_7090[n].f_03a = 4;
                 else
@@ -1782,14 +1782,14 @@ int16_t fn_04_6a78(int16_t n, int16_t s)
     if (g_7090[n].f_052 == 3 || g_7090[n].f_052 == 4)
         v += 2;
     if (g_2f4c[w].f_32 < v)
-        v += (int16_t)(-(v - g_2f4c[w].f_32) * 3) / 4;
+        v += -(v - g_2f4c[w].f_32) * 3 / 4;
     if (type == 14 && g_7090[idx].f_0e2 && g_2f4c[w].f_4a == 0)
         score += 7;
     if (g_2f4c[w].f_4a && type != 14)
         return 0;
     if (g_2f4c[w].f_32 < 3)
         return 0;
-    if ((int16_t)(g_2f4c[w].f_32 - 3) > v)
+    if (g_2f4c[w].f_32 - 3 > v)
         return 0;
     score += rand() % 3 - fn_09_88ba(v - g_2f4c[w].f_32) + 12;
     if (w == 2) {
@@ -1827,12 +1827,12 @@ int16_t fn_04_6a78(int16_t n, int16_t s)
             score -= 2;
         if (g_2f4c[w].f_36 > 50)
             score -= 2;
-        if ((int16_t)(g_2f4c[w].f_36 * 2) > g_7090[n].f_01e)
+        if (g_2f4c[w].f_36 * 2 > g_7090[n].f_01e)
             return 0;
     }
-    if (g_2f4c[w].f_34 != 0 && (int16_t)((g_2f4c[w].f_34 + 5) * 5) > g_7090[n].f_026[0]) {
+    if (g_2f4c[w].f_34 != 0 && (g_2f4c[w].f_34 + 5) * 5 > g_7090[n].f_026[0]) {
         score -= g_2f4c[w].f_34;
-        if ((int16_t)(g_2f4c[w].f_34 * 3 + 13) > g_7090[n].f_026[0] || g_7090[n].f_032.a != 14)
+        if (g_2f4c[w].f_34 * 3 + 13 > g_7090[n].f_026[0] || g_7090[n].f_032.a != 14)
             return -100;
     }
     if (score > 0 && g_2f4c[w].f_4a && g_7090[n].f_032.a == 14) {
@@ -2091,7 +2091,7 @@ void fn_04_7e2a(void)
         g_1d0a = 0;
         return;
     }
-    if (g_92e8 || g_9320 == 6 || g_9320 == 7 || (int16_t)(g_0992 + 20) > g_932a)
+    if (g_92e8 || g_9320 == 6 || g_9320 == 7 || g_0992 + 20 > g_932a)
         return;
     if (g_3824[3][g_96d2[g_7090[main_ship].f_04e].f_38] < 150
         && (g_1d0a < g_1e50 || g_1d0a == 0)
@@ -2110,7 +2110,7 @@ void fn_04_7e2a(void)
             }
         }
         if (f > 0) {
-            v = (int16_t)(g_7090[main_ship].f_0ce - 220) / 32 + g_3824[3][g_96d2[g_7090[main_ship].f_04e].f_38] / -100
+            v = (g_7090[main_ship].f_0ce - 220) / 32 + g_3824[3][g_96d2[g_7090[main_ship].f_04e].f_38] / -100
                 + g_9334 / 3 - ce - g_9316;
             if (g_7090[main_ship].f_026[0] < 40)
                 v++;
@@ -2165,8 +2165,8 @@ void fn_04_7e2a(void)
                 && g_52ec[i].f_12 == 10)
                 c6++;
         if (f > 0) {
-            chance = (int16_t)((g_3824[4][g_96d2[g_7090[main_ship].f_04e].f_38] / 120 + (c6 * 2 - c8) * 2
-                      - g_7090[main_ship].f_026[0] / 15 + g_9334 / 2 - g_9316 + 5) * f) / 2;
+            chance = (g_3824[4][g_96d2[g_7090[main_ship].f_04e].f_38] / 120 + (c6 * 2 - c8) * 2
+                      - g_7090[main_ship].f_026[0] / 15 + g_9334 / 2 - g_9316 + 5) * f / 2;
             if (c6 != 0 && rand() % 300 < chance) {
                 if (g_1d0e != 0 && g_1d0e < g_1e50) {
                     fn_13_adbe(main_ship, 4, 0x6a);
@@ -2222,11 +2222,11 @@ void fn_04_83ae(void)
                         g_7090[i].f_14a.y = rand() % 4000 + g_1df8[14][i].f_04.y - 2000;
                         if (g_7090[i].f_14a.x < 0)
                             g_7090[i].f_14a.x += (LO16(g_05a0)) * 8;
-                        else if (g_7090[i].f_14a.x > (int16_t)((LO16(g_05a0)) * 8))
+                        else if (g_7090[i].f_14a.x > (LO16(g_05a0)) * 8)
                             g_7090[i].f_14a.x -= (LO16(g_05a0)) * 8;
                         if (g_7090[i].f_14a.y < 0)
                             g_7090[i].f_14a.y += (HI16(g_05a0)) * 8;
-                        else if (g_7090[i].f_14a.y > (int16_t)((HI16(g_05a0)) * 8))
+                        else if (g_7090[i].f_14a.y > (HI16(g_05a0)) * 8)
                             g_7090[i].f_14a.y -= (HI16(g_05a0)) * 8;
                     }
                 }
@@ -2242,7 +2242,7 @@ void fn_04_84de(void)
     int16_t count;
     int16_t r;
 
-    g_967e = min((int16_t)(g_9334 * 7 + 45), 100);
+    g_967e = min(g_9334 * 7 + 45, 100);
     if (g_1e68 < 500)
         g_967e -= (700 - g_1e68) / 8;
     else
@@ -2259,7 +2259,7 @@ void fn_04_84de(void)
     for (i = 0; i < 8; i++)
         if (g_1df8[0][i].f_18 == 0)
             count++;
-    r = (int16_t)(count * 10) / (int16_t)(g_9316 + 1);
+    r = count * 10 / (g_9316 + 1);
     if (r < 15)
         g_967e -= 10;
     if (r < 10)
@@ -2435,9 +2435,9 @@ void fn_04_5e8e(int16_t n, int16_t m, int16_t dmg, int16_t kind)
         g_9432 += dmg / 2;
     r = fn_13_2688(n, m);
     k = 0;
-    if ((int16_t)(g_7090[n].f_026[0] - dmg / (g_96d2[g_7090[n].f_04e].f_10)) < 65)
+    if (g_7090[n].f_026[0] - dmg / (g_96d2[g_7090[n].f_04e].f_10) < 65)
         k = 1;
-    if ((int16_t)(g_7090[n].f_026[0] - dmg / (g_96d2[g_7090[n].f_04e].f_10)) < 45)
+    if (g_7090[n].f_026[0] - dmg / (g_96d2[g_7090[n].f_04e].f_10) < 45)
         k++;
     if (dmg > 24)
         k++;
@@ -2494,13 +2494,13 @@ void fn_04_5e8e(int16_t n, int16_t m, int16_t dmg, int16_t kind)
                 fn_03_06ec(m, 14, n, 0x41);
         }
     } else if (r > 0) {
-        if ((int16_t)(c - g_7090[n].f_05d + 4) >= g_7090[n].f_0c2[m]) {
+        if (c - g_7090[n].f_05d + 4 >= g_7090[n].f_0c2[m]) {
             if (dmg != 90) {
                 if (g_7090[n].f_0c2[m] > 1)
                     fn_03_06ec(m, 14, n, 0x2a);
                 else
                     fn_03_06ec(m, 14, n, 0x29);
-                if ((int16_t)(c - g_7090[n].f_0c2[m] - g_7090[n].f_05d) == -5 && m == main_ship) {
+                if (c - g_7090[n].f_0c2[m] - g_7090[n].f_05d == -5 && m == main_ship) {
                     fn_03_06ec(m, 14, n, 0x2b);
                     fn_10_754a(0x3e, 0, 0, 0);
                 }
@@ -2515,13 +2515,13 @@ void fn_04_5e8e(int16_t n, int16_t m, int16_t dmg, int16_t kind)
             fn_13_915c(n);
         }
     } else {
-        if ((int16_t)(g_7090[n].f_05e + c + 1) >= g_7090[n].f_0c2[m]) {
+        if (g_7090[n].f_05e + c + 1 >= g_7090[n].f_0c2[m]) {
             if (dmg != 90) {
                 if (g_7090[n].f_0c2[m] > 1)
                     fn_03_06ec(m, 14, n, 0x2e);
                 else
                     fn_03_06ec(m, 14, n, 0x2d);
-                if ((int16_t)(g_7090[n].f_05e - g_7090[n].f_0c2[m] + c) == -2 && m == main_ship) {
+                if (g_7090[n].f_05e - g_7090[n].f_0c2[m] + c == -2 && m == main_ship) {
                     fn_03_06ec(m, 14, n, 0x2f);
                     fn_10_754a(0x3e, 0, 0, 0);
                 }
@@ -2550,8 +2550,8 @@ void fn_04_7d36(int16_t a, int16_t b, int16_t c)
         k = 1;
         if (c > 30)
             k = 2;
-        g_7090[a].f_13e[b] = (int16_t)(g_7090[a].f_13e[b] + k) > 6 ? 6 : g_7090[a].f_13e[b] + k;
-        g_7090[b].f_13e[a] = (int16_t)(g_7090[b].f_13e[a] - k) < -6 ? -6 : g_7090[b].f_13e[a] - k;
+        g_7090[a].f_13e[b] = g_7090[a].f_13e[b] + k > 6 ? 6 : g_7090[a].f_13e[b] + k;
+        g_7090[b].f_13e[a] = g_7090[b].f_13e[a] - k < -6 ? -6 : g_7090[b].f_13e[a] - k;
         if (a == main_ship) {
             g_9680++;
             g_8e00 += c;
@@ -3344,9 +3344,9 @@ void fn_04_485c(int16_t n, int16_t unused)
                     if ((int16_t)(c2 + c1) > 0) {
                         if (c1 > 2)
                             sel = j;
-                        if (g_7090[j].f_026[1] < (int16_t)(c1 * 9 + 14) || g_7090[j].f_026[2] < (int16_t)(c1 * 9 + 14))
+                        if (g_7090[j].f_026[1] < c1 * 9 + 14 || g_7090[j].f_026[2] < c1 * 9 + 14)
                             sel = j;
-                        if ((int16_t)(c2 * 4 + c1 * 10 + 21) > g_7090[j].f_026[0])
+                        if (c2 * 4 + c1 * 10 + 21 > g_7090[j].f_026[0])
                             sel = j;
                         if (fn_13_2688(n, j) >= (int16_t)(((thr += 15) - c1 * 6) * 10) && c1) {
                             if (g_7090[j].f_05e > 0 && g_7090[j].f_05d < 3) {

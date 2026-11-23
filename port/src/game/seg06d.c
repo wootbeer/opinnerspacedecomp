@@ -101,7 +101,7 @@ void fn_06_1e68(int16_t start)
             } else
                 g_0d26 = 1;
         }
-        if ((int16_t)(g_94b6 - 1) <= g_94b4)
+        if (g_94b6 - 1 <= g_94b4)
             g_0d26 = 1;
     }
 }
@@ -1211,7 +1211,7 @@ void fn_06_5524(void)
                 } else {
                     nexe += ndll;
                     if (!notfound && (g_69f4[idx].f_1d0 == 2 ||
-                                      (int16_t)(g_69f4[idx].f_14e + g_69f4[idx].f_150) > g_94a6)) {
+                                      g_69f4[idx].f_14e + g_69f4[idx].f_150 > g_94a6)) {
                         LoadString(g_9212, 0x2fd, buf, 400);
                         lstrcat(buf, g_09ee);
                         if (g_69f4[idx].f_1d0 != 2) {

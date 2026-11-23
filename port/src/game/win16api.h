@@ -11,6 +11,19 @@
 #include <stdlib.h>
 #include <time.h>
 
+/* The 1994 runtime's versions, not the host's (port/src/win/crt.c). */
+#define rand msc_rand
+#define srand msc_srand
+#define stat dos_stat
+#define utime dos_utime
+#define _dev_t dos_dev_t
+#define _ino_t dos_ino_t
+#define _off_t dos_off_t
+/* The game's entry point (2:0000); WinMain is the platform's own. */
+#define WinMain inspace_WinMain
+int16_t msc_rand(void);
+void msc_srand(uint16_t seed);
+
 typedef int16_t BOOL;
 typedef uint8_t BYTE;
 typedef uint16_t WORD;

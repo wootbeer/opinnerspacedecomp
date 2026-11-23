@@ -56,7 +56,7 @@ void fn_11_6b64(int16_t msg, WPARAM wparam, int32_t lparam)
             fn_10_744c(0x14);
             g_9eb5 = 1;
             race_radar_background(0);
-            for (i = g_9318 * 2; i < (int16_t)(g_9318 * 2 + g_9ea2 + g_9ea4); i++)
+            for (i = g_9318 * 2; i < g_9318 * 2 + g_9ea2 + g_9ea4; i++)
                 fn_12_3e98(i);
             for (i = 0; i <= g_9316; i++) {
                 g_7090[i].f_148 = 0xfe;
@@ -171,7 +171,7 @@ void fn_11_6b64(int16_t msg, WPARAM wparam, int32_t lparam)
             else if (!ctrl && flow_interactive) {
                 if (fn_16_0b4e(main_ship))
                     fn_03_06ec(main_ship, 7, 0, 7);
-                else if ((int16_t)((u4 = LO16(g_7090[main_ship].f_0dc)) + g_7090[main_ship].f_0ce) < -300)
+                else if ((u4 = LO16(g_7090[main_ship].f_0dc)) + g_7090[main_ship].f_0ce < -300)
                     fn_03_06ec(main_ship, 7, 0, 0x84);
                 else
                     fn_03_06ec(main_ship, 7, 0, 8);
