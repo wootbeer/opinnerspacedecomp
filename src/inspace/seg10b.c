@@ -85,6 +85,71 @@ extern char g_9f3a[3][2];
 extern POINT g_9f40[3][40];
 extern POINT g_a120[3];
 extern char g_a12c[3][9];   /* track names */
+extern int g_920c;
+typedef struct {
+    int f00;
+    int f02;
+    int f04;
+    int f06;
+    int f08;
+    int f0a;
+    int f0c;
+    int f0e;
+    int f10;
+    int f12;
+    int f14;
+    int f16;
+    int f18;
+    int f1a;
+    int f1c;
+    int f1e;
+    int f20;
+    int f22;
+    int f24;
+    int f26;
+    int f28;
+    int f2a;
+    int f2c;
+    int f2e;
+    int f30;
+    int f32;
+    int f34;
+    int f36;
+    int f38;
+    int f3a;
+    int f3c;
+    int f3e;
+    int f40;
+    int f42;
+    int f44;
+    int f46;
+    int f48;
+    int f4a;
+    int f4c;
+    int f4e;
+} REC_50;                /* 0x50-byte records at DS:2f4c (fields not yet named) */
+extern REC_50 g_2f4c[28];
+extern int g_92ec[12];      /* object counts per list (g_1df8) */
+extern int g_92ea;
+extern int g_9214;
+extern int g_0740;
+extern int g_238c;
+extern DWORD g_2408;      /* timer [inferred] */
+#define SC(n) ((n) << g_9156 >> 1)
+void far fn_07_233c();
+void far fn_07_2652();
+void far fn_07_2e02();
+void far fn_07_5090();
+void far fn_07_570a();
+void far fn_08_95f2();
+void far fn_11_37a0();
+void far fn_11_3914();
+void far fn_11_39d8();
+void far fn_11_3bae();
+void far fn_12_0dc4();
+void far fn_12_274a();
+void far fn_12_6a60();
+void far fn_16_085e();
 int far fn_10_6c02(int a, int b, int c);
 int far fn_10_86ca(void);
 HBITMAP far fn_10_6ec6(int a);
@@ -114,6 +179,7 @@ void far fn_10_5c1a(void);
 void far fn_09_1092(void);
 void far fn_07_49b6(void);
 extern int g_001a;
+typedef void (far *FNV)();
 typedef struct {
     int f00;            /* +0x00 */
     int f02;            /* +0x02 */
@@ -124,17 +190,32 @@ typedef struct {
     int f0e;            /* +0x0e */
     char p10[0x18 - 0x10];
     int f18;            /* +0x18 */
-    char p1a[0x24 - 0x1a];
+    char p1a[0x1e - 0x1a];
+    int f1e;            /* +0x1e */
+    int f20;            /* +0x20 */
+    int f22;            /* +0x22 */
     int f24;            /* +0x24 */
     int f26;            /* +0x26 */
-    char p28[0x2e - 0x28];
+    int f28;            /* +0x28 */
+    char p2a[0x2c - 0x2a];
+    int f2c;            /* +0x2c */
     char f2e;           /* +0x2e */
     char f2f;           /* +0x2f */
-    char p30[0x50 - 0x30];
+    char p30[0x42 - 0x30];
+    int f42;            /* +0x42 */
+    int f44;            /* +0x44 */
+    int f46;            /* +0x46 */
+    int f48;            /* +0x48 */
+    char p4a[0x4c - 0x4a];
+    long f4c;           /* +0x4c: colour [inferred] */
     char f50;           /* +0x50 */
-    char p51[0x54 - 0x51];
+    char p51[0x53 - 0x51];
+    char f53;           /* +0x53 */
     char f54;           /* +0x54 */
-    char p55[0x6a - 0x55];
+    char p55[0x5e - 0x55];
+    FNV f5e;            /* +0x5e */
+    FNV f62;            /* +0x62 */
+    FNV f66;            /* +0x66 */
     void far *f6a;      /* +0x6a */
     char rest[0x70 - 0x6e];
 } REC_70S;              /* the 0x70-byte records of g_1df8 */
@@ -602,10 +683,891 @@ void far fn_10_1502(int i)
     }
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Fills the 28 0x50-byte records at DS:2f4c with their start values;
+ * f3e depends on g_920c == 3 [inferred: difficulty]. Records without
+ * that difference still test it with two equal arms: CL merges equal
+ * constant stores within a basic block, and these tests are what keep
+ * the game's per-record grouping [inferred]. */
+/* @addr 10:1fb2 */
 void far fn_10_1fb2(void)
 {
-    g_90f4 = 1;
+    g_2f4c[0].f08 = 0xba;
+    g_2f4c[0].f30 = 0xa;
+    g_2f4c[0].f12 = 0;
+    g_2f4c[0].f0c = 0;
+    g_2f4c[0].f0a = 0;
+    g_2f4c[0].f4a = 0;
+    g_2f4c[0].f3a = 0;
+    g_2f4c[0].f38 = 0;
+    g_2f4c[0].f32 = 0;
+    g_2f4c[0].f34 = 0;
+    g_2f4c[0].f36 = 0;
+    g_2f4c[0].f4e = 0;
+    if (g_920c == 3)
+        g_2f4c[0].f3e = -1;
+    else
+        g_2f4c[0].f3e = -1;
+    g_2f4c[5].f0c = 1;
+    g_2f4c[5].f0a = 0xbf;
+    g_2f4c[5].f08 = 0xbf;
+    g_2f4c[5].f30 = 7;
+    g_2f4c[5].f28 = 0x15e;
+    g_2f4c[5].f38 = 0x14;
+    g_2f4c[5].f32 = 4;
+    g_2f4c[5].f36 = 8;
+    g_2f4c[5].f12 = 0;
+    g_2f4c[5].f4a = 0;
+    g_2f4c[5].f34 = 0;
+    g_2f4c[5].f4e = 0;
+    g_2f4c[5].f3c = 0x2bc;
+    if (g_920c == 3)
+        g_2f4c[5].f3e = -1;
+    else
+        g_2f4c[5].f3e = -1;
+    g_2f4c[4].f0c = 1;
+    g_2f4c[4].f0a = 0xc4;
+    g_2f4c[4].f08 = 0xbe;
+    g_2f4c[4].f30 = 7;
+    g_2f4c[4].f3a = 0x15e;
+    g_2f4c[4].f38 = 0x14;
+    g_2f4c[4].f32 = 5;
+    g_2f4c[4].f36 = 8;
+    g_2f4c[4].f12 = 0;
+    g_2f4c[4].f4a = 0;
+    g_2f4c[4].f34 = 0;
+    g_2f4c[4].f4e = 0;
+    g_2f4c[4].f3c = 0x28a;
+    if (g_920c == 3)
+        g_2f4c[4].f3e = 5;
+    else
+        g_2f4c[4].f3e = -1;
+    g_2f4c[3].f0a = 0xc5;
+    g_2f4c[3].f08 = 0xbd;
+    g_2f4c[3].f30 = 0x50;
+    g_2f4c[3].f0c = 1;
+    g_2f4c[3].f4a = 1;
+    g_2f4c[3].f3a = 0x12c;
+    g_2f4c[3].f32 = 7;
+    g_2f4c[3].f34 = 4;
+    g_2f4c[3].f38 = 0x14;
+    g_2f4c[3].f36 = 0x14;
+    g_2f4c[3].f12 = 0;
+    g_2f4c[3].f4e = 0;
+    g_2f4c[3].f3c = 0x3b6;
+    if (g_920c == 3)
+        g_2f4c[3].f3e = 5;
+    else
+        g_2f4c[3].f3e = 0xe;
+    g_2f4c[1].f0c = 3;
+    g_2f4c[1].f0a = 0xc2;
+    g_2f4c[1].f08 = 0xbb;
+    g_2f4c[1].f30 = 0x19;
+    g_2f4c[1].f12 = 0;
+    g_2f4c[1].f4a = 0;
+    g_2f4c[1].f3a = 0xc8;
+    g_2f4c[1].f32 = 6;
+    g_2f4c[1].f34 = 1;
+    g_2f4c[1].f28 = 0x14;
+    g_2f4c[1].f36 = 0x14;
+    g_2f4c[1].f4e = 2;
+    g_2f4c[1].f3c = 0x258;
+    if (g_920c == 3)
+        g_2f4c[1].f3e = 5;
+    else
+        g_2f4c[1].f3e = 0x11;
+    g_2f4c[2].f0c = 3;
+    g_2f4c[2].f0a = 0xbe;
+    g_2f4c[2].f08 = 0xbc;
+    g_2f4c[2].f30 = 0x28;
+    g_2f4c[2].f12 = 0;
+    g_2f4c[2].f4a = 0;
+    g_2f4c[2].f3a = 0x118;
+    g_2f4c[2].f38 = 0x3c;
+    g_2f4c[2].f32 = 6;
+    g_2f4c[2].f34 = 2;
+    g_2f4c[2].f36 = 0x19;
+    g_2f4c[2].f4e = 1;
+    g_2f4c[2].f3c = 0x3e8;
+    if (g_920c == 3)
+        g_2f4c[2].f3e = 5;
+    else
+        g_2f4c[2].f3e = 0xf;
+    g_2f4c[15].f0c = 3;
+    g_2f4c[15].f0a = 0xbe;
+    g_2f4c[15].f08 = 0xc9;
+    g_2f4c[15].f30 = 0x1a;
+    g_2f4c[15].f3a = 0x118;
+    g_2f4c[15].f38 = 0x3c;
+    g_2f4c[15].f34 = 2;
+    g_2f4c[15].f36 = 0x14;
+    g_2f4c[15].f12 = 0;
+    g_2f4c[15].f4a = 0;
+    g_2f4c[15].f32 = 0;
+    g_2f4c[15].f4e = 0;
+    g_2f4c[15].f3c = 0x2ee;
+    if (g_920c == 3)
+        g_2f4c[15].f3e = 5;
+    else
+        g_2f4c[15].f3e = -1;
+    g_2f4c[6].f14 = 8;
+    g_2f4c[6].f26 = 0xc8;
+    g_2f4c[6].f28 = 0x32;
+    g_2f4c[6].f2a = 7;
+    g_2f4c[6].f00 = 0x17;
+    g_2f4c[6].f0c = 1;
+    g_2f4c[6].f10 = 1;
+    g_2f4c[6].f40 = 1;
+    g_2f4c[6].f2c = 1;
+    g_2f4c[6].f42 = 1;
+    g_2f4c[6].f02 = 1;
+    g_2f4c[6].f06 = 0x172;
+    g_2f4c[6].f08 = 0xc0;
+    g_2f4c[6].f0a = -1;
+    g_2f4c[6].f04 = -1;
+    g_2f4c[6].f20 = 0x1c;
+    g_2f4c[6].f0e = 2;
+    g_2f4c[6].f12 = 2;
+    g_2f4c[6].f24 = 2;
+    g_2f4c[6].f18 = 0x14;
+    g_2f4c[6].f30 = 0x14;
+    g_2f4c[6].f3a = 0x2bc;
+    g_2f4c[6].f16 = 0x64;
+    g_2f4c[6].f38 = 0x64;
+    g_2f4c[6].f32 = 9;
+    g_2f4c[6].f22 = 3;
+    g_2f4c[6].f34 = 3;
+    g_2f4c[6].f1a = 0;
+    g_2f4c[6].f1c = 0;
+    g_2f4c[6].f1e = 0;
+    g_2f4c[6].f44 = 0;
+    g_2f4c[6].f46 = 0;
+    g_2f4c[6].f2e = 0;
+    g_2f4c[6].f48 = 0;
+    g_2f4c[6].f4a = 0;
+    g_2f4c[6].f36 = 0;
+    g_2f4c[6].f4e = 0;
+    g_2f4c[6].f3c = 0x44c;
+    if (g_920c == 3)
+        g_2f4c[6].f3e = 7;
+    else
+        g_2f4c[6].f3e = 8;
+    g_2f4c[8].f14 = 0xa;
+    g_2f4c[8].f16 = 0x78;
+    g_2f4c[8].f26 = 0xc8;
+    g_2f4c[8].f28 = 0x28;
+    g_2f4c[8].f2a = 9;
+    g_2f4c[8].f00 = 0x17;
+    g_2f4c[8].f0c = 1;
+    g_2f4c[8].f10 = 1;
+    g_2f4c[8].f2c = 1;
+    g_2f4c[8].f42 = 1;
+    g_2f4c[8].f44 = 1;
+    g_2f4c[8].f02 = 1;
+    g_2f4c[8].f06 = 0x172;
+    g_2f4c[8].f08 = 0xc2;
+    g_2f4c[8].f0a = -1;
+    g_2f4c[8].f04 = -1;
+    g_2f4c[8].f20 = 0x1c;
+    g_2f4c[8].f12 = 3;
+    g_2f4c[8].f22 = 3;
+    g_2f4c[8].f0e = 2;
+    g_2f4c[8].f24 = 2;
+    g_2f4c[8].f18 = 0x14;
+    g_2f4c[8].f30 = 0x14;
+    g_2f4c[8].f3a = 0x17c;
+    g_2f4c[8].f38 = 0x82;
+    g_2f4c[8].f32 = 7;
+    g_2f4c[8].f34 = 8;
+    g_2f4c[8].f1a = 0;
+    g_2f4c[8].f1c = 0;
+    g_2f4c[8].f1e = 0;
+    g_2f4c[8].f40 = 0;
+    g_2f4c[8].f46 = 0;
+    g_2f4c[8].f2e = 0;
+    g_2f4c[8].f48 = 0;
+    g_2f4c[8].f4a = 0;
+    g_2f4c[8].f36 = 0;
+    g_2f4c[8].f4e = 0;
+    g_2f4c[8].f3c = 0x2ee;
+    if (g_920c == 3)
+        g_2f4c[8].f3e = 7;
+    else
+        g_2f4c[8].f3e = -1;
+    g_2f4c[7].f12 = 4;
+    g_2f4c[7].f16 = 0x64;
+    g_2f4c[7].f18 = 0x14;
+    g_2f4c[7].f26 = 0xc8;
+    g_2f4c[7].f00 = 0x17;
+    g_2f4c[7].f0c = 1;
+    g_2f4c[7].f10 = 1;
+    g_2f4c[7].f2c = 1;
+    g_2f4c[7].f42 = 1;
+    g_2f4c[7].f44 = 1;
+    g_2f4c[7].f46 = 1;
+    g_2f4c[7].f02 = 1;
+    g_2f4c[7].f06 = 0x172;
+    g_2f4c[7].f08 = 0xc1;
+    g_2f4c[7].f0a = -1;
+    g_2f4c[7].f04 = -1;
+    g_2f4c[7].f20 = 0x1c;
+    g_2f4c[7].f22 = 3;
+    g_2f4c[7].f0e = 2;
+    g_2f4c[7].f24 = 2;
+    g_2f4c[7].f30 = 0x10;
+    g_2f4c[7].f3a = 0x168;
+    g_2f4c[7].f38 = 0x6e;
+    g_2f4c[7].f14 = 7;
+    g_2f4c[7].f2a = 7;
+    g_2f4c[7].f32 = 7;
+    g_2f4c[7].f34 = 8;
+    g_2f4c[7].f1a = 0;
+    g_2f4c[7].f1c = 0;
+    g_2f4c[7].f1e = 0;
+    g_2f4c[7].f40 = 0;
+    g_2f4c[7].f28 = 0;
+    g_2f4c[7].f2e = 0;
+    g_2f4c[7].f48 = 0;
+    g_2f4c[7].f4a = 0;
+    g_2f4c[7].f36 = 0;
+    g_2f4c[7].f4e = 0;
+    g_2f4c[7].f3c = 0x320;
+    if (g_920c == 3)
+        g_2f4c[7].f3e = -1;
+    else
+        g_2f4c[7].f3e = -1;
+    g_2f4c[12].f12 = 4;
+    g_2f4c[12].f14 = 8;
+    g_2f4c[12].f16 = 0x5a;
+    g_2f4c[12].f18 = 0x14;
+    g_2f4c[12].f26 = 0xc8;
+    g_2f4c[12].f0c = 1;
+    g_2f4c[12].f0e = 1;
+    g_2f4c[12].f10 = 1;
+    g_2f4c[12].f1c = 1;
+    g_2f4c[12].f2c = 1;
+    g_2f4c[12].f42 = 1;
+    g_2f4c[12].f48 = 7;
+    g_2f4c[12].f00 = 0x13;
+    g_2f4c[12].f06 = 0xa0;
+    g_2f4c[12].f08 = 0xc6;
+    g_2f4c[12].f0a = -1;
+    g_2f4c[12].f04 = -1;
+    g_2f4c[12].f20 = 0x4e;
+    g_2f4c[12].f1a = 2;
+    g_2f4c[12].f1e = 2;
+    g_2f4c[12].f22 = 2;
+    g_2f4c[12].f02 = 3;
+    g_2f4c[12].f24 = 3;
+    g_2f4c[12].f30 = 0x10;
+    g_2f4c[12].f3a = 0x12c;
+    g_2f4c[12].f38 = 0x78;
+    g_2f4c[12].f32 = 5;
+    g_2f4c[12].f2a = 6;
+    g_2f4c[12].f34 = 6;
+    g_2f4c[12].f40 = 0;
+    g_2f4c[12].f28 = 0;
+    g_2f4c[12].f44 = 0;
+    g_2f4c[12].f46 = 0;
+    g_2f4c[12].f2e = 0;
+    g_2f4c[12].f4a = 0;
+    g_2f4c[12].f36 = 0;
+    g_2f4c[12].f4e = 0;
+    g_2f4c[12].f3c = 0x1f4;
+    if (g_920c == 3)
+        g_2f4c[12].f3e = 0xa;
+    else
+        g_2f4c[12].f3e = 5;
+    g_2f4c[18].f14 = 6;
+    g_2f4c[18].f16 = 0x4b;
+    g_2f4c[18].f18 = 0x14;
+    g_2f4c[18].f26 = 0x6a;
+    g_2f4c[18].f00 = 0x17;
+    g_2f4c[18].f06 = 0x14a;
+    g_2f4c[18].f08 = 0xcc;
+    g_2f4c[18].f0a = -1;
+    g_2f4c[18].f04 = -1;
+    g_2f4c[18].f20 = 2;
+    g_2f4c[18].f02 = 3;
+    g_2f4c[18].f24 = 3;
+    g_2f4c[18].f30 = 0x10;
+    g_2f4c[18].f3a = 0x12c;
+    g_2f4c[18].f38 = 0x78;
+    g_2f4c[18].f2a = 4;
+    g_2f4c[18].f2c = 4;
+    g_2f4c[18].f22 = 4;
+    g_2f4c[18].f32 = 4;
+    g_2f4c[18].f0c = 1;
+    g_2f4c[18].f0e = 1;
+    g_2f4c[18].f10 = 1;
+    g_2f4c[18].f12 = 1;
+    g_2f4c[18].f42 = 1;
+    g_2f4c[18].f34 = 1;
+    g_2f4c[18].f1a = 0;
+    g_2f4c[18].f1c = 0;
+    g_2f4c[18].f1e = 0;
+    g_2f4c[18].f40 = 0;
+    g_2f4c[18].f28 = 0;
+    g_2f4c[18].f44 = 0;
+    g_2f4c[18].f46 = 0;
+    g_2f4c[18].f2e = 0;
+    g_2f4c[18].f48 = 0;
+    g_2f4c[18].f4a = 0;
+    g_2f4c[18].f36 = 0;
+    g_2f4c[18].f4e = 0;
+    g_2f4c[18].f3c = 0x28a;
+    if (g_920c == 3)
+        g_2f4c[18].f3e = 7;
+    else
+        g_2f4c[18].f3e = 4;
+    g_2f4c[19].f16 = 0x4b;
+    g_2f4c[19].f18 = 0x14;
+    g_2f4c[19].f26 = 0x6a;
+    g_2f4c[19].f2a = 7;
+    g_2f4c[19].f2c = 6;
+    g_2f4c[19].f00 = 0x1b;
+    g_2f4c[19].f06 = 0x14f;
+    g_2f4c[19].f08 = 0xcd;
+    g_2f4c[19].f0a = -1;
+    g_2f4c[19].f04 = -1;
+    g_2f4c[19].f20 = 2;
+    g_2f4c[19].f02 = 3;
+    g_2f4c[19].f22 = 3;
+    g_2f4c[19].f24 = 3;
+    g_2f4c[19].f30 = 0x10;
+    g_2f4c[19].f3a = 0x12c;
+    g_2f4c[19].f38 = 0x78;
+    g_2f4c[19].f14 = 4;
+    g_2f4c[19].f32 = 4;
+    g_2f4c[19].f0c = 1;
+    g_2f4c[19].f0e = 1;
+    g_2f4c[19].f10 = 1;
+    g_2f4c[19].f12 = 1;
+    g_2f4c[19].f42 = 1;
+    g_2f4c[19].f34 = 1;
+    g_2f4c[19].f1a = 0;
+    g_2f4c[19].f1c = 0;
+    g_2f4c[19].f1e = 0;
+    g_2f4c[19].f40 = 0;
+    g_2f4c[19].f28 = 0;
+    g_2f4c[19].f44 = 0;
+    g_2f4c[19].f46 = 0;
+    g_2f4c[19].f2e = 0;
+    g_2f4c[19].f48 = 0;
+    g_2f4c[19].f4a = 0;
+    g_2f4c[19].f36 = 0;
+    g_2f4c[19].f4e = 0;
+    g_2f4c[19].f3c = 0x2bc;
+    if (g_920c == 3)
+        g_2f4c[19].f3e = 7;
+    else
+        g_2f4c[19].f3e = 0x15;
+    g_2f4c[20].f14 = 6;
+    g_2f4c[20].f16 = 0x4b;
+    g_2f4c[20].f18 = 0x14;
+    g_2f4c[20].f26 = 0x6a;
+    g_2f4c[20].f2a = 5;
+    g_2f4c[20].f00 = 0x15;
+    g_2f4c[20].f06 = 0xb9;
+    g_2f4c[20].f08 = 0xce;
+    g_2f4c[20].f0a = -1;
+    g_2f4c[20].f04 = -1;
+    g_2f4c[20].f20 = 2;
+    g_2f4c[20].f02 = 3;
+    g_2f4c[20].f24 = 3;
+    g_2f4c[20].f30 = 0x10;
+    g_2f4c[20].f3a = 0x12c;
+    g_2f4c[20].f38 = 0x78;
+    g_2f4c[20].f2c = 4;
+    g_2f4c[20].f22 = 4;
+    g_2f4c[20].f32 = 4;
+    g_2f4c[20].f0c = 1;
+    g_2f4c[20].f0e = 1;
+    g_2f4c[20].f10 = 1;
+    g_2f4c[20].f12 = 1;
+    g_2f4c[20].f42 = 1;
+    g_2f4c[20].f34 = 1;
+    g_2f4c[20].f1a = 0;
+    g_2f4c[20].f1c = 0;
+    g_2f4c[20].f1e = 0;
+    g_2f4c[20].f40 = 0;
+    g_2f4c[20].f28 = 0;
+    g_2f4c[20].f44 = 0;
+    g_2f4c[20].f46 = 0;
+    g_2f4c[20].f2e = 0;
+    g_2f4c[20].f48 = 0;
+    g_2f4c[20].f4a = 0;
+    g_2f4c[20].f36 = 0;
+    g_2f4c[20].f4e = 0;
+    g_2f4c[20].f3c = 0x226;
+    if (g_920c == 3)
+        g_2f4c[20].f3e = 7;
+    else
+        g_2f4c[20].f3e = 0xb;
+    g_2f4c[10].f14 = 7;
+    g_2f4c[10].f16 = 0x32;
+    g_2f4c[10].f18 = 0x14;
+    g_2f4c[10].f26 = 0x40;
+    g_2f4c[10].f10 = 1;
+    g_2f4c[10].f12 = 1;
+    g_2f4c[10].f2c = 1;
+    g_2f4c[10].f42 = 1;
+    g_2f4c[10].f2a = 6;
+    g_2f4c[10].f2e = 6;
+    g_2f4c[10].f48 = 6;
+    g_2f4c[10].f00 = 0x16;
+    g_2f4c[10].f08 = 0xc4;
+    g_2f4c[10].f06 = 0x96;
+    g_2f4c[10].f0a = 0x96;
+    g_2f4c[10].f04 = -1;
+    g_2f4c[10].f20 = 0x18;
+    g_2f4c[10].f22 = 3;
+    g_2f4c[10].f0c = 2;
+    g_2f4c[10].f24 = 2;
+    g_2f4c[10].f30 = 0xc;
+    g_2f4c[10].f3a = 0x104;
+    g_2f4c[10].f38 = 0x50;
+    g_2f4c[10].f0e = 4;
+    g_2f4c[10].f32 = 4;
+    g_2f4c[10].f02 = 5;
+    g_2f4c[10].f34 = 5;
+    g_2f4c[10].f1a = 0;
+    g_2f4c[10].f1c = 0;
+    g_2f4c[10].f1e = 0;
+    g_2f4c[10].f40 = 0;
+    g_2f4c[10].f28 = 0;
+    g_2f4c[10].f44 = 0;
+    g_2f4c[10].f46 = 0;
+    g_2f4c[10].f4a = 0;
+    g_2f4c[10].f36 = 0;
+    g_2f4c[10].f4e = 0;
+    g_2f4c[10].f3c = 0x1c2;
+    if (g_920c == 3)
+        g_2f4c[10].f3e = -1;
+    else
+        g_2f4c[10].f3e = -1;
+    g_2f4c[11].f14 = 7;
+    g_2f4c[11].f18 = 0x14;
+    g_2f4c[11].f16 = 0x64;
+    g_2f4c[11].f26 = 0x64;
+    g_2f4c[11].f2a = 8;
+    g_2f4c[11].f00 = 0x17;
+    g_2f4c[11].f0c = 1;
+    g_2f4c[11].f10 = 1;
+    g_2f4c[11].f12 = 1;
+    g_2f4c[11].f2c = 1;
+    g_2f4c[11].f42 = 1;
+    g_2f4c[11].f46 = 1;
+    g_2f4c[11].f02 = 1;
+    g_2f4c[11].f06 = 0x172;
+    g_2f4c[11].f08 = 0xc5;
+    g_2f4c[11].f0a = -1;
+    g_2f4c[11].f04 = -1;
+    g_2f4c[11].f20 = 0x1c;
+    g_2f4c[11].f0e = 2;
+    g_2f4c[11].f24 = 2;
+    g_2f4c[11].f30 = 0xc;
+    g_2f4c[11].f3a = 0x122;
+    g_2f4c[11].f38 = 0x5a;
+    g_2f4c[11].f32 = 4;
+    g_2f4c[11].f22 = 3;
+    g_2f4c[11].f34 = 3;
+    g_2f4c[11].f1a = 0;
+    g_2f4c[11].f1c = 0;
+    g_2f4c[11].f1e = 0;
+    g_2f4c[11].f40 = 0;
+    g_2f4c[11].f28 = 0;
+    g_2f4c[11].f44 = 0;
+    g_2f4c[11].f2e = 0;
+    g_2f4c[11].f48 = 0;
+    g_2f4c[11].f4a = 0;
+    g_2f4c[11].f36 = 0;
+    g_2f4c[11].f4e = 0;
+    g_2f4c[11].f3c = 0x1c2;
+    if (g_920c == 3)
+        g_2f4c[11].f3e = 7;
+    else
+        g_2f4c[11].f3e = -1;
+    g_2f4c[9].f14 = 9;
+    g_2f4c[9].f16 = 0x46;
+    g_2f4c[9].f18 = 0x14;
+    g_2f4c[9].f12 = 4;
+    g_2f4c[9].f1c = 4;
+    g_2f4c[9].f26 = 0xc8;
+    g_2f4c[9].f0e = 1;
+    g_2f4c[9].f10 = 1;
+    g_2f4c[9].f40 = 1;
+    g_2f4c[9].f2c = 1;
+    g_2f4c[9].f42 = 1;
+    g_2f4c[9].f46 = 1;
+    g_2f4c[9].f48 = 5;
+    g_2f4c[9].f00 = 0x15;
+    g_2f4c[9].f06 = 0xa1;
+    g_2f4c[9].f08 = 0xc3;
+    g_2f4c[9].f0a = -1;
+    g_2f4c[9].f04 = -1;
+    g_2f4c[9].f0c = 2;
+    g_2f4c[9].f1a = 2;
+    g_2f4c[9].f20 = 2;
+    g_2f4c[9].f22 = 2;
+    g_2f4c[9].f1e = 3;
+    g_2f4c[9].f02 = 3;
+    g_2f4c[9].f24 = 3;
+    g_2f4c[9].f30 = 0x10;
+    g_2f4c[9].f3a = 0x10e;
+    g_2f4c[9].f38 = 0x55;
+    g_2f4c[9].f2a = 6;
+    g_2f4c[9].f32 = 6;
+    g_2f4c[9].f34 = 7;
+    g_2f4c[9].f28 = 0;
+    g_2f4c[9].f44 = 0;
+    g_2f4c[9].f2e = 0;
+    g_2f4c[9].f4a = 0;
+    g_2f4c[9].f36 = 0;
+    g_2f4c[9].f4e = 0;
+    g_2f4c[9].f3c = 0x226;
+    if (g_920c == 3)
+        g_2f4c[9].f3e = 0xa;
+    else
+        g_2f4c[9].f3e = 0xa;
+    g_2f4c[23].f0c = 3;
+    g_2f4c[23].f0a = 0xc6;
+    g_2f4c[23].f08 = 0xd1;
+    g_2f4c[23].f30 = 0x2bc;
+    g_2f4c[23].f4a = 1;
+    g_2f4c[23].f3a = 0x384;
+    g_2f4c[23].f38 = 0x32;
+    g_2f4c[23].f32 = 7;
+    g_2f4c[23].f36 = 0x64;
+    g_2f4c[23].f12 = 0;
+    g_2f4c[23].f34 = 0;
+    g_2f4c[23].f4e = 0;
+    g_2f4c[23].f3c = 0;
+    if (g_920c == 3)
+        g_2f4c[23].f3e = 5;
+    else
+        g_2f4c[23].f3e = -1;
+    g_2f4c[13].f0c = 3;
+    g_2f4c[13].f0a = 0xc3;
+    g_2f4c[13].f08 = 0xc7;
+    g_2f4c[13].f30 = 4;
+    g_2f4c[13].f3a = 0x12c;
+    g_2f4c[13].f38 = 0x28;
+    g_2f4c[13].f12 = 0;
+    g_2f4c[13].f4a = 0;
+    g_2f4c[13].f32 = 0;
+    g_2f4c[13].f34 = 0;
+    g_2f4c[13].f36 = 0;
+    g_2f4c[13].f4e = 1;
+    g_2f4c[13].f3c = 0x2ee;
+    if (g_920c == 3)
+        g_2f4c[13].f3e = 0xa;
+    else
+        g_2f4c[13].f3e = 0x10;
+    g_2f4c[27].f0e = 5;
+    g_2f4c[27].f16 = 0x46;
+    g_2f4c[27].f18 = 0x14;
+    g_2f4c[27].f26 = 0x32;
+    g_2f4c[27].f28 = 0x2d;
+    g_2f4c[27].f1a = 2;
+    g_2f4c[27].f2a = 2;
+    g_2f4c[27].f0c = 1;
+    g_2f4c[27].f10 = 1;
+    g_2f4c[27].f12 = 1;
+    g_2f4c[27].f2c = 1;
+    g_2f4c[27].f42 = 1;
+    g_2f4c[27].f14 = 9;
+    g_2f4c[27].f48 = 9;
+    g_2f4c[27].f02 = 3;
+    g_2f4c[27].f08 = -1;
+    g_2f4c[27].f0a = -1;
+    g_2f4c[27].f04 = -1;
+    g_2f4c[27].f1c = 0;
+    g_2f4c[27].f1e = 0;
+    g_2f4c[27].f40 = 0;
+    g_2f4c[27].f44 = 0;
+    g_2f4c[27].f46 = 0;
+    g_2f4c[27].f2e = 0;
+    g_2f4c[27].f00 = 0;
+    g_2f4c[27].f06 = 0;
+    g_2f4c[27].f20 = 0;
+    g_2f4c[27].f22 = 0;
+    g_2f4c[27].f24 = 0;
+    g_2f4c[27].f30 = 0;
+    g_2f4c[27].f4a = 0;
+    g_2f4c[27].f28 = 0;
+    g_2f4c[27].f38 = 0;
+    g_2f4c[27].f32 = 0;
+    g_2f4c[27].f34 = 0;
+    g_2f4c[27].f36 = 0;
+    g_2f4c[27].f4e = 0;
+    if (g_920c == 3)
+        g_2f4c[27].f3e = 5;
+    else
+        g_2f4c[27].f3e = -1;
+    g_2f4c[14].f0e = 2;
+    g_2f4c[14].f12 = 4;
+    g_2f4c[14].f14 = 7;
+    g_2f4c[14].f18 = 0x14;
+    g_2f4c[14].f26 = 0xd2;
+    g_2f4c[14].f0c = 1;
+    g_2f4c[14].f10 = 1;
+    g_2f4c[14].f1e = 1;
+    g_2f4c[14].f2c = 1;
+    g_2f4c[14].f42 = 1;
+    g_2f4c[14].f46 = 1;
+    g_2f4c[14].f00 = 0x15;
+    g_2f4c[14].f06 = 0x2a8;
+    g_2f4c[14].f08 = 0xc8;
+    g_2f4c[14].f0a = -1;
+    g_2f4c[14].f04 = -1;
+    g_2f4c[14].f20 = 0x1c;
+    g_2f4c[14].f2a = 6;
+    g_2f4c[14].f22 = 6;
+    g_2f4c[14].f1c = 3;
+    g_2f4c[14].f02 = 3;
+    g_2f4c[14].f24 = 3;
+    g_2f4c[14].f30 = 0x1e;
+    g_2f4c[14].f3a = 0x172;
+    g_2f4c[14].f16 = 0x64;
+    g_2f4c[14].f38 = 0x64;
+    g_2f4c[14].f32 = 8;
+    g_2f4c[14].f34 = 9;
+    g_2f4c[14].f1a = 0;
+    g_2f4c[14].f40 = 0;
+    g_2f4c[14].f28 = 0;
+    g_2f4c[14].f44 = 0;
+    g_2f4c[14].f2e = 0;
+    g_2f4c[14].f48 = 0;
+    g_2f4c[14].f4a = 0;
+    g_2f4c[14].f36 = 0;
+    g_2f4c[14].f4e = 0;
+    g_2f4c[14].f3c = 0x384;
+    if (g_920c == 3)
+        g_2f4c[14].f3e = 7;
+    else
+        g_2f4c[14].f3e = -1;
+    g_2f4c[17].f0e = 4;
+    g_2f4c[17].f12 = 5;
+    g_2f4c[17].f14 = 7;
+    g_2f4c[17].f16 = 0x78;
+    g_2f4c[17].f18 = 0x14;
+    g_2f4c[17].f26 = 0x3c;
+    g_2f4c[17].f00 = 9;
+    g_2f4c[17].f06 = 0x35c;
+    g_2f4c[17].f08 = 0xcb;
+    g_2f4c[17].f0a = -1;
+    g_2f4c[17].f04 = -1;
+    g_2f4c[17].f20 = 0x1c;
+    g_2f4c[17].f22 = 6;
+    g_2f4c[17].f0c = 3;
+    g_2f4c[17].f02 = 3;
+    g_2f4c[17].f24 = 3;
+    g_2f4c[17].f30 = 8;
+    g_2f4c[17].f3a = 0x172;
+    g_2f4c[17].f38 = 0x64;
+    g_2f4c[17].f32 = 2;
+    g_2f4c[17].f1a = 0;
+    g_2f4c[17].f1c = 0;
+    g_2f4c[17].f1e = 0;
+    g_2f4c[17].f40 = 0;
+    g_2f4c[17].f28 = 0;
+    g_2f4c[17].f44 = 0;
+    g_2f4c[17].f48 = 0;
+    g_2f4c[17].f4a = 0;
+    g_2f4c[17].f36 = 0;
+    g_2f4c[17].f10 = 1;
+    g_2f4c[17].f2a = 1;
+    g_2f4c[17].f2c = 1;
+    g_2f4c[17].f42 = 1;
+    g_2f4c[17].f46 = 1;
+    g_2f4c[17].f2e = 1;
+    g_2f4c[17].f34 = 1;
+    g_2f4c[17].f4e = 1;
+    g_2f4c[17].f3c = 0x258;
+    if (g_920c == 3)
+        g_2f4c[17].f3e = 0xa;
+    else
+        g_2f4c[17].f3e = -1;
+    g_2f4c[21].f14 = 4;
+    g_2f4c[21].f16 = 0x5f;
+    g_2f4c[21].f18 = 0x14;
+    g_2f4c[21].f26 = 0x55;
+    g_2f4c[21].f00 = 0xf;
+    g_2f4c[21].f06 = 0xbc;
+    g_2f4c[21].f08 = 0xcf;
+    g_2f4c[21].f1a = -1;
+    g_2f4c[21].f0a = -1;
+    g_2f4c[21].f04 = -1;
+    g_2f4c[21].f20 = 2;
+    g_2f4c[21].f10 = 3;
+    g_2f4c[21].f2a = 3;
+    g_2f4c[21].f02 = 3;
+    g_2f4c[21].f22 = 3;
+    g_2f4c[21].f24 = 3;
+    g_2f4c[21].f30 = 8;
+    g_2f4c[21].f3a = 0x15e;
+    g_2f4c[21].f38 = 0x5a;
+    g_2f4c[21].f12 = 5;
+    g_2f4c[21].f32 = 5;
+    g_2f4c[21].f1c = 0;
+    g_2f4c[21].f1e = 0;
+    g_2f4c[21].f40 = 0;
+    g_2f4c[21].f28 = 0;
+    g_2f4c[21].f44 = 0;
+    g_2f4c[21].f46 = 0;
+    g_2f4c[21].f2e = 0;
+    g_2f4c[21].f48 = 0;
+    g_2f4c[21].f4a = 0;
+    g_2f4c[21].f36 = 0;
+    g_2f4c[21].f0c = 1;
+    g_2f4c[21].f0e = 1;
+    g_2f4c[21].f2c = 1;
+    g_2f4c[21].f42 = 1;
+    g_2f4c[21].f34 = 1;
+    g_2f4c[21].f4e = 1;
+    g_2f4c[21].f3c = 0x28a;
+    if (g_920c == 3)
+        g_2f4c[21].f3e = 7;
+    else
+        g_2f4c[21].f3e = -1;
+    g_2f4c[16].f0c = 2;
+    g_2f4c[16].f14 = 7;
+    g_2f4c[16].f16 = 0x32;
+    g_2f4c[16].f18 = 0x14;
+    g_2f4c[16].f26 = 0x15e;
+    g_2f4c[16].f2e = 8;
+    g_2f4c[16].f2a = 6;
+    g_2f4c[16].f48 = 6;
+    g_2f4c[16].f00 = 0x17;
+    g_2f4c[16].f08 = 0xca;
+    g_2f4c[16].f06 = 0x348;
+    g_2f4c[16].f0a = 0x348;
+    g_2f4c[16].f04 = -1;
+    g_2f4c[16].f20 = 0x18;
+    g_2f4c[16].f30 = 0xe;
+    g_2f4c[16].f10 = 1;
+    g_2f4c[16].f12 = 1;
+    g_2f4c[16].f2c = 1;
+    g_2f4c[16].f42 = 1;
+    g_2f4c[16].f4a = 1;
+    g_2f4c[16].f3a = 0x104;
+    g_2f4c[16].f38 = 0x50;
+    g_2f4c[16].f0e = 4;
+    g_2f4c[16].f22 = 4;
+    g_2f4c[16].f24 = 4;
+    g_2f4c[16].f32 = 4;
+    g_2f4c[16].f02 = 5;
+    g_2f4c[16].f34 = 5;
+    g_2f4c[16].f1a = 0;
+    g_2f4c[16].f1c = 0;
+    g_2f4c[16].f1e = 0;
+    g_2f4c[16].f40 = 0;
+    g_2f4c[16].f28 = 0;
+    g_2f4c[16].f44 = 0;
+    g_2f4c[16].f46 = 0;
+    g_2f4c[16].f36 = 0;
+    g_2f4c[16].f4e = 0;
+    g_2f4c[16].f3c = 0x1f4;
+    if (g_920c == 3)
+        g_2f4c[16].f3e = 0xa;
+    else
+        g_2f4c[16].f3e = -1;
+    g_2f4c[22].f14 = 5;
+    g_2f4c[22].f16 = 0x50;
+    g_2f4c[22].f26 = 0xc8;
+    g_2f4c[22].f18 = 0x14;
+    g_2f4c[22].f2a = 0x14;
+    g_2f4c[22].f0c = 1;
+    g_2f4c[22].f10 = 1;
+    g_2f4c[22].f2c = 1;
+    g_2f4c[22].f42 = 1;
+    g_2f4c[22].f44 = 1;
+    g_2f4c[22].f46 = 1;
+    g_2f4c[22].f08 = 0xd0;
+    g_2f4c[22].f0a = 0xc7;
+    g_2f4c[22].f06 = -1;
+    g_2f4c[22].f04 = -1;
+    g_2f4c[22].f20 = 0x1c;
+    g_2f4c[22].f12 = 3;
+    g_2f4c[22].f22 = 3;
+    g_2f4c[22].f0e = 2;
+    g_2f4c[22].f00 = 2;
+    g_2f4c[22].f24 = 2;
+    g_2f4c[22].f30 = 0x1e;
+    g_2f4c[22].f3a = 0x168;
+    g_2f4c[22].f38 = 0x6e;
+    g_2f4c[22].f32 = 7;
+    g_2f4c[22].f34 = 8;
+    g_2f4c[22].f36 = 0x96;
+    g_2f4c[22].f1a = 0;
+    g_2f4c[22].f1c = 0;
+    g_2f4c[22].f1e = 0;
+    g_2f4c[22].f40 = 0;
+    g_2f4c[22].f28 = 0;
+    g_2f4c[22].f2e = 0;
+    g_2f4c[22].f48 = 0;
+    g_2f4c[22].f02 = 0;
+    g_2f4c[22].f4a = 0;
+    g_2f4c[22].f4e = 0;
+    g_2f4c[22].f3c = 0;
+    if (g_920c == 3)
+        g_2f4c[22].f3e = 7;
+    else
+        g_2f4c[22].f3e = -1;
+    g_2f4c[24].f0e = 2;
+    g_2f4c[24].f0a = 0xbd;
+    g_2f4c[24].f08 = 0xd2;
+    g_2f4c[24].f30 = 3;
+    g_2f4c[24].f28 = 0x28;
+    g_2f4c[24].f38 = 0x14;
+    g_2f4c[24].f0c = 1;
+    g_2f4c[24].f4e = 1;
+    g_2f4c[24].f12 = 0;
+    g_2f4c[24].f4a = 0;
+    g_2f4c[24].f32 = 0;
+    g_2f4c[24].f34 = 0;
+    g_2f4c[24].f36 = 0;
+    g_2f4c[24].f3c = 0;
+    if (g_920c == 3)
+        g_2f4c[24].f3e = 5;
+    else
+        g_2f4c[24].f3e = -1;
+    g_2f4c[25].f0e = 2;
+    g_2f4c[25].f0c = 1;
+    g_2f4c[25].f0a = 0xc0;
+    g_2f4c[25].f08 = 0xd3;
+    g_2f4c[25].f30 = 3;
+    g_2f4c[25].f28 = 0x28;
+    g_2f4c[25].f38 = 0x14;
+    g_2f4c[25].f12 = 0;
+    g_2f4c[25].f4a = 0;
+    g_2f4c[25].f32 = 0;
+    g_2f4c[25].f34 = 0;
+    g_2f4c[25].f36 = 0;
+    g_2f4c[25].f4e = 0;
+    g_2f4c[25].f3c = 0;
+    if (g_920c == 3)
+        g_2f4c[25].f3e = 7;
+    else
+        g_2f4c[25].f3e = -1;
+    g_2f4c[26].f0e = 2;
+    g_2f4c[26].f0a = 0xc1;
+    g_2f4c[26].f08 = 0xd4;
+    g_2f4c[26].f30 = 3;
+    g_2f4c[26].f28 = 0x28;
+    g_2f4c[26].f38 = 0x14;
+    g_2f4c[26].f0c = 1;
+    g_2f4c[26].f4e = 1;
+    g_2f4c[26].f12 = 0;
+    g_2f4c[26].f4a = 0;
+    g_2f4c[26].f32 = 0;
+    g_2f4c[26].f34 = 0;
+    g_2f4c[26].f36 = 0;
+    g_2f4c[26].f3c = 0;
+    if (g_920c == 3)
+        g_2f4c[26].f3e = 5;
+    else
+        g_2f4c[26].f3e = -1;
 }
 
 /* Fills in the table of 12 0x14-byte records at DS:4da4 (string ids
@@ -1508,4 +2470,202 @@ int far fn_10_18b0(int k1, int k2, int type, int flag, int rec)
     g_4d90[rec].f08 = m;
     g_4d90[rec].f09 = cell;
     return free;
+}
+
+/* Sets the per-list object defaults (sizes scaled by the zoom g_9156,
+ * draw/collision handlers f5e/f62/f66) for every object of lists 0..11,
+ * then clears g_2408 and g_238c. f28 is stored twice for list 0 (as in
+ * the original). */
+/* @addr 10:0b94 */
+void far fn_10_0b94(void)
+{
+    int i;
+    int v6;
+    int v8;
+
+    for (i = 0; i < g_92ec[0]; i++) {
+        g_1df8[0][i].f22 = SC(32);
+        g_1df8[0][i].f20 = 256;
+        g_1df8[0][i].f24 = SC(6);
+        g_1df8[0][i].f28 = i;
+        g_1df8[0][i].f44 = 160;
+        g_1df8[0][i].f42 = 18;
+        g_1df8[0][i].f46 = 2;
+        g_1df8[0][i].f62 = fn_11_39d8;
+        g_1df8[0][i].f5e = fn_07_233c;
+        g_1df8[0][i].f53 = 1;
+        g_1df8[0][i].f28 = i;
+    }
+    for (i = 0; i < g_92ec[1]; i++) {
+        g_1df8[1][i].f22 = SC(20);
+        g_1df8[1][i].f24 = SC(6);
+        g_1df8[1][i].f20 = 160;
+        g_1df8[1][i].f44 = 60;
+        g_1df8[1][i].f42 = 18;
+        g_1df8[1][i].f4c = 0x808000L;
+        g_1df8[1][i].f2c = 14;
+        g_1df8[1][i].f1e = 0;
+        g_1df8[1][i].f18 = 1;
+        g_1df8[1][i].f04.x = -1000;
+        g_1df8[1][i].f04.y = -1000;
+        g_1df8[1][i].f66 = fn_07_2e02;
+        g_1df8[1][i].f62 = fn_11_3914;
+        g_1df8[1][i].f5e = fn_07_2652;
+        g_1df8[1][i].f53 = 0;
+        g_1df8[1][i].f48 = 1;
+    }
+    for (i = 0; i < g_92ec[2]; i++) {
+        g_1df8[2][i].f22 = SC(14);
+        g_1df8[2][i].f24 = SC(2);
+        g_1df8[2][i].f20 = 104;
+        g_1df8[2][i].f44 = 55;
+        g_1df8[2][i].f48 = 0;
+        g_1df8[2][i].f42 = 7;
+        g_1df8[2][i].f2f = 4;
+        g_1df8[2][i].f4c = 0xffffL;
+        g_1df8[2][i].f62 = fn_11_3914;
+        g_1df8[2][i].f5e = fn_08_95f2;
+        g_1df8[2][i].f53 = 0;
+    }
+    for (i = 0; i < g_92ec[3]; i++) {
+        if (i < g_92ec[3] - g_92ea) {
+            g_1df8[3][i].f22 = SC(44);
+            g_1df8[3][i].f20 = 344;
+            g_1df8[3][i].f44 = 1400;
+            g_1df8[3][i].f62 = fn_11_3bae;
+            g_1df8[3][i].f2c = 60;
+            g_1df8[3][i].f24 = SC(4);
+        } else {
+            g_1df8[3][i].f22 = SC(22);
+            g_1df8[3][i].f20 = 168;
+            g_1df8[3][i].f44 = 350;
+            g_1df8[3][i].f62 = fn_11_3914;
+            g_1df8[3][i].f2c = 200;
+            g_1df8[3][i].f24 = SC(4);
+            if (g_9156 == 2)
+                g_1df8[3][i].f24 = 4;
+            if (g_9156 == 1 && g_0740)
+                g_1df8[3][i].f24 = 2;
+            if (g_9156 == 0 && g_0740)
+                g_1df8[3][i].f24 = 1;
+        }
+        g_1df8[3][i].f48 = 9;
+        g_1df8[3][i].f42 = 8;
+        g_1df8[3][i].f46 = 4;
+        g_1df8[3][i].f4c = 0xc0c0c0L;
+        g_1df8[3][i].f5e = fn_07_5090;
+        g_1df8[3][i].f53 = 0;
+        g_1df8[3][i].f54 = 0;
+    }
+    if (!g_9214) {
+        v6 = 36;
+        v8 = 6;
+    } else {
+        v6 = 30;
+        v8 = 4;
+    }
+    for (i = 0; i < g_92ec[4]; i++) {
+        g_1df8[4][i].f22 = SC(v6);
+        g_1df8[4][i].f20 = v6 * 8;
+        g_1df8[4][i].f24 = SC(v8);
+        g_1df8[4][i].f44 = 110;
+        g_1df8[4][i].f42 = 30;
+        g_1df8[4][i].f4c = 0xffL;
+        g_1df8[4][i].f48 = 10;
+        g_1df8[4][i].f46 = 5;
+        g_1df8[4][i].f62 = fn_11_3bae;
+        g_1df8[4][i].f5e = fn_12_0dc4;
+        g_1df8[4][i].f53 = 1;
+        g_1df8[4][i].f54 = 0;
+    }
+    for (i = 0; i < g_92ec[5]; i++) {
+        g_1df8[5][i].f44 = 120;
+        g_1df8[5][i].f42 = 100;
+        g_1df8[5][i].f4c = 0xffL;
+        g_1df8[5][i].f62 = fn_11_3914;
+        g_1df8[5][i].f5e = fn_07_570a;
+        g_1df8[5][i].f53 = 0;
+        g_1df8[5][i].f54 = 0;
+    }
+    for (i = 0; i < g_92ec[6]; i++) {
+        g_1df8[6][i].f44 = 20;
+        g_1df8[6][i].f42 = 6;
+        g_1df8[6][i].f4c = 0x7f00L;
+        g_1df8[6][i].f2c = -1;
+        g_1df8[6][i].f48 = 5;
+        g_1df8[6][i].f62 = fn_11_3914;
+        g_1df8[6][i].f5e = fn_07_2652;
+        g_1df8[6][i].f53 = 0;
+        g_1df8[6][i].f54 = 0;
+    }
+    g_1df8[7][0].f22 = SC(40);
+    g_1df8[7][0].f20 = 320;
+    g_1df8[7][0].f24 = SC(6);
+    g_1df8[7][0].f44 = 800;
+    g_1df8[7][0].f42 = 8;
+    g_1df8[7][0].f18 = 1;
+    g_1df8[7][0].f2c = 800;
+    g_1df8[7][0].f46 = 1;
+    g_1df8[7][0].f48 = 7;
+    g_1df8[7][0].f66 = fn_12_274a;
+    g_1df8[7][0].f62 = fn_11_37a0;
+    g_1df8[7][0].f5e = fn_16_085e;
+    g_1df8[7][0].f53 = 0;
+    g_1df8[7][0].f54 = 0;
+    for (i = 0; i < g_92ec[8]; i++) {
+        g_1df8[8][i].f0c = 0;
+        g_1df8[8][i].f0e = 0;
+        g_1df8[8][i].f53 = 0;
+    }
+    for (i = 0; i < g_92ec[9]; i++) {
+        g_1df8[9][i].f22 = SC(38);
+        g_1df8[9][i].f20 = 296;
+        g_1df8[9][i].f24 = SC(4);
+        g_1df8[9][i].f44 = 360;
+        g_1df8[9][i].f18 = 1;
+        g_1df8[9][i].f42 = 18;
+        g_1df8[9][i].f46 = 6;
+        g_1df8[9][i].f2c = 80;
+        g_1df8[9][i].f48 = 4;
+        g_1df8[9][i].f62 = fn_11_39d8;
+        g_1df8[9][i].f5e = fn_07_2652;
+        g_1df8[9][i].f66 = fn_12_274a;
+        g_1df8[9][i].f53 = 0;
+        g_1df8[9][i].f54 = 0;
+        g_1df8[9][i].f2f = 7;
+    }
+    for (i = 0; i < g_92ec[10]; i++) {
+        g_1df8[10][i].f22 = SC(12);
+        g_1df8[10][i].f20 = 96;
+        g_1df8[10][i].f24 = SC(6);
+        g_1df8[10][i].f0c = 0;
+        g_1df8[10][i].f0e = 0;
+        g_1df8[10][i].f44 = 11;
+        g_1df8[10][i].f18 = 1;
+        g_1df8[10][i].f42 = 6;
+        g_1df8[10][i].f46 = 4;
+        g_1df8[10][i].f4c = 0x7f7f7fL;
+        g_1df8[10][i].f2c = -1;
+        g_1df8[10][i].f48 = 0;
+        g_1df8[10][i].f66 = fn_12_274a;
+        g_1df8[10][i].f62 = fn_11_3914;
+        g_1df8[10][i].f5e = fn_07_2652;
+        g_1df8[10][i].f53 = 0;
+        g_1df8[10][i].f54 = 0;
+    }
+    for (i = 0; i < g_92ec[11]; i++) {
+        g_1df8[11][i].f24 = SC(4);
+        g_1df8[11][i].f44 = 101;
+        g_1df8[11][i].f18 = 1;
+        g_1df8[11][i].f42 = 18;
+        g_1df8[11][i].f46 = 2;
+        g_1df8[11][i].f2c = 400;
+        g_1df8[11][i].f48 = 5;
+        g_1df8[11][i].f62 = fn_11_39d8;
+        g_1df8[11][i].f5e = fn_07_2652;
+        g_1df8[11][i].f66 = fn_12_6a60;
+        g_1df8[11][i].f53 = 1;
+        g_1df8[11][i].f54 = 0;
+    }
+    g_238c = g_2408 = 0;
 }

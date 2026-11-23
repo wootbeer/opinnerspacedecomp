@@ -365,3 +365,14 @@ Conventions
   value; `(x & 0xf) == 0xf` gives `and al`/`cmp al`.
 - A char-array index `[bx+si+0x34]` needs an array starting lower read with
   an offset (`f30[k + 4]`); `f34[k]` emits `add bx,0x34`.
+- CL pulls every store of the same constant in a basic block down to its last
+  occurrence (one register load). If the game repeats a constant in separate
+  groups, there were block boundaries in between. In 10:1fb2 they are
+  reproduced with degenerate `if (c) X; else X;` tests [inferred: the
+  original's real boundaries are unknown].
+- Long table initialisers can be generated from the disassembly in binary
+  store order (scripts in scratchpad/s10r5/).
+- In `SelectObject(dc, x = fn(...))` CL pushes dc before the inner call.
+- Race tracks (10:320a): LAZYLOOP, SDISPEED, GRANDPRI; layout in seg10b.c.
+- More types: g_fp_3c40 returns a bitmap handle; fn_10_6ec6 returns HBITMAP;
+  g_2408 is DWORD.
