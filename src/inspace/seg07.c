@@ -38,7 +38,8 @@ typedef struct {
     char f54;                   /* +54 */
     char p55[0x66 - 0x55];
     void (far *f66)(int type, int idx);  /* +66 */
-    char p6a[0x70 - 0x6a];
+    DWORD f6a;                  /* +6a */
+    char p6e[0x70 - 0x6e];
 } REC_70;
 
 #pragma pack(1)
@@ -62,18 +63,26 @@ typedef struct {                /* 0x23 bytes, DGROUP array at DS:57a8 */
     char p08[0x0a - 0x08];
     char f0a;
     char f0b;
-    char p0c[0x23 - 0x0c];
+    char p0c[0x1f - 0x0c];
+    DWORD f1f;                  /* +1f; 7:4a38 reaches it as g_57a8[n - 1].f1f */
 } REC_23;
 #pragma pack()
 
 typedef struct {                /* 0x15a bytes, DGROUP array at DS:7090 */
-    char p00[0x4e];
+    char p00[0x32];
+    int f32;                    /* +32 */
+    int f34;                    /* +34 */
+    int f36;                    /* +36 */
+    int f38;                    /* +38 */
+    char p3a[0x4e - 0x3a];
     int f4e;                    /* +4e */
     char p50[0xd0 - 0x50];
     int fd0;                    /* +d0 */
     char pd2[0xe3 - 0xd2];
     char fe3;                   /* +e3 */
-    char pe4[0x15a - 0xe4];
+    char pe4[0xea - 0xe4];
+    char fea;                   /* +ea */
+    char peb[0x15a - 0xeb];
 } REC_15A;
 
 typedef struct { int f0, f2, f4, f6; char rest[0x1e - 8]; } REC_1E;
@@ -202,6 +211,37 @@ extern int g_9512;
 extern int g_9514;
 extern HGDIOBJ g_3b4c[];
 void far pascal fn_08_083e(int a, int b);
+
+/* 0x1c-byte records at DS:2414, [?][5][5] (as in seg08.c). */
+typedef struct {
+    POINT p;                    /* +0 */
+    POINT q;                    /* +4 */
+    POINT r;                    /* +8 */
+    int fc;                     /* +c */
+    int fe;                     /* +e */
+    int f10;                    /* +10 */
+    int f12;                    /* +12 */
+    char p14[4];
+    POINT s;                    /* +18 */
+} REC_1CB;
+extern REC_1CB g_2414[][5][5];
+
+#pragma pack(1)
+typedef struct {                /* 0xad bytes, DGROUP array at DS:96f0 */
+    char p00[0x24];
+    int f24;                    /* +24 */
+    char p26[0xad - 0x26];
+} REC_AD;
+#pragma pack()
+extern REC_AD g_96f0[];
+typedef struct { int f0; int f2; char p4[0x14 - 4]; } REC_14C;
+extern REC_14C g_5a50[];        /* 20-byte records [inferred] */
+extern int g_9328;
+extern int g_934a;
+void far fn_13_16ac(int idx, int n);
+void far fn_13_b6f2(int a, int b);
+void far fn_08_45e0(int type, int idx, int c);
+void far fn_07_56ba(int n);
 
 void far pascal fn_08_1d54(int a, int b);
 void far pascal fn_08_1b54(int a, int b);
@@ -534,6 +574,63 @@ void far pascal fn_07_3400(int n)
 {
     fn_08_1d54((char)n | 0x100, 0x28);
     fn_08_1b54((char)n | 0x100, 3);
+}
+
+/* Breaks an object into 5x5 flying pieces with one of 8 motion
+ * patterns [inferred]. */
+/* @addr 7:342e */
+void far fn_07_342e(int n, int type, int idx)
+{
+    int i;
+    int j;
+    int u;
+    int u2;
+
+    u = g_1df8[type][idx].f22 / 5;
+    for (i = 0; i < 5; i++)
+        for (j = 0; j < 5; j++) {
+            g_2414[n][i][j].s.x = u * j * 8 + g_1df8[type][idx].f04;
+            g_2414[n][i][j].s.y = u * i * 8 + g_1df8[type][idx].f06;
+            g_2414[n][i][j].fc = g_1df8[type][idx].f0c / 10 + (j - 2) * 8;
+            g_2414[n][i][j].fe = g_1df8[type][idx].f0e / 10 + (2 - i) * 7;
+            g_2414[n][i][j].f10 = (i + 5) * 2 - j * 7;
+            g_2414[n][i][j].f12 = (-1 - j) * 4 + i * 6;
+            switch (rand() % 8) {
+            case 0:
+                g_2414[n][i][j].f10 = (i + 5) * 2 - j * 7;
+                g_2414[n][i][j].f12 = (-1 - j) * 4 + i * 6;
+                break;
+            case 1:
+                g_2414[n][i][j].f10 = (2 - j) * 7 + (2 - i) * (i - 2) * 2;
+                g_2414[n][i][j].f12 = (2 - j) * (j - 2) * 4 + (i - 2) * 6;
+                break;
+            case 2:
+                g_2414[n][i][j].f10 = (2 - j) * 7 + (2 - i) * (i - 2) * 2;
+                g_2414[n][i][j].f12 = (j - 2) * (j - 2) * 4 + (2 - i) * 6;
+                break;
+            case 3:
+                g_2414[n][i][j].f10 = -(2 - i) * 2 + (2 - j) * (5 - i) * 7;
+                g_2414[n][i][j].f12 = -(2 - i) * (j - 5) * 6 + (j - 2) * 4;
+                break;
+            case 4:
+                g_2414[n][i][j].f10 = (2 - j) * (i - 2);
+                g_2414[n][i][j].f12 = (j - 2) * (i - 2) * 7 + (2 - j) * (2 - i) * 2;
+                break;
+            case 5:
+                g_2414[n][i][j].f10 = ((2 - i) * (2 - i) * (i - 2) + j - 2) * 6;
+                g_2414[n][i][j].f12 = (2 - j) * (j - 2) * 2 + (i - 2) * 5;
+                break;
+            case 6:
+                g_2414[n][i][j].f10 = ((i - 2) * (i - 2) * (2 - i)
+                                       + (j - 2) * (j - 2) * (j - 2)) * 6;
+                g_2414[n][i][j].f12 = (2 - j) * (j - 2) * 2 + (i - 2) * (i - 2) * i * 7;
+                break;
+            case 7:
+                g_2414[n][i][j].f10 = j * 7 - i * 3 - 8;
+                g_2414[n][i][j].f12 = (i - 2) * (i - 2) * (i - 2) * 6;
+                break;
+            }
+        }
 }
 
 /* Moves the four sparks of each burst along curved paths [inferred]. */
@@ -1100,8 +1197,76 @@ void far fn_07_4d86(int n)
         fn_07_5b68(0, n, 0);
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
-void far fn_07_4a38(int a, int b, int c)
+/* Collision of object (type, idx) with window pane n [inferred]. */
+/* @addr 7:4a38 */
+void far fn_07_4a38(int type, int idx, int n)
 {
-    g_0a76 = a + b + c;
+    int i;
+    int k;                      /* kept in ax, never stored */
+    int u2;
+    int u3;
+    int u4;
+
+    if (type == g_9324 && g_96f0[g_7090[idx].f4e].f24 && !g_7090[idx].fea
+        && !g_1df8[0][n].f51)
+        fn_13_16ac(idx, (char)n);
+    else if (type == g_9328) {
+        if (g_1df8[g_9328][idx].f44 == 120) {
+            if (g_1df8[0][n].f2f < 0) {
+                for (i = 0; i < 4; i++)
+                    fn_07_5b68(0, n, 1);
+                if (g_1df8[0][n].f2f < -2)
+                    fn_10_754a(0x76, 0, n, 1);
+                g_1df8[0][n].f2f = -2;
+                fn_07_5660(n);
+                if (g_5a50[idx].f0 == g_9324)
+                    g_7090[g_5a50[idx].f2].f38 = g_7090[g_5a50[idx].f2].f36 = 2;
+            } else if (g_57a8[n].f02 == 0) {
+                g_57a8[n].f02 = 2;
+                g_57a8[n - 1].f1f = g_1e50 + 4000;
+                if (!g_1df8[0][n].f1e && g_1df8[0][n].f53 == 1 && g_5a50[idx].f0 == 14
+                    && g_7090[k = g_5a50[idx].f2].f32 == 0 && g_7090[k].f34 == n
+                    && g_7090[k].f38 == 1)
+                    fn_13_b6f2(k, 1);
+                fn_07_477e(n);
+                g_1df8[0][n].f53 = 0;
+            }
+        } else if (g_1df8[g_9328][idx].f44 == 200) {
+            if (g_57a8[n].f02 > 0) {
+                g_57a8[n].f02 = g_57a8[n].f00 = 0;
+                g_1df8[0][n].f2f = -2;
+                for (i = 0; i < 4; i++)
+                    fn_07_5b68(0, n, 1);
+                g_1df8[0][n].f53 = 1;
+                fn_10_754a(0x76, 0, n, 1);
+                fn_07_56ba(n);
+            } else if (g_1df8[0][n].f2f >= 0) {
+                fn_07_2512(n, 1);
+                g_1df8[0][n].f2f = -100;
+                g_1df8[0][n].f53 = 0;
+            }
+        }
+    }
+    if (type != g_9328 || g_1df8[g_9328][idx].f44 != 120)
+        fn_08_5df2(0, n, type, idx,
+                   fn_08_546c((type << 8) | (char)idx, &g_1df8[0][n].f0c, &g_1df8[0][n].f0e,
+                              g_1df8[0][n].f20 + 2, g_1df8[0][n].f44));
+    if (type == g_934a && g_1df8[g_934a][idx].f2f > 4) {
+        g_57a8[n].f00 = 80;
+        fn_10_754a(0x6a, 0, n, 1);
+    }
+    if (g_57a8[n].f02 > 0) {
+        switch (type) {
+        case 3:
+            g_1df8[type][idx].f2f = min(g_1df8[type][idx].f2f + 2, 9);
+            g_1df8[type][idx].f6a = g_1e50 + 5000;
+            break;
+        case 0:
+            g_57a8[idx].f02 = 2;
+            fn_07_477e(idx);
+            break;
+        }
+        if (type == g_9324 && idx == g_9646)
+            fn_08_45e0(g_9324, g_9646, 25);
+    }
 }

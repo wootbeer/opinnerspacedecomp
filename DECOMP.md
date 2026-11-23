@@ -191,3 +191,12 @@ Conventions
   (`fac == 0 || fac == 0`, keep with /* sic */).
 - DWORD (unsigned long) for timers: g_1e50, g_8e28, g_52d8, g_8e44.
   fn_08_35d0 returns int. The 0x1c-byte array likely starts at DS:66e4.
+- For commutative ops and compares the later-declared global is loaded first;
+  parameters count as declared after file-scope globals (an extern declared
+  inside the function changes that).
+- A local assigned but never read loses its store but keeps its load.
+- A stack slot written between pushes can be a CSE temp, not a local.
+- When the game indexes a global the source already knows equals a local,
+  write the global (`g_1df8[g_9328][idx]`), as the game does.
+- More types: fn_10_9526 returns HBITMAP; fn_08_083e is pascal (i, j);
+  DS:3c8c is POINT[4]; g_3d08 POINT[16], g_3ce8 int[16].

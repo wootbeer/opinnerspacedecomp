@@ -10,9 +10,9 @@ extern int g_95d8;
 extern int g_95dc;
 extern char g_87e0[];               /* run-time buffer (BSS) */
 extern char g_881c[];               /* run-time buffer (BSS) */
+extern DWORD g_1e50;              /* before g_6e28: compare operand order (15:5962) */
 extern DWORD g_6e28;
 extern long g_6e2c;
-extern DWORD g_1e50;
 
 extern int g_92a8;
 extern int g_92aa;
@@ -46,6 +46,47 @@ extern RECT g_3cb8;
 extern HDC g_929a;
 void far fn_10_949c(HDC dc, int x, int y, int w, int h, int style);
 HBITMAP far fn_10_6c02(int a, int b, int c);
+
+
+extern int flow_interactive;     /* DS:95bc */
+extern int g_9134;
+extern DWORD g_05b4;
+extern int g_91f8;
+extern int g_95ba;
+extern int g_95c8;
+extern int g_95ca;
+extern int g_95d4;
+extern int g_95de;
+extern char g_95e0[18];
+typedef struct { char p00[0x0a]; char name[0x41 - 0x0a]; } REC_41;
+extern REC_41 far *g_6e20;
+void far fn_15_10be(void);
+void far fn_15_5e22(int a);
+void far fn_15_6cdc(void);
+void far fn_15_7cda(void);
+void far fn_15_6890(void);
+void far fn_15_6b52(void);
+void far fn_15_7b34(void);
+void far fn_14_3eda(void);
+void far fn_14_31d0(int a, LPSTR s);
+void far fn_14_4074(void);
+void far fn_06_92b8(void);
+void far fn_06_930a(void);
+void far fn_06_1d9a(void);
+void far fn_06_1c72(int a);
+void far fn_06_7266(void);
+void far fn_10_7d58(int x, int y);
+
+extern int g_95da;
+extern DWORD g_130c;
+extern int g_920a;
+extern HDC g_3a14;
+int far fn_15_8174(int which, int n);
+
+extern int g_92d2;
+extern RECT g_3ca8;               /* after g_92d2: load order in 15:8604 */
+extern RECT g_6e30;
+extern RECT g_6084;
 
 void far fn_06_84fc(int a, int x, int y, int dx, int dy, int w, int h,
                     int c, int d, int e);
@@ -543,6 +584,114 @@ void far fn_15_7ba6(void)
     }
 }
 
+/* Demo screen: spinning logo, then the two name lines with sparks
+ * [inferred]. */
+/* @addr 15:7cda */
+void far fn_15_7cda(void)
+{
+    int i;
+    int size;
+    int gap;
+    int sz;
+    POINT p1;
+    int y2;
+    int u;
+    DWORD t;
+    int n;
+
+    gap = 4;
+    size = 38;
+    if (g_8ffc < 800)
+        g_95d2 += 6;
+    else
+        g_95d2 += 3;
+    if (g_95d2 >= 89)
+        g_95d2 = 0;
+    if (g_8ffc < 800)
+        g_95d0 += 6;
+    else
+        g_95d0 += 3;
+    if (g_95d0 > 300)
+        g_95d0 = 300;
+    sz = size * g_95d0 / 200;
+    SetStretchBltMode(g_13dc, COLORONCOLOR);
+    StretchBlt(g_13dc, g_90ea / 2 - sz / 2, g_0010 / 2 - sz / 2 - 20, sz, sz, g_3a14,
+               (gap + size) * (g_95d2 / 10) + gap, gap, size, size, SRCCOPY);
+    if (g_95d0 != 300)
+        return;
+    if (g_130c) {
+        if (g_130c < g_1e50) {
+            fn_15_811a();
+            g_130c = 0;
+        }
+        return;
+    }
+    if (!g_6e2c) {
+        if (fn_15_8174(g_95dc, g_95da)) {
+            if (!g_95dc) {
+                fn_15_80da();
+                fn_15_8174(g_95dc, -1);
+                g_95dc++;
+            } else {
+                g_6e2c = g_1e50 + 3000;
+                fn_15_80da();
+                fn_15_8174(g_95dc, -1);
+            }
+            g_95da = 0;
+            return;
+        }
+        if (g_8ffc > 900 && g_920a > 1)
+            g_95da += 2;
+        else
+            g_95da += 4;
+        if (!(g_95da & 1))
+            fn_10_754a(0x14, LOWORD(g_3b98), HIWORD(g_3b98), 4);
+        return;
+    }
+    if (g_6e2c >= g_1e50)
+        return;
+    p1.x = g_90ea / 2;
+    p1.y = g_0010 / 2 - 20;
+    y2 = g_0010 / 2 - 150;
+    if (g_920a == 1)
+        n = 1;
+    else
+        n = 4;
+    for (i = 0; i < n; i++) {
+        fn_15_80b0(*(long *)&p1, MAKELONG(rand() % 300 + g_90ea / 2 - 150, y2));
+        fn_10_754a(0x22, LOWORD(g_3b98), HIWORD(g_3b98), 4);
+        t = GetCurrentTime() + 40;
+        do
+            ;
+        while (GetCurrentTime() < t);
+    }
+    fn_15_80da();
+    PatBlt(g_13dc, 0, g_0010 / 2 - 150, g_90ea, 40, BLACKNESS);
+    StretchBlt(g_13dc, g_90ea / 2 - sz / 2, g_0010 / 2 - sz / 2 - 20, sz, sz, g_3a14,
+               (gap + size) * (g_95d2 / 10) + gap, gap, size, size, SRCCOPY);
+    t = GetCurrentTime() + 270;
+    do
+        ;
+    while (GetCurrentTime() < t);
+    y2 = g_0010 / 2 + 100;
+    for (i = 0; i < n; i++) {
+        fn_15_80b0(*(long *)&p1, MAKELONG(rand() % 300 + g_90ea / 2 - 150, y2));
+        fn_10_754a(0x22, LOWORD(g_3b98), HIWORD(g_3b98), 4);
+        t = GetCurrentTime() + 40;
+        do
+            ;
+        while (GetCurrentTime() < t);
+    }
+    fn_15_80da();
+    PatBlt(g_13dc, 0, g_0010 / 2 + 100, g_90ea, 40, BLACKNESS);
+    g_1e50 = GetCurrentTime();
+    if (++g_95d8 > 5) {
+        g_6e28 = g_1e50 + 4000;
+        g_6e2c = g_1e50 + 9000;
+    } else
+        g_130c = g_1e50 + 1000;
+}
+
 /* @addr 15:811a */
 void far fn_15_811a(void)
 {
@@ -551,6 +700,102 @@ void far fn_15_811a(void)
     g_95dc = 0;
     g_6e2c = 0;
     g_6e28 = g_1e50 + 90000L;
+}
+
+/* Draws the first n letters of a name centred on screen, small letters
+ * as smaller capitals [inferred]. */
+/* @addr 15:8174 */
+int far fn_15_8174(int which, int n)
+{
+    char buf[80];
+    char buf2[80];
+    int i;
+    int dy;
+    int w;
+    int orig;
+    HGDIOBJ old;
+    HFONT font1;
+    HFONT font2;
+    COLORREF oldtext;
+    COLORREF oldbk;
+    POINT p1;
+    POINT p2;
+    char ch[2];
+    extern int g_1c70;          /* block scope: makes CL load it before n */
+
+    if (g_95d8 > 5)
+        return 1;
+    orig = n;
+    n /= 2;
+    if (!which) {
+        lstrcpy(buf, g_87e0);
+        dy = -150;
+    } else {
+        lstrcpy(buf, g_881c);
+        dy = 100;
+    }
+    if (orig == -1)
+        n = lstrlen(buf);
+    else if (lstrlen(buf) < n)
+        return 1;
+    font1 = CreateFont(28, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, "Arial");
+    font2 = CreateFont(22, 13, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, "Arial");
+    if (!n) {
+        lstrcpy(buf2, buf);
+        MoveTo(g_13dc, -2000, 0);
+        SetTextAlign(g_13dc, TA_UPDATECP);
+        for (i = g_1c70 = 0; i < lstrlen(buf2); i++) {
+            ch[0] = buf2[i];
+            ch[1] = 0;
+            if (ch[0] < '{' && ch[0] > '`') {
+                ch[0] -= 0x20;
+                old = SelectObject(g_13dc, font2);
+            } else
+                old = SelectObject(g_13dc, font1);
+            TextOut(g_13dc, 0, 0, ch, 1);
+            SelectObject(g_13dc, old);
+        }
+        g_1c70 = LOWORD(GetCurrentPosition(g_13dc)) + 2000;
+    }
+    w = g_1c70 * n / lstrlen(buf);
+    if (orig != -1) {
+        p1.x = g_90ea / 2;
+        p1.y = g_0010 / 2 - 20;
+        p2.x = g_90ea / 2 - g_1c70 / 2 + w;
+        if (orig / 2 != n)
+            p2.x += 10;
+        p2.y = g_0010 / 2 + dy;
+        fn_15_80b0(*(long *)&p1, *(long *)&p2);
+    }
+    oldbk = SetBkColor(g_13dc, 0L);
+    SetBkMode(g_13dc, TRANSPARENT);
+    MoveTo(g_13dc, g_90ea / 2 - g_1c70 / 2, g_0010 / 2 + dy);
+    if (g_90ee < 8)
+        oldtext = SetTextColor(g_13dc, RGB(0, 0xff, 0xff));
+    else
+        oldtext = SetTextColor(g_13dc, PALETTERGB(0, 0xa5, 0xff));
+    for (i = 0; i < n; i++) {
+        ch[0] = buf[i];
+        ch[1] = 0;
+        if (ch[0] < '{' && ch[0] > '`') {
+            ch[0] -= 0x20;
+            old = SelectObject(g_13dc, font2);
+        } else
+            old = SelectObject(g_13dc, font1);
+        fn_15_7a62(ch);
+        SelectObject(g_13dc, old);
+    }
+    SetBkColor(g_13dc, oldbk);
+    SetTextColor(g_13dc, oldtext);
+    if (font1) {
+        DeleteObject(font1);
+        font1 = 0;
+    }
+    if (font2) {
+        DeleteObject(font2);
+        font2 = 0;
+    }
+    return 0;
 }
 
 /* @addr 15:84b0 */
@@ -578,10 +823,221 @@ void far fn_15_84b0(int x, int y)
     }
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Step of the demo/attract sequence, state g_95b8 [inferred]. */
+/* @addr 15:5962 */
 void far fn_15_5962(int a)
 {
+    int i;
+    int k;
+    char buf[30];
+    char buf2[30];
+
+    switch (g_95b8) {
+    case 0:
+        flow_interactive = 1;
+        fn_15_5e22(a);
+        break;
+    case 2:
+        fn_15_6cdc();
+        break;
+    case 3:
+        fn_15_7cda();
+        break;
+    case 4:
+        if (a)
+            fn_15_6890();
+        break;
+    case 5:
+        if (a && g_6e28 != g_1e50)
+            fn_15_6b52();
+        break;
+    case 6:
+        fn_15_10be();
+        break;
+    case 7:
+        return;
+    }
+    if (g_6e28 >= g_1e50)
+        return;
+    if (g_95b8 == 4 && g_95d6 < 1) {
+        g_95d6++;
+        if (g_920c == 1 || g_920c == 0)
+            g_6e28 = g_1e50 + 27000;
+        else
+            g_6e28 = g_1e50 + 17000;
+        fn_15_6890();
+        return;
+    }
+    fn_10_744c(0x6e);
+    PatBlt(g_13dc, 0, 0, g_90ea, g_0010, BLACKNESS);
+    g_95b8++;
+    if ((g_95b8 == 2 && g_90f8 && g_8f70) || g_95b8 > 5) {
+        flow_interactive = 0;
+        g_9134 = 1;
+        g_95b8 = 7;
+        g_05b4 = GetCurrentTime() + 120000L;
+        g_91f8 = 0;
+        if (g_90f8) {
+            g_95ba = GetPrivateProfileInt(g_9690, "DemoType", 0x207, g_96a9);
+            if (g_95ba == 0x207)
+                g_95ba = rand() % 4 + 0x208;
+            if (g_90f8 && g_95ba == 0x208) {
+                GetPrivateProfileString(g_9690, "Ship1", "", buf, 20, g_96a9);
+                if (!buf[0]) {
+                    fn_14_3eda();
+                    fn_14_31d0(0, buf);
+                    fn_14_4074();
+                    fn_06_92b8();
+                }
+                if ((k = fn_15_5d14()) != -1) {
+                    fn_14_3eda();
+                    lstrcpy(buf2, g_6e20[k].name);
+                    fn_14_4074();
+                }
+                if (lstrcmp(buf, buf2) || k == -1) {
+                    fn_06_92b8();
+                    WritePrivateProfileString(g_9690, "MainShip", buf, g_96a9);
+                }
+                g_9516 = 0;
+            } else
+                g_9516 = 1;
+        }
+        if (!g_9516)
+            fn_06_930a();
+        fn_06_1d9a();
+        fn_06_1c72(1);
+        return;
+    }
+    switch (g_95b8) {
+    case 0:
+        fn_10_7d58(g_90ea / 2, g_90ec / 2);
+        g_6e28 = g_1e50 + 65000;
+        g_95cc = 0;
+        g_95d0 = 400;
+        break;
+    case 1:
+        if (!g_8f70 || !g_90f8)
+            fn_10_7480(0, 1);
+        g_6e28 = g_1e50 + 1000;
+        break;
+    case 2:
+        fn_10_4b2e();
+        fn_06_7266();
+        g_6e28 = g_1e50 + 65000;
+        g_95cc = 0;
+        fn_10_6e76(8, g_94c4 = 1);
+        if (g_0010 < 440)
+            g_95de = 40;
+        else if (g_0010 < 500)
+            g_95de = 30;
+        else
+            g_95de = 0;
+        for (i = g_95d4 = g_95ca = g_95c8 = 0; i < 18; i++)
+            g_95e0[i] = 0;
+        break;
+    case 3:
+        fn_15_7b34();
+        break;
+    case 4:
+        fn_10_7d58(g_90ea / 2, g_90ec / 2);
+        if (g_920c == 0 || g_920c == 1)
+            g_6e28 = g_1e50 + 25000;
+        else
+            g_6e28 = g_1e50 + 18000;
+        g_95d6 = 0;
+        fn_15_6890();
+        break;
+    case 5:
+        g_6e28 = g_1e50 + 11000;
+        fn_15_6b52();
+        break;
+    }
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_15_5e22(int a)
+{
     g_95b8 = a;
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_15_6cdc(void)
+{
+    g_95b8 = 2;
+}
+
+
+/* Draws the bevelled frame of the picture panel g_3ca8 [inferred]. */
+/* @addr 15:8604 */
+void far fn_15_8604(void)
+{
+    HBITMAP bmp;
+    HGDIOBJ oldbmp;
+    HDC dc;
+    HGDIOBJ old;
+    HPALETTE pal;
+
+    g_92d2 = g_3ca8.bottom - g_3ca8.top - 15;
+    FillRect(g_929a, &g_3ca8, GetStockObject(LTGRAY_BRUSH));
+    SetRect(&g_6e30, g_3ca8.left + 25, g_3ca8.top + 25, g_3ca8.right - 25,
+            g_3ca8.top + g_92d2 - 25);
+    SetRect(&g_6084, g_3ca8.left + 25, g_3ca8.top + 25, g_3ca8.right - 25,
+            g_3ca8.top + g_92d2 - 25);
+    FillRect(g_929a, &g_6e30, GetStockObject(BLACK_BRUSH));
+    SetRect(&g_6e30, g_3ca8.left + 20, g_3ca8.top + 20, g_3ca8.right - 20, g_3ca8.top + 25);
+    FillRect(g_929a, &g_6e30, GetStockObject(DKGRAY_BRUSH));
+    SetRect(&g_6e30, g_3ca8.left + 20, g_3ca8.top + g_92d2 - 25, g_3ca8.right - 20,
+            g_3ca8.top + g_92d2 - 20);
+    FillRect(g_929a, &g_6e30, GetStockObject(WHITE_BRUSH));
+    SetRect(&g_6e30, g_3ca8.right - 25, g_3ca8.top + 20, g_3ca8.right - 20,
+            g_3ca8.top + g_92d2 - 20);
+    FillRect(g_929a, &g_6e30, GetStockObject(WHITE_BRUSH));
+    SetRect(&g_6e30, g_3ca8.left + 20, g_3ca8.top + 20, g_3ca8.left + 25,
+            g_3ca8.top + g_92d2 - 20);
+    FillRect(g_929a, &g_6e30, GetStockObject(DKGRAY_BRUSH));
+    SetRect(&g_6e30, g_3ca8.left, g_3ca8.top, g_3ca8.right, g_3ca8.top + 2);
+    FillRect(g_929a, &g_6e30, GetStockObject(WHITE_BRUSH));
+    SetRect(&g_6e30, g_3ca8.left, g_3ca8.top, g_3ca8.left + 2, g_3ca8.bottom);
+    FillRect(g_929a, &g_6e30, GetStockObject(WHITE_BRUSH));
+    SetRect(&g_6e30, g_3ca8.right - 2, g_3ca8.top, g_3ca8.right, g_3ca8.bottom);
+    FillRect(g_929a, &g_6e30, GetStockObject(DKGRAY_BRUSH));
+    SetRect(&g_6e30, g_3ca8.left, g_3ca8.bottom - 2, g_3ca8.right, g_3ca8.bottom);
+    FillRect(g_929a, &g_6e30, GetStockObject(DKGRAY_BRUSH));
+    old = SelectObject(g_929a, GetStockObject(WHITE_PEN));
+    MoveTo(g_929a, g_3ca8.left, g_3ca8.top + g_92d2 - 5);
+    LineTo(g_929a, g_3ca8.right - 1, g_3ca8.top + g_92d2 - 5);
+    SelectObject(g_929a, old);
+    bmp = fn_10_6c02(0x122, 0, -1);
+    dc = CreateCompatibleDC(g_13dc);
+    if (g_920e)
+        pal = SelectPalette(dc, g_920e, 0);
+    oldbmp = SelectObject(dc, bmp);
+    BitBlt(g_929a, g_3ca8.left + 20, g_3ca8.top + g_92d2 - 17, 44, 10, dc, 0, 0, SRCCOPY);
+    SelectObject(dc, oldbmp);
+    if (pal)
+        SelectPalette(dc, pal, 0);
+    DeleteDC(dc);
+    DeleteObject(bmp);
+    SelectObject(g_929a, CreatePen(PS_SOLID, 1, RGB(0, 0xff, 0)));
+    MoveTo(g_929a, g_3ca8.right - 19, g_3ca8.top + g_92d2 - 5);
+    LineTo(g_929a, g_3ca8.right - 38, g_3ca8.top + g_92d2 - 5);
+    DeleteObject(SelectObject(g_929a, old));
+    old = SelectObject(g_929a, GetStockObject(WHITE_PEN));
+    MoveTo(g_929a, g_3ca8.right - 20, g_3ca8.bottom - 16);
+    LineTo(g_929a, g_3ca8.right - 20, g_3ca8.bottom - 6);
+    LineTo(g_929a, g_3ca8.right - 35, g_3ca8.bottom - 6);
+    SelectObject(g_929a, CreatePen(PS_SOLID, 1, RGB(0x80, 0x80, 0x80)));   /* leaked */
+    LineTo(g_929a, g_3ca8.right - 35, g_3ca8.bottom - 16);
+    LineTo(g_929a, g_3ca8.right - 20, g_3ca8.bottom - 16);
+    DeleteObject(SelectObject(g_929a, old));
+    bmp = fn_10_6d38("CORNER");
+    dc = CreateCompatibleDC(g_13dc);
+    oldbmp = SelectObject(dc, bmp);
+    BitBlt(g_929a, g_3ca8.left + 20, g_3ca8.top + g_92d2 - 25, 5, 5, dc, 0, 0, SRCCOPY);
+    BitBlt(g_929a, g_3ca8.right - 26, g_3ca8.top + 20, 5, 5, dc, 0, 0, SRCCOPY);
+    SelectObject(dc, oldbmp);
+    DeleteDC(dc);
+    DeleteObject(bmp);
 }
 
 /* Draws a panel with frames, a label bitmap and three lamps in g_3cb8
