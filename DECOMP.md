@@ -445,3 +445,12 @@ Conventions
 - WPARAM (unsigned) parameters give jb/jbe/ja in switch range tests; int
   gives jl/jg.
 - fn_03_00f4's second parameter is char at the call sites (no sub ah,ah).
+- `va_arg` keeps the fetched value tracked in registers; a hand-written
+  `*((T *)ap)++` loses the tracking. Consecutive va_args compile to
+  `add [ap],2; mov bx,[ap]; [bx-2]`.
+- A `continue` target is placed after the first `continue` in source order;
+  to put it after the code following a switch, repeat the tail in each case.
+- Function declaration order decides which call CL evaluates first in a
+  commutative sum (later-declared first), like the rule for globals.
+- 10:a332 is the string-resource message formatter (LPSTR out, int id,
+  int n, ...); codes %s %a %v %A %S %V %l %d %# %< %> %N %n %? %D %R %%.

@@ -4,6 +4,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/utime.h>
+#include <stdarg.h>
+#include <stdlib.h>
 
 extern int g_90f4;
 extern int g_9228;
@@ -64,7 +66,14 @@ typedef struct {
     int id;
     char p02[0x12 - 0x02];
     int f12;            /* +0x12 */
-    char rest[0x34 - 0x14];
+    int f14;            /* +0x14 */
+    int f16;            /* +0x16 */
+    int f18;            /* +0x18 */
+    char p1a[0x20 - 0x1a];
+    int f20;            /* +0x20 */
+    char p22[0x26 - 0x22];
+    int f26;            /* +0x26: class [inferred] */
+    char rest[0x34 - 0x28];
 } REC_34;
 extern REC_34 g_3d5a[];
 extern int g_9416;
@@ -75,7 +84,8 @@ extern int g_92ec;
 typedef struct {
     int f00;            /* +0x00 */
     int f02;            /* +0x02 */
-    char p04[0x26];
+    int f04;            /* +0x04 */
+    char p06[0x24];
     int f2a;            /* +0x2a */
     char p2c[0x44 - 0x2c];
     int f44;            /* +0x44 */
@@ -107,9 +117,12 @@ typedef struct {
     int f00;
     int f02;
     union { long l; POINT pt; } f04;
-    char p08[0x10];
+    char p08[0x12 - 0x08];
+    int f12;            /* +0x12 */
+    char p14[0x18 - 0x14];
     int f18;
-    char p1a[0x22 - 0x1a];
+    char p1a[0x20 - 0x1a];
+    int f20;            /* +0x20 */
     int f22;            /* +0x22 */
     int f24;            /* +0x24 */
     char rest[0x70 - 0x26];
@@ -137,6 +150,55 @@ int far pascal fn_08_285a(int far *q, int far *p, POINT pt, long a);
 int far fn_10_7032(int a, int b, int c);
 extern int (far pascal *g_fp_3c3c)(int, int, int, int, int, int);
 void far fn_10_9a2a(int d);
+void far fn_10_5c42(void);
+void far fn_10_5b30(void);
+void far fn_10_9568(void);
+void far fn_10_533a(int a);
+void far fn_10_5d3c(int n);
+void far fn_10_1502(int i);
+int far fn_10_18b0(int k1, int k2, int type, int flag, int rec);
+void far fn_14_11a8(int i);
+void far fn_08_2cd8(int a, int b);
+void far fn_07_233c(int a, int n, int c);
+void far fn_09_94ba(void);
+BOOL far pascal fn_09_90fe(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam);
+extern int g_9408;
+extern int g_9326;
+extern int g_92e4;
+extern int g_103a;
+extern int g_9518;
+extern HWND g_934c;
+extern HDC g_3a02;
+extern HDC g_3a28;
+extern int g_4e94[];
+typedef struct { int f0, f2, f4; } REC_6;
+extern REC_6 g_381a[];
+typedef struct {                /* 0x14-byte records at DS:4d92 */
+    char f00;
+    char f01;
+    char p02[4];
+    char f06;
+    char f07;
+    char rest[0x14 - 8];
+} REC_14;
+extern REC_14 g_4d92[];
+typedef struct {                /* 0x7c bytes, far array at DS:6e24 */
+    char p00[0x7a];
+    char f7a;
+    char f7b;
+} REC_7C;
+extern REC_7C far *g_6e24;
+typedef struct {                /* 0x15a-byte object records at DS:7092 */
+    char p00[0x4c];
+    int f4c;            /* +0x4c: class record index */
+    char p4e[0xaa - 0x4e];
+    char faa;
+    char fab;
+    char pac[0xd4 - 0xac];
+    int fd4;            /* +0xd4 */
+    char rest[0x15a - 0xd6];
+} REC_15A_C;
+extern REC_15A_C g_7092[];
 extern int g_92e2;
 extern int g_103c;
 extern int g_9220;
@@ -146,6 +208,11 @@ extern int g_073e;
 extern DWORD g_2384;
 extern int g_920c;
 void far fn_06_0f1a(int n, char far *buf);
+void far fn_06_0eb8(long v, LPSTR buf);
+void far fn_03_1542(int a, int type, int n, LPSTR buf, int mode);
+void far fn_03_3498(LPSTR s, LPSTR a, LPSTR b);
+extern int g_93aa;
+extern char g_8768[], g_87b8[], g_8db0[];
 int far fn_10_6308(int a, int b, int c, int d);
 extern int g_0740;
 void far fn_10_9962(int unused, HDC dst, int x, int y, int w, int h, HDC src,
@@ -231,7 +298,7 @@ typedef struct {
 } REC_PILOT;
 #pragma pack()
 void far pascal fn_10_a118(REC_PILOT far *src, LPSTR dst);
-void far fn_10_a332(LPSTR out, int id, ...);
+void far fn_10_a332(LPSTR out, int id, int n, ...);
 void far fn_11_3fd4(LPSTR s, int a);
 int far fn_09_88ba(int x);
 extern int g_9460;
@@ -1692,10 +1759,183 @@ int far fn_10_7032(int a, int b, int c)
     return nbm;
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Zoom change [inferred] by d (-1/+1): new level d + g_9156 must be 0..2.
+ * Rescales the sprites (fn_10_6308), every object's size fields
+ * (g_1df8[type][n].f22/f24, f12), on the largest zoom with g_8fe8 the
+ * ships ("Loading Ship # ", strings built but not shown) and the 0x34-byte
+ * records, then the class records' sizes; saves "Size" (and "SetSize" when
+ * a person plays) to the INI file. The early MessageBeep return leaves
+ * g_931e at 0 (kept). */
+/* @addr 10:9a2a */
 void far fn_10_9a2a(int d)
 {
-    g_90f4 = d;
+    int i;
+    int j;
+    int nz;
+    int v;
+    int w;
+    int res;
+    int saved;
+    int unused;         /* never used; keeps the frame */
+    int flag;
+    int a;
+    int b;
+    int t;
+    char buf3[8];
+    char buf1[40];
+    char buf2[30];
+
+    if (g_90f4 != 1 || subgame_active) {
+        g_103c = 1;
+        return;
+    }
+    saved = g_931e;
+    g_931e = 0;
+    if (d + g_9156 > 2 || d + g_9156 < 0) {
+        MessageBeep(0);
+        return;
+    }
+    if (g_934c == 0) {
+        g_9518 = 1;
+        g_934c = CreateDialog(g_9212, MAKEINTRESOURCE(0x65), g_0016, fn_09_90fe);
+    }
+    if ((nz = d + g_9156) == 1 && d == 1)
+        g_103a = flag = 1;
+    else if (nz == 1 && d == -1 && g_8fe8 && !g_90f0)
+        g_103a = flag = 1;
+    else
+        flag = 0;
+    g_9156 = d + 1;
+    if (!flag) {
+        for (i = 0; i < 0x3a; i++) {
+            if (i == 0x20)
+                continue;
+            if (g_9156 == 2 && i > 0x27 && i < 0x30 && flag)
+                continue;
+            fn_10_6308(i, -1, -1, -2);
+        }
+    } else {
+        for (i = 0xe; i < g_92ec + 0xe; i++)
+            fn_10_6308(i, -1, -1, -2);
+    }
+    for (i = 0; i < g_9408; i++)
+        if (g_4e94[i])
+            g_4e94[i] = fn_10_6308(-1, -1, g_4e94[i], -1);
+    g_9156 = nz;
+    g_9150 = 4 - nz;
+    fn_10_0552(0x22, 1);
+    fn_10_5c42();
+    for (i = g_9326; i <= g_9324; i++) {
+        for (j = 0; j < (&g_92ec)[i]; j++) {
+            if (g_9156 == 0 && i == g_9324 && (g_1df8[i][j].f22 & 1)) {
+                g_1df8[i][j].f22++;
+                g_1df8[i][j].f24--;
+            }
+            g_1df8[i][j].f22 = g_1df8[i][j].f22 << (d + 1) >> 1;
+            g_1df8[i][j].f24 = g_1df8[i][j].f24 << (d + 1) >> 1;
+            if (i == 3 && d == 1 && g_9156 > 0
+                && g_1df8[i][j].f22 < 12 << g_9156)
+                g_1df8[i][j].f24 = 4;
+            if (i == 3 && g_9156 == 1 && g_1df8[i][j].f22 < 12 << g_9156
+                && g_8fe8 && !g_90f0)
+                g_1df8[i][j].f24 = 4;
+            g_1df8[i][j].f12 = g_1df8[i][j].f24;
+        }
+    }
+    if (flag || g_9156 == 2 && g_8fe8) {
+        for (i = 0x30; i < 0x3a; i++)
+            fn_10_0552(i, 1);
+        for (i = 0; i <= g_9316; i++) {
+            fn_10_0552(i + 0x28, 1);
+            a = g_7092[i].faa;
+            b = g_7092[i].fab;
+            lstrcpy(buf1, "Loading Ship # ");
+            fn_06_0f1a(i, buf2);
+            lstrcat(buf1, buf2);
+            fn_14_11a8(i);
+            if (g_7092[i].fd4 != -1) {
+                v = g_6e24[g_7092[i].fd4].f7a;
+                g_96d2[g_7092[i].f4c].f2a = v;
+                w = g_6e24[g_7092[i].fd4].f7b;
+            } else {
+                v = g_1df8[g_9324][i].f22;
+                g_96d2[g_7092[i].f4c].f2a = v;
+                w = g_1df8[g_9324][i].f24;
+            }
+            g_92e4 = 1;
+            g_1df8[g_9324][i].f22 = v << g_9156 >> 1;
+            g_1df8[g_9324][i].f24 = w << g_9156 >> 1;
+            g_1df8[g_9324][i].f12 = g_1df8[g_9324][i].f24;
+            if (!a)
+                fn_08_2cd8(i, 0);
+            if (!b)
+                fn_08_2cd8(i, 1);
+            g_92e4 = 0;
+        }
+        for (i = 0x17; i < 0x1c; i++) {
+            fn_10_0552(i, 1);
+            g_381a[i].f4 = g_381a[i].f0 = g_381a[i].f2 = -1;
+        }
+        for (i = 0; i < g_9416; i++) {
+            if (g_3d5a[i].f12 == 2) {
+                if (g_3d5a[i].f26 <= 2)
+                    g_3d5a[i].f12 = 1;
+                else if (g_3d5a[i].f26 >= 5) {
+                    if (g_4d92[g_3d5a[i].f26].f01 == -1)
+                        t = 1;
+                    else
+                        t = 0;
+                    res = fn_10_18b0(g_3d5a[i].f18, g_3d5a[i].f16, g_3d5a[i].f20,
+                                     t, g_3d5a[i].f26);
+                    g_1e18[i].f24 = g_4d92[g_3d5a[i].f26].f07 << g_9156 >> 1;
+                    g_1e18[i].f22 = g_4d92[g_3d5a[i].f26].f06 << g_9156 >> 1;
+                    g_1e18[i].f20 = g_1e18[i].f22 << 3;
+                    if (g_3d5a[i].id > 0 && g_2f4c[g_3d5a[i].id].f12)
+                        fn_10_533a(g_3d5a[i].id);
+                    g_3d5a[i].f14 = res;
+                }
+            }
+        }
+    }
+    if (flag) {
+        fn_10_9568();
+        fn_10_0552(0xd, 1);
+        fn_10_5b30();
+        for (i = 0; i < g_92ec; i++)
+            BitBlt(g_3a02, i * 0x26 + 6, 6, 0x20, 0x20, g_3a28, i << 5, 0, SRCCOPY);
+        fn_09_94ba();
+        for (i = 0; i < g_92ec; i++)
+            fn_07_233c(0, i, 0);
+    }
+    for (i = 0; i <= g_9316; i++) {
+        v = g_96d2[g_7092[i].f4c].f2a;
+        if (v & 1)
+            w = 5;
+        else
+            w = 6;
+        if (g_9156 == 0 && (v & 1)) {
+            v++;
+            w = 4;
+        }
+        g_96d2[g_7092[i].f4c].f02 = g_96d2[g_7092[i].f4c].f00 = (v >> g_9156) * 2 / 2;
+        if (g_96d2[g_7092[i].f4c].f04 < 0)
+            g_96d2[g_7092[i].f4c].f04 = 4 - g_96d2[g_7092[i].f4c].f04 - v / 2;
+        fn_10_1502(g_7092[i].f4c);
+        fn_10_5d3c(i);
+    }
+    fn_06_0f1a(g_9156, buf3);
+    WritePrivateProfileString(g_9690, "Size", buf3, g_96a9);
+    if (flow_interactive)
+        WritePrivateProfileString(g_9690, "SetSize", buf3, g_96a9);
+    if (g_934c) {
+        g_8f64 = 0;
+        DestroyWindow(g_934c);
+        g_9518 = 0;
+        g_934c = 0;
+        PostMessage(g_0016, 0x978, 0, 0L);
+    }
+    PatBlt(g_13dc, 0, 0, g_90ea, g_90ec, BLACKNESS);
+    g_931e = saved;
 }
 
 /* StretchBlt, or fn_10_6bca (g_fp_3c48) for an exact 2x stretch or a
@@ -2440,10 +2680,224 @@ void far pascal fn_10_a118(REC_PILOT far *src, LPSTR dst)
                    0x130);
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
-void far fn_10_a332(LPSTR out, int id, ...)
+/* Message formatter [inferred]: loads string resource id into a format
+ * and expands it into out (appending when n is 0; n == 2 also calls
+ * fn_03_3498). Codes: %s/%a/%v far string, %A/%S/%V string id, %l long,
+ * %d int, %# int plus a unit string id (+10000 unless the int is 1),
+ * %< %> optional section (an int switches it on; sections are joined
+ * with ", " and a final string 0x31d), %N/%n line break, %? pick one of
+ * two ids, %D fn_03_1542 text, %R random string id, %% percent; ^F ^M
+ * ^N ^P markers are skipped. */
+/* @addr 10:a332 */
+void far fn_10_a332(LPSTR out, int id, int n, ...)
 {
-    g_90f4 = id;
+    int i;
+    int len;
+    int outpos;
+    int count;
+    int k;
+    int j;
+    int val;
+    int ids[2];
+    long l;
+    char buf[80];
+    char c;
+    char fmt[200];
+    LPSTR s;
+    int on;
+    int flag;
+    va_list ap;
+
+    on = 1;
+    i = 0;
+    count = outpos = 0;
+    va_start(ap, n);
+    LoadString(g_9212, id, fmt, 0x82);
+    len = lstrlen(fmt);
+    if (n == 0)
+        outpos = lstrlen(out);
+    for (k = 0; k < len && i <= len; k++) {
+        if (fmt[i] != '%') {
+            flag = 0;
+            if (fmt[i] == '^') {
+                switch (fmt[i + 1]) {
+                case 'F':
+                case 'M':
+                case 'N':
+                case 'P':
+                    flag = 1;
+                    i++;
+                }
+            }
+            if (on && !flag) {
+                out[outpos] = fmt[i];
+                outpos++;
+            }
+            i++;
+        } else {
+            switch (c = fmt[i + 1]) {
+            case 's':
+            case 'a':
+            case 'v':
+                s = va_arg(ap, LPSTR);
+                if (on) {
+                    out[outpos] = 0;
+                    lstrcat(out + outpos, s);
+                    outpos += lstrlen(s);
+                }
+                i += 2;
+                break;
+            case 'A':
+            case 'S':
+            case 'V':
+                LoadString(g_9212, va_arg(ap, int), buf, 0x50);
+                if (on) {
+                    if (buf[lstrlen(buf) - 2] == '^')
+                        buf[lstrlen(buf) - 2] = 0;
+                    out[outpos] = 0;
+                    lstrcat(out + outpos, buf);
+                    outpos += lstrlen(buf);
+                }
+                i += 2;
+                break;
+            case '%':
+                if (on) {
+                    out[outpos] = '%';
+                    outpos++;
+                }
+                i += 2;
+                break;
+            case 'l':
+                l = va_arg(ap, long);
+                if (on) {
+                    fn_06_0eb8(l, buf);
+                    out[outpos] = 0;
+                    lstrcat(out + outpos, buf);
+                    outpos += lstrlen(buf);
+                }
+                i += 2;
+                break;
+            case '#':
+            case 'd':
+                val = va_arg(ap, int);
+                if (on) {
+                    fn_06_0f1a(val, buf);
+                    out[outpos] = 0;
+                    lstrcat(out + outpos, buf);
+                    outpos += lstrlen(buf);
+                }
+                if (c != 'd') {
+                    if (val != 1)
+                        val = 10000;
+                    else
+                        val = 0;
+                    val += va_arg(ap, int);
+                    if (on) {
+                        out[outpos++] = ' ';
+                        LoadString(g_9212, val, buf, 0x50);
+                        out[outpos] = 0;
+                        lstrcat(out + outpos, buf);
+                        outpos = lstrlen(buf) + outpos;
+                    }
+                }
+                i += 2;
+                break;
+            case '<':
+                on = va_arg(ap, int);
+                if (on) {
+                    for (j = i + 1 + 1; j < len; j++) {
+                        if (fmt[j] == '%') {
+                            if (fmt[j + 1] == '<') {
+                                if (count >= 1) {
+                                    out[outpos] = ',';
+                                    out[outpos + 1] = ' ';
+                                    outpos += 2;
+                                }
+                                count++;
+                                break;
+                            } else if (fmt[j + 1] == '>') {
+                                if (count > 0) {
+                                    LoadString(g_9212, 0x31d, buf, 0x14);
+                                    out[outpos] = 0;
+                                    lstrcat(out + outpos, buf);
+                                    outpos += lstrlen(buf);
+                                    out[outpos] = ' ';
+                                    outpos = outpos + 1;
+                                }
+                                count++;
+                                break;
+                            }
+                        }
+                    }
+                }
+                i += 2;
+                break;
+            case '>':
+                on = 1;
+                i += 2;
+                count = 0;
+                break;
+            case 'N':
+            case 'n':
+                if (on && !(g_93aa == 11 && c == 0)) {
+                    out[outpos] = '\r';
+                    out[outpos + 1] = '\n';
+                    outpos += 2;
+                }
+                i += 2;
+                break;
+            case '?':
+                val = va_arg(ap, int);
+                ids[0] = va_arg(ap, int);
+                ids[1] = va_arg(ap, int);
+                if (val > 1)
+                    val = 1;
+                LoadString(g_9212, ids[val], buf, 0x50);
+                if (on) {
+                    out[outpos] = 0;
+                    lstrcat(out + outpos, buf);
+                    outpos += lstrlen(buf);
+                }
+                i += 2;
+                break;
+            case 'D':
+                {
+                    int a, b, t;
+
+                    a = va_arg(ap, int);
+                    b = va_arg(ap, int);
+                    t = va_arg(ap, int);
+                    if (on) {
+                        fn_03_1542(t == 0 || t == 4 || t == 2 || t == 7 ? 1 : 0,
+                                   a, b, buf, t);
+                        out[outpos] = 0;
+                        lstrcat(out + outpos, buf);
+                        outpos += lstrlen(buf);
+                    }
+                }
+                i += 2;
+                break;
+            case 'R':
+                val = rand() % va_arg(ap, int);
+                val += va_arg(ap, int);
+                LoadString(g_9212, val, buf, 0x50);
+                if (on) {
+                    out[outpos] = 0;
+                    lstrcat(out + outpos, buf);
+                    outpos += lstrlen(buf);
+                }
+                i += 2;
+                break;
+            default:
+                i += 3;
+                break;
+            }
+        }
+    }
+    out[outpos] = 0;
+    va_end(ap);
+    if (n == 2)
+        fn_03_3498(g_8db0, g_8768, g_87b8);
 }
 
 /* "StratAsk": while the INI value is 0 or 1, asks (strings 0xb22..0xb25)

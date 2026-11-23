@@ -51,8 +51,8 @@ extern REC_AD g_96d2[];
 extern POINT g_7b60[][64];
 extern POINT g_7ba0[][64];
 extern POINT g_7be0[][4][16];
-int far fn_06_720c(int a);
 int far fn_06_71b2(int a);
+int far fn_06_720c(int a);   /* declared after 71b2: CL calls the later-declared one first in 10:1502's sum */
 typedef struct {
     int f00;
     int f02;
@@ -659,8 +659,7 @@ void far fn_10_1dd8(void)
 
 /* Fills g_7be0[i][k] (k = 0, 1) with 16 points of an ellipse with radii
  * g_96d2[i].f68[k], centred in a g_96d2[i].f2a square. */
-/* near-match 76%: 10:1502 (the y line: the original multiplies the first
- * call result at once; CL here spills it and needs 2 more stack bytes) */
+/* @addr 10:1502 */
 void far fn_10_1502(int i)
 {
     int w;
@@ -1920,9 +1919,7 @@ void far fn_10_0330(void)
 
 /* Fills the five points g_96d2[i].f50 [inferred: an arc of markers] from
  * the tables g_06d6 / g_06e0, scaled for the view size g_9156. */
-/* near-match 25%: 10:16ba (the else arm and the switch match; in the
- * subgame arm the original computes (-1 - 2 * g_9156) once and keeps it,
- * CL here folds the negation differently) */
+/* @addr 10:16ba */
 void far fn_10_16ba(int i)
 {
     int w;
@@ -1966,10 +1963,12 @@ void far fn_10_16ba(int i)
             break;
         }
         if (subgame_active) {
+            /* u1, u2 are never read: the assignments only fix CL's
+             * evaluation order (no stores are emitted) */
             g_96d2[i].f50[j].x = g_06d6[j] * r / 256 * (g_9156 * 2 + 1) / 6 +
-                                 (-1 - g_9156 * 2) * a / 6 + w / 2;
+                                 (u1 = -1 - g_9156 * 2) * a / 6 + w / 2;
             g_96d2[i].f50[j].y = (-1 - g_9156 * 2) * b / 6 -
-                                 g_06e0[j] * r / 256 * (g_9156 * 2 + 1) / 6 + w / 2;
+                                 (u2 = g_06e0[j] * r / 256 * (g_9156 * 2 + 1) / 6) + w / 2;
         } else {
             g_96d2[i].f50[j].x = (g_06d6[j] * r / 256 >> (2 - g_9156)) -
                                  (a >> (2 - g_9156)) + w / 2;
