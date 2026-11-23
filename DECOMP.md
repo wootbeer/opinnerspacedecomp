@@ -454,3 +454,10 @@ Conventions
   commutative sum (later-declared first), like the rule for globals.
 - 10:a332 is the string-resource message formatter (LPSTR out, int id,
   int n, ...); codes %s %a %v %A %S %V %l %d %# %< %> %N %n %? %D %R %%.
+- Once a file-scope declaration exists, a block-scope extern redeclaration
+  does not change compare operand order; move the file-scope one instead.
+- Several `?:` in one function can share one compiler temp; rewriting all of
+  them as if/else may be needed to fix the frame.
+- `switch (x) { case 0: A; break; default: B; }` gives `or ax,ax; je`; an `if`
+  gives `cmp [x],0`.
+- g_1906/g_1908 are one POINT; g_1dc4..g_1dca a RECT.
