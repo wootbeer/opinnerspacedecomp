@@ -283,6 +283,9 @@ void far fn_10_744c(int a);
 extern int g_93c2;
 extern int g_1868;
 extern int g_934e;
+extern int g_0aa2[4];              /* last drawn state per light [inferred] */
+extern int g_93fe;
+extern HBITMAP g_5034;
 extern int g_92d4;
 extern int g_95b8;
 extern int g_91f8;
@@ -562,7 +565,6 @@ void far fn_11_4928(int mode, DWORD t, LPSTR out);
 void far race_radar_background(int a);
 
 /* Not yet decompiled: stubs so calls to them compile as near calls. */
-void far fn_11_05fe(int a) { }
 void far pascal fn_11_4e0a(int a) { }
 void far fn_11_41bc(HDC dc, int a, int b);
 void far pascal fn_11_6b64(int msg, int wparam, long lparam) { }
@@ -572,6 +574,109 @@ void far fn_11_0afe(void) { }
 void far fn_11_8a42(int type, int n);
 void far fn_11_947a(int type, int n, int k) { }
 void far fn_11_a4a6(POINT a, POINT b, int type);
+
+/* Redraw the four system status lights of the player's ship and play the
+ * damage/repair messages [inferred]. */
+/* @addr 11:05fe */
+void far fn_11_05fe(int a)
+{
+    int i;
+    int st;
+    HDC dc;
+    HBITMAP oldbmp;
+    HBRUSH oldbrush;
+    HPALETTE oldpal;
+    int said;
+
+    if (g_934e < 4)
+        said = 1;
+    else
+        said = 0;
+    for (i = 0; i < 4; i++) {
+        if (g_96ea[g_7090[g_9646].f4e].f0a[i] == -1)
+            st = 42;
+        else if (g_7090[g_9646].f26[i] > 75)
+            st = 0;
+        else if (g_7090[g_9646].f26[i] > 50)
+            st = 1;
+        else if (g_7090[g_9646].f26[i] > 25)
+            st = 2;
+        else if (g_7090[g_9646].f26[i] > 0)
+            st = 30;
+        else
+            st = 42;
+        if (st != g_0aa2[i]) {
+            if (st > g_0aa2[i]) {
+                if (st == 30 && i == 0) {
+                    if (!said) {
+                        said = 1;
+                        fn_03_06ec(g_9646, 7, 0, 10);
+                    }
+                } else if (st == 42) {
+                    switch (i) {
+                    case 1:
+                        if (!said)
+                            fn_03_06ec(g_9646, 7, 0, 11);
+                        break;
+                    case 2:
+                        if (!said)
+                            fn_03_06ec(g_9646, 7, 0, 12);
+                        break;
+                    }
+                }
+                switch (st) {       /* empty cases kept from the original */
+                case 2:
+                    break;
+                case 30:
+                    break;
+                case 42:
+                    break;
+                }
+            } else if (g_951a == 0 && g_952e != g_9646) {
+                switch (st) {
+                default:
+                    break;
+                case 0:
+                    switch (i) {
+                    case 1:
+                        if (!said)
+                            fn_03_06ec(g_9646, 7, 0, 0x52);
+                        break;
+                    case 2:
+                        if (!said)
+                            fn_03_06ec(g_9646, 7, 0, 0x53);
+                        break;
+                    }
+                }
+            }
+        }
+        if (a || st == 30 || g_0aa2[i] != st) {
+            g_0aa2[i] = st;
+            if (st == 30) {
+                if (g_93fe)
+                    st = 2;
+                else
+                    st = 42;
+            }
+            if (st == 42) {
+                oldbrush = SelectObject(g_13dc, GetStockObject(LTGRAY_BRUSH));
+                PatBlt(g_13dc, g_93c0 + 6, g_8e5a + i * 14 + 30, 27, 6, PATCOPY);
+                SelectObject(g_13dc, oldbrush);
+            } else {
+                dc = CreateCompatibleDC(g_13dc);
+                oldbmp = SelectObject(dc, g_5034);
+                if (g_920e)
+                    oldpal = SelectPalette(dc, g_920e, 0);
+                BitBlt(g_13dc, g_93c0 + 6, g_8e5a + i * 14 + 30, 27, 6, dc,
+                       0, st * 6, SRCCOPY);
+                SelectObject(dc, oldbmp);
+                if (oldpal)
+                    SelectPalette(dc, oldpal, 0);
+                DeleteDC(dc);
+            }
+        }
+    }
+}
 
 /* @addr 11:2120 */
 int far fn_11_2120(void)

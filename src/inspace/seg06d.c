@@ -569,8 +569,9 @@ int far fn_06_5cbc(int i, char far *s)
 
 /* Owner-draw paint of a directory tree item (list box 0x65): indent by
  * depth, tree lines, folder icon, name [inferred]. */
-/* near-match 99.9%: 6:49c0 (all code bytes equal; CL adds a 2-byte unused
- * temporary for the `buf[lstrlen(buf) - 1] = 0` loop: sub sp,0xd8 vs 0xd6) */
+/* count and buf2 are block-scoped: their slots go after CL's temporary for
+ * the `buf[lstrlen(buf) - 1] = 0` store, which then shares a slot. */
+/* @addr 6:49c0 */
 void far pascal fn_06_49c0(DRAWITEMSTRUCT far *dis)
 {
     RECT rc;
@@ -593,8 +594,6 @@ void far pascal fn_06_49c0(DRAWITEMSTRUCT far *dis)
     int flag2;
     int flag1;
     int d2;
-    int count;
-    char buf2[80];
 
     oldcolor = GetTextColor(dis->hDC);
     memdc = CreateCompatibleDC(dis->hDC);
@@ -645,12 +644,16 @@ void far pascal fn_06_49c0(DRAWITEMSTRUCT far *dis)
     }
     oldfont = SelectObject(dis->hDC, g_90fe);
     if (dis->itemID) {
+        int count;
+
         flag2 = flag1 = 0;
         count = (int)SendMessage(dis->hwndItem, 0x40c, 0, 0L);
         if (dis->itemID >= count - 1) {
             flag2 = 1;
             flag1 = 1;
         } else if (depth > 1) {
+            char buf2[80];
+
             SendMessage(dis->hwndItem, 0x40a, dis->itemID + 1, (LONG)(LPSTR)buf2);
             d2 = buf2[lstrlen(buf2) - 3] - '0';
             if (d2 != depth)
