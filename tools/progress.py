@@ -36,7 +36,9 @@ def main():
         key = (r['seg'], r['off'])
         if key not in seen or r['bad'] == 0:
             seen[key] = r
-    results = list(seen.values())
+    libkeys = {r[0] for r in lib}
+    results = [r for r in seen.values()
+               if f"{r['seg']}:{r['off']:04x}" not in libkeys]   # library code is not ours
     matched = [r for r in results if r['bad'] == 0]
     mbytes = 0
     notes = []
@@ -57,7 +59,7 @@ def main():
         f'({100 * len(matched) / len(own):.2f}%)',
         f'- Code bytes in matched functions: **{mbytes} / {own_bytes}** '
         f'({100 * mbytes / own_bytes:.2f}%)',
-        f'- C runtime functions (from MLIBCEW.LIB, not counted): {len(lib)}',
+        f'- C runtime functions (from MLIBCEW/MLIBCAW.LIB, not counted): {len(lib)}',
         f'- Functions in source, not yet matching: {len(results) - len(matched)}',
         '',
         'Compiler: MSVC 1.5x CL 8.00c, `/AM /G3 /Gw /Gs /Os`. '

@@ -728,7 +728,7 @@ void far fn_16_00a2(void)
     }
 }
 
-/* @addr 16:085e */
+/* 16:085e is the C runtime's ___ExportedStub (library code); kept for reference, not counted */
 int far fn_16_085e(void)
 {
     return 0;

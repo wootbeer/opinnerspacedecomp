@@ -132,13 +132,14 @@ def walk(seg, start, limit, near_calls):
     return covered, has_data
 
 
-def lib_starts(data, segs, libs):
-    """{(seg, off): name} for C runtime publics found in code."""
+def lib_starts(data, segs, libs, ranges=None):
+    """{(seg, off): name} for C runtime publics found in code. If `ranges` is
+    a list, (seg, start, end, module) of every matched module is appended."""
     found = {}
     code = [(s['n'], data[s['file_off']:s['file_off'] + s['len']])
             for s in segs if not s['flags'] & 1 and s['n'] > 1]
     for lib in libs:
-        for _, mcode, pubs in modules(open(lib, 'rb').read()):
+        for mname, mcode, pubs in modules(open(lib, "rb").read()):
             for sname, (d, m) in mcode.items():
                 if len(d) < 16 or sum(m) < 12:
                     continue
@@ -147,6 +148,8 @@ def lib_starts(data, segs, libs):
                 if len(hits) != 1:
                     continue
                 n, base = hits[0]
+                if ranges is not None:
+                    ranges.append((n, base, base + len(d), mname))
                 for pname, ps, off in pubs:
                     if ps == sname:
                         found.setdefault((n, base + off), pname)
@@ -187,7 +190,8 @@ def main():
             add(int(m.group(1)), int(m.group(2), 16), 'far')
     for _, sg, off in entries(data, h):
         add(sg, off, 'far')
-    libnames = lib_starts(data, segs, libs) if libs else {}
+    libranges = []
+    libnames = lib_starts(data, segs, libs, libranges) if libs else {}
     for (sn, off) in libnames:
         starts[(sn, off)] = 'lib'
     for key in names:
@@ -209,6 +213,16 @@ def main():
                 starts[(sn, t)] = 'near'
                 pending.add((sn, t))
 
+    # functions inside a matched library module (internal labels without a
+    # public name) are library code too
+    for (sn, off) in list(starts):
+        if starts[(sn, off)] == 'lib':
+            continue
+        for rs, a, b, mname in libranges:
+            if rs == sn and a <= off < b:
+                starts[(sn, off)] = 'lib'
+                libnames.setdefault((sn, off), f'{mname}+{off - a:x}')
+                break
     rows = []
     total = covered_all = 0
     for sn in sorted(code):

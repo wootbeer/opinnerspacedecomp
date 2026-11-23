@@ -86,55 +86,55 @@
 5:024a	1020:024a	106	lib	__aFulrem	lib	
 5:02b4	1020:02b4	95	lib	__aFuldiv	lib	gap1
 5:0314	1020:0314	50	lib	__aFulmul	lib	gap12
-5:0352	1020:0352	18	far			
-5:0364	1020:0364	122	far			
+5:0352	1020:0352	18	lib	__dos_findnext	lib	
+5:0364	1020:0364	122	lib	__dos_findfirst	lib	
 5:03de	1020:03de	225	lib	__utime	lib	
 5:04c0	1020:04c0	253	lib	_localtime	lib	
-5:05be	1020:05be	145	far			gap1
+5:05be	1020:05be	145	lib	_time	lib	gap1
 5:0650	1020:0650	187	lib	_dtoxmode	lib	
 5:070c	1020:070c	373	lib	__stat	lib	
 5:0882	1020:0882	62	lib	_ValidDrive	lib	gap24
 5:08d8	1020:08d8	153	lib	__filelength	lib	
-5:0972	1020:0972	35	far			gap1
-5:0996	1020:0996	223	far			
-5:0a75	1020:0a75	14	far			
-5:0a83	1020:0a83	15	far			
-5:0a92	1020:0a92	17	far			
-5:0aa3	1020:0aa3	112	far			
-5:0b13	1020:0b13	41	near			
-5:0b3c	1020:0b3c	19	near			gap1
+5:0972	1020:0972	35	lib	__FF_MSGBANNER	lib	gap1
+5:0996	1020:0996	223	lib	__cinit	lib	
+5:0a75	1020:0a75	14	lib	_exit	lib	
+5:0a83	1020:0a83	15	lib	__exit	lib	
+5:0a92	1020:0a92	17	lib	__cexit	lib	
+5:0aa3	1020:0aa3	112	lib	__c_exit	lib	
+5:0b13	1020:0b13	41	lib	__ctermsub	lib	
+5:0b3c	1020:0b3c	19	lib	dos\crt0dat.asm+1a6	lib	gap1
 5:0b50	1020:0b50	5	near			
 5:0b55	1020:0b55	6	near			gap1
 5:0b5c	1020:0b5c	5	lib	__cintDIV	lib	
 5:0b61	1020:0b61	67	lib	__amsg_exit	lib	
-5:0ba4	1020:0ba4	144	far			
+5:0ba4	1020:0ba4	144	lib	__setenvp	lib	
 5:0c34	1020:0c34	386	lib	__setargv	lib	
 5:0db6	1020:0db6	13	lib	__dosret0	lib	
 5:0dc3	1020:0dc3	18	lib	__dosreturn	lib	
 5:0dd5	1020:0dd5	18	lib	__dosretax	lib	
 5:0de7	1020:0de7	6	lib	__maperror	lib	
-5:0ded	1020:0ded	38	near			gap1
-5:0e14	1020:0e14	55	far			gap1
-5:0e4c	1020:0e4c	24	far			
-5:0e64	1020:0e64	691	far			
-5:1117	1020:1117	17	near			
-5:1128	1020:1128	100	far			
+5:0ded	1020:0ded	38	lib	dos\dosret.asm+37	lib	gap1
+5:0e14	1020:0e14	55	lib	__close	lib	gap1
+5:0e4c	1020:0e4c	24	lib	__sopen	lib	
+5:0e64	1020:0e64	691	lib	__open	lib	
+5:1117	1020:1117	17	lib	__cXENIXtoDOSmode	lib	
+5:1128	1020:1128	100	lib	__intdos	lib	
 5:118c	1020:118c	28	lib	___tzset	lib	
 5:11a8	1020:11a8	260	lib	__tzset	lib	
 5:12ac	1020:12ac	203	lib	__isindst	lib	
 5:1378	1020:1378	406	lib	_gmtime	lib	
 5:150e	1020:150e	252	lib	__dostotime_t	lib	
-5:160a	1020:160a	42	far			
-5:1634	1020:1634	73	far			gap1
+5:160a	1020:160a	42	lib	__getdrive	lib	
+5:1634	1020:1634	73	lib	__chdrive	lib	gap1
 5:167e	1020:167e	730	lib	__fullpath	lib	
 5:1958	1020:1958	66	lib	__strcmpi	lib	
 5:199a	1020:199a	27	lib	_strlen	lib	gap1
 5:19b6	1020:19b6	88	lib	_strpbrk	lib	
 5:1a0e	1020:1a0e	40	lib	_strrchr	lib	
-5:1a36	1020:1a36	127	far			gap1
-5:1ab6	1020:1ab6	212	far			
-5:1b8a	1020:1b8a	55	far			
-5:1bc1	1020:1bc1	61	far			gap6
+5:1a36	1020:1a36	127	lib	__intdosx	lib	gap1
+5:1ab6	1020:1ab6	212	lib	__lseek	lib	
+5:1b8a	1020:1b8a	55	lib	__NMSG_TEXT	lib	
+5:1bc1	1020:1bc1	61	lib	__NMSG_WRITE	lib	gap6
 5:1c04	1020:1c04	45	lib	__myalloc	lib	gap1
 5:1c32	1020:1c32	101	lib	_getenv	lib	gap5
 5:1c9c	1020:1c9c	40	lib	_strncpy	lib	
@@ -150,7 +150,7 @@
 5:1fd6	1020:1fd6	26	lib	__nfree	lib	
 5:1ff0	1020:1ff0	109	lib	__nrealloc	lib	
 5:205e	1020:205e	20	lib	__nmsize	lib	
-5:2072	1020:2072	44	far			
+5:2072	1020:2072	44	lib	__stubmain	lib	
 6:0000	1028:0000	713	far			
 6:02ca	1028:02ca	115	far			
 6:033e	1028:033e	921	far			
@@ -773,7 +773,7 @@
 15:8ae6	1070:8ae6	736	far			
 16:0000	1078:0000	162	far			
 16:00a2	1078:00a2	1979	far			data
-16:085e	1078:085e	19	far			
+16:085e	1078:085e	19	lib	___ExportedStub	lib	
 16:0872	1078:0872	45	far			
 16:08a0	1078:08a0	67	far			
 16:08e4	1078:08e4	617	far	self_destruct_ship	names	

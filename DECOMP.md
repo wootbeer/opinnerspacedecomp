@@ -541,3 +541,10 @@ Conventions
   assignment gives an eax dword copy.
 - `(int)` casts on long fields passed to int parameters silence C4761
   without changing code.
+- To keep the else arm's copy of a tail merged across both arms, put the
+  statement after the if/else into every leaf.
+- abs32 (9:88dc) returns long, but 8:8256 adds only the low words of two
+  results: declared `int far abs32(long)` locally there.
+- The library matcher accepts the linker's prologue rewrite (8C D8 -> 8C D0);
+  functions inside a matched runtime module (internal labels) count as
+  library code. 16:085e is the runtime's ___ExportedStub.

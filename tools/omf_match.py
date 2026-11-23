@@ -144,8 +144,20 @@ def modules(lib):
 
 
 def pattern(data, mask):
-    return re.compile(b''.join(re.escape(bytes([c])) if m else b'.'
-                               for c, m in zip(data, mask)), re.S)
+    """Regex for masked bytes. The EXE linker rewrote far prologues
+    `mov ax,ds` (8C D8) to `mov ax,ss` (8C D0), so after an 8C byte both
+    D8 and D0 are accepted."""
+    parts = []
+    prev = None
+    for c, m in zip(data, mask):
+        if not m:
+            parts.append(b'.')
+        elif prev == 0x8c and c == 0xd8:
+            parts.append(b'[\xd8\xd0]')
+        else:
+            parts.append(re.escape(bytes([c])))
+        prev = c if m else None
+    return re.compile(b''.join(parts), re.S)
 
 
 def main():
