@@ -51,7 +51,8 @@ typedef struct {
 typedef struct {                /* 0x70-byte records, far pointer at DS:1e30 */
     char p00[0x18];
     int f18;
-    char p1a[0x22 - 0x1a];
+    int f1a;
+    char p1c[0x22 - 0x1c];
     int f22;
     int f24;
     char p26[0x44 - 0x26];
@@ -102,7 +103,9 @@ typedef struct {                /* 0x7c-byte records, far pointer at DS:6e24 */
     char p38[0x65 - 0x38];
     char name[0x77 - 0x65];
     signed char f77;
-    char p78[0x7c - 0x78];
+    char p78[0x7a - 0x78];
+    signed char f7a;
+    char p7b;
 } REC_7C;
 extern REC_7C far *g_6e24;
 typedef struct {                /* 0x14-byte records, DGROUP array at DS:4d92 */
@@ -349,6 +352,41 @@ void far fn_11_4928(int mode, DWORD t, LPSTR out);
 extern int g_9476;
 extern HWND g_9486;
 int far fn_02_1a7a(int a);
+extern DWORD g_1920;
+extern HGDIOBJ g_191e;
+extern int g_1dc4;              /* window RECT, as four ints */
+extern int g_1dc6;
+extern int g_1dc8;
+extern int g_1dca;
+extern int g_0128;
+int far fn_02_1a5a(int a, int b, long c);
+void far fn_11_1774(int c, int l, int t, int r, int b);
+void far fn_09_8bec(HDC hdc, int x, int y, int size, int width, UINT align, LPSTR s);
+void far fn_06_717a(void);
+void far fn_10_7480(int a, int b);
+extern int g_90ec;
+extern int g_90ee;
+extern DWORD g_18c2;            /* animation wait-until time [inferred] */
+extern long g_18c6;
+extern long g_18ca;
+extern long g_18ce;
+extern long g_18d2;
+extern long g_18d6;
+extern long g_18da;
+extern long g_18de;
+extern long g_18e2;
+extern long g_18e6;
+extern long g_18ea;
+extern long g_18ee;
+extern long g_18f2;
+extern long g_18f6;
+extern long g_18fa;
+extern long g_18fe;
+extern int g_1902;
+extern int g_1904;
+extern int g_1906;
+extern int g_1908;
+void far pascal fn_11_b09c(int n, int a);
 void far fn_10_320a(void);
 extern REC_70 far *g_1df8[16];
 extern DWORD g_18b6;
@@ -4154,4 +4192,232 @@ void far fn_17_6116(void)
         SelectPalette(g_13dc, old, 0);
     ReleaseDC(g_0016, g_13dc);
     g_13dc = 0;
+}
+
+/* Window procedure of the race/records window [inferred]. */
+/* @addr 17:5782 */
+LRESULT far pascal fn_17_5782(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    PAINTSTRUCT ps;
+    HDC hdc;
+    RECT wr;
+    RECT rc;
+    HGDIOBJ oldbrush;
+    int r;
+    HGDIOBJ oldpen;
+    char text[80];
+    char buf[120];
+    DWORD oldtc;
+    DWORD oldbk;
+    HGDIOBJ oldfont;
+    int u10e;
+    int u110;
+    DRAWITEMSTRUCT far *dis;
+    int u116;
+    int res;
+    int xt;
+    int idx;
+
+    switch (msg) {
+    default:
+        return DefWindowProc(hwnd, msg, wParam, lParam);
+    case WM_CREATE:
+        g_1920 = GetCurrentTime();
+        g_191e = GetStockObject(2);
+        EnableWindow(g_0016, 0);
+        g_90f4 = 7;
+        g_9460 = hwnd;
+        fn_17_6116();
+        break;
+    case WM_MOVE:
+        GetWindowRect(g_9460, &wr);
+        if (wr.left != g_1dc4 || wr.top != g_1dc6) {
+            CopyRect((LPRECT)&g_1dc4, &wr);
+            g_0128 = 1;
+        }
+        break;
+    case WM_DRAWITEM:
+        dis = (DRAWITEMSTRUCT far *)lParam;
+        if (dis->itemID == -1)
+            fn_17_92b8(dis);
+        else
+            switch (dis->itemAction) {
+            case ODA_DRAWENTIRE:
+                fn_17_9308(dis);
+                break;
+            case ODA_SELECT:
+                fn_17_90d2(dis);
+                break;
+            case ODA_FOCUS:
+                fn_17_92b8(dis);
+                break;
+            }
+        return 1;
+    case WM_MEASUREITEM: {
+        TEXTMETRIC tm;
+        HDC dc;
+        HGDIOBJ old;
+        MEASUREITEMSTRUCT far *mis;
+
+        mis = (MEASUREITEMSTRUCT far *)lParam;
+        dc = GetDC(g_0016);
+        old = SelectObject(dc, g_6094[0]);
+        GetTextMetrics(dc, &tm);
+        SelectObject(dc, old);
+        ReleaseDC(g_0016, dc);
+        mis->itemHeight = max(tm.tmExternalLeading + tm.tmHeight + 3, 14);
+        if (g_9466 == 7)
+            mis->itemHeight *= 2;
+        break;
+    }
+    case WM_CTLCOLOR:
+        if (g_0024 && (r = fn_02_1a5a(msg, wParam, lParam)) != 0)
+            return (UINT)r;
+        return DefWindowProc(hwnd, msg, wParam, lParam);
+    case WM_COMMAND:
+        switch (wParam) {
+        case 100:
+            g_9468--;
+            fn_17_67e6();
+            break;
+        case 101:
+            res = DialogBox(g_9212, MAKEINTRESOURCE(0x194), g_9460, (DLGPROC)fn_17_8418);
+            if (res) {
+                SendMessage(g_9480, 0x40e, g_9466 = res / 100 - 1, 0L);
+                fn_17_65da();
+                g_9468 = res % 100;
+                fn_17_67e6();
+                SetFocus(g_9482);
+            }
+            break;
+        case 102:
+            g_9468++;
+            fn_17_67e6();
+            break;
+        case 105:
+            PostMessage(g_9460, WM_CLOSE, 0, 0L);
+            break;
+        case 107:
+            idx = (int)SendMessage(g_9484, 0x407, 0, 0L);
+            SendMessage(g_9484, 0x408, idx, (LPARAM)(LPSTR)buf);
+            g_9466 = buf[lstrlen(buf) - 2] - '1';
+            SendMessage(g_9480, 0x40e, g_9466, 0L);
+            fn_17_65da();
+            g_9468 = buf[lstrlen(buf) - 1] - '0';
+            fn_17_67e6();
+            break;
+        case 103:
+            fn_17_6742(g_9460, wParam, (HWND)LOWORD(lParam), HIWORD(lParam));
+            break;
+        case 104:
+            fn_17_6792(g_9460, wParam, (HWND)LOWORD(lParam), HIWORD(lParam));
+            break;
+        case 108:
+            if (g_9466 == 8)
+                switch (HIWORD(lParam)) {
+                case 2:
+                    g_9468 = (int)SendMessage((HWND)LOWORD(lParam), 0x409, 0, 0L);
+                    g_9468++;
+                    fn_17_67e6();
+                    break;
+                }
+            break;
+        }
+        break;
+    case WM_PAINT: {
+        int x;
+
+        if (GetCurrentTime() > g_1920 + 500 || g_93aa == 16 || g_93aa == 2) {
+            fn_10_744c(20);
+            g_9474 = 1;
+        }
+        InvalidateRect(hwnd, NULL, TRUE);
+        GetClientRect(hwnd, &rc);
+        g_13dc = hdc = BeginPaint(hwnd, &ps);
+        fn_11_1774(2, 0, -5, g_1dc8 - g_1dc4 - 2, g_1dca - GetSystemMetrics(SM_CYCAPTION) - g_1dc6 - 2);
+        if (g_93aa == 16 && g_9468 == 0) {
+            fn_11_1774(4, x = 0x27, 0x4c, 0x26f, 0x124);
+            fn_11_1774(-1, x, 0x4c, 0x26f, 0x5a);
+            fn_09_955c(0x80e, buf);
+            fn_09_8bec(g_13dc, 0x3b, 0x4d, 0xd, 0, 0, buf);
+            fn_09_955c(0x80f, buf);
+            fn_09_8bec(g_13dc, 0x10d, 0x4d, 0xd, 0, 0, buf);
+            fn_09_955c(0x810, buf);
+            fn_09_8bec(g_13dc, 0x14b, 0x4d, 0xd, 0, 0, buf);
+            fn_09_955c(0x811, buf);
+            fn_09_8bec(g_13dc, 0x1c6, 0x4d, 0xd, 0, 0, buf);
+            fn_09_955c(0x812, buf);
+            fn_09_8bec(g_13dc, 0x202, 0x4d, 0xd, 0, 0, buf);
+        }
+        if (g_9460) {
+            if (g_93aa == 2 && ((g_9468 + 1) & 1)) {
+                fn_11_1774(4, x = 0x14, 0x4c, 0x264, 0x124);
+                fn_11_1774(-1, x, 0x4c, 0x264, 0x5a);
+                fn_09_955c(0x80e, buf);
+                fn_09_8bec(g_13dc, 0x28, 0x4d, 0xd, 0, 0, buf);
+                fn_09_955c(0x813, buf);
+                fn_09_8bec(g_13dc, 0xcd, 0x4d, 0xd, 0, 0, buf);
+                fn_09_955c(0x816, buf);
+                fn_09_8bec(g_13dc, 0x10e, 0x4d, 0xd, 0, 0, buf);
+                fn_09_955c(0x814, buf);
+                fn_09_8bec(g_13dc, 0x14a, 0x4d, 0xd, 0, 0, buf);
+                fn_09_955c(0x816, buf);
+                fn_09_8bec(g_13dc, 0x186, 0x4d, 0xd, 0, 0, buf);
+                fn_09_955c(0x815, buf);
+                fn_09_8bec(g_13dc, 0x1d6, 0x4d, 0xd, 0, 0, buf);
+                fn_09_955c(0x816, buf);
+                fn_09_8bec(g_13dc, 0x212, 0x4d, 0xd, 0, 0, buf);
+            }
+        }
+        oldpen = SelectObject(g_13dc, CreatePen(PS_SOLID, 1, RGB(192, 192, 192)));
+        MoveTo(g_13dc, 6, rc.bottom - 0x20);
+        LineTo(g_13dc, rc.right - 6, rc.bottom - 0x20);
+        DeleteObject(SelectObject(g_13dc, oldpen));
+        oldbrush = SelectObject(g_13dc, GetStockObject(2));
+        PatBlt(g_13dc, 6, rc.bottom - 0x1f, rc.right - 0xc, 0x19, PATCOPY);
+        SelectObject(g_13dc, oldbrush);
+        oldfont = SelectObject(g_13dc, g_6094[1]);
+        oldbk = SetBkColor(g_13dc, RGB(128, 128, 128));
+        SetBkMode(g_13dc, TRANSPARENT);
+        SetTextAlign(g_13dc, 0);
+        oldtc = SetTextColor(g_13dc, PALETTERGB(0, 0, 0));
+        fn_09_955c(0x211, text);
+        TextOut(g_13dc, xt = g_6088 > 0x29e ? rc.left + 0xca : rc.left + 0x84,
+                rc.bottom - 0x1a, text, lstrlen(text));
+        SetTextAlign(g_13dc, 2);
+        fn_09_955c(0x212, text);
+        if (g_6088 <= 0x29e) {
+            text[3] = ':';
+            text[4] = 0;
+        }
+        TextOut(g_13dc, rc.right - 0xe4, rc.bottom - 0x1a, text, lstrlen(text));
+        SetBkColor(g_13dc, oldbk);
+        SetTextColor(g_13dc, oldtc);
+        SelectObject(g_13dc, oldfont);
+        if (g_948c) {
+            if (g_920e)
+                x = SelectPalette(g_13dc, (HPALETTE)g_920e, 0);
+            fn_17_0000(1, 0);
+            if (x)
+                SelectPalette(g_13dc, (HPALETTE)x, 0);
+        }
+        g_13dc = 0;
+        EndPaint(hwnd, &ps);
+        break;
+    }
+    case WM_CLOSE:
+        if (g_9460) {
+            fn_06_717a();
+            fn_17_6036();
+            SetActiveWindow(g_0016);
+            EnableWindow(g_0016, 1);
+            g_90f4 = 1;
+            DestroyWindow(g_9460);
+            g_9460 = 0;
+            fn_10_7480(-3, 1);
+            SetActiveWindow(g_0016);
+        }
+        break;
+    }
+    return 0;
 }
