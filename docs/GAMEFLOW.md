@@ -34,3 +34,23 @@ Demon fight and the evil-twin fight may be reversed.
 - Game states (HANDOFF): 4 = GAME OVER, 5 = champions/fireworks; the Demon
   ending goes 6 -> 9 -> 5. Demon's Gate is greyed out when unregistered.
 - Fireworks: 6:7c14 (rockets and sparks); champions list 6:6576.
+
+## From the game's own help file (ENG_HELP.HLP)
+
+- The Inner Demon is "a dark reflection of you" in a black hole; it pulls
+  you in from time to time. Inside: dragons curled around energy balls you
+  feed; ESC returns; you come back as you were when you entered. A smaller
+  version can be played in the ambulance (practice).
+- Noble Weapons (4): Enlightenment, Uncertainty, the Attractive Force, the
+  Repulsive Force. Only won from the Demon; not sold in the ambulance.
+  With both Forces, the ambulance offers "Unify Forces" (the Inner Force).
+- Two ways to finish: capture or destroy every icon on the drive, or hold
+  all 4 Noble Weapons; then enter the "Demon's Gate" directory.
+- Icon Watch window (Alt-I) = window class IS_WATCH.
+- Status panel: score, target display (messages from ships and the
+  ambulance; 'T' target, 'M' last message), radar (zoomable), damage display
+  (Engine, Guns, Thruster, Wings/Cloak), weapon display ('TAB' to switch).
+
+Tools: `tools/ne_resources.py FILE --strings` dumps string tables;
+`tools/string_refs.py data/strings/ENG_LANG.txt` lists which strings each
+decomp function loads. Their output is game text: keep it in `data/`.
