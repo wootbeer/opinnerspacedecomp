@@ -18,7 +18,8 @@ typedef struct {
     char p10[0x18 - 0x10];
     int f18;                    /* +18 */
     int f1a;                    /* +1a */
-    char p1c[0x22 - 0x1c];
+    char p1c[0x20 - 0x1c];
+    int f20;                    /* +20 */
     int f22;                    /* +22: size [inferred] */
     char p24[0x26 - 0x24];
     int f26;                    /* +26 */

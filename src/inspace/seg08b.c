@@ -100,7 +100,10 @@ typedef struct {
     int y0[2][6];   /* +18 */
     int x1[2][6];   /* +30 */
     int y1[2][6];   /* +48 */
-    char p60[0x70 - 0x60];
+    char p60[0x68 - 0x60];
+    int f68;        /* +68 */
+    int f6a;        /* +6a */
+    char p6c[0x70 - 0x6c];
     int f70;        /* +70 */
     int f72;        /* +72 */
     int f74;        /* +74 */
@@ -108,7 +111,13 @@ typedef struct {
     int f78;        /* +78: count */
     int f7a;        /* +7a */
     int f7c;        /* +7c */
-    char p7e[0x94 - 0x7e];
+    int f7e;        /* +7e */
+    char p80[0x84 - 0x80];
+    int f84[2];     /* +84 */
+    int f88;        /* +88 */
+    int f8a;        /* +8a */
+    char p8c[0x90 - 0x8c];
+    long f90;       /* +90 */
 } REC_94;
 extern REC_94 g_6098[];
 extern int g_9646;
@@ -913,5 +922,123 @@ int far pascal fn_08_3688(int n)
             }
         }
     }
+    return 0;
+}
+
+extern long g_05cc;
+extern int g_05a2;
+extern int g_9136;
+extern HBRUSH g_3b4c[20];
+int far pascal fn_18_4dc4(int n);
+void far pascal fn_08_0764(int a, int b);
+void far fn_11_5626(int i);
+
+/* Move and draw shot group n one step (s: speed factor) [inferred];
+ * returns 1 while the group is alive. w is read uninitialised when the
+ * group was already finished (as in the original). */
+/* @addr 8:3aec */
+int far pascal fn_08_3aec(int n, int s)
+{
+    int u4;
+    int u6;
+    int u8;
+    int sz;
+    int w;
+    int m;
+    int j;
+    int v;
+    int res;
+
+    if (g_6098[n].f76 >= 0 && g_6098[n].f74 > g_6098[n].f76) {
+        sz = (g_9208 + 1 >> 1) + 3;
+        if (subgame_active != 0) {
+            w = g_9156 + 1;
+            fn_18_4dc4(n);
+        } else
+            w = SC(2);
+        fn_08_0764(n, 0);
+        res = fn_08_3688(n);
+        if (res != 0 && g_6098[n].f7a == g_9324 && g_6098[n].f7c == g_9646)
+            g_6098[n].f7e++;
+        if (res == 2) {
+            g_6098[n].f76 = -1;
+            for (m = sz; m > -1; m--)
+                for (j = 0; j < g_6098[n].f78; j++)
+                    if (g_6098[n].f84[j] != 0)
+                        PatBlt(g_13dc, g_6098[n].x0[j][m], g_6098[n].y0[j][m], w, w,
+                               BLACKNESS);
+            return 1;
+        }
+        if ((res == 1 || g_6098[n].f90 == g_05cc) && g_05cc != 0) {
+            if (g_6098[n].f90 == g_05cc) {
+                fn_10_754a(0x11, 0x1e, n, 2);
+                g_6098[n].f70 = g_6098[n].f88;
+                g_6098[n].f72 = g_6098[n].f8a;
+                g_6098[n].x1[0][0] += g_6098[n].f70;
+                g_6098[n].y1[0][0] += g_6098[n].f72;
+            }
+            if (g_9320 == 6)
+                fn_11_5626(n);
+        }
+        v = g_6098[n].f76 * 8 / g_6098[n].f74;
+        if (g_6098[n].f7a == g_9324)
+            SelectObject(g_13dc, g_3b4c[v + g_70ae[g_6098[n].f7c].fc5 * 10]);
+        else
+            SelectObject(g_13dc, g_3b4c[v + 10]);
+        for (j = 0; j < g_6098[n].f78; j++) {
+            if (g_6098[n].f84[j] != 0) {
+                g_6098[n].x0[j][0] += g_1df8[g_6098[n].f7a][g_6098[n].f7c].f0c * s / -50;
+                g_6098[n].y0[j][0] += g_1df8[g_6098[n].f7a][g_6098[n].f7c].f0e * s / -50;
+                if (g_6098[n].x0[j][0] > 0 && g_6098[n].x0[j][0] < g_90ea
+                    && g_6098[n].y0[j][0] > 0 && g_6098[n].y0[j][0] < g_90ec
+                    || subgame_active != 0)
+                    PatBlt(g_13dc, g_6098[n].x0[j][0], g_6098[n].y0[j][0], w, w, PATCOPY);
+            }
+        }
+        if (g_6098[n].x0[0][3] != -100)
+            for (j = 0; j < g_6098[n].f78; j++)
+                if (g_6098[n].f84[j] != 0)
+                    PatBlt(g_13dc, g_6098[n].x0[j][sz], g_6098[n].y0[j][sz], w, w,
+                           BLACKNESS);
+        g_6098[n].f76++;
+        for (m = sz; m > 0; m--)
+            for (j = 0; j < g_6098[n].f78; j++) {
+                g_6098[n].x0[j][m] = g_6098[n].x0[j][m - 1];
+                g_6098[n].y0[j][m] = g_6098[n].y0[j][m - 1];
+            }
+        for (j = 0; j < g_6098[n].f78; j++) {
+            if (g_6098[n].f84[j] != 0) {
+                g_6098[n].x1[j][0] += g_6098[n].f70;
+                if (subgame_active == 0) {
+                    if (g_6098[n].x1[j][0] > *(int *)&g_05a0 * 8)
+                        g_6098[n].x1[j][0] = 0;
+                    if (g_6098[n].x1[j][0] < 0)
+                        g_6098[n].x1[j][0] = *(int *)&g_05a0 * 8;
+                }
+                g_6098[n].y1[j][0] += g_6098[n].f72;
+                if (subgame_active == 0) {
+                    if (g_6098[n].y1[j][0] > g_05a2 * 8)
+                        g_6098[n].y1[j][0] = 0;
+                    if (g_6098[n].y1[j][0] < 0)
+                        g_6098[n].y1[j][0] = g_05a2 * 8;
+                }
+            }
+        }
+        v = g_6098[n].f76 & 0xf;
+        if (v == 0xf && g_6098[n].f78 == 2) {
+            g_6098[n].x1[0][0] += g_6098[n].f68 >> 2;
+            g_6098[n].x1[1][0] -= g_6098[n].f68 >> 2;
+            g_6098[n].y1[0][0] += g_6098[n].f6a >> 2;
+            g_6098[n].y1[1][0] -= g_6098[n].f6a >> 2;
+        }
+    }
+    if (g_6098[n].f74 <= g_6098[n].f76) {
+        g_6098[n].f76 = -1;
+        for (m = 5; m > -1; m--)
+            for (j = 0; j < g_6098[n].f78; j++)
+                PatBlt(g_13dc, g_6098[n].x0[j][m], g_6098[n].y0[j][m], w, w, BLACKNESS);
+    }
+    if (g_6098[n].f76 != -1 || g_9136 != 0)
+        return 1;
     return 0;
 }
