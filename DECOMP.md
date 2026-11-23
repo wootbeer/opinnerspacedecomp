@@ -438,3 +438,10 @@ Conventions
   does not.
 - 6:12b6 (init) takes a WNDCLASS by value, used as its local; WinMain
   passes it uninitialised. fn_05_0364/0352 are _dos_findfirst/_dos_findnext.
+- Which copy of a merged tail CL keeps depends on surrounding control flow
+  (`if (c) switch` vs `if (!c) break; switch`, `if (a && b) f();` vs nested
+  ifs, if/else-if of identical calls vs `{ call; break; }` arms). Deleting a
+  candidate block temporarily shows which one forces the merge.
+- WPARAM (unsigned) parameters give jb/jbe/ja in switch range tests; int
+  gives jl/jg.
+- fn_03_00f4's second parameter is char at the call sites (no sub ah,ah).
