@@ -92,7 +92,8 @@ typedef struct {                /* 0x15a bytes, DGROUP array at DS:7090 */
     char fe3;                   /* +e3 */
     char pe4[0xea - 0xe4];
     char fea;                   /* +ea */
-    char peb[0x15a - 0xeb];
+    char peb[0x156 - 0xeb];
+    DWORD f156;                 /* +156 */
 } REC_15A;
 
 typedef struct { int f0, f2, f4, f6; char rest[0x1e - 8]; } REC_1E;
@@ -1815,4 +1816,141 @@ int far fn_07_5090(int type, int idx, int amount)
     }
     g_1df8[type][idx].f1e += amount;
     return 0;
+}
+
+extern int g_9320;
+extern int g_9150;
+extern int g_0b70[];
+extern HBRUSH g_5ea8[];
+POINT far pascal fn_08_29ea(POINT pt);
+BOOL far fn_08_7ba8(POINT pt);
+void far fn_07_477e(int n);
+#define SC(n) ((n) << g_9156 >> 1)
+
+/* @addr 7:40c4 */
+void far fn_07_40c4(void)
+{
+    int n;
+    int k;
+    int j;
+    int r;
+    int c;
+    int e;
+    int t;
+    int dci;
+    int unused[9];
+
+    for (n = 0; n < g_9406[g_9328]; n++) {
+        if (g_5a4c[n].f00 > -1) {
+            if (g_5a4c[n].f00 < 28) {
+                e = g_5a4c[n].f00 / 5;
+                c = e * 6 + 10;
+                t = e * 3;
+            } else if (g_5a4c[n].f00 < 30) {
+                e = 7;
+                c = 52;
+                t = 21;
+            } else
+                t = c = e = 0;
+            c = SC(c);
+            for (k = 5; k > 0; k--) {
+                g_5eac[n][k] = g_5eac[n][k - 1];
+                g_5eac[n][k + 6] = g_5eac[n][k + 5];
+                g_5eac[n][k + 12] = g_5eac[n][k + 11];
+            }
+            g_1df8[g_9328][n].f04 -= t * 8;
+            g_1df8[g_9328][n].f06 -= t * 8;
+            *(POINT far *)&g_1df8[g_9328][n].f00 =
+                fn_08_29ea(*(POINT far *)&g_1df8[g_9328][n].f04);
+            g_5eac[n][0] = g_1df8[g_9328][n].f00;
+            g_5eac[n][6] = g_1df8[g_9328][n].f02;
+            g_1df8[g_9328][n].f22 = g_5eac[n][12] = c;
+            g_1df8[g_9328][n].f20 = c << g_9150;
+            g_1df8[g_9328][n].f10 = SC(g_0b70[e]);
+            g_1df8[g_9328][n].f12 = 0;
+            if (g_1df8[g_9328][n].f44 == 120)
+                dci = 10;
+            else if (g_1df8[g_9328][n].f44 == 200)
+                dci = 11;
+            fn_08_0b76((char)n | g_9328 << 8, 6, g_39e8[dci], 0);
+            g_1df8[g_9328][n].f04 += t * 8;
+            g_1df8[g_9328][n].f06 += t * 8;
+            PatBlt(g_13dc, g_5eac[n][5] - 1, g_5eac[n][11] - 1,
+                   g_5eac[n][17] + 2, g_5eac[n][17] + 2, BLACKNESS);
+            if (g_90ea / 2 - g_5eac[n][17] < g_5eac[n][5]
+                && g_90ec / 2 - g_5eac[n][17] < g_5eac[n][11]
+                && g_90ea / 2 + SC(40) > g_5eac[n][5]
+                && g_90ec / 2 + SC(40) > g_5eac[n][11])
+                g_7090[g_9646].f156 = g_1e50 - 1;
+            for (j = 0; j < 2; j++) {
+                HGDIOBJ old = SelectObject(g_13dc, g_5ea8[j]);
+
+                PatBlt(g_13dc, g_5eac[n][4 - j] - 1, g_5eac[n][10 - j] - 1,
+                       g_5eac[n][16 - j] + 2, g_5eac[n][16 - j] + 2, 0xa000c9L);
+                SelectObject(g_13dc, old);
+            }
+            *(POINT *)&g_5a4c[n].f0c = *(POINT far *)&g_1df8[g_9328][n].f0c;
+            fn_08_1b54((char)n | g_9328 << 8, 1);
+            if (g_1df8[g_9328][n].f1a != 0 || g_9320 == 6) {
+                g_943c = n;
+                g_943a = g_9328;
+                r = fn_08_50aa((char)n | g_9328 << 8);
+                if (r != -1) {
+                    fn_08_5df2(g_9328, n, HIBYTE(r), LOBYTE(r),
+                               fn_08_546c(r, &g_1df8[g_9328][n].f0c, &g_1df8[g_9328][n].f0e,
+                                          g_1df8[g_9328][n].f20 + 2, g_1df8[g_9328][n].f44));
+                    if (HIBYTE(r) == g_934a) {
+                        extern REC_70 far *g_1df8[];
+
+                        if (g_1df8[g_9328][n].f44 == 120) {
+                            g_1df8[HIBYTE(r)][LOBYTE(r)].f2f =
+                                min(g_1df8[HIBYTE(r)][LOBYTE(r)].f2f + 1, 9);
+                            g_1df8[HIBYTE(r)][LOBYTE(r)].f6a = g_1e50 + 5000;
+                        } else if (g_1df8[g_9328][n].f44 == 200
+                                   && g_1df8[HIBYTE(r)][LOBYTE(r)].f2f > 0)
+                            g_1df8[HIBYTE(r)][LOBYTE(r)].f2f =
+                                -(g_1df8[HIBYTE(r)][LOBYTE(r)].f2f * 5);
+                    }
+                    if (HIBYTE(r) == 8 && g_1df8[HIBYTE(r)][LOBYTE(r)].f44 == 3500) {
+                        if (g_1df8[g_9328][n].f44 == 120) {
+                            g_1df8[HIBYTE(r)][LOBYTE(r)].f2f =
+                                min(g_1df8[HIBYTE(r)][LOBYTE(r)].f2f + 1, 9);
+                            g_1df8[HIBYTE(r)][LOBYTE(r)].f6a = g_1e50 + 5000;
+                        } else if (g_1df8[g_9328][n].f44 == 200
+                                   && g_1df8[HIBYTE(r)][LOBYTE(r)].f2f > 0)
+                            g_1df8[HIBYTE(r)][LOBYTE(r)].f2f =
+                                -(g_1df8[HIBYTE(r)][LOBYTE(r)].f2f * 5);
+                    }
+                    if (g_1df8[HIBYTE(r)][LOBYTE(r)].f44 == 160) {
+                        if (g_1df8[g_9328][n].f44 == 120) {
+                            if (g_57a8[LOBYTE(r)].f02 == 0) {
+                                g_57a8[LOBYTE(r)].f02 = 2;
+                                g_57a8[LOBYTE(r) - 1].f1f = g_1e50 + 4000;
+                                fn_07_477e(LOBYTE(r));
+                            }
+                        } else if (g_1df8[g_9328][n].f44 == 200
+                                   && g_57a8[LOBYTE(r)].f02 > 0) {
+                            g_57a8[LOBYTE(r)].f00 = g_57a8[LOBYTE(r)].f02 = 0;
+                            for (j = 0; j < 4; j++)
+                                fn_07_5b68(HIBYTE(r), LOBYTE(r), 1);
+                        }
+                    }
+                }
+            }
+            g_5a4c[n].f00++;
+            if (g_5a4c[n].f02 + 4 < g_5a4c[n].f00) {
+                if (fn_08_7ba8(*(POINT far *)&g_1df8[g_9328][n].f00))
+                    PatBlt(g_13dc, g_1df8[g_9328][n].f00 - 1, g_1df8[g_9328][n].f02 - 1,
+                           54, 54, BLACKNESS);
+                for (k = 0; k < 6; k++)
+                    PatBlt(g_13dc, g_5eac[n][k] - 1, g_5eac[n][k + 6] - 1,
+                           g_1df8[g_9328][n].f22 + 2, g_1df8[g_9328][n].f22 + 2, BLACKNESS);
+                g_5a4c[n].f00 = -1;
+                g_1df8[g_9328][n].f18 = 1;
+                if (g_9130)
+                    fn_18_5350(g_1df8[g_9328][n].f00, g_1df8[g_9328][n].f02);
+                fn_07_2080(g_9328, n);
+            }
+        }
+    }
 }

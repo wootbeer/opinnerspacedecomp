@@ -128,6 +128,28 @@ typedef struct {
     char rest[0x70 - 0x26];
 } REC_70;
 extern REC_70 far *g_1e00;
+extern HDC g_93d0;
+extern HDC g_93cc;
+extern HDC g_3a24;
+extern HDC g_39f0;
+extern HDC g_3a38[];
+extern HBRUSH g_5006;
+extern HBRUSH g_5008;
+extern HBRUSH g_500c;
+extern REC_70 far *g_1e08;
+extern REC_70 far *g_1e30;
+extern int g_0a72;
+extern int g_9318;
+extern int g_9322;
+extern int g_05a2;
+extern char g_9eb6[];
+extern char g_9ebc[];
+extern char g_9eb9[];
+extern char g_9ebf[];
+extern char g_9ec2[][40];
+extern POINT g_9f40[][40];
+extern POINT g_a120[];
+extern POINT g_9ea8[];
 extern int g_92f0;
 extern int g_3b9c[];
 typedef struct {
@@ -3628,4 +3650,117 @@ void far fn_10_5d3c(int n)
             }
         }
     }
+}
+/* map position (world units / 8) scaled to the w x h picture */
+#define MAP_W (*(int *)&g_05a0)     /* inspace.h declares DS:05a0 long */
+#define MX(px) (int)((long)((px) / 8 - MAP_W / 2) * w / MAP_W) + w / 2
+#define MXO(px, o) (int)((long)((px) / 8 - MAP_W / 2 + (o)) * w / MAP_W) + w / 2
+#define SC(n) ((n) << g_9156 >> 1)
+#define MY(py) (int)((long)((py) / 8 - g_05a2 / 2) * h / g_05a2) + h / 2
+
+/* World map of map `map`, scaled to w x h. c == -1 (and !e): into a new
+   bitmap (returned); otherwise into g_93d0, and c == 8 marks only marker d
+   [inferred]. */
+/* @addr 10:8b1c */
+HBITMAP far world_map(int w, int h, int a, int map, int c, int d, int e)
+{
+    HDC dc;
+    HBITMAP bm;
+    int unused;         /* never used */
+    HPALETTE oldpal;
+    HGDIOBJ oldpen;
+    HGDIOBJ oldbr;
+    int y;
+    int x;
+    int y2;
+    int x2;
+    int i;
+
+    if (c == -1 && !e) {
+        dc = CreateCompatibleDC(g_13dc);
+        SelectObject(dc, bm = CreateCompatibleBitmap(g_13dc, w, h));
+        if (g_920e)
+            oldpal = SelectPalette(dc, g_920e, 0);
+        PatBlt(dc, 0, 0, w, h, BLACKNESS);
+    } else
+        dc = g_93d0;
+    if (a)
+        oldpen = SelectObject(dc, g_3b44[0]);
+    else
+        oldpen = SelectObject(dc, GetStockObject(BLACK_PEN));
+    oldbr = SelectObject(dc, g_500c);
+    for (i = 0; i < g_9ebc[map]; i++) {
+        if (c == -1 || c == 8 && d - g_9eb9[g_9322] - g_9318 * 2 == i) {
+            x = MX(g_9f40[map][g_9eb9[map] + i].x);
+            y = MY(g_9f40[map][g_9eb9[map] + i].y);
+            if (c == 8 && !e)
+                PatBlt(dc, x + w / -80, y + w / -80, max(w / 50, 4), max(w / 50, 4),
+                       BLACKNESS);
+            else
+                StretchBlt(dc, x + w / -80, y + w / -80, max(w / 50, 4), max(w / 50, 4),
+                           g_93cc, 80, 0, 4, 4, MERGECOPY);
+        }
+    }
+    if (c != 8) {
+        SetStretchBltMode(dc, COLORONCOLOR);
+        for (i = 0; i < g_9eb6[map]; i++) {
+            x = MX(g_9f40[map][i].x);
+            y = MY(g_9f40[map][i].y);
+            StretchBlt(dc, x - max(w / 100, 1), y - max(w / 100, 1),
+                       max(w / 50, 3), max(w / 50, 3),
+                       g_3a24, SC(4), SC(4), SC(14), SC(14), SRCCOPY);
+        }
+        SelectObject(dc, g_5006);
+        x = MXO(g_a120[map].x, -170);
+        x2 = MXO(g_a120[map].x, 170);
+        y = MY(g_a120[map].y);
+        PatBlt(dc, x + w / -80, y + w / -80, max(w / 50, 3), max(w / 50, 3), PATCOPY);
+        PatBlt(dc, x2 + w / -80, y + w / -80, max(w / 50, 3), max(w / 50, 3), PATCOPY);
+        SelectObject(dc, g_5008);
+        PatBlt(dc, x + w / 80, y + w / -280, x2 - max(w / 50, 3) - x,
+               max(w / 140, 1), PATCOPY);
+        if (w != g_0a72) {
+            for (i = 0; i < g_9ebf[map]; i++) {
+                x = MX(g_9f40[map][g_9eb9[map] + g_9ebc[map] + i].x);
+                y = MY(g_9f40[map][g_9eb9[map] + g_9ebc[map] + i].y);
+                StretchBlt(dc, x - max(w / 100, 2), y - max(w / 100, 2),
+                           max(w / 50, 3), max(w / 50, 3),
+                           g_39f0, g_1e08->f24, g_1e08->f24, g_1e08->f22, g_1e08->f22,
+                           SRCCOPY);
+            }
+            x = MX(g_a120[map].x);
+            y = MY(g_9f40[map][0].y);
+            StretchBlt(dc, x - g_1e30[g_9646].f20 / 8 * w / 3200,
+                       y - g_1e30[g_9646].f20 / 8 * w / 800,
+                       g_1e30[g_9646].f20 / 8 * w / 1600, g_1e30[g_9646].f20 / 8 * w / 1600,
+                       g_3a38[g_9646], g_1e30[g_9646].f22 * 4 + g_1e30[g_9646].f24 * 5,
+                       g_1e30[g_9646].f24, g_1e30[g_9646].f22, g_1e30[g_9646].f22, SRCCOPY);
+        }
+        SelectObject(dc, g_500c);
+        x = MXO(g_a120[map].x, 40);
+        y = MY(g_9ea8[map].y);
+        y2 = MY(g_9ea8[map].x);
+        PatBlt(dc, x, y2, max(w / 140, 1), y - y2, PATCOPY);
+    }
+    if (c == -1 || a) {
+        for (i = 0; i < g_9eb9[map]; i++) {
+            if (g_9ec2[map][i] != i) {
+                x2 = MX(g_9f40[map][i].x);
+                y2 = MY(g_9f40[map][i].y);
+                MoveTo(dc, x2, y2);
+                x = MX(g_9f40[map][g_9ec2[map][i]].x);
+                y = MY(g_9f40[map][g_9ec2[map][i]].y);
+                LineTo(dc, x, y);
+            }
+        }
+    }
+    SelectObject(dc, oldbr);
+    SelectObject(dc, oldpen);
+    if (c == -1 && !e) {
+        SelectObject(dc, bm);
+        if (g_920e)
+            SelectPalette(dc, oldpal, 0);
+        DeleteDC(dc);
+    }
+    return bm;
 }

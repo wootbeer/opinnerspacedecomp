@@ -17,12 +17,21 @@ typedef struct {
     char p000[6];
     int f06;                    /* +06 */
     int f08;                    /* +08 */
-    char p00a[0x32 - 0x0a];
+    char p00a[0x18 - 0x0a];
+    int f18;                    /* +18 */
+    char p01a[0x1e - 0x1a];
+    int f1e;                    /* +1e */
+    char p020[0x26 - 0x20];
+    int f26;                    /* +26 */
+    int f28;                    /* +28 */
+    int f2a;                    /* +2a */
+    char p02c[0x32 - 0x2c];
     int f32;                    /* +32 */
     int f34;                    /* +34 */
     int f36;                    /* +36 */
     int f38;                    /* +38 */
-    char p03a[0x3e - 0x3a];
+    char p03a[0x3c - 0x3a];
+    int f3c;                    /* +3c */
     int f3e;                    /* +3e */
     int f40;                    /* +40 */
     char p042[0x4e - 0x42];
@@ -31,11 +40,24 @@ typedef struct {
     int f52;                    /* +52 */
     int f54;                    /* +54 */
     int f56;                    /* +56 */
-    char p058[0x5d - 0x58];
+    int f58;                    /* +58 */
+    char p05a[0x5d - 0x5a];
     char f5d;                   /* +5d */
-    char p05e[0x98 - 0x5e];
+    char f5e;                   /* +5e */
+    char p05f[0x62 - 0x5f];
+    int f62[(0x94 - 0x62) / 2]; /* +62: per object index [inferred] */
+    DWORD f94;                  /* +94 */
     DWORD f98;                  /* +98 */
-    char p09c[0x147 - 0x9c];
+    char p09c[0xa4 - 0x9c];
+    DWORD fa4;                  /* +a4 */
+    char p0a8[0xb8 - 0xa8];
+    char fb8[0xc2 - 0xb8];      /* +b8 */
+    char fc2[0xec - 0xc2];      /* +c2 */
+    char fec;                   /* +ec */
+    char p0ed;
+    char fee[0x13e - 0xee];     /* +ee */
+    char f13e[0x146 - 0x13e];   /* +13e */
+    char f146;                  /* +146 */
     char f147;                  /* +147 */
     char f148;                  /* +148 */
     char f149;                  /* +149 */
@@ -52,9 +74,13 @@ typedef struct {
     int f18;                    /* +18 */
     char p1a[0x26 - 0x1a];
     int f26;                    /* +26 */
-    char p28[0x44 - 0x28];
+    char p28[0x2f - 0x28];
+    char f2f;                   /* +2f */
+    char p30[0x44 - 0x30];
     int f44;                    /* +44 */
-    char p46[0x53 - 0x46];
+    char p46[0x51 - 0x46];
+    char f51;                   /* +51 */
+    char p52;
     char f53;                   /* +53 */
     char p54[0x70 - 0x54];
 } REC_70;
@@ -91,7 +117,9 @@ void far fn_03_3498(LPSTR s, LPSTR a, LPSTR b);
 /* 0xad-byte records; lowest field seen at DS:96ea [inferred]. */
 #pragma pack(1)
 typedef struct {
-    char p00[0x20];
+    char p00[6];
+    int f06;                    /* +06 */
+    char p08[0x20 - 8];
     int f20;                    /* +20 */
     char p22[0x2c - 0x22];
     char f2c;                   /* +2c: flags [inferred] */
@@ -172,9 +200,32 @@ void far fn_10_744c(int a);
 void far fn_06_1010(int v, int div, int width, char far *buf);
 void far fn_07_119c(int a, int b);  /* defined with one parameter */
 void far fn_11_3e6e(void);
+extern int g_952e;
+extern int g_9e49;
+extern long g_1e88;
+extern char g_9eb4;
+extern char g_9eb5;
+extern int g_9320;
+extern int g_9134;
+extern int g_9460;
+extern int g_95bc;                  /* flow_interactive */
+extern long g_8e08[];
+extern int g_9682;
+extern int g_9680;
+extern int g_856a;
+extern int g_8562;
+extern char g_93b6;
+extern int g_91f8;
+extern int g_8e00;
+extern int g_8e04;
+extern DWORD g_1e68;
+extern char g_a163;
+long far abs32(long x);
+void far fn_11_4928(int mode, DWORD t, LPSTR out);
+void far pascal fn_04_0078(int n);
 
-/* Not yet decompiled: stubs so calls to them compile as near calls. */
-void far fn_03_1d0a(int n, int target, int c) { }
+/* Defined below; called near from fn_03_1b8a. */
+void far fn_03_1d0a(int me, int o, int mode);
 
 /* @addr 3:0000 */
 int far fn_03_0000(int type, int n)
@@ -1354,6 +1405,512 @@ void far fn_03_1b8a(int a, int n)
             describe_defender_order_message(n, target, 2);
         fn_03_06ec(n, kind, target, 0x3a);
     }
+}
+
+/* Builds the two status lines about object o (its order and state) as seen
+ * by object me and shows them with fn_03_31d0 [inferred]. */
+/* @addr 3:1d0a */
+void far fn_03_1d0a(int me, int o, int mode)
+{
+    int tt;
+    int tn;
+    int i;
+    int unused;
+    int id;
+    char name[40];
+    char pre[40];
+    char s1[60];
+    char line1[60];
+    char line2[60];
+    int sz;
+    int mood;
+    int cnt;                    /* also a found index and a loop counter */
+    char tmp[40];               /* its first word also serves as a flag */
+
+    tt = g_7090[o].f32;
+    tn = g_7090[o].f34;
+    if (tt != 0xe || tn != me || o == g_9646 && g_9134 && g_95bc)
+        fn_03_1542(1, tt, tn, name, 5);
+    else
+        LoadString(g_9212, 0x1c8, name, 40);
+    if (o != g_9646 || !g_95bc || g_9460)
+        LoadString(g_9212, 0x43b, pre, 40);
+    else
+        LoadString(g_9212, 0x43a, pre, 40);
+    if (tt == 3)
+        fn_03_1542(1, tt, tn, name, 0);
+    lstrcpy(line1, pre);
+    id = -1;
+    if (o == g_952e && g_9e49 >= 0 && g_9e49 < 9) {
+        if (g_9e49 >= 6 || g_1e88 == 0 && g_1df8[7]->f18 != 0) {
+            LoadString(g_9212, 0x46e, s1, 40);
+            LoadString(g_9212, 0x46f, line2, 40);
+        } else if (g_7090[o].f147) {
+            LoadString(g_9212, 0x442, s1, 40);
+            LoadString(g_9212, 0x443, line2, 40);
+        } else if (g_7090[o].f26 + g_7090[o].f28 + g_7090[o].f2a < 100) {
+            LoadString(g_9212, 0x1e8, s1, 40);
+            if (me == 100)
+                LoadString(g_9212, 0x460, line2, 40);
+            else
+                LoadString(g_9212, 0x1e9, line2, 40);
+        } else {
+            LoadString(g_9212, 0x46c, s1, 40);
+            LoadString(g_9212, 0x46d, line2, 40);
+        }
+    } else if (g_9320 == 6 && g_96ea[g_7090[o].f4e].f20 != 7) {
+        if (!g_9eb4)
+            LoadString(g_9212, 0x43e, s1, 40);
+        else if (g_9eb5)
+            LoadString(g_9212, 0x440, s1, 40);
+        else if (g_1df8[14][o].f51)
+            LoadString(g_9212, 0x43f, s1, 40);
+        else if (o == g_9646) {
+            LoadString(g_9212, 0x441, s1, 40);
+            fn_06_0f1a(g_7090[o].f148, line2);
+            lstrcat(s1, line2);
+        } else {
+            LoadString(g_9212, 0x43b, s1, 40);
+            if (g_8e08[o] == 1000000L)
+                LoadString(g_9212, 0x437, s1, 40);
+            else if (g_8e08[o] == -50000L)
+                LoadString(g_9212, 0x438, s1, 40);
+            else if (g_8e08[o] == 50000L)
+                LoadString(g_9212, 0x439, s1, 40);
+            else {
+                if (g_8e08[o] < 0) {
+                    fn_11_4928(1, abs32(g_8e08[o]), line1);
+                    lstrcat(s1, line1);
+                    LoadString(g_9212, 0x43c, line1, 40);
+                } else {
+                    LoadString(g_9212, 0x43d, line1, 40);
+                    lstrcat(s1, line1);
+                    fn_11_4928(1, abs32(g_8e08[o]), line1);
+                }
+                lstrcat(s1, line1);
+            }
+            lstrcpy(line1, "");
+            lstrcpy(line2, "");
+            pre[0] = 0;
+        }
+        if (pre[0])
+            line2[0] = 0;
+    } else {
+        switch (g_7090[o].f38) {
+        case 1:
+            fn_10_a332(s1, 0x1c9, 1, (LPSTR)name);
+            if (!g_95bc && g_7090[o].fa4 + 14000 < g_1e50
+                && g_7090[o].fa4 + 19000 > g_1e50)
+                id = 0x467;
+            else if (!g_95bc && g_7090[o].fa4 + 19000 < g_1e50
+                     && (g_7090[o].f52 == 0
+                         || g_7090[o].f98 < g_1e50 && g_7090[o].f52 != 4
+                            && g_7090[o].f52 != 1)) {
+                id = 0x468;
+                if (g_9320 == 7) {
+                    for (i = 0; i <= g_9316; i++)
+                        if (i != o && g_7090[o].f56 != i
+                            && !g_1df8[14][i].f18) {
+                            g_7090[o].f56 = i;
+                            g_7090[o].fa4 = g_1e50;
+                            break;
+                        }
+                    if (g_9316 - i + 1 == 0) {
+                        g_7090[o].f94 = 0;
+                        g_7090[o].f52 = -1;
+                        if (o != g_9646 || !g_95bc)
+                            fn_04_0078(o);
+                    }
+                } else {
+                    if (g_7090[o].f32 == 0xe) {
+                        g_7090[o].f62[g_7090[o].f34] /= 2;
+                        g_7090[o].fc2[g_7090[o].f34] = -1;
+                    }
+                    g_7090[o].f94 = 0;
+                    g_7090[o].f52 = -1;
+                    if (o != g_9646 || !g_95bc)
+                        fn_04_0078(o);
+                }
+            } else if (g_7090[o].f146 == 0xd) {
+                if (tn == me)
+                    id = 0x1f0;
+                else
+                    id = 0x1f1;
+            } else if (g_7090[o].f52 >= 2 && g_7090[o].f52 <= 4
+                       && (o != g_9646 || !g_95bc) || g_9320 == 7) {
+                if (g_7090[o].f58 == o) {
+                    if (mode == 3 && g_7090[o].f54 == 0xe
+                        && g_7090[o].f56 == g_9646) {
+                        sz = mood = cnt = 0;
+                        for (i = 0; i <= g_9316; i++)
+                            if (i != me && !g_1df8[14][i].f18
+                                && g_7090[i].f54 == 0xe
+                                && g_7090[i].f56 == me) {
+                                sz += g_7090[i].f26;
+                                mood += g_7090[i].f13e[me];
+                                cnt++;
+                                if (i == o) {
+                                    sz += g_7090[i].f26;
+                                    mood += g_7090[i].f13e[me];
+                                    cnt++;
+                                } else if (!g_7090[i].fec)
+                                    sz = -100;
+                            }
+                        if (cnt == 0)
+                            cnt = 1;
+                        sz /= cnt;
+                        mood /= cnt;
+                        if (g_9682 < 3 && g_9680 < 3)
+                            id = 0x6c7;
+                        else if (sz < 0) {
+                            if (g_7090[o].f5d < 2)
+                                id = 0x6c8;
+                            else
+                                id = 0x6ca;
+                        } else if (!g_7090[o].fec)
+                            id = 0x6c9;
+                        else if (!g_7090[me].fec) {
+                            if (me == g_856a && g_8562 <= 0)
+                                id = 0x6d1;
+                            else if (g_7090[o].f5e == 3)
+                                id = 0x6d0;
+                            else if (g_96ea[g_7090[o].f4e].f20 == 3)
+                                id = 0x6cf;
+                            else if (g_7090[o].f26 > 0x41)
+                                id = 0x6d2;
+                            else if (!g_7090[o].f5e)
+                                id = 0x6d3;
+                            else if (g_7090[o].f5d < 2)
+                                id = 0x6cc;
+                            else if (g_93b6 != -1)
+                                id = 0x6cd;
+                            else if (g_91f8 & 1)
+                                id = 0x6cb;
+                            else
+                                id = 0x6ce;
+                        } else if (g_7090[me].f26 * 3 / 4 < sz) {
+                            if (g_8e04 > g_8e00) {
+                                if (mood > 2 && g_8e04 > 0x50) {
+                                    if (g_7090[o].f5e < 2)
+                                        id = 0x6ae;
+                                    else
+                                        id = 0x6af;
+                                } else if (g_8e00 > 0x78 && mood < -2
+                                           && g_1e68 > 900) {
+                                    id = 0x6b0;
+                                } else if (g_7090[o].f5e < 2)
+                                    id = 0x6b1;
+                                else
+                                    id = 0x6b2;
+                            } else if (g_8e00 * 3 / 5 < g_8e04) {
+                                if (mood > 1) {
+                                    if (g_7090[o].f5e < 2)
+                                        id = 0x6b3;
+                                    else
+                                        id = 0x6b4;
+                                } else if (mood < -2)
+                                    id = 0x6b5;
+                                else if (g_7090[o].f5e < 2)
+                                    id = 0x6b7;
+                                else
+                                    id = 0x6b6;
+                            } else if (g_7090[me].f26 < sz)
+                                id = 0x6b8;
+                            else if (mood > 2) {
+                                if (g_7090[o].f5e < 2)
+                                    id = 0x6b3;
+                                else
+                                    id = 0x6b4;
+                            } else
+                                id = 0x6b9;
+                        } else if (g_8e00 * 3 / 4 < g_8e04
+                                   && g_7090[me].f26 / 2 < sz) {
+                            if (mood > 1) {
+                                if (g_7090[o].f5e < 2)
+                                    id = 0x6ba;
+                                else
+                                    id = 0x6b4;
+                            } else if (mood < -2)
+                                id = 0x6b5;
+                            else if (g_7090[o].f5e < 2)
+                                id = 0x6bb;
+                            else
+                                id = 0x6bc;
+                        } else if (g_8e00 / 3 > g_8e04) {
+                            if (g_7090[o].f5e < 2)
+                                id = 0x6bd;
+                            else if (mood < -2 && sz < 0x23) {
+                                if (g_7090[o].f5e < 2)
+                                    id = 0x6be;
+                                else
+                                    id = 0x6bf;
+                            } else
+                                id = 0x6c0;
+                        } else if (mood > 1) {
+                            if (g_7090[o].f5e < 2)
+                                id = 0x6c2;
+                            else
+                                id = 0x6c3;
+                        } else if (mood < -2 && sz < 0x1e) {
+                            if (g_7090[o].f5e < 2)
+                                id = 0x6c1;
+                            else
+                                id = 0x6bf;
+                        } else
+                            id = 0x6c4;
+                    } else if (g_7090[o].f146 == 0x14) {
+                        if (g_7090[o].f32 == 0xe && g_7090[o].f34 == me)
+                            id = 0x6c5;
+                        else
+                            id = 0x6ab;
+                    } else if (g_7090[o].f146 == 0x15) {
+                        if (g_7090[o].f32 == 0xe && g_7090[o].f34 == me)
+                            id = 0x6c6;
+                        else
+                            id = 0x6ac;
+                    } else
+                        id = 0x1ca;
+                } else
+                    fn_10_a332(line2, 0x1cb, 1, 0xe, g_7090[o].f58, name, 5); /* near name (sic) */
+            } else if (g_7090[o].f52 == 1) {
+                if (g_7090[o].f56 != me)
+                    fn_03_1542(0, 0xe, g_7090[o].f56, name, 5);
+                else
+                    LoadString(g_9212, 0x1c8, name, 40);
+                id = 0x28dc;
+            } else if (g_7090[o].f146 == 1)
+                id = 0x6a6;
+            else if (g_7090[o].f146 == 2) {
+                cnt = -1;
+                for (i = 0; i <= g_9316; i++) {
+                    if (g_1df8[14][i].f18)
+                        continue;
+                    if (i == o)
+                        continue;
+                    if (g_7090[i].f32 == g_7090[o].f32
+                        && g_7090[i].f34 == g_7090[o].f34
+                        && g_7090[i].f38 == 1) {
+                        cnt = i;
+                        break;
+                    }
+                }
+                if (cnt == -1)
+                    id = 0x6a7;
+                else
+                    fn_10_a332(line2, 0x435, 1, 0xe, i, 5, tt == 0xe,
+                               tn == me, 0x1cf, 0x1c8, tt != 0xe);
+            } else if (tt == 2)
+                id = 0x1cd;
+            else if (g_7090[o].f52 == 0x17)
+                id = 0x1ef;
+            else if (g_7090[o].f146 == 0xa)
+                id = 0x6a8;
+            else if (g_7090[o].f146 == 0xf)
+                id = 0x6a9;
+            else if (g_7090[o].f146 == 0x10)
+                id = 0x6aa;
+            else if (tt == 0xe) {
+                if (g_7090[o].fee[tn] != 0 && g_7090[o].fee[tn] <= 5) {
+                    switch (g_7090[o].fee[tn]) {
+                    case 1:
+                        id = 0x462;
+                        break;
+                    case 2:
+                        id = 0x463;
+                        break;
+                    case 3:
+                        id = 0x464;
+                        break;
+                    case 4:
+                        id = 0x465;
+                        break;
+                    case 5:
+                        id = 0x466;
+                        break;
+                    }
+                } else
+                    fn_10_a332(line2, 0x1ce, 1, tn == me, 0x1cf, 0x1c8);
+            } else if (tt == 0) {
+                if (g_1df8[0][tn].f53 == 2)
+                    id = 0x456;
+                else if (g_1df8[0][tn].f2f < 0
+                         && g_7090[o].fb8[g_7090[o].f18] == 5)
+                    id = 0x6ad;
+                else {
+                    LoadString(g_9212, 0x457, line2, 40);
+                    lstrcpy(tmp, g_57b4[tn]);
+                    for (cnt = 0; cnt < lstrlen(tmp); cnt++)
+                        if (tmp[cnt] == '.') {
+                            tmp[cnt] = 0;
+                            break;
+                        }
+                    lstrcat(line2, tmp);
+                    lstrcat(line2, "!");
+                }
+            } else if (tt == 8) {
+                if (g_3d5a[tn].w12 == 2) {
+                    if (g_3d5a[tn].w00 == -1)
+                        id = 0x459;
+                    if (g_3d5a[tn].w00 == -3)
+                        id = 0x45a;
+                    if (g_3d5a[tn].w00 == 0x10)
+                        id = 0x45b;
+                    else
+                        id = 0x45d;
+                } else if (g_96ea[g_7090[o].f4e].f20 == 6)
+                    id = 0x1f6;
+                else
+                    id = 0x45c;
+            } else if (tt == 9)
+                id = 0x458;
+            else if (g_96ea[g_7090[o].f4e].f20 == 6)
+                id = 0x1f6;
+            else
+                id = 0x1f7;
+            break;
+        case 3:
+            if (tt == 0xe && (g_9134 != 1 || !g_95bc || o != g_9646
+                              || g_7090[o].f52 == 5)) {
+                if (g_7090[o].f52 != 7) {
+                    fn_10_a332(s1, 0x1d0, 1, (LPSTR)name);
+                    if (tn == me && (!g_9134 || o != g_9646 || !g_95bc))
+                        LoadString(g_9212, 0x1c8, name, 40);
+                    else if (!g_9134 || o != g_9646 || !g_95bc)
+                        LoadString(g_9212, 0x1cf, name, 40);
+                    if (g_7090[o].f52 == 5) {
+                        if (g_95bc && o == g_9646) {
+                            if (!g_9134)
+                                LoadString(g_9212, 0x127, s1, 40);
+                            else
+                                fn_10_a332(s1, 0x594, 1, (LPSTR)name);
+                        } else if (g_7090[o].f58 == o)
+                            id = 0x28e2;
+                        else
+                            id = 0x28e1;
+                    } else if (g_7090[o].f52 == 0x14)
+                        id = 0x1f2;
+                    else if (g_7090[o].f52 == 0x16) {
+                        if (g_7090[o].f56 == me)
+                            LoadString(g_9212, 0x1fb, s1, 40);
+                        else
+                            fn_10_a332(s1, 0x1fc, 1, 0xe, g_7090[o].f56, 5);
+                        id = g_a163 + 0x44a;
+                    } else if (fn_13_2688(o, tn) > g_7090[o].f5d * 40 + 50)
+                        id = 0x1f3;
+                    else if (g_7090[o].fc2[tn] > 0)
+                        id = 0x28e3;
+                    else
+                        id = 0x2904;
+                } else {
+                    LoadString(g_9212, 0x1d4, s1, 40);
+                    id = 0x1d5;
+                }
+            } else if (g_7090[o].f52 == 7
+                       || o == g_9646 && g_7090[o].f32 == 8
+                          && g_7090[o].f34 == 0) {
+                LoadString(g_9212, 0x1d6, s1, 40);
+                if (tt == 0)
+                    id = 0x28e7;
+                else if (g_7090[o].f3c == 5)
+                    id = 0x28e8;
+                else if (g_7090[o].f26 < 0x32)
+                    id = LoadString(g_9212, 0x1f5, line2, 40);  /* sic: length as id */
+                else
+                    id = 0x28e9;
+            } else {
+                fn_10_a332(s1, 0x1da, 1, (LPSTR)name);
+                id = 0x1db;
+            }
+            break;
+        case 2:
+            if (fn_13_371c(tt, tn)) {
+                if (g_7090[o].f52 == 0x16) {
+                    if (g_7090[o].f56 == me)
+                        LoadString(g_9212, 0x1fb, s1, 40);
+                    else
+                        fn_10_a332(s1, 0x1fc, 1, 0xe, g_7090[o].f56, 5);
+                    id = g_a163 + 0x44a;
+                } else {
+                    LoadString(g_9212, 0x1dc, s1, 40);
+                    *(int *)tmp = 0;    /* flag kept in tmp's slot (frame layout) */
+                    for (i = 0; i <= g_9316; i++)
+                        if (g_96ea[g_7090[i].f4e].f20 == 7
+                            && g_7090[i].f5e == 1 && g_7090[i].f56 == o) {
+                            *(int *)tmp = 1;
+                            break;
+                        }
+                    if (*(int *)tmp)
+                        id = 0x45e;
+                    else if (me == 100) {
+                        if (!g_95bc)
+                            id = 0x45f;
+                        else
+                            id = 0x461;
+                    } else
+                        id = 0x1dd;
+                }
+            } else if (g_1df8[tt][tn].f53 || o == g_9646 && g_9134 < 2) {
+                fn_03_1542(1, tt, tn, name, 2);
+                fn_10_a332(s1, 0x1de, 1, (LPSTR)name);
+                if (g_7090[o].f52 == 9 || g_7090[o].f52 == 0xc) {
+                    if (g_7090[o].f58 == me)
+                        id = 0x1df;
+                    else
+                        id = 0x1e0;
+                } else if (g_7090[o].f52 == 0xe)
+                    fn_10_a332(line2, 0x202, 1, 0xe, g_7090[o].f56, 5);
+                else if (tt == 0xb) {
+                    if (g_96ea[g_7090[o].f4e].f20 == 3)
+                        id = 0x1fe;
+                    else if (g_96ea[g_7090[o].f4e].f20 == 7)
+                        id = 0x444;
+                    else
+                        id = 0x1ff;
+                } else if (tt == 6 && g_96ea[g_7090[o].f4e].f20 == 7)
+                    id = 0x200;
+                else if (tt == 4 && g_7090[o].f1e < 300)
+                    id = 0x46b;
+                else if (tt == 0)
+                    id = 0x1e1;
+                else if (tt == 4
+                         && g_96ea[g_7090[o].f4e].f06 - 15 > g_7090[o].f1e)
+                    id = 0x46a;
+                else if (tt == 4)
+                    id = 0x469;
+            } else {
+                LoadString(g_9212, 0x6a4, s1, 40);
+                id = 0x6a5;
+            }
+            break;
+        case 4:
+            if (tt == 0xe && tn == me) {
+                LoadString(g_9212, 0x1e2, s1, 40);
+                id = 0x1e3;
+            } else {
+                fn_10_a332(s1, 0x1e4, 1, tt, tn, 5);
+                id = 0x1e5;
+            }
+            break;
+        case 5:
+            LoadString(g_9212, 0x1ea, s1, 40);
+            id = 0x1eb;
+            break;
+        default:
+            LoadString(g_9212, 0x1e6, s1, 40);
+            id = 0x1e7;
+            break;
+        }
+    }
+    if (o == g_9646 && g_95bc && !g_9460)
+        lstrcpy(line2, "");
+    else if (id > 10000)
+        fn_10_a332(line2, id - 10000, 1, (LPSTR)name);
+    else if (id != -1)
+        LoadString(g_9212, id, line2, 40);
+    lstrcat(line1, s1);
+    if (lstrlen(line1) > 60 || lstrlen(line2) > 60)
+        g_9498++;
+    fn_03_31d0(mode, line1, line2);
 }
 
 /* @addr 3:304c */

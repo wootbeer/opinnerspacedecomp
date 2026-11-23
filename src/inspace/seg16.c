@@ -159,7 +159,8 @@ typedef struct {                /* 0x7c-byte records, far pointer at DS:6e24 */
     signed char f32[0x72 - 0x32];
     signed char f72;
     signed char f73;
-    char p74[0x7a - 0x74];
+    signed char f74;
+    char p75[0x7a - 0x75];
     signed char f7a;
     signed char f7b;
 } REC_7C;
@@ -279,7 +280,7 @@ void far fn_15_1328(int a);
 void far fn_15_14be(void);
 void far fn_10_6e76(int a, int b);
 void far fn_10_6dd4(int a);
-void far fn_16_7396(void);
+void far fn_16_7210(int a);      /* defined with no parameter (seg16b.c) */
 void far fn_16_5820(HWND hDlg);
 void far pascal fn_16_5a8a(DRAWITEMSTRUCT far *dis);
 void far fn_16_51d6(HWND hDlg);
@@ -447,6 +448,34 @@ extern int g_1c5e;              /* lines typed */
 extern DWORD g_1c60;            /* next character time */
 extern HRGN g_9534;
 void far fn_15_84b0(int x, int y);
+
+extern int g_9662;
+extern int g_9598;
+extern char g_6db8[];
+extern int g_92d6;
+extern HDC g_3cdc[2];
+extern int g_3cea;
+extern DWORD g_1c44;
+extern DWORD g_1c48;
+extern int g_1c4c;
+extern int g_1c4e;
+extern int g_1c50;
+extern int g_1c52;
+extern int g_9220;
+extern int g_073e;
+extern int g_931c;
+extern long g_05a8;
+extern DWORD g_1e68;
+extern int g_1d48;
+void far sprite_dc_release(void);
+void far sprite_dc_restore(void);
+void far fn_15_4c76(int a, int b);
+void far fn_09_95f4(UINT id);
+void far fn_11_0afe(void);
+void far fn_13_65f2(int a);
+void far fn_18_07b2(void);
+POINT far pascal fn_08_29ea(POINT pt);
+void far fn_16_2e3c(int a, int b);
 
 /* Parses a number from a short digit string [inferred]. */
 /* near-match 82%: 16:0000 (game: sub 0x30; mov cx,1000; imul cx for the
@@ -1850,169 +1879,6 @@ void far fn_16_3784(int idx, int flag)
     *(long *)&g_9e5b = 1;
 }
 
-/* @addr 16:7210 */
-void far fn_16_7210(void)
-{
-    char unused[96];
-    DWORD t;
-
-    switch (g_92be) {
-    case 0:
-        fn_11_02f0();
-        g_1e58 += 50000;
-        fn_06_885c(1, 2);
-        fn_15_302e();
-        g_92be++;
-        break;
-    case 1:
-        fn_15_3590();
-        break;
-    case 2:
-        fn_15_302e();
-        g_92be++;
-        break;
-    case 3:
-        fn_15_3590();
-        break;
-    case 4:
-        t = GetCurrentTime();
-        do
-            fn_10_740c();
-        while (GetCurrentTime() < t + 1500);
-        fn_16_7396();
-        g_92be++;
-        break;
-    case 5:
-        fn_15_1584(0);
-        break;
-    case 6:
-        fn_10_744c(0x66);
-        t = GetCurrentTime();
-        do
-            fn_10_740c();
-        while (GetCurrentTime() < t + 3500);
-        g_92be++;
-        break;
-    case 7:
-        fn_15_1584(0);
-        g_1c68 = 0;
-        g_92be++;
-        break;
-    case 8:
-        if (g_1c68 == 0) {
-            g_1c68 = GetCurrentTime() + 7000;
-        } else if (GetCurrentTime() > g_1c68) {
-            PatBlt(g_13dc, 0, 0, g_90ea, g_0010, BLACKNESS);
-            g_92be++;
-        }
-        break;
-    case 9:
-        PatBlt(g_13dc, 0, 0, g_90ea, g_0010, BLACKNESS);
-        fn_15_1328(1);
-        fn_15_14be();
-        fn_10_6e76(8, 0);
-        fn_10_6dd4(0);
-        g_1e84 = g_1e50;
-        break;
-    }
-}
-
-/* Builds the save-game summary text (age, flight time) [inferred]. */
-/* @addr 16:7396 */
-void far fn_16_7396(void)
-{
-    char pad0[14];
-    int days;
-    int m;
-    DWORD size;
-    char pad1[6];
-    HGLOBAL h;
-    REC_1A9 far *p;
-    char bufbc[152];
-    char buf184[200];
-    char buf288[260];
-    char buf2a6[30];
-    int pad2;
-    long d2;
-    long d1;
-    long c;
-    long s;
-    long t;
-    long hours;
-    long mins;
-
-    g_93a8 = GlobalAlloc(GHND, 2000L);
-    g_4fcc = GlobalLock(g_93a8);
-    lstrcpy(g_4fcc, "");
-    LoadString(g_9212, 0x84e, buf184, 40);
-    lstrcat(g_4fcc, buf184);
-    lstrcat(g_4fcc, g_09f2);
-    lstrcat(g_4fcc, g_380c);
-    lstrcat(g_4fcc, "!!");
-    lstrcat(g_4fcc, "\r\n");
-    h = GlobalAlloc(GHND, 0x1a9L);
-    GlobalLock(h);
-    size = GlobalSize(h);
-    GlobalUnlock(h);
-    h = GlobalReAlloc(h, size, GHND);
-    p = (REC_1A9 far *)GlobalLock(h);
-    fn_06_8eea(p);
-    d1 = p->f1d;
-    if (d1 < 90)
-        d1 += 100;
-    d1 *= 365;
-    d1 += p->f1b * 30;
-    d1 += p->f1c;
-    d2 = p->f1a;
-    if (d2 < 90)
-        d2 += 100;
-    d2 *= 365;
-    d2 += p->f18 * 30;
-    d2 += p->f19;
-    d1 -= d2;
-    days = (int)d1 < 1 ? 1 : (int)d1;
-    if (days > 30)
-        m = days * 10 / 30;
-    else
-        m = 0;
-    if (m > 9) {
-        fn_06_1010(m, 10, 1, buf184);
-        LoadString(g_9212, 0x850, buf2a6, 200);
-        lstrcat(buf184, buf2a6);
-        if (m != 10)
-            lstrcat(buf184, "S");
-    } else {
-        fn_06_0f1a(days, bufbc);
-        lstrcpy(buf184, bufbc);
-        LoadString(g_9212, 0x851, buf2a6, 200);
-        lstrcat(buf184, buf2a6);
-        if (days != 1)
-            lstrcat(buf184, "S");
-    }
-    fn_15_6558(g_94ac, buf288);
-    fn_10_a332(g_4fcc, (char *)0x84f, 0, (LPSTR)buf184, p->f24, 0x9d6, (LPSTR)buf288);
-    if (p->f15a || p->f15c)
-        fn_10_a332(g_4fcc, (char *)0xbcd, 0, p->f15a, p->f15a, 0x9d3, p->f15c, p->f15c, 0x9d3);
-    fn_15_6558(g_94ac, buf184);
-    fn_10_a332(g_4fcc, (char *)0xbce, 0, p->f32, 0x13e, p->f1e);
-    t = p->f18b / 36;
-    mins = t / 60;
-    hours = mins / 60;
-    c = mins - hours * 60;
-    s = t - mins * 60;
-    if (hours >= 1)
-        fn_10_a332(g_4fcc, (char *)0xbe4, 0, (int)hours, (int)hours, g_09f2, (int)c, 0x9ce,
-                   (LPSTR)buf184, 4, 0x2b0, (LPSTR)g_380c);
-    else
-        fn_10_a332(g_4fcc, (char *)0xbe4, 0, (int)mins, (int)mins, 0x9ce, (int)s, 0x9cf,
-                   (LPSTR)buf184, 4, 0x2b0, (LPSTR)g_380c);
-    GlobalUnlock(h);
-    GlobalFree(h);
-    fn_11_3fd4(g_4fcc, 1);
-    g_92d4 = 0;
-    fn_15_1584(1);
-}
-
 /* Dialog procedure [inferred]. */
 /* @addr 16:4104 */
 BOOL far pascal fn_16_4104(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -2139,6 +2005,633 @@ int far fn_16_0b4e(int i)
         fn_07_2080(7, -1);
     }
     return 1;
+}
+
+/* Step of the end-of-mission sequence (state g_914a) [inferred]. */
+/* @addr 16:0cfe */
+void far fn_16_0cfe(int a)
+{
+    int i;
+    int j;
+    int n;
+    int s;
+    int r;
+    char buf[70];
+    int ok;
+    int flag;
+    POINT pt;
+    RECT rc;
+    DWORD t0;
+
+    if (a && (g_914a > 0 || g_914a == -1) && (g_914a >= 2 || g_92a2 >= 1))
+        fn_16_2144();
+    if (a || g_9532)
+        return;
+    if ((GetKeyState(VK_CONTROL) & 0x8000) && !g_952c && g_92a2 != 1)
+        g_0928 = 1;
+    if (g_8f70 > 1)
+        g_0928 = 1;
+    switch (g_914a) {
+    case 0:
+        sprite_dc_release();
+        if (!g_93a6)
+            g_9662 = g_952c = 0;
+        else
+            g_959a = g_952c = 1;
+        fn_11_02f0();
+        fn_15_302e();
+        if (g_952e == g_9646)
+            g_1e80 = g_1e84 = 0;
+        g_914a++;
+        break;
+    case 1:
+        fn_15_3590();
+        break;
+    case 2: {
+        HDC dc;
+        HBITMAP old;
+        int w;
+        HPALETTE pal;
+        int y;
+        int x;
+
+        BitBlt(g_13dc,
+               x = g_90ea / 2
+                   - (w = (g_6e24[g_7092[g_9646].f_0d4].f7a
+                           + (g_6e24[g_7092[g_9646].f_0d4].f7b - 6) / 2) * 4) / 2,
+               y = g_92d6 + 2, w, w,
+               g_3cdc[1], 0, g_3cea, SRCAND);
+        BitBlt(g_13dc, x, y, w, w, g_3cdc[0], 0, g_3cea, SRCPAINT);
+        w = g_1e30[g_9646].f22 << 3 >> g_959e;
+        if (!g_953c)
+            g_953c = CreateCompatibleBitmap(g_13dc, g_3ce6, w + 0x43);
+        dc = CreateCompatibleDC(g_13dc);
+        if (g_920e)
+            pal = SelectPalette(dc, g_920e, 0);
+        old = SelectObject(dc, g_953c);
+        PatBlt(dc, 0, 0, g_3ce6, w + 0x43, BLACKNESS);
+        BitBlt(dc, 0, 5, g_3ce6, w + 0x3e, g_13dc,
+               g_90ea / 2 - g_3ce6 / 2, g_0010 - w - 0x3e, SRCCOPY);
+        SelectObject(dc, old);
+        if (pal)
+            SelectPalette(dc, pal, 0);
+        DeleteDC(dc);
+        fn_10_a332(g_6db8, (char *)0x4a0, 1, 0xe, g_952e, 1);
+        fn_16_2e3c(1, 0);
+        g_914a++;
+        break;
+    }
+    case 4: {
+        int id;
+
+        if (g_93a6)
+            fn_10_a332(g_6db8, (char *)0x7e4, 1, (LPSTR)g_380c);
+        else {
+            if (g_96f0[g_7092[g_952e].f_04c].f0a == -1)
+                n = 3;
+            else
+                n = 4;
+            for (i = s = 0; i < n; i++)
+                s += g_7092[g_952e].f_024[i];
+            s /= n;
+            if (!g_9e5b)
+                fn_10_a332(g_6db8, (char *)0x7e5, 1, (LPSTR)g_380c);
+            else {
+                if (s > 0x46)
+                    id = 0x137;
+                else if (s > 0x2d)
+                    id = 0x138;
+                else if (s > 0x1b)
+                    id = 0x139;
+                else
+                    id = 0x13a;
+                fn_10_a332(g_6db8, (char *)0x49f, 1, id, (LPSTR)g_380c);
+            }
+        }
+        fn_11_3fd4(g_6db8, 1);
+        if (s > 0x1b && g_9e5b)
+            lstrcat(g_6db8, g_09ee);
+        else
+            lstrcat(g_6db8, "!");
+        g_914a++;
+        break;
+    }
+    case 6: {
+        int id;
+
+        if (g_93a6) {
+            g_1c48 = 0;
+            g_914a = 0x3c;
+            break;
+        }
+        for (i = s = 0; i < 3; i++)
+            s += g_7092[g_952e].f_024[i];
+        s /= 3;
+        if (g_96f0[g_7092[g_952e].f_04c].f00 / 5 > g_7092[g_952e].f_01c)
+            id = 0x499;
+        else if (s < 0x32)
+            id = 0x9d4;
+        else if (g_96f0[g_7092[g_952e].f_04c].f0a != -1
+                 && g_7092[g_952e].f_024[3] < 0x32)
+            id = 0x9d5;
+        else if (g_96f0[g_7092[g_952e].f_04c].f00 / 2 > g_7092[g_952e].f_01c)
+            id = 0x499;
+        else {
+            g_914a = 8;
+            break;
+        }
+        fn_10_a332(g_6db8, (char *)0x485, 1, id);
+        lstrcat(g_6db8, g_09ee);
+        g_914a++;
+        break;
+    }
+    case 8:
+        g_914a++;
+        if (g_7092[g_952e].f_0cc > 0) {
+            fn_06_1010(g_7092[g_952e].f_0cc, 100, 2, buf);
+            fn_10_a332(g_6db8, (char *)0x495, 1, (LPSTR)buf);
+        } else
+            fn_10_a332(g_6db8, (char *)0x9df, 1, 0xe, g_952e, 1);
+        break;
+    case 10:
+        fn_10_744c(0x6e);
+        g_9e41[0] = -1;
+        g_9e41[1] = 0x32;
+        g_9e41[2] = 5;
+        g_9e41[3] = 0xf;
+        g_111e = 0;
+        g_1c44 = g_1e50 + 2500;
+        g_958e = g_7092[g_952e].f_0c9;
+        if (g_7092[g_952e].f_0cc > 0) {
+            g_914a++;
+            break;
+        }
+        g_914a = 0xd;
+        break;
+    case 11:
+        if (g_1c44 < g_1e50) {
+            g_914a++;
+            g_1c44 = g_1e50 + 1000;
+            fn_09_95f4(0x496);
+        }
+        break;
+    case 13:
+        g_7092[g_952e].f_0da += g_7092[g_952e].f_0cc;
+        g_7092[g_952e].f_0cc = 0;
+        fn_06_0f54(g_7092[g_952e].f_0da, 100, 2, buf);
+        fn_10_a332(g_6db8, (char *)0x486, 1, (LPSTR)buf);
+        g_914a++;
+        break;
+    case 15:
+        if (!g_9532) {
+            HBITMAP old;
+            HDC dc;
+            DWORD t;
+
+            t = GetCurrentTime();
+            while (GetCurrentTime() - t < 1300)
+                ;
+            if (!g_953a)
+                g_953a = CreateCompatibleBitmap(g_13dc, g_6e14.x - 4, g_6e14.y - 4);
+            dc = CreateCompatibleDC(g_13dc);
+            old = SelectObject(dc, g_953a);
+            BitBlt(dc, 0, 0, g_6e14.x - 4, g_6e14.y - 4, g_13dc,
+                   g_6e18.x + g_3d48 + 7, g_6e18.y + g_3d4a + 7, SRCCOPY);
+            SelectObject(dc, old);
+            DeleteDC(dc);
+            if (g_95bc)
+                fn_10_744c(0x13);
+            if (g_7092[g_9646].f_0e3
+                && (!g_7092[g_9646].f_0aa || !g_7092[g_9646].f_0ab))
+                g_9598 = 1;
+            else
+                g_9598 = 0;
+            if (g_9530 == 1)
+                g_9530 = 4;
+            if (g_9e5b) {
+                DialogBox(g_9212, MAKEINTRESOURCE(0xc2), g_0016, fn_16_4104);
+                if (!g_95bc)
+                    fn_16_3b18(g_9646, 0);
+            } else {
+                g_9532 = 1;
+                r = fn_10_82a2(6);
+                g_953e = g_9540 = g_953f = g_9541 = g_957f = 0;
+                for (j = 1; j < 0x1b; j++) {
+                    g_9542[j] = 0;
+                    g_9564[j] = 0;
+                }
+                g_9563 = 1;
+                g_9e55 = 600;
+                for (i = 0; i < 4; i++)
+                    if (g_96f0[g_7092[g_952e].f_04c].f04[i] != -1)
+                        fn_10_6d52(g_13dc, g_3d48 + 0x3b,
+                                   i * 25 + g_3d4a + g_3cae + 0x16,
+                                   g_3cac - 0x50, 10,
+                                   g_7092[g_952e].f_024[i] = 100);
+                g_9532 = 0;
+            }
+            fn_16_2144();
+        }
+        if (g_9563) {
+            fn_09_95f4(0x362);
+            g_914a++;
+            break;
+        }
+        g_914a = 0x16;
+        break;
+    case 5: case 9: case 16: case 23: case 34: case 39: case 42: case 55:
+    case 57: case 62:
+        fn_16_2e3c(0, 1);
+        break;
+    case 22:
+        if (g_953e) {
+            fn_10_a332(g_6db8, (char *)0x497, 1, 0x9d4);
+            g_914a++;
+        } else
+            g_914a = 0x19;
+        break;
+    case 24:
+        if (g_1c48 < g_1e50) {
+            for (i = 0; i < 3; i++)
+                g_6e24[g_931c].f32[i + 6] = 100;
+            g_1c48 = g_1e50 + 50;
+            flag = 1;
+            for (i = 0; i < 3; i++)
+                if (g_7092[g_952e].f_024[i] < 100
+                    && g_96f0[g_7092[g_952e].f_04c].f04[i] != -1) {
+                    if (g_7092[g_952e].f_024[i]++ <= 100)
+                        g_7092[g_952e].f_024[i]++;
+                    else
+                        g_7092[g_952e].f_024[i] = 100;
+                    fn_10_6d52(g_13dc, g_3d48 + 0x3b,
+                               i * 25 + g_3d4a + g_3cae + 0x16,
+                               g_3cac - 0x50, 10, g_7092[g_952e].f_024[i]);
+                    flag = 0;
+                }
+            if (flag)
+                g_914a++;
+        }
+        break;
+    case 25:
+        if (g_953f) {
+            fn_10_a332(g_6db8, (char *)0x497, 1, 0x9d5);
+            g_6e24[g_931c].f73 = g_7092[g_9646].f_0aa = g_7092[g_9646].f_0ab = 1;
+            g_6e24[g_931c].f72 = g_6e24[g_931c].f73;
+            g_6e24[g_931c].f74 = g_7092[g_9646].f_022 = g_7092[g_9646].f_008;
+            if (g_7092[g_9646].f_022 == 2)
+                g_7092[g_9646].f_0de = g_7092[g_9646].f_0df = 1;
+            g_6e24[g_931c].f32[9] = 100;
+            g_914a++;
+        } else
+            g_914a = 0x1f;
+        break;
+    case 26:
+        fn_16_2e3c(0, !g_953e);
+        break;
+    case 27:
+        if (g_9598) {
+            fn_15_4c76(1, 1);
+            g_914a++;
+        } else
+            g_914a += 2;
+        break;
+    case 17:
+        fn_15_4c76(1, 1);
+        g_914a++;
+        break;
+    case 18: case 28:
+        fn_15_4c76(0, 1);
+        break;
+    case 29:
+        if (g_1c48 < g_1e50) {
+            g_6e24[g_931c].f32[9] = 100;
+            g_1c48 = g_1e50 + 50;
+            flag = 1;
+            i = 3;
+            if (g_7092[g_952e].f_024[i] < 100
+                && g_96f0[g_7092[g_952e].f_04c].f04[i] != -1) {
+                if (g_7092[g_952e].f_024[i]++ <= 100)
+                    g_7092[g_952e].f_024[i]++;
+                else
+                    g_7092[g_952e].f_024[i] = 100;
+                fn_10_6d52(g_13dc, g_3d48 + 0x3b,
+                           i * 25 + g_3d4a + g_3cae + 0x16,
+                           g_3cac - 0x50, 10, g_7092[g_952e].f_024[i]);
+                flag = 0;
+            }
+            if (flag) {
+                if (g_9598) {
+                    fn_15_4c76(1, 0);
+                    g_914a++;
+                } else
+                    g_914a += 2;
+            }
+        }
+        break;
+    case 20:
+        fn_15_4c76(1, 0);
+        g_914a++;
+        break;
+    case 21: case 30:
+        fn_15_4c76(0, 0);
+        break;
+    case 31:
+        if (g_953e || g_953f || g_9563) {
+            fn_09_95f4(0x482);
+            g_914a++;
+        } else
+            g_914a = 0x21;
+        break;
+    case 3: case 7: case 12: case 14: case 32: case 37:
+        fn_16_2e3c(0, 0);
+        break;
+    case 33:
+        if (g_9540) {
+            fn_10_a332(g_6db8, (char *)0x9ec, 1, 0xe, g_952e, 1);
+            g_914a++;
+        } else
+            g_914a = 0x26;
+        break;
+    case 35:
+        if (g_1c48 < g_1e50) {
+            long l;
+
+            g_1c48 = g_1e50 + 50;
+            flag = 1;
+            i = 4;
+            if (g_96f0[g_7092[g_9646].f_04c].f00 > g_7092[g_952e].f_01c) {
+                g_7092[g_952e].f_01c = min(g_96f0[g_7092[g_9646].f_04c].f00,
+                                           g_7092[g_952e].f_01c + 16);
+                fn_10_6d52(g_13dc, g_3d48 + 0x3b,
+                           i * 25 + g_3d4a + g_3cae + 0x16,
+                           g_3cac - 0x50, 10,
+                           (int)(l = (long)g_7092[g_9646].f_01c * 100
+                                 / g_96f0[g_7092[g_9646].f_04c].f00));
+                flag = 0;
+            }
+            if (flag)
+                g_914a++;
+        }
+        break;
+    case 19:
+        g_914a++;
+        break;
+    case 36:
+        fn_10_a332(g_6db8, (char *)0x498, 1, 1);
+        g_914a++;
+        break;
+    case 38:
+        g_1c50 = g_1c4c = 1;
+        if (g_9541) {
+            fn_10_a332(g_6db8, (char *)0x4a1, 1, 1);
+            lstrcat(g_6db8, "...");
+            g_1c50 = 0;
+            g_914a++;
+        } else
+            g_914a = 0x29;
+        break;
+    case 40:
+        t0 = GetCurrentTime();
+        while (GetCurrentTime() - t0 < 800)
+            ;
+        g_914a++;
+        break;
+    case 41:
+        if (g_957f) {
+            fn_09_95f4(0x7b3);
+            lstrcat(g_6db8, "...");
+            g_1c50 = 0;
+            g_914a++;
+        } else
+            g_914a = 0x2c;
+        break;
+    case 43:
+        t0 = GetCurrentTime();
+        fn_10_744c(0x22);
+        do
+            fn_10_740c();
+        while (GetCurrentTime() - t0 < 800);
+        g_914a++;
+        break;
+    case 44:
+        g_1c52 = 1;
+        g_1c4e = 0;
+        g_914a++;
+        break;
+    case 45:
+        if (g_955d[g_1c4e]) {
+            fn_10_a332(g_6db8, (char *)0x7b4, 1, g_1c4e + 0x7b5);
+            g_914a++;
+        } else if (g_1c4e == 5)
+            g_914a = 0x30;
+        else
+            g_1c4e++;
+        break;
+    case 46:
+        fn_16_2e3c(0, g_1c52);
+        break;
+    case 47:
+        g_1c52 = 0;
+        t0 = GetCurrentTime();
+        do
+            fn_10_740c();
+        while (GetCurrentTime() - t0 < 800);
+        if (g_1c4e < 5) {
+            g_1c4e++;
+            g_914a = 0x2d;
+        } else
+            g_914a++;
+        break;
+    case 48:
+        if (g_9564[g_1c4c]) {
+            fn_10_a332(g_6db8, (char *)0x4af, 1, g_1c4c + 0xba);
+            g_914a++;
+        } else
+            g_914a = 0x32;
+        break;
+    case 50:
+        if (g_1c4c < 0x1a) {
+            if (g_9564[g_1c4c]) {
+                t0 = GetCurrentTime();
+                while (GetCurrentTime() - t0 < 800)
+                    ;
+            }
+            g_1c4c++;
+            g_914a = 0x30;
+        } else {
+            g_914a++;
+            g_1c4c = 1;
+        }
+        break;
+    case 51:
+        if (g_9542[g_1c4c]) {
+            int found;
+
+            found = 0;
+            for (j = 0; j < 10; j++)
+                if (g_7092[g_9646].f_0b6[j] == g_1c4c) {
+                    found = 1;
+                    break;
+                }
+            if (found)
+                fn_10_a332(g_6db8, (char *)0x49e, 1, g_1c4c + 0xba);
+            else
+                fn_10_a332(g_6db8, (char *)0x49d, 1, g_1c4c + 0xba);
+            g_914a++;
+        } else
+            g_914a = 0x35;
+        break;
+    case 49: case 52:
+        fn_16_2e3c(0, g_1c50);
+        g_1c50 = 0;
+        break;
+    case 53:
+        if (g_1c4c < 0x1a) {
+            if (g_9542[g_1c4c]) {
+                t0 = GetCurrentTime();
+                while (GetCurrentTime() - t0 < 800)
+                    ;
+            }
+            g_1c4c++;
+            g_914a = 0x33;
+        } else
+            g_914a++;
+        break;
+    case 54:
+        if (!g_9e5d)
+            g_914a = 0x38;
+        else {
+            fn_06_1010(g_9e5d, 100, 2, buf);
+            fn_10_a332(g_6db8, (char *)0x487, 1, (LPSTR)buf);
+            g_914a++;
+        }
+        break;
+    case 56:
+        if (!g_9e55)
+            g_914a = 0x3a;
+        else {
+            fn_06_1010(g_9e55, 100, 2, buf);
+            fn_10_a332(g_6db8, (char *)0x49b, 1, (LPSTR)buf);
+            g_914a++;
+        }
+        break;
+    case 58:
+        if (!g_9e55 && !g_9e5d) {
+            g_1c48 = 0;
+            g_914a = 0x3c;
+        } else {
+            g_7092[g_952e].f_0da -= (long)g_9e55 - (long)g_9e5d;
+            g_9e55 = 0;
+            fn_06_0f54(g_7092[g_952e].f_0da, 100, 2, buf);
+            fn_10_a332(g_6db8, (char *)0x486, 1, (LPSTR)buf);
+            g_914a++;
+        }
+        break;
+    case 59:
+        fn_16_2e3c(0, 0);
+        g_1c48 = 0;
+        break;
+    case 60:
+        if (g_1c48 == 0) {
+            if (g_93a6)
+                g_1c48 = GetCurrentTime() + 6000;
+            else
+                g_1c48 = GetCurrentTime() + 1000;
+        } else if (g_1c48 < g_1e50)
+            g_914a++;
+        break;
+    case 61:
+        if (g_93a6)
+            fn_09_95f4(0x7e6);
+        else
+            fn_09_95f4(0x49c);
+        lstrcat(g_6db8, "...");
+        fn_15_0cb0();
+        g_914a++;
+        break;
+    case 63:
+        fn_15_10be();
+        break;
+    case 64:
+        PatBlt(g_13dc, 0, 0, g_90ea, g_0010, BLACKNESS);
+        fn_15_1328(0);
+        fn_16_1f24();
+        fn_10_6dd4(0);
+        fn_10_6e76(8, 0);
+        if (g_93a6)
+            g_90f4 = 9;
+        else
+            g_90f4 = 1;
+        fn_16_631c();
+        g_0928 = 0;
+        if (g_93a6 == 1) {
+            sprite_dc_restore();
+            g_92be = 0;
+            fn_16_7210(1);
+            break;
+        }
+        g_9e4b = 0x4b0;
+        g_1df8[g_9324][g_952e].f18 = 1;
+        g_1e14->f18 = 1;
+        g_6da8 = g_1e50 + 3000;
+        sprite_dc_restore();
+        if (g_9662) {
+            g_92e4 = 1;
+            fn_18_07b2();
+            g_92e4 = 0;
+        }
+        pt = g_1e14->f04;
+        do {
+            ok = 1;
+            SetRect(&rc, pt.x - 800, pt.y - 1200, pt.x + 2240, pt.y + 1200);
+            for (i = 0; i <= g_9324; i++) {
+                if (i != 7)
+                    for (j = 0; j < g_9406[i]; j++) {
+                        if (i == g_9324 && j == g_952e)
+                            continue;
+                        if (PtInRect(&rc, g_1df8[i][j].f04) || pt.x < 0x410
+                            || pt.y < 0x2d0
+                            || (((int *)&g_05a0)[0] - 0x82) * 8 < pt.x
+                            || (((int *)&g_05a0)[1] - 0x5a) * 8 < pt.y) {
+                            ok = 0;
+                            break;
+                        }
+                    }
+                if (!ok)
+                    break;
+            }
+            if (!ok) {
+                pt.x += (rand() % 150 + 100) * 8;
+                pt.y += (rand() % 150 + 100) * 8;
+                if (((int *)&g_05a0)[0] * 8 < pt.x)
+                    pt.x = 0;
+                if (((int *)&g_05a0)[1] * 8 < pt.y)
+                    pt.y = 0;
+            }
+        } while (!ok);
+        g_1df8[g_9324][g_952e].f04 = pt;
+        g_1e14->f04 = pt;
+        *(POINT far *)&g_1df8[g_9324][g_952e].f00 = fn_08_29ea(pt);
+        *(POINT far *)&g_1e14->f00 = *(POINT far *)&g_1df8[g_9324][g_952e].f00;
+        g_1df8[g_9324][g_952e].f04.x += 8;
+        g_1df8[g_9324][g_952e].f00++;
+        fn_13_65f2(2);
+        if (g_95bc)
+            SetCursorPos(g_1d48, g_0010);
+        g_073e = 0;
+        if (g_9220 == 1 || g_9220 != 2)
+            fn_10_7480(1, 1);
+        else
+            fn_10_7480(2, 1);
+        fn_16_0872();
+        fn_11_0afe();
+        break;
+    }
+    if (g_958a || g_914a == -1 || g_93a6 && g_914a >= 2) {
+        g_05a8++;
+        g_1e68++;
+        fn_16_64fa();
+    }
 }
 
 /* @addr 16:1f78 */
