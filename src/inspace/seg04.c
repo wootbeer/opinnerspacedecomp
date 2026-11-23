@@ -89,7 +89,10 @@ typedef struct {
     char p08c[0x94 - 0x8c];
     long f94;                   /* +94 */
     long f98;                   /* +98 */
-    char p09c[0xac - 0x9c];
+    DWORD f9c;                  /* +9c: time stamp [inferred] */
+    char p0a0[0xa4 - 0xa0];
+    DWORD fa4;                  /* +a4 */
+    DWORD fa8;                  /* +a8 */
     char fac;                   /* +ac */
     char p0ad;
     char fae[10];               /* +ae, indexed by slot [inferred] */
@@ -97,7 +100,7 @@ typedef struct {
     char fc2[8];                /* +c2, indexed by object [inferred] */
     char fca;                   /* +ca */
     char fcb;                   /* +cb: slot count [inferred] */
-    char p0cc;
+    char fcc;                   /* +cc */
     char fcd;                   /* +cd */
     int fce;                    /* +ce */
     char p0d0[0xd4 - 0xd0];
@@ -357,6 +360,21 @@ void far pascal fn_11_5ab6(int n, int k);
 void far fn_13_6716(int n);
 void far fn_13_16ac(int n, int ref);
 void far pascal fn_04_4fc8(int n);
+extern DWORD g_8690;
+extern DWORD g_8e30;
+extern int g_8680[];
+extern int g_0a62;
+void far pascal fn_13_6900(int n);
+void far fn_13_7ba2(int n);
+int far fn_03_0000(int type, int n);
+void far fn_13_a65a(void);
+void far fn_13_3678(int n);
+void far pascal fn_11_4e0a(int n);
+void far pascal fn_04_2f98(int n, int k);
+int far pascal fn_04_5654(int n);
+void far pascal fn_04_4d00(int n);
+void far fn_04_79ae(int n);
+void far pascal fn_04_485c(int n, int unused);
 
 /* @addr 4:0000 */
 void far pascal fn_04_0000(int n)
@@ -432,13 +450,299 @@ void far fn_04_2da2(void)
     g_1df8[14][g_9646].f51 = 2;
 }
 
-/* Not yet decompiled: 4:0078 */
+/* @addr 4:0078 */
 void far pascal fn_04_0078(int n)
 {
+    int u04;
+    int r;
+    int hd;
+    int i;
+    int u0c;
+    int a;
+    int b;
+    int dist;
+    char pad14[16];
+    POINT pos;
+    char pad26[0x18];
+    int type;
+    int idx;
+    char pad42[6];
+    int flag;
+
+    if (g_9320 == 6 && g_9eb5 == 0)
+        return;
+    g_7090[n].f61 = 0;
+    if (g_96f0[g_7090[n].f4e].f1a == 7 && g_7090[n].f32 == 14
+        && g_96f0[g_7090[g_7090[n].f34].f4e].f1a == 7) {
+        g_7090[n].f34 = 0;
+        g_7090[n].f32 = 0;
+        g_7090[n].f94 = 0;
+        g_7090[n].f52 = g_7090[n].f54 = g_7090[n].f56 = 0;
+    }
+    if (g_7090[n].f32 == 14 && g_7090[g_7090[n].f34].fec == 0)
+        g_7090[n].f94 = 0;
+    if (g_9134 >= 2 && n == g_9646 && g_8690 < g_1e50 && g_7090[g_9646].f26 < 40)
+        g_7090[g_9646].f94 = 0;
+    if (g_7090[n].f38 == 1 && g_7090[n].f32 == 14 && g_8680[g_7090[n].f34] == n
+        && g_96f0[g_7090[n].f4e].f1a != 7) {
+        g_7090[n].f52 = 0;
+        g_7090[n].f94 = 0;
+    }
+    if (g_92e8 != 0) {
+        if (g_1e30[g_9646].f54 == 0 && g_7090[n].f26 < 60) {
+            fn_03_06ec(g_9646, 14, 1, 0xb7);
+            g_7090[1].f32 = 12;
+            g_7090[1].f38 = 2;
+            g_7090[1].f34 = 0;
+            g_7090[1].f52 = 0;
+        } else if (g_1e30[g_9646].f54 != 0 && g_7090[1].f1e == 0) {
+            if (g_8e30 < g_1e50) {
+                g_1e30[g_9646].f54 = 0;
+                g_7090[1].f1e = g_96f0[g_7090[1].f4e].f00;
+                fn_03_06ec(g_9646, 14, 1, 0xb7);
+                g_7090[1].f32 = 12;
+                g_7090[1].f38 = 2;
+                g_7090[1].f34 = 0;
+                g_7090[1].f52 = 0;
+            }
+            if (g_8e30 - 13000 < g_1e50 && g_7090[1].f00 == 0) {
+                fn_03_06ec(g_9646, 14, 1, 0xb6);
+                g_7090[1].f00 = 1;
+            }
+        }
+    }
+    if (g_9320 == 7 && (!flow_interactive || n != g_9646)
+        && (g_7090[n].f52 != 4 || g_7090[n].f32 != 14)
+        && (g_7090[n].f32 != 4 || g_1df8[g_7090[n].f32][g_7090[n].f34].f18 != 0)) {
+        g_7090[n].f52 = 4;
+        if (g_1df8[g_7090[n].f54][g_7090[n].f56].f18 == 1 && n == g_9646) {
+            for (i = 0; i <= g_9316; i++)
+                if (i != n && g_1e30[i].f18 != 1 && g_7090[i].fec != 0) {
+                    g_7090[n].f56 = i;
+                    break;
+                }
+            if (i == g_9316 + 1 && g_7090[n].f32 != 12) {
+                if (g_7090[n].f32 != 12)        /* sic: tested twice */
+                    fn_03_06ec(g_9646, 14, n, 0xb7);
+                g_7090[n].f32 = 12;
+                g_7090[n].f34 = 0;
+                g_7090[n].f38 = 2;
+                g_7090[n].f52 = 0;
+            }
+        } else {
+            g_7090[n].f32 = g_7090[n].f54;
+            g_7090[n].f34 = g_7090[n].f56;
+            g_7090[n].f38 = 1;
+            g_7090[n].f3c = 2;
+        }
+    }
+    if (g_9320 == 6 && g_7090[n].f32 != 12 && g_96f0[g_7090[n].f4e].f1a != 7)
+        g_7090[n].f94 = g_1e50;
+    if (g_7090[n].f94 < g_1e50 || g_1df8[g_7090[n].f32][g_7090[n].f34].f18 != 0) {
+        if (g_1df8[g_7090[n].f32][g_7090[n].f34].f18 != 0 && g_7090[n].f52 != 0
+            && g_7090[n].f52 != 7 && g_7090[n].f54 != -1
+            && g_1df8[g_7090[n].f54][g_7090[n].f56].f18 != 0) {
+            if (g_9320 == 7) {
+                if (g_1df8[g_7090[n].f32][g_7090[n].f34].f18 != 1)
+                    goto skip;
+                for (i = 0; i <= g_9316; i++)
+                    if (i != n && g_1e30[i].f18 != 1) {
+                        g_7090[n].f56 = i;
+                        break;
+                    }
+                if (i != g_9316 + 1)
+                    goto skip;
+            }
+            g_7090[n].f52 = 0;
+        }
+    skip:
+        if (n == g_9646 && g_9134 >= 2) {
+            switch (g_9134) {
+            case 2:
+                g_9134 = 0;
+                flow_interactive = 1;
+                break;
+            case 3:
+                g_9134 = 1;
+                flow_interactive = 1;
+                break;
+            case 4:
+                g_9134 = 1;
+                break;
+            }
+            g_8690 = 0;
+            fn_03_06ec(g_9646, 7, 0, 0xa4);
+        }
+        if (fn_04_702e(n) == 0
+            && (!fn_13_371c(g_7090[n].f32, g_7090[n].f34) || g_7090[n].f3c != 2
+                || g_7090[n].f38 != 2 || (n == g_9646 && flow_interactive)
+                || g_96f0[g_7090[n].f4e].f1a == 7)) {
+            fn_13_7ba2(n);
+            if (g_7090[n].f9c == 1)
+                g_7090[n].f9c = g_1e50 + 5000;
+            if (g_7090[n].f38 != 4 && (g_9320 != 6 || g_96f0[g_7090[n].f4e].f1a == 7)) {
+                if (g_7090[n].f52 < 1 && (n != g_9646 || g_9134 == 0 || !flow_interactive)) {
+                    g_7090[n].fed = 0;
+                    if (g_7090[n].f36 != 4)
+                        fn_04_2f98(n, 1);
+                    fn_04_485c(n, -1);
+                } else
+                    fn_13_6900(n);
+                if (g_7090[n].f06 < 0) {
+                    g_7090[n].f08 = 0;
+                    g_7090[n].f06 = 0;
+                }
+                if (n == g_9646 && !flow_interactive
+                    && fn_03_0000(g_7090[n].f06, g_7090[n].f08)) {
+                    g_0a62 = 1;
+                    fn_03_00f4(n, g_7090[n].f06, g_7090[n].f08);
+                }
+                if (g_9320 != 6) {
+                    if (((g_7090[n].f52 != 3 && g_7090[n].f52 != 4) || g_9320 == 7)
+                        && (n != g_9646 || g_9134 == 0 || !flow_interactive))
+                        fn_04_4d00(n);
+                    else
+                        fn_13_a65a();
+                }
+                if (g_7090[n].f06 != g_7090[n].f32 || g_7090[n].f08 != g_7090[n].f34
+                    || g_7090[n].f36 != g_7090[n].f38 || g_7090[n].f3a != g_7090[n].f3c) {
+                    g_7090[n].fa4 = g_7090[n].fa8 = g_1e50;
+                    g_7090[n].f32 = g_7090[n].f06;
+                    g_7090[n].f34 = g_7090[n].f08;
+                    g_7090[n].f38 = g_7090[n].f36;
+                    g_7090[n].f3c = g_7090[n].f3a;
+                }
+            }
+            if (g_96f0[g_7090[n].f4e].f1a == 7 && g_7090[n].f52 < 20
+                && g_7090[n].f32 != 11 && g_7090[n].f32 != 12 && g_7090[n].f32 != 4) {
+                g_7090[n].f52 = 22;
+                if (g_7090[n].fcd >= 0 && g_7090[n].f5e < 2) {
+                    if (g_7090[g_7090[n].fcd].fec == 0) {
+                        fn_03_06ec(g_9646, 14, n, 0xb7);
+                        g_7090[n].f06 = 12;
+                        g_7090[n].f08 = 0;
+                        g_7090[n].f36 = 2;
+                        g_7090[n].f3a = 2;
+                    } else {
+                        g_7090[n].f54 = 14;
+                        g_7090[n].f56 = g_7090[n].fcd;
+                    }
+                } else if (g_7090[n].f32 == 14 || g_7090[n].f5e == 0) {
+                    g_7090[n].f54 = 14;
+                    g_7090[n].f56 = g_7090[n].f34;
+                    if (g_7090[n].f5e == 0)
+                        g_7090[n].f52 = 23;
+                } else if (g_7090[n].f54 == 14) {
+                    if (g_7090[n].f5e == 0)
+                        g_7090[n].f52 = 23;
+                    else if (g_7090[n].f5e == 1)
+                        g_7090[n].f52 = 22;
+                    else
+                        g_7090[n].f52 = 20;
+                } else
+                    g_7090[n].f52 = 20;
+                g_7090[n].fed = 2;
+                g_7090[n].f58 = n;
+                g_7090[n].f94 = g_1e50;
+                g_7090[n].f38 = 3;
+                fn_13_6900(n);
+            }
+        } else {
+            if (fn_13_371c(g_7090[n].f32, g_7090[n].f34) == 2)
+                fn_13_3678(n);
+            fn_03_00f4(n, g_7090[n].f32, g_7090[n].f34);
+            g_7090[n].f94 = g_1e50 + 3000;
+        }
+        fn_04_79ae(n);
+    }
+    g_7090[n].f30++;
+    if (g_9134 != 2)
+        fn_04_4fc8(n);
+    type = g_7090[n].f06;
+    idx = g_7090[n].f08;
+    if (type == 14 && g_7090[idx].fe8 && g_92e8 == 0)
+        pos = g_7090[idx].f14a;
+    else
+        pos = g_1df8[type][idx].f04;
+    dist = fn_08_285a(&a, &b, g_1e30[n].f04, pos);
+    if (g_7090[n].f38 == 4) {
+        if (dist < 400 && type == 14 && g_7090[n].f32 == type && g_7090[n].f34 == idx
+            && (n != g_952e || g_9e49 < 1 || g_9e49 > 6)) {
+            if (g_7090[n].fca <= 0)
+                fn_04_5654(n);
+            g_7090[n].fca += 4 - g_9208;
+            if (dist < 100)
+                fn_11_5ab6(n, 2);
+        }
+        g_7090[n].f61 = 1;
+        g_7090[n].f3a = 5;
+    }
+    hd = g_1e30[n].f28;
+    if (n == g_952e && g_9e49 >= 1 && g_9e49 <= 6)
+        return;
+    if (g_7090[n].f5f == 2 && g_7090[n].f38 != 4) {
+        if (g_7090[n].f38 == 1) {
+            if (dist < 160) {
+                flag = 1;
+                for (i = 0; i < g_9412; i++)
+                    if (g_1df8[6][i].f18 == 0 && g_66e8[i].f00 == 14 && g_66e8[i].f02 == n)
+                        flag = 0;
+                if (flag) {
+                    g_7090[n].f3a = 5;
+                    g_7090[n].f3c = 5;
+                    g_7090[n].fca = 0;
+                } else {
+                    g_7090[n].f3a = 2;
+                    g_7090[n].f3c = 2;
+                }
+            } else if (dist > 210) {
+                g_7090[n].f3a = 2;
+                g_7090[n].f3c = 2;
+            } else if (g_7090[n].f3c == 5)
+                g_7090[n].f3a = 5;
+        } else
+            g_7090[n].f5f = 0;
+    }
+    g_7090[n].fca = g_7090[n].fca - 1 < 0 ? 0 : g_7090[n].fca - 1;
+    g_7090[n].fcc = g_7090[n].fcc - 1 < 0 ? 0 : g_7090[n].fcc - 1;
+    g_7090[n].fd4 = g_7090[n].fd4 - 1 < 0 ? 0 : g_7090[n].fd4 - 1;
+    if (g_7090[n].f36 == 1) {
+        if (dist < 400 && (g_9208 > 1 || g_1e30[n].f1a != 0)) {
+            if (n != g_9646 && g_7090[n].fa4 + 19000 < g_1e50
+                && (g_7090[n].f52 == 0
+                    || (g_7090[n].f98 < g_1e50 && g_7090[n].f52 != 4
+                        && g_7090[n].f52 != 1 && g_7090[n].f52 != 23))) {
+                if (g_7090[n].f32 == 14)
+                    g_7090[n].fc2[g_7090[n].f34] = -1;
+                g_7090[n].f94 = 0;
+                g_7090[n].f52 = -1;
+                fn_04_2f98(n, 1);
+                g_7090[n].fa4 = g_7090[n].fa8 = g_1e50;
+                g_7090[n].f32 = g_7090[n].f06;
+                g_7090[n].f34 = g_7090[n].f08;
+                g_7090[n].f38 = g_7090[n].f36;
+                g_7090[n].f3c = g_7090[n].f3a;
+            }
+            r = 0;
+            if (g_7090[n].fca <= 0 && g_1e30[n].f1a != 0)
+                r = fn_04_5654(n);
+            if (g_7090[n].f3a == 2 && r == 0 && g_7090[n].fcc <= 0
+                && (type != 0 || g_7090[n].fb8[g_7090[n].f18] != 5))
+                fn_11_4e0a(n);
+        } else if (g_7090[n].f1e > 150 && dist > 700) {
+            fn_11_5ab6(n, 2);
+            g_7090[n].f61 = 1;
+        }
+    }
 }
 
 /* Not yet decompiled: 4:144c */
 void far fn_04_144c(int n, int flag)
+{
+}
+
+/* Not yet decompiled: 4:2f98 */
+void far pascal fn_04_2f98(int n, int k)
 {
 }
 

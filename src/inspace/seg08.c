@@ -50,21 +50,29 @@ extern REC_16 g_5b28[][4];
 typedef struct {
     POINT f00;                  /* +00 */
     POINT f04;                  /* +04 */
-    char p08[4];
+    POINT f08;                  /* +08 */
     int f0c;                    /* +0c */
     int f0e;                    /* +0e */
-    char p10[8];
+    int f10;                    /* +10 */
+    int f12;                    /* +12 */
+    char p14[4];
     int f18;                    /* +18 */
     int f1a;                    /* +1a */
     char p1c[2];
     int f1e;                    /* +1e */
     int f20;                    /* +20 */
     int f22;                    /* +22 */
-    char p24[0x2e - 0x24];
+    int f24;                    /* +24 */
+    char p26[0x28 - 0x26];
+    int f28;                    /* +28: direction */
+    char p2a[0x2e - 0x2a];
     char f2e;                   /* +2e */
     char p2f[0x32 - 0x2f];
     int f32;                    /* +32 */
-    char p34[0x54 - 0x34];
+    char p34[0x3a - 0x34];
+    HDC f3a;                    /* +3a */
+    HDC f3c;                    /* +3c */
+    char p3e[0x54 - 0x3e];
     char f54;                   /* +54 */
     char p55[0x70 - 0x55];
 } REC_70;
@@ -98,7 +106,20 @@ typedef struct {
     PAIR f14;                   /* +14 */
     int f18;                    /* +18 */
     int f1a;                    /* +1a */
-    char p1c[0x15a - 0x1c];
+    char p1c[0x30 - 0x1c];
+    int f30;                    /* +30: class */
+    char p32[0x40 - 0x32];
+    char f40;                   /* +40 */
+    char p41[0x8e - 0x41];
+    char f8e;                   /* +8e */
+    char f8f;                   /* +8f */
+    char p90[0xb8 - 0x90];
+    int fb8;                    /* +b8 */
+    char pba[0xce - 0xba];
+    char fce;                   /* +ce */
+    char pcf[0x138 - 0xcf];
+    long f138;                  /* +138 */
+    char p13c[0x15a - 0x13c];
 } REC_15A;
 extern REC_15A g_70ae[];
 
@@ -147,6 +168,59 @@ extern int g_2392;
 extern int g_2394;
 extern int g_2396;
 extern int g_951a;
+/* 0x7c-, 0x41-, 0x2c- and 0xad-byte records (see seg03.c/seg04.c). */
+typedef struct { int f00; char p02[0x7c - 0x02]; } REC_7C;
+typedef struct { char p00[0x1a]; char f1a; char p1b[0x2c - 0x1b]; } REC_2C;
+#pragma pack(1)
+typedef struct { char p00[0x21]; int f21; char p23[0x41 - 0x23]; } REC_41;
+typedef struct { char p00[0x24]; int f24; char p26[0xad - 0x26]; } REC_AD;
+#pragma pack()
+extern REC_7C far *g_6e24;
+extern REC_41 far *g_6e20;
+extern REC_2C far *g_6e1c;
+extern REC_AD g_96ea[];
+extern int g_4ed8[];
+extern int g_95a6;
+extern int g_92e4;
+extern int g_9316;
+extern int g_3a38[];
+extern POINT g_1050[];
+extern POINT g_066e[];
+void far fn_14_3eda(void);
+void far fn_14_4074(void);
+int far fn_04_5d9c(int a, int i);
+void far fn_03_06ec(int n, int kind, int target, int d);
+HBITMAP far fn_10_7370(int a, int b, int c, int d, int e, int f, int g);
+HBITMAP far fn_10_6ec6(HBITMAP b);
+extern int g_238e;
+extern int g_952e;
+extern int g_9e47;
+extern int g_913a;
+extern int g_913c;
+extern HBRUSH g_5ea8;
+extern int g_238e;
+extern int g_952e;
+extern int g_9e47;
+extern int g_913a;
+extern int g_913c;
+extern HBRUSH g_5ea8;
+extern int g_2404;
+extern int g_2406;
+extern DWORD g_2408;
+extern RECT g_23e0[4];          /* view pieces split at the map wrap [inferred] */
+extern int g_9158;              /* number of pieces in g_23e0 */
+extern POINT g_6b50;
+extern long g_1e80;
+extern long g_1e84;
+extern int g_9134;
+extern int g_9378;
+extern int flow_interactive;    /* DS:95bc */
+extern int g_0a76;
+extern HWND g_0a7c;
+void far fn_11_aece(void);
+void far fn_07_11cc(void);
+void far fn_07_1208(void);
+void far fn_10_744c(int a);
 extern RECT g_1e5c;
 extern char g_507c[];
 extern char g_50e0[];
@@ -155,12 +229,18 @@ extern int g_9146;
 typedef struct {
     POINT f00;                  /* +00: world position */
     POINT f04;                  /* +04: screen position */
-    char p08[4];
+    POINT f08;                  /* +08 */
     HDC f0c;                    /* +0c: image */
     HDC f0e;                    /* +0e: mask */
-    char p10[0x1a - 0x10];
+    HBITMAP f10;                /* +10: image bitmap */
+    HBITMAP f12;                /* +12: mask bitmap */
+    HBITMAP f14;                /* +14: old bitmap of f0c */
+    HBITMAP f16;                /* +16: old bitmap of f0e */
+    HPALETTE f18;               /* +18: old palette of f0c */
     int f1a;                    /* +1a */
-    char p1c[0x22 - 0x1c];
+    int f1c;                    /* +1c */
+    int f1e;                    /* +1e: size */
+    char p20[0x22 - 0x20];
 } REC_22;
 extern REC_22 g_915c[];
 extern int g_9006;
@@ -228,6 +308,526 @@ void far pascal fn_08_124a(int i)
     g_58bc[i].b.x = g_58bc[i].a.x;
     g_58bc[i].b.y = g_58bc[i].a.y;
     g_58bc[i].a = fn_08_29ea(g_58bc[i].c);
+}
+
+/* Draw object ref (type << 8 | idx) with sprite DC dc: erase the uncovered
+ * part of the old position, then blit [inferred]. mode 4 only moves the
+ * object; 6 inverts, 7 plots a dot. Returns 0 for hidden objects.
+ * The gotos reproduce the shared return blocks at the end. */
+/* @addr 8:0b76 */
+int far pascal fn_08_0b76(WORD ref, int mode, HDC dc, int c)
+{
+    int type;
+    int idx;
+    int u8;
+    DWORD rop;
+    POINT d;
+    int u12;
+    int u14;
+    int draw;
+
+    draw = 1;
+    type = HIBYTE(ref);
+    idx = LOBYTE(ref);
+    if (g_1df8[type][idx].f1a == 0 && type != 7 && mode != 4 && mode != 5
+        && g_1df8[type][idx].f32 == -1)
+        goto hidden;
+    if (type != g_9324 || idx != g_9646 || g_951a != 0 || g_238e != 0) {
+        if (type != g_9324 || idx != g_9646 || g_951a != 0) {
+            g_1df8[type][idx].f08.x = g_1df8[type][idx].f00.x;
+            g_1df8[type][idx].f08.y = g_1df8[type][idx].f00.y;
+            g_1df8[type][idx].f00 = fn_08_29ea(g_1df8[type][idx].f04);
+        } else if (g_238c == 0) {
+            g_1df8[type][idx].f00.x = g_90ea / 2;
+            g_1df8[type][idx].f00.y = g_90ec / 2;
+            g_238e = 0;
+        }
+        if (mode == 4)
+            goto done;
+        if (mode == 5 && g_1df8[type][idx].f1a == 0)
+            goto done;
+        g_1df8[type][idx].f3a = dc;
+        if (g_1df8[type][idx].f2e != 0) {
+            dc = g_1df8[type][idx].f3c;
+            g_1df8[type][idx].f10 = g_1df8[type][idx].f24;
+            g_1df8[type][idx].f12 = g_1df8[type][idx].f24;
+            if (g_1df8[type][idx].f2e <= -1)
+                draw = 0;
+        }
+        if (g_9e49 == 3 || g_9e49 == 6 && g_9e47 == 15) {
+            if (type == g_9324 && idx == g_952e || type == 7) {
+                dc = g_1df8[type][idx].f3c;
+                g_1df8[type][idx].f10 = g_1df8[type][idx].f24;
+                g_1df8[type][idx].f12 = g_1df8[type][idx].f24;
+            }
+        }
+        if (c != 0)
+            rop = 0xc000ca;
+        else
+            rop = SRCCOPY;
+        if (mode == 6 && draw) {
+            BitBlt(g_13dc, g_1df8[type][idx].f00.x, g_1df8[type][idx].f00.y,
+                   g_1df8[type][idx].f22, g_1df8[type][idx].f22, dc,
+                   g_1df8[type][idx].f10, g_1df8[type][idx].f12, 0xee0086);
+        } else if (mode == 7) {
+            PatBlt(g_13dc, g_1df8[type][idx].f00.x, g_1df8[type][idx].f00.y,
+                   3, 3, WHITENESS);
+        } else if (draw) {
+            d.x = g_1df8[type][idx].f00.x - g_1df8[type][idx].f08.x;
+            d.y = g_1df8[type][idx].f00.y - g_1df8[type][idx].f08.y;
+            if (rop == 0xc000ca) {
+                if (d.x < 0)
+                    d.x -= 2;
+                if (d.y < 0)
+                    d.y -= 2;
+            }
+            if (g_1df8[type][idx].f24 < fn_09_88ba(d.x)
+                || g_1df8[type][idx].f24 < fn_09_88ba(d.y)) {
+                if (g_1df8[type][idx].f22 > fn_09_88ba(d.x)
+                    && g_1df8[type][idx].f22 > fn_09_88ba(d.y)) {
+                    if (d.x < 0) {
+                        if (d.y < 0) {
+                            PatBlt(g_13dc, g_1df8[type][idx].f22 + g_1df8[type][idx].f00.x,
+                                   g_1df8[type][idx].f00.y, -d.x,
+                                   g_1df8[type][idx].f22 - d.y, BLACKNESS);
+                            PatBlt(g_13dc, g_1df8[type][idx].f00.x,
+                                   g_1df8[type][idx].f00.y + g_1df8[type][idx].f22,
+                                   g_1df8[type][idx].f22, -d.y, BLACKNESS);
+                        } else {
+                            PatBlt(g_13dc, g_1df8[type][idx].f22 + g_1df8[type][idx].f00.x,
+                                   g_1df8[type][idx].f00.y - d.y, -d.x,
+                                   g_1df8[type][idx].f22 + d.y, BLACKNESS);
+                            PatBlt(g_13dc, g_1df8[type][idx].f00.x,
+                                   g_1df8[type][idx].f00.y - d.y,
+                                   g_1df8[type][idx].f22, d.y, BLACKNESS);
+                        }
+                    } else {
+                        if (d.y < 0) {
+                            PatBlt(g_13dc, g_1df8[type][idx].f00.x - d.x,
+                                   g_1df8[type][idx].f00.y, d.x,
+                                   g_1df8[type][idx].f22 - d.y, BLACKNESS);
+                            PatBlt(g_13dc, g_1df8[type][idx].f00.x,
+                                   g_1df8[type][idx].f00.y + g_1df8[type][idx].f22,
+                                   g_1df8[type][idx].f22, -d.y, BLACKNESS);
+                        } else {
+                            PatBlt(g_13dc, g_1df8[type][idx].f00.x - d.x,
+                                   g_1df8[type][idx].f00.y - d.y, d.x,
+                                   g_1df8[type][idx].f22 + d.y, BLACKNESS);
+                            PatBlt(g_13dc, g_1df8[type][idx].f00.x,
+                                   g_1df8[type][idx].f00.y - d.y,
+                                   g_1df8[type][idx].f22, d.y, BLACKNESS);
+                        }
+                    }
+                } else {
+                    PatBlt(g_13dc, g_1df8[type][idx].f08.x, g_1df8[type][idx].f08.y,
+                           g_1df8[type][idx].f22, g_1df8[type][idx].f22, BLACKNESS);
+                }
+                BitBlt(g_13dc, g_1df8[type][idx].f00.x, g_1df8[type][idx].f00.y,
+                       g_1df8[type][idx].f22, g_1df8[type][idx].f22, dc,
+                       g_1df8[type][idx].f10, g_1df8[type][idx].f12, rop);
+            } else {
+                BitBlt(g_13dc, g_1df8[type][idx].f00.x - (d.x < 0 ? 0 : d.x),
+                       g_1df8[type][idx].f00.y - (d.y < 0 ? 0 : d.y),
+                       fn_09_88ba(d.x) + g_1df8[type][idx].f22,
+                       fn_09_88ba(d.y) + g_1df8[type][idx].f22, dc,
+                       g_1df8[type][idx].f10 - (d.x < 0 ? 0 : d.x),
+                       g_1df8[type][idx].f12 - (d.y < 0 ? 0 : d.y), rop);
+            }
+        }
+    } else {
+        g_1df8[type][idx].f3a = dc;
+        if (g_1df8[type][idx].f2e != 0 && g_1df8[type][idx].f2e != -2) {
+            dc = g_1df8[type][idx].f3c;
+            g_1df8[type][idx].f10 = g_1df8[type][idx].f24;
+            g_1df8[type][idx].f12 = g_1df8[type][idx].f24;
+            if (g_1df8[type][idx].f2e == -1)
+                draw = 0;
+        }
+        if (g_952e == g_9646 && (g_9e49 == 3 || g_9e49 == 6 && g_9e47 == 15)) {
+            dc = g_1df8[type][idx].f3c;
+            g_1df8[type][idx].f10 = g_1df8[type][idx].f24;
+            g_1df8[type][idx].f12 = g_1df8[type][idx].f24;
+        }
+        if (g_913a == 2 || g_913c == 2) {
+            dc = g_1df8[type][idx].f3c;
+            g_1df8[type][idx].f10 = g_1df8[type][idx].f24;
+            g_1df8[type][idx].f12 = g_1df8[type][idx].f24;
+        }
+        if (draw) {
+            HBRUSH old;
+
+            BitBlt(g_13dc, g_1df8[type][idx].f00.x, g_1df8[type][idx].f00.y,
+                   g_1df8[type][idx].f22, g_1df8[type][idx].f22, dc,
+                   g_1df8[type][idx].f10, g_1df8[type][idx].f12, SRCCOPY);
+            if (g_1df8[type][idx].f2e == -2) {
+                old = SelectObject(g_13dc, g_5ea8);
+                PatBlt(g_13dc, g_1df8[type][idx].f00.x, g_1df8[type][idx].f00.y,
+                       g_1df8[type][idx].f22, g_1df8[type][idx].f22, 0xa000c9);
+                SelectObject(g_13dc, old);
+            }
+        }
+    }
+done:
+    return 1;
+hidden:
+    return 0;
+}
+
+/* Per-frame camera update: follow the player's object (or the free camera
+ * at g_6b50 gliding toward it), apply the screen shake, then split the
+ * view into 1, 2 or 4 rectangles where it crosses the map wrap
+ * [inferred]. */
+/* @addr 8:0000 */
+void far fn_08_0000(void)
+{
+    int dx;
+    int dy;
+    int dist;
+    int k;
+    int m;
+    POINT pos;
+    POINT c;
+    POINT w;
+    POINT s;
+
+    k = 0;
+    s.x = g_90ea << g_9150;
+    s.y = g_90ec << g_9150;
+    if (g_951a == 0) {
+        g_2400 = g_1df8[g_9324][g_9646].f04.x - s.x / 2;
+        g_2402 = g_1df8[g_9324][g_9646].f04.y - s.y / 2;
+    } else {
+        if (g_1df8[g_9324][g_9646].f18 != 0 || g_70ae[g_9646].fce == 0)
+            fn_11_aece();
+        pos.x = g_1df8[g_9324][g_9646].f04.x;
+        pos.y = g_1df8[g_9324][g_9646].f04.y;
+        dist = fn_08_285a(&dx, &dy, g_6b50, pos);
+        if (dist < 16) {
+            g_2400 = g_1df8[g_9324][g_9646].f04.x - s.x / 2;
+            g_2402 = g_1df8[g_9324][g_9646].f04.y - ((k << g_9150) + s.y) / 2;
+            PatBlt(g_13dc, g_1df8[g_9324][g_9646].f00.x, g_1df8[g_9324][g_9646].f00.y,
+                   g_1df8[g_9324][g_9646].f22, g_1df8[g_9324][g_9646].f22, BLACKNESS);
+            fn_07_11cc();
+            switch (g_9134) {
+            case 2:
+                g_9134 = 0;
+                flow_interactive = 1;
+                break;
+            case 3:
+                g_9134 = 1;
+                flow_interactive = 1;
+                break;
+            case 4:
+                g_9134 = 1;
+                break;
+            }
+            g_9134 = g_9378;
+            g_951a = 0;
+            fn_07_1208();
+            g_0a76 = 2;
+            PostMessage(g_0a7c, WM_PAINT, 0, 0L);
+        } else {
+            g_2394 = dx * 12 / dist * 8;
+            g_2396 = dy * 12 / dist * 8;
+            g_6b50.y += g_2396;
+            g_6b50.x += g_2394;
+            if (g_6b50.x < 0)
+                g_6b50.x = G_05A0_INT * 8 + g_6b50.x;
+            if (g_6b50.x > G_05A0_INT * 8)
+                g_6b50.x -= G_05A0_INT * 8;
+            if (g_6b50.y < 0)
+                g_6b50.y += g_05a2 * 8;
+            if (g_6b50.y > g_05a2 * 8)
+                g_6b50.y -= g_05a2 * 8;
+            g_2400 = g_6b50.x - s.x / 2;
+            g_2402 = g_6b50.y - s.y / 2;
+            if (g_1df8[g_9324][g_9646].f18 != 0) {
+                g_1e80 = g_1e50 + 2000;
+                if (g_1df8[g_9324][g_9646].f18 == 1)
+                    g_1e84 = g_1e50 + 1500;
+            }
+        }
+    }
+    if (g_238c != 0) {
+        fn_10_744c(0x69);
+        fn_10_754a(8, rand() % g_90ea, rand() % g_90ec, 4);
+        g_2390 += g_238c;
+        g_2392 += g_238e;
+        g_2390 += rand() % 3 - 2;
+        g_2392 += rand() % 3 - 2;
+        if (g_2390 > 5)
+            g_238c = -9;
+        else if (g_2390 < -5)
+            g_238c = 9;
+        if (g_2392 > 5)
+            g_238e = -6;
+        else if (g_2392 < -5)
+            g_238e = 6;
+        g_2402 += g_2392 * 8;
+        g_2400 += g_2390 * 8;
+        g_1df8[g_9324][g_9646].f08.x = g_1df8[g_9324][g_9646].f00.x;
+        g_1df8[g_9324][g_9646].f08.y = g_1df8[g_9324][g_9646].f00.y;
+        g_1df8[g_9324][g_9646].f00.y += g_2392;
+        g_1df8[g_9324][g_9646].f00.x += g_2390;
+        fn_07_1208();
+        if (g_2408 < g_1e50) {
+            g_238c = 0;
+            g_1df8[g_9324][g_9646].f08.x = g_1df8[g_9324][g_9646].f00.x;
+            g_1df8[g_9324][g_9646].f08.y = g_1df8[g_9324][g_9646].f00.y;
+            fn_07_1208();
+        }
+    } else {
+        *(long *)&g_2390 = 0;   /* g_2390 = g_2392 = 0 as one dword store */
+    }
+    g_2404 = s.x + g_2400;
+    g_2406 = s.y + g_2402;
+    if (g_951a == 0)
+        c = g_1df8[g_9324][g_9646].f04;
+    else
+        c = g_6b50;
+    w.x = G_05A0_INT * 8;
+    w.y = g_05a2 * 8;
+    m = 600;
+    if (g_9320 == 6 && g_9eb5 != 1) {
+        g_23e0[0].left = g_2400 - 600;
+        g_23e0[0].right = g_2404 + 600;
+        g_23e0[0].top = g_2402 - 600;
+        g_23e0[0].bottom = g_2406 + 600;
+        g_9158 = 1;
+    } else if (s.x / 2 + m > c.x) {
+        g_23e0[0].left = -m;
+        g_23e0[0].right = m + g_2404;
+        g_23e0[1].left = w.x - s.x / 2 - m + c.x;
+        g_23e0[1].right = w.x + m;
+        if (s.y / 2 + m > c.y) {
+            g_23e0[2].left = g_23e0[1].left;
+            g_23e0[2].right = g_23e0[1].right;
+            g_23e0[3].left = g_23e0[0].left;
+            g_23e0[3].right = g_23e0[0].right;
+            g_23e0[1].top = g_23e0[0].top = -m;
+            g_23e0[3].top = g_23e0[2].top = w.y - s.y / 2 - m + c.y;
+            g_23e0[0].bottom = g_23e0[1].bottom = m + g_2406;
+            g_23e0[2].bottom = g_23e0[3].bottom = w.y + m;
+            g_9158 = 4;
+        } else if (w.y - s.y / 2 - m < c.y) {
+            g_23e0[2].left = g_23e0[1].left;
+            g_23e0[2].right = g_23e0[1].right;
+            g_23e0[3].left = g_23e0[0].left;
+            g_23e0[3].right = g_23e0[0].right;
+            g_23e0[0].top = g_23e0[1].top = -m;
+            g_23e0[2].top = g_23e0[3].top = g_2402 - m;
+            g_23e0[0].bottom = g_23e0[1].bottom = s.y / 2 - w.y + c.y + m;
+            g_23e0[2].bottom = g_23e0[3].bottom = w.y + m;
+            g_9158 = 4;
+        } else {
+            g_23e0[0].top = g_23e0[1].top = c.y - s.y / 2 - m;
+            g_23e0[0].bottom = g_23e0[1].bottom = s.y / 2 + c.y + m;
+            g_9158 = 2;
+        }
+    } else if (w.x - s.x / 2 - m < c.x) {
+        g_23e0[0].left = g_2400 - m;
+        g_23e0[0].right = w.x + m;
+        g_23e0[1].left = -m;
+        g_23e0[1].right = s.x / 2 - w.x + c.x + m;
+        if (s.y / 2 + m > c.y) {
+            g_23e0[2].left = g_23e0[1].left;
+            g_23e0[2].right = g_23e0[1].right;
+            g_23e0[3].left = g_23e0[0].left;
+            g_23e0[3].right = g_23e0[0].right;
+            g_23e0[1].top = g_23e0[0].top = -m;
+            g_23e0[3].top = g_23e0[2].top = w.y - s.y / 2 - m + c.y;
+            g_23e0[0].bottom = g_23e0[1].bottom = m + g_2406;
+            g_23e0[2].bottom = g_23e0[3].bottom = w.y + m;
+            g_9158 = 4;
+        } else if (w.y - s.y / 2 - m < c.y) {
+            g_23e0[2].left = g_23e0[1].left;
+            g_23e0[2].right = g_23e0[1].right;
+            g_23e0[3].left = g_23e0[0].left;
+            g_23e0[3].right = g_23e0[0].right;
+            g_23e0[0].top = g_23e0[1].top = g_2402 - m;
+            g_23e0[2].top = g_23e0[3].top = -m;
+            g_23e0[0].bottom = g_23e0[1].bottom = w.y + m;
+            g_23e0[2].bottom = g_23e0[3].bottom = s.y / 2 - w.y + c.y + m;
+            g_9158 = 4;
+        } else {
+            g_23e0[0].top = g_23e0[1].top = g_2402 - m;
+            g_23e0[0].bottom = g_23e0[1].bottom = m + g_2406;
+            g_9158 = 2;
+        }
+    } else if (s.y / 2 + m > c.y) {
+        g_23e0[0].left = g_23e0[1].left = c.x - s.x / 2 - m;
+        g_23e0[0].right = g_23e0[1].right = g_23e0[0].left + m * 2 + s.x;
+        g_23e0[0].top = -m;
+        g_23e0[1].top = w.y - s.y / 2 - m + c.y;
+        g_23e0[0].bottom = m + g_2406;
+        g_23e0[1].bottom = w.y + m;
+        g_9158 = 2;
+    } else if (w.y - s.y / 2 - m < c.y) {
+        g_23e0[0].left = g_23e0[1].left = c.x - s.x / 2 - m;
+        g_23e0[0].right = g_23e0[1].right = g_23e0[0].left + m * 2 + s.x;
+        g_23e0[0].top = g_2402 - m;
+        g_23e0[1].top = -m;
+        g_23e0[0].bottom = w.y + m;
+        g_23e0[1].bottom = s.y / 2 - w.y + c.y + m;
+        g_9158 = 2;
+    } else {
+        g_23e0[0].left = g_2400 - m;
+        g_23e0[0].right = m + g_2404;
+        g_23e0[0].top = g_2402 - m;
+        g_23e0[0].bottom = m + g_2406;
+        g_9158 = 1;
+    }
+    g_240c = g_2400;
+    g_2410 = g_2402;
+}
+
+/* Build the animated map icon for unit a (pieces g_915c) from its sprite
+ * (fn_10_7370) and notify related units; b == 0 [inferred: side] picks
+ * the other icon frame. */
+/* @addr 8:2cd8 */
+void far fn_08_2cd8(int a, int b)
+{
+    int flag;
+    int done;
+    int i;
+    int k;
+    int sz;
+    int r;
+    int dir;
+    int h;
+    HBITMAP bmp;
+    HBITMAP oldbmp;
+    HDC dc;
+    HPALETTE oldpal;
+    POINT o;
+    POINT p;
+    POINT q;
+    POINT z;
+
+    done = flag = 0;
+    g_70ae[a].f138 = g_1e50 - 10000;
+    if (b == 0) {
+        g_70ae[a].f8e = 0;
+        flag = 1;
+    } else
+        g_70ae[a].f8f = 0;
+    if (g_95a6 == 0) {
+        fn_14_3eda();
+        if (g_70ae[a].fb8 >= 0)
+            g_96ea[g_70ae[a].f30].f24 =
+                (g_6e1c[g_6e20[g_6e24[g_70ae[a].fb8].f00].f21].f1a << g_9156 >> 1) / 2;
+        else
+            g_96ea[g_70ae[a].f30].f24 =
+                (g_6e1c[g_6e20[g_4ed8[g_70ae[a].f40]].f21].f1a << g_9156 >> 1) / 2;
+        fn_14_4074();
+    }
+    if (g_92e4 == 0) {
+        for (i = 0; i <= g_9316; i++) {
+            if (g_70ae[i].f14.a == g_9324 && g_70ae[i].f14.b == a && g_70ae[i].f1a == 1) {
+                if (g_70ae[i].f8e == g_70ae[a].f8e && g_70ae[i].f8f == g_70ae[a].f8f)
+                    fn_03_06ec(i, g_9324, a, 0x1b);
+                else if (g_70ae[a].f8e != 0 || g_70ae[a].f8f != 0) {
+                    if (g_70ae[i].f8e == 0 && g_70ae[i].f8f == 0)
+                        fn_03_06ec(i, g_9324, a, 0x1e);
+                    else if (fn_04_5d9c(a, i) > 95)
+                        fn_03_06ec(i, g_9324, a, 0x1c);
+                    else
+                        fn_03_06ec(i, g_9324, a, 0x19);
+                } else if (fn_04_5d9c(a, i) > 95)
+                    fn_03_06ec(i, g_9324, a, 0x1d);
+                else
+                    fn_03_06ec(i, g_9324, a, 0x1a);
+            }
+        }
+        for (i = done = 0; i < 3; i++) {
+            if (g_915c[i].f1a == 0) {
+                if (subgame_active == 0) {
+                    sz = 0x100;
+                    h = 0x100 >> g_9150;
+                    r = g_96ea[g_70ae[a].f30].f24 / 2 * 8
+                        + (g_1df8[g_9324][a].f20 - g_96ea[g_70ae[a].f30].f24 * 8) / 4;
+                } else {
+                    h = ((g_9156 << 6) + 32) / 3;
+                    sz = (int)(h * g_88cc / g_88c0);
+                    r = (int)(g_96ea[g_70ae[a].f30].f24 / 2 * g_88cc / g_88c0)
+                        + (g_1df8[g_9324][a].f20
+                           - (int)(g_96ea[g_70ae[a].f30].f24 * g_88cc / g_88c0)) / 4;
+                }
+                g_915c[i].f1a = 1;
+                g_915c[i].f1c = 0x46;
+                g_915c[i].f1e = g_1df8[g_9324][a].f20;
+                g_915c[i].f00 = g_1df8[g_9324][a].f04;
+                g_915c[i].f04.x = -1000;
+                g_915c[i].f04.y = -1000;
+                dir = g_1df8[g_9324][a].f28;
+                g_915c[i].f08 = *(POINT far *)&g_1df8[g_9324][a].f0c;   /* velocity */
+                g_915c[i].f08.x += g_1050[(dir + 4) % 16].x / 2;
+                g_915c[i].f08.y += g_1050[(dir + 4) % 16].y / 2;
+                if (flag) {
+                    p.x = g_915c[i].f1e / 2 + g_066e[(dir + 12) % 16].x * r / 128;
+                    p.y = g_915c[i].f1e / 2 + g_066e[(dir + 12) % 16].y * r / 128;
+                } else {
+                    p.x = g_915c[i].f1e / 2 + g_066e[(dir + 4) % 16].x * r / 128;
+                    p.y = g_915c[i].f1e / 2 + g_066e[(dir + 4) % 16].y * r / 128;
+                }
+                q.x = min(sz / 2 + p.x, g_915c[i].f1e);
+                z.x = max(p.x - sz / 2, 0);
+                q.y = min(sz / 2 + p.y, g_915c[i].f1e);
+                z.y = max(p.y - sz / 2, 0);
+                o.x = max(sz / 2 - p.x, 0);
+                o.y = max(sz / 2 - p.y, 0);
+                g_915c[i].f00.x += p.x - sz / 2;
+                g_915c[i].f00.y += p.y - sz / 2;
+                bmp = fn_10_7370(g_3a38[a], flag, g_1df8[g_9324][a].f22,
+                                 g_96ea[g_70ae[a].f30].f24, g_1df8[g_9324][a].f24,
+                                 g_1df8[g_9324][a].f28, 1);
+                dc = CreateCompatibleDC(g_13dc);
+                oldbmp = SelectObject(dc, bmp);
+                if (g_920e != 0)
+                    oldpal = SelectPalette(dc, g_920e, 0);
+                g_915c[i].f0c = CreateCompatibleDC(g_13dc);
+                g_915c[i].f10 = CreateCompatibleBitmap(g_13dc, h * 5, h);
+                g_915c[i].f14 = SelectObject(g_915c[i].f0c, g_915c[i].f10);
+                if (g_920e != 0)
+                    g_915c[i].f18 = SelectPalette(g_915c[i].f0c, g_920e, 0);
+                PatBlt(g_915c[i].f0c, 0, 0, h * 5, h, BLACKNESS);
+                if (subgame_active == 0) {
+                    for (k = 0; k < 5; k++)
+                        BitBlt(g_915c[i].f0c, (sz * k + o.x) >> g_9150, o.y >> g_9150,
+                               (q.x - z.x) >> g_9150, (q.y - z.y) >> g_9150, dc,
+                               z.x >> g_9150, z.y >> g_9150, SRCCOPY);
+                } else {
+                    o.x = (int)(o.x * (long)g_88c0 * (g_9156 * 2 + 1) / g_88cc) / 3;
+                    o.y = (int)(o.y * (long)g_88c0 * (g_9156 * 2 + 1) / g_88cc) / 3;
+                    for (k = 0; k < 5; k++)
+                        BitBlt(g_915c[i].f0c, h * k + o.x, o.y,
+                               (int)((q.x - z.x) * (long)g_88c0 * (g_9156 * 2 + 1) / g_88cc) / 3,
+                               (int)((q.y - z.y) * (long)g_88c0 * (g_9156 * 2 + 1) / g_88cc) / 3,
+                               dc,
+                               (int)(z.x * (long)g_88c0 * (g_9156 * 2 + 1) / g_88cc) / 3,
+                               (int)(z.y * (long)g_88c0 * (g_9156 * 2 + 1) / g_88cc) / 3,
+                               SRCCOPY);
+                }
+                SelectObject(g_915c[i].f0c, g_915c[i].f14);
+                g_915c[i].f12 = fn_10_6ec6(g_915c[i].f10);
+                g_915c[i].f14 = SelectObject(g_915c[i].f0c, g_915c[i].f10);
+                g_915c[i].f0e = CreateCompatibleDC(g_13dc);
+                g_915c[i].f16 = SelectObject(g_915c[i].f0e, g_915c[i].f12);
+                done = 1;
+                SelectObject(dc, oldbmp);
+                if (oldpal != 0)
+                    SelectPalette(dc, oldpal, 0);
+                DeleteDC(dc);
+                DeleteObject(bmp);
+                fn_10_754a(0x6a, g_9324, a, 1);
+                break;
+            }
+        }
+    }
+    if (done == 0)
+        fn_10_7370(g_3a38[a], flag, g_1df8[g_9324][a].f22,
+                   g_96ea[g_70ae[a].f30].f24, g_1df8[g_9324][a].f24,
+                   g_1df8[g_9324][a].f28, 0);
 }
 
 /* Clamp an object's velocity to [-v, v] [inferred]. */
