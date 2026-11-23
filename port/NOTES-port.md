@@ -9,6 +9,19 @@
 
 ## How it works
 
+- **DGROUP image.** Plain globals are not separate variables: game.h
+  defines each as a typed view of `dgroup[]` at its DS offset
+  (`#define g_39f2 DGROUP_AT(HDC (*), 0x39f2)`), and `dgroup[]` starts as the
+  data segment of the user's INSPACE.EXE (src/win/dgroup.c). Neighbouring
+  globals, arrays the decomp declared without a length (`g_39e8[5]` is
+  `g_39f2`), overlapping views and overruns therefore behave as in 1994.
+  Globals that hold native pointers (far pointers, the near string
+  pointers at DS:0078-0080) are real variables in globals.c; near pointers
+  are pointed into the image at start-up. Needs `-fno-strict-aliasing`.
+- **Runtime renames** (win16api.h): `rand/srand` are MSC's (`msc_rand`),
+  `stat/utime` and `_dev_t/_ino_t/_off_t` the 16-bit DOS ones, and
+  `WinMain` is `inspace_WinMain` (the platform's WinMain is SDL's).
+
 - **port_merge.py** parses each decomp file with pycparser. Before parsing, the file's own macros are expanded (except `SC` and `GETPROC`), `far`/`huge` become a parser marker, and `pascal`/`near` are dropped. The script then collects every view of DGROUP and of the records and merges them:
   - **Tables:** struct arrays with the same record size whose bases are less than one record apart form one table. Its base is the lowest view address and its type is one struct with all fields at their true offsets. Fields are named `f_XX` by true offset; a descriptive name is kept when the views agree on it.
   - **Records behind far pointers:** these are grouped by pointer slot. For example, `g_1e30` is `g_1df8[14]`.

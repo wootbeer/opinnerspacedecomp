@@ -17,12 +17,11 @@ can work on.
   folders and files to explore, data location). One implementation per
   platform; game code never calls the OS directly.
 
-Planned:
-- `src/game/` – the game logic, translated from the decomp (16-bit types
-  made explicit, memory-layout tricks resolved into proper structs).
-- Native versions of the Windows calls the game makes (about 135 GDI/USER
-  functions), each doing only what this game needs, on the framebuffer
-  and the game's own UI.
+- `src/game/` – the game logic, generated from the decomp (see
+  `NOTES-port.md`).
+- `src/win/` – native versions of the Windows calls the game makes, one
+  module per area, each doing only what this game needs; status in
+  `RUNTIME.md`.
 
 ## Building
 
@@ -34,7 +33,12 @@ Needs CMake and SDL3.
 Run headless (tests): `SDL_VIDEO_DRIVER=offscreen build/inspace --frames 3 --dump out.ppm`.
 
 Game data (INSPACE.EXE and the other original files) is read from `data/`
-or the folder in `INSPACE_DATA`; it is not part of the repository.
+or the folder in `INSPACE_DATA`; it is not part of the repository. The game
+sees it as `C:\SPACE\`; `C:\WINDOWS\` (INSPACE.INI) is the platform's
+settings folder (SDL pref path).
+
+Windows: `cmake -S port -B build-win -DCMAKE_TOOLCHAIN_FILE=<mingw.cmake>
+-DCMAKE_PREFIX_PATH=<SDL3 Windows install>`.
 
 ## Quirks
 
