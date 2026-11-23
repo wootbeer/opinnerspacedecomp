@@ -561,7 +561,7 @@
 11:6aa8	1050:6aa8	187	far			
 11:6b64	1050:6b64	1869	far			
 11:72b2	1050:72b2	46	far			
-11:72e0	1050:72e0	547	far			
+11:72e0	1050:72e0	547	far	handle_cheat_key	names	
 11:7504	1050:7504	131	far			
 11:7588	1050:7588	199	far			data
 11:7650	1050:7650	221	far			
@@ -707,7 +707,7 @@
 13:a6bc	1060:a6bc	1793	far			
 13:adbe	1060:adbe	170	far	summon_with_music	names	
 13:ae68	1060:ae68	2184	far			gap2
-13:b6f2	1060:b6f2	584	far			
+13:b6f2	1060:b6f2	584	far	report_crime	names	
 13:b93a	1060:b93a	202	far			
 13:ba04	1060:ba04	419	far			
 14:0000	1068:0000	3540	far			gap2

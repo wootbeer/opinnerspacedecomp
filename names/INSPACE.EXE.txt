@@ -3,6 +3,9 @@
 # [inferred] are not certain. Format: SEL:OFF name
 #
 # Functions
+1050:72e0 handle_cheat_key  # keys match the SDi website's cheat list (F3-F9 arrive as 'r'-'x')
+1060:b6f2 report_crime  # HANDOFF name; F6 "Enforcer enters wave to arrest me" calls it
+1068:6d64 give_weapon [inferred]  # F7 "all Noble Weapons" calls it with 3 weapon ids
 1008:0000 WinMain  # confirmed: the C runtime startup (5:2072) passes hInstance, hPrevInstance, lpCmdLine, nCmdShow to it
 1040:8934 draw_briefing_panel_with_esc_prompt
 1060:1fc2 spawn_gun_shot
@@ -26,6 +29,11 @@
 1040:88dc abs32
 #
 # Data (DS = 1090)
+1090:9646 main_ship  # cheats act on it ("main ship"); debug string traces it as iMainSmart
+1090:9320 wave_type [inferred]  # 6 = race (cheat '1'), 7 = Dodge City (cheat '2')
+1090:92e8 in_demons_gate [inferred]  # cheat '5' only works there
+1090:104c cheat_invulnerable [inferred]  # F8 toggle
+1090:1048 new_defenders_enabled [inferred]  # F9 clears it
 1090:6b00 fireworks_end_ms
 1090:1c38 fireworks_next_launch_ms
 1090:95bc flow_interactive
