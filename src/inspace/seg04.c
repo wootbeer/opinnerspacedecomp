@@ -689,7 +689,7 @@ int far fn_04_702e(int n)
     int locked;
     int alt;
 
-    found = locked = 0;
+    locked = found = 0;
     if (g_7090[n].fee[g_9646] == 0)
         return 0;
     if (g_7090[n].f72[g_9646] == 0)
@@ -706,121 +706,123 @@ int far fn_04_702e(int n)
         g_7090[n].f00--;
         return 0;
     }
-    if (g_7090[n].f26 < 45 || (g_96f0[g_7090[n].f4e].f1a != 4 && g_934e < 7))
+    if (g_7090[n].f26 < 45)
+        return 0;
+    if (g_96f0[g_7090[n].f4e].f1a == 4 || g_934e < 7)
         return 0;
     for (j = 0; j < g_9316; j++) {
-        if (g_1e30[j].f1a == 0 || j == n || g_7090[n].f72[j] <= 5
-            || g_96f0[g_7090[n].f4e].f1a == 7)
-            continue;
-        if (g_96f0[g_7090[j].f4e].f1a == g_96f0[g_7090[n].f4e].f1a
-            && g_7090[n].fee[j] <= 8 && g_7090[n].fee[j] != 4) {
-            g_7090[n].fee[j] = 0;
-            return g_7090[n].f72[j] = 0;
-        } else {
-        if (g_7090[n].fee[j] <= 5) {
-            mode = 1;
-            if (rand() % 3 == 0)
-                lstrcpy(buf, g_380c);
-            else if (g_7090[n].f5e == 0)
-                LoadString(g_9212, 0x29c, buf, 40);
-            else if (g_7090[n].f5e < 3)
-                LoadString(g_9212, 0x29d, buf, 40);
-            else if (g_7090[n].f5e == 3)
-                LoadString(g_9212, 0x29e, buf, 40);
-        } else {
-            mode = 0;
-            if (rand() % 3 == 0)
-                lstrcpy(buf, g_380c);
-            else if (g_7090[n].f5d == 0)
-                LoadString(g_9212, 0x29f, buf, 40);
-            else if (g_7090[n].f5d < 2)
-                LoadString(g_9212, 0x2a0, buf, 40);
-            else if (g_7090[n].f5d == 3)
-                LoadString(g_9212, 0x2a1, buf, 40);
-        }
-        if (g_7090[n].fee[j] == 4) {
-            for (k = 0; k < 3; k++) {
-                if (g_4eec[g_96f0[g_7090[n].f4e].f1a][k] == g_7090[j].fd6) {
-                    found = 1;
-                    if (g_6e20 == 0) {
-                        fn_14_3eda();
-                        locked = 1;
-                    }
-                    lstrcpy(name, g_6e20[g_6b10[g_96f0[g_7090[n].f4e].f1a][k]].name);
-                    age = g_91f8 - g_4fd0[g_96f0[g_7090[n].f4e].f1a][k];
-                }
-            }
-        }
-        if (!found && !(rand() & 1))
-            alt = 1;
-        else
-            alt = 0;
-        fn_10_a332(g_8d38, 0xbd9, 1, !(rand() & 1), (LPSTR)buf, alt, !found,
-                   g_7090[n].fee[j] + 0x351, found, (LPSTR)name, age, g_09d6);
-        if (locked && found)
-            fn_14_4074();
-        fn_03_06ec(j, 14, n, mode + 0x4f);
-        if (mode) {
-            if (g_7090[n].f72[j] < 9 || g_96f0[g_7090[n].f4e].f1a == 2) {
-                g_7090[n].f52 = 0;
-                g_7090[n].f06 = g_7090[n].f32 = 14;
-                g_7090[n].f08 = g_7090[n].f34 = j;
-                g_7090[n].f94 = g_1e50 + 8000;
-                g_7090[n].f36 = 1;
-                g_7090[n].f38 = 1;
-                g_7090[n].f3a = 2;
-                g_7090[n].f3c = 2;
-                if (g_96f0[g_7090[n].f4e].f1a == 2) {
-                    for (k = 0; k <= g_9316; k++) {
-                        if (g_96f0[g_7090[k].f4e].f1a == 2 && k != j) {
-                            g_7090[k].f36 = 3;
-                            g_7090[k].f38 = 3;
-                            g_7090[k].f3a = 2;
-                            g_7090[k].f3c = 2;
-                            g_7090[k].f52 = 0;
-                            g_7090[k].f06 = g_7090[k].f32 = 14;
-                            g_7090[k].f08 = g_7090[k].f34 = j;
-                            g_7090[k].f94 = g_1e50 + 15000;
-                        }
-                        if (g_96f0[g_7090[k].f4e].f1a == 0
-                            && (g_7090[n].fee[j] == 3 || g_7090[n].fee[j] == 1)) {
-                            g_7090[k].f52 = 2;
-                            g_7090[k].f98 = g_1e50 + 20000;
-                            g_7090[k].f54 = 14;
-                            g_7090[k].f56 = j;
-                            g_7090[k].f58 = n;
-                            g_7090[k].fed = 1;
-                            fn_03_00f4(n, g_7090[n].f54, g_7090[n].f56);
-                            fn_04_8346(k, 14, j, 8);
-                            g_7090[k].fee[j] = 3;
-                            g_7090[k].f72[j] = 0;
-                        }
-                    }
-                } else
-                    fn_04_8346(n, 14, j, 8);
+        if (g_1e30[j].f1a != 0 && j != n && g_7090[n].f72[j] > 5
+            && g_96f0[g_7090[n].f4e].f1a != 7) {
+            if (g_96f0[g_7090[j].f4e].f1a == g_96f0[g_7090[n].f4e].f1a
+                && g_7090[n].fee[j] <= 8 && g_7090[n].fee[j] != 4) {
+                g_7090[n].fee[j] = 0;
+                return g_7090[n].f72[j] = 0;
             } else {
-                if (g_7090[n].f72[j] < 14)
-                    g_7090[n].f52 = 2;
-                else if (g_7090[n].f72[j] < 18)
-                    g_7090[n].f52 = 3;
+                if (g_7090[n].fee[j] <= 5) {
+                    mode = 1;
+                    if (rand() % 3 == 0)
+                        lstrcpy(buf, g_380c);
+                    else if (g_7090[n].f5e == 0)
+                        LoadString(g_9212, 0x29c, buf, 40);
+                    else if (g_7090[n].f5e < 3)
+                        LoadString(g_9212, 0x29d, buf, 40);
+                    else if (g_7090[n].f5e == 3)
+                        LoadString(g_9212, 0x29e, buf, 40);
+                } else {
+                    mode = 0;
+                    if (rand() % 3 == 0)
+                        lstrcpy(buf, g_380c);
+                    else if (g_7090[n].f5d == 0)
+                        LoadString(g_9212, 0x29f, buf, 40);
+                    else if (g_7090[n].f5d < 2)
+                        LoadString(g_9212, 0x2a0, buf, 40);
+                    else if (g_7090[n].f5d == 3)
+                        LoadString(g_9212, 0x2a1, buf, 40);
+                }
+                if (g_7090[n].fee[j] == 4) {
+                    for (k = 0; k < 3; k++) {
+                        if (g_4eec[g_96f0[g_7090[n].f4e].f1a][k] == g_7090[j].fd6) {
+                            found = 1;
+                            if (g_6e20 == 0) {
+                                fn_14_3eda();
+                                locked = 1;
+                            }
+                            lstrcpy(name, g_6e20[g_6b10[g_96f0[g_7090[n].f4e].f1a][k]].name);
+                            age = g_91f8 - g_4fd0[g_96f0[g_7090[n].f4e].f1a][k];
+                        }
+                    }
+                }
+                if (!found && !(rand() & 1))
+                    alt = 1;
                 else
-                    g_7090[n].f52 = 4;
-                fn_04_8346(n, 14, j, 8);
-                g_7090[n].f98 = g_1e50 + 20000;
-                g_7090[n].f54 = 14;
-                g_7090[n].f56 = j;
-                g_7090[n].f58 = n;
-                g_7090[n].fed = 1;
-                fn_03_00f4(n, g_7090[n].f54, g_7090[n].f56);
+                    alt = 0;
+                fn_10_a332(g_8d38, 0xbd9, 1, !(rand() & 1), (LPSTR)buf, alt, !found,
+                           g_7090[n].fee[j] + 0x351, found, (LPSTR)name, age, g_09d6);
+                if (locked && found)
+                    fn_14_4074();
+                fn_03_06ec(j, 14, n, mode + 0x4f);
+                if (mode) {
+                    if (g_7090[n].f72[j] < 9 || g_96f0[g_7090[n].f4e].f1a == 2) {
+                        g_7090[n].f52 = 0;
+                        g_7090[n].f06 = g_7090[n].f32 = 14;
+                        g_7090[n].f08 = g_7090[n].f34 = j;
+                        g_7090[n].f94 = g_1e50 + 8000;
+                        g_7090[n].f38 = 1;
+                        g_7090[n].f36 = 1;
+                        g_7090[n].f3c = 2;
+                        g_7090[n].f3a = 2;
+                        if (g_96f0[g_7090[n].f4e].f1a == 2) {
+                            for (k = 0; k <= g_9316; k++) {
+                                if (g_96f0[g_7090[k].f4e].f1a == 2 && k != j) {
+                                    g_7090[k].f38 = 3;
+                                    g_7090[k].f36 = 3;
+                                    g_7090[k].f3c = 2;
+                                    g_7090[k].f3a = 2;
+                                    g_7090[k].f52 = 0;
+                                    g_7090[k].f06 = g_7090[k].f32 = 14;
+                                    g_7090[k].f08 = g_7090[k].f34 = j;
+                                    g_7090[k].f94 = g_1e50 + 15000;
+                                }
+                                if (g_96f0[g_7090[k].f4e].f1a == 0
+                                    && (g_7090[n].fee[j] == 3 || g_7090[n].fee[j] == 1)) {
+                                    g_7090[k].f52 = 2;
+                                    g_7090[k].f98 = g_1e50 + 20000;
+                                    g_7090[k].f54 = 14;
+                                    g_7090[k].f56 = j;
+                                    g_7090[k].f58 = n;
+                                    g_7090[k].fed = 1;
+                                    fn_03_00f4(n, g_7090[n].f54, g_7090[n].f56);
+                                    fn_04_8346(k, 14, j, 8);
+                                    g_7090[k].fee[j] = 3;
+                                    g_7090[k].f72[j] = 0;
+                                }
+                            }
+                        } else
+                            fn_04_8346(n, 14, j, 8);
+                    } else {
+                        if (g_7090[n].f72[j] < 14)
+                            g_7090[n].f52 = 2;
+                        else if (g_7090[n].f72[j] < 18)
+                            g_7090[n].f52 = 3;
+                        else
+                            g_7090[n].f52 = 4;
+                        fn_04_8346(n, 14, j, 8);
+                        g_7090[n].f98 = g_1e50 + 20000;
+                        g_7090[n].f54 = 14;
+                        g_7090[n].f56 = j;
+                        g_7090[n].f58 = n;
+                        g_7090[n].fed = 1;
+                        fn_03_00f4(n, g_7090[n].f54, g_7090[n].f56);
+                    }
+                    if (g_7090[n].fee[j] == 4) {
+                        for (k = 0; k < 3; k++)
+                            if (g_4eec[g_96f0[g_7090[n].f4e].f1a][k] == g_7090[j].fd6)
+                                g_4eec[g_96f0[g_7090[n].f4e].f1a][k] = -1;
+                    }
+                }
+                g_7090[n].f72[j] = 0;
+                return 1;
             }
-        }
-        if (g_7090[n].fee[j] == 4) {
-            for (k = 0; k < 3; k++)
-                if (g_4eec[g_96f0[g_7090[n].f4e].f1a][k] == g_7090[j].fd6)
-                    g_4eec[g_96f0[g_7090[n].f4e].f1a][k] = -1;
-        }
-        g_7090[n].f72[j] = 0;
-        return 1;
         }
     }
     return 0;

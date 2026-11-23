@@ -225,3 +225,12 @@ Conventions
 - Odd push orders often come from assignments inside call arguments
   (`fn(type = g_6e54, n = g_6e52)`).
 - String literals are not merged (DS:13be-13c1 are four empty strings).
+- In loops the arm the game puts at the loop top must be the `else`:
+  `if (A && B) {X} else {Y}` vs `if (!A || !B) {Y} else {X}` lay out
+  differently.
+- A separate `if (...) return 0;` puts the return block right after the test;
+  folding it into a longer `||` chain moves it.
+- `__aFulmul` comes from plain long multiplies; 32-bit `idiv ecx` from plain
+  long division.
+- fn_11_b09c is pascal (n, a); fn_10_754a likely (int, POINT, int); g_4fcc is
+  `char far *` (briefing text).
