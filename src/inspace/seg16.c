@@ -375,6 +375,15 @@ void far fn_13_4710(int k);
 void far fn_10_754a(int a, int b, int c, int d);
 int far fn_11_aece(void);
 void far fn_13_498e(int a, int b);
+extern char g_06b0[];
+extern POINT g_6e18;
+extern POINT g_1c54;            /* ambulance text cursor [inferred] */
+extern POINT g_1c58;            /* previous cursor [inferred] */
+extern int g_1c5c;              /* index into ambulance_line */
+extern int g_1c5e;              /* lines typed */
+extern DWORD g_1c60;            /* next character time */
+extern HRGN g_9534;
+void far fn_15_84b0(int x, int y);
 
 /* Parses a number from a short digit string [inferred]. */
 /* near-match 48%: 16:0000 (CL refactors the digit sums: (a-48)*10+(b-48)*100 -> ((b*10+a)-528)*10) */
@@ -2296,4 +2305,120 @@ void far self_destruct_ship(int unused, int i)
     }
     if (g_9130 == 0)
         fn_13_498e(i, 1);
+}
+
+/* Types the ambulance line (DS:6db8) into the demon host window [inferred]. */
+/* @addr 16:2e3c */
+void far fn_16_2e3c(int a, int b)
+{
+    HFONT oldfont;
+    HFONT hfont;
+    DWORD oldtext;
+    DWORD oldbk;
+    DWORD ext;
+    int i;
+    int n;
+    int h;
+    RECT rc;
+    RECT rc2;
+    char word[80];
+    int wrap;
+    int margin;
+    int j;
+    int len;
+    int w;
+
+    if (g_90ea < 700)
+        h = 12;
+    else if (g_90ea < 860)
+        h = 13;
+    else
+        h = 14;
+    n = 4;
+    if (a) {
+        fn_15_84b0(g_6e14.x / 2 + g_6e18.x + g_3d48 + 3, g_6e14.y / 2 + g_6e18.y + g_3d4a + 3);
+        g_1c5c = 0;
+        g_1c5e = 0;
+        g_1c54.x = g_6e18.x + g_3d48 + 8;
+        g_1c54.y = g_6e18.y + g_3d4a + 7;
+        g_1c60 = g_1e50 + 500;
+        return;
+    }
+    if (g_1c60 > g_1e50)
+        return;
+    g_1c60 = g_1e50 + 40;
+    SelectClipRgn(g_13dc, g_9534);
+    hfont = CreateFont(h - 1, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, g_06b0);
+    oldfont = SelectObject(g_13dc, hfont);
+    oldbk = SetBkColor(g_13dc, RGB(0, 0, 0));
+    SetBkMode(g_13dc, TRANSPARENT);
+    SetTextAlign(g_13dc, 0);
+    oldtext = SetTextColor(g_13dc, RGB(0, 255, 0));
+    for (i = 0; i < n; i++) {
+        wrap = 0;
+        if (ambulance_line[g_1c5c] == ' ') {
+            SetRect(&rc, g_6e18.x + g_3d48 + 6, g_6e18.y + g_3d4a + 7,
+                    g_6e18.x + g_6e14.x + g_3d48 + 3, g_6e18.y + g_6e14.y + g_3d4a + 3);
+            len = 0;
+            j = g_1c5c;
+            do {
+                j++;
+                word[++len] = ambulance_line[j];
+            } while (ambulance_line[j] != 0 && ambulance_line[j] != ' ' && ambulance_line[j] != 13);
+            word[len + 1] = 0;
+            w = LOWORD(GetTextExtent(g_13dc, word, len)) + g_1c54.x;
+            if (len > 5)
+                margin = 9;
+            else
+                margin = 22;
+            if (rc.right - margin < w)
+                wrap = 1;
+        }
+        if (ambulance_line[g_1c5c] == 0 || wrap) {
+            g_1c54.x = g_6e18.x + g_3d48 + 8;
+            if (ambulance_line[g_1c5c] == 0) {
+                g_914a++;
+                g_1c5c = 0;
+            }
+            g_1c5e++;
+            if (g_6e18.y + g_6e14.y + g_3d4a - 13 <= g_1c54.y) {
+                SetRect(&rc, g_6e18.x + g_3d48 + 6, g_6e18.y + g_3d4a + 7,
+                        g_6e18.x + g_6e14.x + g_3d48 + 3, g_6e18.y + g_6e14.y + g_3d4a + 3);
+                for (w = 0; w < 12; w++)
+                    ScrollDC(g_13dc, 0, -1, &rc, &rc, 0, &rc2);
+                g_1c58.y -= 12;
+            } else
+                g_1c54.y += 12;
+            break;
+        }
+        if (g_1c5e || g_1c5c)
+            PatBlt(g_13dc, g_1c58.x + 2, g_1c58.y, 6, 10, BLACKNESS);
+        if (!g_1c5c && b) {
+            g_1c5e++;
+            if (g_1c5e >= 9) {
+                SetRect(&rc, g_6e18.x + g_3d48 + 7, g_6e18.y + g_3d4a + 7,
+                        g_6e18.x + g_6e14.x + g_3d48 + 3, g_6e18.y + g_6e14.y + g_3d4a + 3);
+                for (len = 0; len < 12; len++)
+                    ScrollDC(g_13dc, 0, -1, &rc, &rc, 0, &rc2);
+                g_1c58.y -= 12;
+            } else
+                g_1c54.y += 12;
+        }
+        TextOut(g_13dc, g_1c54.x, g_1c54.y, ambulance_line + g_1c5c, 1);
+        ext = GetTextExtent(g_13dc, ambulance_line + g_1c5c, 1);
+        g_1c54.x += LOWORD(ext);
+        w = SelectObject(g_13dc, CreateSolidBrush(RGB(0x80, 0xff, 0)));
+        PatBlt(g_13dc, g_1c54.x + 2, g_1c54.y, 6, 10, PATCOPY);
+        DeleteObject(SelectObject(g_13dc, w));
+        g_1c58 = g_1c54;
+        g_1c5c++;
+        fn_10_754a(0x2b, 0, 0, 0);
+    }
+    SetBkColor(g_13dc, oldbk);
+    SetTextColor(g_13dc, oldtext);
+    SelectObject(g_13dc, oldfont);
+    if (hfont) {
+        DeleteObject(hfont);
+        hfont = 0;
+    }
 }

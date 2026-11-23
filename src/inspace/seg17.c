@@ -293,6 +293,22 @@ extern REC_70 far *g_1e08;
 extern HDC g_39f0;
 void far fn_10_3a2e(void);
 void far fn_10_3ea2(void);
+extern int g_8f70;
+extern int g_90f8;
+extern int g_90ea;
+extern DWORD g_1876;
+extern DWORD g_05ac;
+int far fn_09_8d18(int init, int quiet);
+void far fn_17_03b2(void);
+void far fn_17_6036(void);
+extern POINT g_190a;            /* typewriter cursor [inferred] */
+extern POINT g_190e;            /* previous cursor [inferred] */
+extern int g_1912;              /* index into g_6078 */
+extern int g_1914;
+extern DWORD g_1916;            /* next character time */
+extern DWORD g_191a;
+extern int g_0ba2;              /* text finished */
+void far fn_15_84b0(int x, int y);
 
 /* @addr 17:306e */
 void far fn_17_306e(void)
@@ -1109,10 +1125,134 @@ void far fn_17_67e6(void)
 {
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Types the briefing text g_6078 a few characters per call [inferred]. */
+/* @addr 17:2c5a */
 int far fn_17_2c5a(int a, int b)
 {
-    return 0;
+    HFONT oldfont;
+    HFONT hfont;
+    DWORD oldtext;
+    DWORD oldbk;
+    char word[54];
+    int i;
+    int n;
+    int pad[8];
+    int hasctl;
+    int wrap;
+    int margin;
+    int j;
+    int len;
+
+    n = 10;
+    if (a) {
+        if (!b)
+            fn_15_84b0(g_5000 + 15, g_5002 + 10);
+        g_0ba2 = 0;
+        g_1912 = 0;
+        g_1914 = 0;
+        g_190a = *(POINT *)&g_5000;
+        g_1916 = g_1e50 + 500;
+        g_191a = 0;
+        if (!b)
+            return 0;
+        n = 1000;
+    } else {
+        if (a && g_1912 < 250)
+            g_1912 = 250;
+        if (g_1916 > g_1e50)
+            return 0;
+        g_1916 = g_1e50 + 50;
+    }
+    if (g_0ba2) {
+        g_1916 = g_1e50 + 400;
+        if (!g_191a) {
+            g_191a = g_6090 + g_1e50;
+            if (!b)
+                PatBlt(g_13dc, g_190a.x + 4, g_190a.y + 2, 12, 12, BLACKNESS);
+        }
+    } else {
+        hfont = CreateFont(13, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, g_06b0);
+        oldfont = SelectObject(g_13dc, hfont);
+        oldbk = SetBkColor(g_13dc, RGB(0, 0, 0));
+        SetBkMode(g_13dc, TRANSPARENT);
+        SetTextAlign(g_13dc, 0);
+        oldtext = SetTextColor(g_13dc, RGB(0, 255, 255));
+        for (i = 0; i < n; i++) {
+            wrap = 0;
+            if (g_9478 && g_6078[g_1912] == ' ') {
+                len = hasctl = 0;
+                j = g_1912;
+                do {
+                    j++;
+                    if ((word[++len] = g_6078[j]) == 9 || word[len] == 13)
+                        hasctl = 1;
+                } while (g_6078[j] != 0 && g_6078[j] != ' ' && g_6078[j] != 13);
+                if (!hasctl) {
+                    int w;
+
+                    word[len + 1] = 0;
+                    w = LOWORD(GetTextExtent(g_13dc, word, len)) + g_190a.x;
+                    if (len > 5)
+                        margin = 9;
+                    else
+                        margin = 22;
+                    if (g_6088 - margin < w)
+                        wrap = 1;
+                }
+            }
+            if (g_6078[g_1912] == 13 || wrap) {
+                g_190a.x = g_5000;
+                g_190a.y += 18;
+                if (g_6078[g_1912] == 13)
+                    g_1912++;
+            } else if (g_6078[g_1912] == 9) {
+                g_190a.x = (g_6078[g_1912 + 1] - '0') * 100 + (g_6078[g_1912 + 2] - '0') * 10
+                           + (g_6078[g_1912 + 3] - '0') + g_5000;
+                g_1912 += 3;
+            } else {
+                HBRUSH oldbr;
+
+                if (g_1912 && !b)
+                    PatBlt(g_13dc, g_190e.x + 4, g_190e.y + 2, 12, 18, BLACKNESS);
+                TextOut(g_13dc, g_190a.x, g_190a.y, g_6078 + g_1912, 1);
+                g_190a.x += LOWORD(GetTextExtent(g_13dc, g_6078 + g_1912, 1));
+                if (!b) {
+                    oldbr = SelectObject(g_13dc, CreateSolidBrush(RGB(0, 255, 255)));
+                    PatBlt(g_13dc, g_190a.x + 4, g_190a.y + 2, 12, 12, PATCOPY);
+                    DeleteObject(SelectObject(g_13dc, oldbr));
+                    g_190e = g_190a;
+                }
+            }
+            g_1912++;
+            if (!b)
+                fn_10_744c(0x2b);
+            if (!b && g_6078[g_1912] == 13 && g_6078[g_1912 - 1] == 10
+                && g_93aa != 15 && g_93aa != 17) {
+                g_1916 = g_1e50 + 900;
+                break;
+            }
+            if (g_6078[g_1912] == 0) {
+                g_0ba2 = 1;
+                break;
+            }
+        }
+        SetBkColor(g_13dc, oldbk);
+        SetTextColor(g_13dc, oldtext);
+        SelectObject(g_13dc, oldfont);
+        if (hfont) {
+            DeleteObject(hfont);
+            hfont = 0;
+        }
+        if (g_0ba2) {
+            if (g_191a && g_191a < g_1e50)
+                return 2;
+            return 1;
+        }
+        return 0;
+    }
+    if (g_191a && g_191a < g_1e50)
+        return 2;
+    return 1;
 }
 
 /* Draws the friends / neutral / enemies lists of the relations page [inferred]. */
@@ -1204,9 +1344,102 @@ void far fn_17_458e(void)
     }
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* @addr 17:51b0 */
 void far fn_17_51b0(void)
 {
+    HFONT hfont;
+    HFONT oldfont;
+    DWORD oldbk;
+    DWORD oldtext;
+    char buf[80];
+    char name[70];
+    int i;
+    int count;
+    int unused;
+    int side;
+    int rel;
+    POINT pt;
+    int rel2;
+
+    hfont = CreateFont(15, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, g_06b0);
+    oldfont = SelectObject(g_13dc, hfont);
+    oldbk = SetBkColor(g_13dc, RGB(0, 0, 0));
+    SetBkMode(g_13dc, TRANSPARENT);
+    SetTextAlign(g_13dc, 0);
+    side = g_96f0[g_7092[g_9646].f_04c].f1a;
+    fn_13_218a(g_9468 - 1, name);
+    if ((rel = g_3824[g_9468 - 1][side]) > 80 || g_9468 - side - 1 == 0)
+        oldtext = SetTextColor(g_13dc, PALETTERGB(0, 0xd6, 0xff));
+    else if (rel < -80)
+        oldtext = SetTextColor(g_13dc, PALETTERGB(0xff, 0x80, 0));
+    else
+        oldtext = SetTextColor(g_13dc, PALETTERGB(0xc0, 0xc0, 0xc0));
+    TextOut(g_13dc, g_6084 + 40, g_6086 + 20, name, lstrlen(name));
+    SetBkColor(g_13dc, oldbk);
+    SetTextColor(g_13dc, oldtext);
+    SelectObject(g_13dc, oldfont);
+    if (hfont) {
+        DeleteObject(hfont);
+        hfont = 0;
+    }
+    hfont = CreateFont(13, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, g_06b0);
+    oldfont = SelectObject(g_13dc, hfont);
+    oldbk = SetBkColor(g_13dc, RGB(0, 0, 0));
+    SetBkMode(g_13dc, TRANSPARENT);
+    SetTextAlign(g_13dc, 0);
+    SetTextColor(g_13dc, RGB(0, 255, 255));
+    pt.y = g_6086 + 60;
+    pt.x = g_6084 + 40;
+    if (g_9468 - side - 1 == 0) {
+        fn_09_955c(0x806, buf);
+    } else {
+        i = count = 0;
+        for (; i <= g_9316; i++)
+            if (g_7092[i].f_0ea && g_96f0[g_7092[i].f_04c].f1a - g_9468 + 1 == 0)
+                count++;
+        if (count == 1)
+            fn_09_955c(0x807, buf);
+        else
+            fn_09_955c(0x808, buf);
+        fn_06_0f1a(count, name);
+        lstrcat(buf, " ");
+        lstrcat(buf, name);
+        lstrcat(buf, " ");
+        fn_13_218a(g_9468 - 1, name);
+        lstrcat(buf, name);
+        if (count == 1)
+            buf[lstrlen(buf) - 1] = 0;
+        TextOut(g_13dc, pt.x, pt.y, buf, lstrlen(buf));
+        pt.y += 18;
+        fn_09_955c(0x80a, buf);
+        lstrcat(buf, g_09ee);
+        TextOut(g_13dc, pt.x, pt.y, buf, lstrlen(buf));
+        pt.y += 36;
+        fn_13_218a(g_9468 - 1, buf);
+        lstrcat(buf, " ");
+        rel2 = g_3824[g_9468 - 1][side];
+        if (rel2 < -80)
+            fn_09_9580(0x80b, buf);
+        else if (rel2 < 80)
+            fn_09_9580(0x80c, buf);
+        else
+            fn_09_9580(0x80d, buf);
+        if (rel2 < 80) {
+            TextOut(g_13dc, pt.x, pt.y, buf, lstrlen(buf));
+            pt.y += 18;
+            lstrcpy(buf, "");
+        }
+        fn_09_9580(0x33e, buf);
+    }
+    lstrcat(buf, g_09ee);
+    TextOut(g_13dc, pt.x, pt.y, buf, lstrlen(buf));
+    SetBkColor(g_13dc, oldbk);
+    SetTextColor(g_13dc, oldtext);
+    SelectObject(g_13dc, oldfont);
+    if (hfont) {
+        DeleteObject(hfont);
+        hfont = 0;
+    }
 }
 
 /* Not yet decompiled: stub so calls to it compile as near calls. */
@@ -1300,9 +1533,180 @@ void far fn_17_4988(void)
 {
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* @addr 17:0000 */
 void far fn_17_0000(int a, int b)
 {
+    int done;
+    int v;
+    int f;
+    int pad;
+
+    if (!g_9460 && (g_8f70 || g_90f8) && g_93aa != 18) {
+        g_93aa = 18;
+        return;
+    }
+    f = 0;
+    if (g_93aa != 11)
+        g_946c = -1;
+    if (g_9462 == -3) {
+        PatBlt(g_13dc, g_6084, g_6086, g_6088 - g_6084, g_608a - g_6086, BLACKNESS);
+        fn_10_744c(0x6e);
+        done = fn_17_20fa(1, 0, 1);
+    }
+    if (g_9462 == -2)
+        fn_17_03b2();
+    if (g_9462 == -1) {
+        if (g_93aa == 11) {
+            PatBlt(g_13dc, g_6084, g_6086, g_6088 - g_6084, g_608a - g_6086, BLACKNESS);
+            fn_10_744c(0x6e);
+            done = fn_17_20fa(1, 1, 0);
+            if (g_9462 == -1)
+                g_9462 = 0;
+            if (done && !g_9460) {
+                g_93aa = 18;
+                fn_17_03b2();
+            }
+        } else {
+            b = f = 1;
+            g_1876 = g_1e50 - 10;
+        }
+    }
+    if (b) {
+        if (g_9460)
+            return;
+        *(long *)&g_608c = *(long *)&g_90ea;
+        if (!f) {
+            fn_09_8d18(1, a);
+            if (g_93aa)
+                g_1876 = g_1e50 - 10;
+            v = a;
+        } else
+            v = fn_09_8d18(0, 0);
+        if (!v) {
+            if (!a && !f)
+                g_93aa = 0;
+            else {
+                fn_09_8d18(1, 1);
+                fn_09_8d18(0, 1);
+                g_1876 = g_1e50 - 10;
+            }
+        }
+    }
+    v = fn_09_8d18(0, 0);
+    if (g_93aa)
+        SelectClipRgn(g_13dc, g_93ae);
+    done = 0;
+    switch (g_93aa) {
+    case 0:
+        if (v && !g_1876)
+            g_1876 = g_1e50 + 500;
+        break;
+    case 1:
+        done = fn_17_0600(0);
+        break;
+    case 3:
+        if (!g_91f8 || g_9460)
+            done = fn_17_0d22(0);
+        else
+            done = 1;
+        break;
+    case 4:
+        if (!g_91f8 && g_92f2 || g_9460)
+            done = fn_17_1b3e(0, 3);
+        else
+            done = 1;
+        break;
+    case 5:
+        if (!g_094e && g_91f8 == 1 || g_9460)
+            done = fn_17_1b3e(0, 7);
+        else
+            done = 1;
+        break;
+    case 7:
+        if ((g_91f8 == 1 || g_9460) && g_92f0)
+            done = fn_17_193c(0);
+        else
+            done = 1;
+        break;
+    case 8:
+        if (g_4ee0[0])
+            done = fn_17_1b3e(0, 8);
+        else
+            done = 1;
+        break;
+    case 9:
+        if (g_4ee0[1])
+            done = fn_17_1b3e(0, 8);
+        else
+            done = 1;
+        break;
+    case 10:
+        if (g_9460 && fn_10_5586(g_9472))
+            done = fn_17_16cc(0, g_9472);
+        else
+            done = 1;
+        break;
+    case 6:
+        if (g_92fe)
+            done = fn_17_1b3e(0, 9);
+        else
+            done = 1;
+        break;
+    case 14:
+        if (g_9460)
+            done = fn_17_1260(0);
+        else
+            done = 1;
+        break;
+    case 2:
+        if (g_9460 || g_094e)
+            done = fn_17_13ca(0);
+        else
+            done = 1;
+        break;
+    case 15:
+    case 17:
+        if (g_9460)
+            done = fn_17_12f6(0);
+        else
+            done = 1;
+        break;
+    case 16:
+        if (g_9460)
+            done = fn_17_15c6(0);
+        else
+            done = 1;
+        break;
+    case 12:
+        if (g_9460)
+            done = fn_17_108c(0);
+        else
+            done = 1;
+        break;
+    case 13:
+        if (g_9460)
+            done = fn_17_1174(0);
+        else
+            done = 1;
+        break;
+    case 11:
+        done = fn_17_20fa(0, 0, 0);
+        break;
+    case 18:
+        if (!g_05ac) {
+            g_05ac = g_1e50;
+            fn_17_6036();
+        }
+        return;
+    }
+    if (g_1876 && g_1876 < g_1e50) {
+        g_1876 = 0;
+        done = 1;
+    }
+    if (done) {
+        g_93aa++;
+        fn_17_03b2();
+    }
 }
 
 /* @addr 17:8910 */

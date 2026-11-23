@@ -271,11 +271,17 @@ extern int g_a1cb;
 typedef struct {                /* 0x94 bytes at DS:6098 (seen as DS:610e) */
     int x[2][6];
     int y[2][6];
-    char p30[0x74 - 0x30];
+    int x1[2][6];
+    int y1[2][6];
+    char p60[0x70 - 0x60];
+    int f70;
+    int f72;
     int f74;
     int f76;
     int f78;
-    char p7a[0x94 - 0x7a];
+    int f7a;
+    int f7c;
+    char p7e[0x94 - 0x7e];
 } REC_6098;
 extern REC_6098 g_6098[];
 extern int g_073e;
@@ -373,7 +379,9 @@ typedef struct {                /* 0xad-byte class records, lowest field DS:96d6
     char f16;
     char p17[0x26 - 0x17];
     int f26;                    /* sprite cell size */
-    char p28[0x32 - 0x28];
+    char p28[0x2e - 0x28];
+    int f2e;
+    char p30[0x32 - 0x30];
     int f32;
     char p34[0x38 - 0x34];
     int f38;
@@ -1810,4 +1818,198 @@ void far fn_18_37d8(void)
 /* Not yet decompiled: stub so calls to it compile as near calls. */
 void far fn_18_403e(void)
 {
+}
+
+extern int g_9436;
+extern int g_9438;
+extern int g_943a;
+extern int g_943c;
+extern int g_944a;
+extern int g_944c;
+extern int g_944e;
+extern int g_9450;
+extern int object_sizes[2];         /* DS:9442 */
+extern int object_masses[2];        /* DS:9446 */
+extern POINT g_52dc;
+extern POINT g_52e0;
+extern POINT g_52e4;
+extern POINT g_52e8;
+extern RECT g_8860[];
+extern POINT g_8ce4[];
+extern int g_8d1c[];
+int far pascal fn_10_7dd4(int far *a, int far *b, int far *c, int far *d,
+                          int far *e, int far *f, int far *g, int far *h,
+                          int i, int j, int k, int l, int far *m, int far *n);
+void far pascal fn_08_6a44(int a);
+
+/* Checks an object against the Demon arena's wall rectangles and bounces
+ * it [inferred]. unused8 stands for a temporary the original drops. */
+/* near-match 63%: 18:2c1e (CL stores the unused8 temporary; the game keeps
+ * g_88c0 - g_9678 in ax only, and its frame is 2 bytes larger) */
+int far fn_18_2c1e(int type, int idx)
+{
+    int i;
+    int j;
+    int unused8;
+    int n;
+    int k;
+    POINT pos;
+    POINT unused14;
+    RECT rc1;
+    RECT rc;
+    int hit;
+
+    if (type == 30 && g_70ae[g_9646].f06 == 2)
+        n = 2;
+    else
+        n = 1;
+    for (k = 0; k < n; k++) {
+        if (type == 30) {
+            pos.x = g_6098[idx].x[k][0];
+            pos.y = g_6098[idx].y[k][0];
+            object_sizes[1] = 4;
+        } else {
+            pos = *(POINT far *)&g_1df8[type][idx].f00;
+            object_sizes[1] = g_1df8[type][idx].f22 + 2;
+        }
+        if ((pos.x <= g_9678 || pos.x >= (unused8 = g_88c0 - g_9678) - object_sizes[1]) &&
+            (pos.y >= g_88c2 - g_9678 - object_sizes[1] || pos.y <= g_9678)) {
+        SetRect(&rc, pos.x, pos.y, pos.x + object_sizes[1], pos.y + object_sizes[1]);
+        for (i = 0; i < 4; i++)
+            for (j = 0; j < 3; j++) {
+                if (!IntersectRect(&rc1, &g_8860[i * 3 + j], &rc))
+                    continue;
+                if (type == 30) {
+                    object_masses[1] = 14 - g_6098[idx].f76 * 14 / g_6098[idx].f74;
+                    if (g_6098[idx].f76 < 20)
+                        object_masses[1] = 18;
+                    object_masses[1] *= 2;
+                    object_masses[1] = g_96d6[g_70ae[g_6098[idx].f7c].f30].f2e * object_masses[1] / 250;
+                    if (g_90f4 == 1)
+                        object_masses[1] = (24 - 5 * g_a198) * object_masses[1] * 3 / 20;
+                    else
+                        object_masses[1] = (9 - g_a198) * object_masses[1] * 3 / 20;
+                    k = n;
+                } else
+                    object_masses[1] = g_1df8[type][idx].f44;
+                g_944a = 0x1f;
+                g_944e = i;
+                g_943a = g_944c = type;
+                g_943c = g_9450 = idx;
+                if (type == 30) {
+                    g_52dc.x = g_6098[idx].f70 * 5;
+                    g_52dc.y = g_6098[idx].f72 * 5;
+                } else
+                    g_52dc = *(POINT far *)&g_1df8[type][idx].f0c;
+                *(long *)&g_52e0 = 0;
+                g_52e8 = pos;
+                g_52e4 = g_8ce4[i * 3 + j];
+                object_sizes[0] = g_8d1c[i * 3 + j] + 2;
+                if (type == 30)
+                    object_masses[0] = 800;
+                else
+                    object_masses[0] = 20000;
+                hit = fn_10_7dd4(&g_52dc.x, &g_52dc.y, &g_52e0.x, &g_52e0.y,
+                                 &g_52e8.x, &g_52e8.y, &g_52e4.x, &g_52e4.y,
+                                 object_sizes[1] + 1, object_sizes[0],
+                                 object_masses[1], object_masses[0],
+                                 &g_9436, &g_9438);
+                g_9438 = g_9438 < 3 ? 3 : g_9438;
+                if (hit) {
+                    if (type == 30) {
+                        pos = fn_08_2bbe(g_52e8);
+                        g_6098[idx].x1[0][0] = pos.x;
+                        g_6098[idx].y1[0][0] = pos.y;
+                        g_6098[idx].f70 = g_52dc.x / 5;
+                        g_6098[idx].f72 = g_52dc.y / 5;
+                        if (j == 2 && g_a18f[i] && !g_1e40->f1a) {
+                            fn_10_754a(0x24, 0x1e, idx, 2);
+                            if (g_90f4 == 6)
+                                g_a1cd++;
+                            ((unsigned char *)g_a17b)[i] += (char)g_9438;
+                            if (((unsigned char *)g_a17b)[i] < 200 &&
+                                ((unsigned char *)g_a17b)[i] > 70) {
+                                g_a18f[i] = 0;
+                                if (g_90f4 == 6)
+                                    g_a193[i] = 0;
+                                fn_18_4faa(i);
+                                ((unsigned char *)g_a17b)[i] = 0xdc;
+                            }
+                            return 2;
+                        }
+                        fn_10_754a(0x11, 0x1e, idx, 2);
+                    } else {
+                        *(POINT far *)&g_1df8[g_944c][g_9450].f04 = fn_08_2bbe(g_52e8);
+                        fn_08_6a44(1);
+                    }
+                    return 1;
+                }
+            }
+        }
+    }
+    return 0;
+}
+
+extern signed char g_9150;
+int far fn_08_35d0(long a, long b);
+
+/* Pulls every other object toward object (type, idx) [inferred]. */
+/* @addr 18:59ec */
+void far attractive_force_weapon(int type, int idx)
+{
+    POINT c;
+    POINT d;
+    POINT p;
+    int dist;
+    int t;
+    int i;
+    int force;
+
+    if (g_1318 <= 1 && g_1df8[type][idx].f1a) {
+    if (g_9130) {
+        c.x = g_1df8[type][idx].f20 / 2 + g_1df8[type][idx].f04;
+        c.y = g_1df8[type][idx].f20 / 2 + g_1df8[type][idx].f06;
+    } else {
+        if (!g_70ae[idx].f00)
+            return;
+        if (type == 14 && !g_1df8[14][idx].f54)
+            g_70ae[idx].f00--;
+        c.x = g_1df8[type][idx].f22 / 2 + g_1df8[type][idx].f00;
+        c.y = g_1df8[type][idx].f22 / 2 + g_1df8[type][idx].f02;
+    }
+    for (t = g_9326; t <= g_9324; t++) {
+        if (t == 5)
+            continue;
+        for (i = 0; i < g_9406[t]; i++) {
+            if ((!g_1df8[t][i].f18 && (g_92e8 || g_1df8[t][i].f1a) &&
+                 !g_1df8[t][i].f54 && (t != type || i != idx)) || t == 18) {
+                if (g_9130) {
+                    d.x = g_1df8[t][i].f20 / 2 + g_1df8[t][i].f04 - c.x;
+                    d.y = g_1df8[t][i].f20 / 2 + g_1df8[t][i].f06 - c.y;
+                } else {
+                    p.x = g_1df8[t][i].f20 / 2 + g_1df8[t][i].f04;
+                    p.y = g_1df8[t][i].f20 / 2 + g_1df8[t][i].f06;
+                    p = fn_08_29ea(p);
+                    d.x = p.x - c.x << g_9150;
+                    d.y = p.y - c.y << g_9150;
+                }
+                dist = fn_08_35d0(d.x, d.y);
+                if (g_9130) {
+                    force = 13;
+                    if (t == 19)
+                        force = 7;
+                } else {
+                    force = 11L * g_1df8[type][idx].f44 / max(g_1df8[t][i].f44, 50);
+                    force = force > 14 ? 14 : force;
+                }
+                if (g_92e8 && !g_1df8[t][i].f1a)
+                    force *= 2;
+                if (g_9130 || dist < 7000 || g_92e8) {
+                    g_1df8[t][i].f0c -= (long)d.x * force / dist;
+                    g_1df8[t][i].f0e -= (long)d.y * force / dist;
+                }
+            }
+        }
+    }
+    }
 }
