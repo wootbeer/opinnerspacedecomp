@@ -22,7 +22,8 @@ typedef struct {                /* 0x229-byte records at far DS:6b08 */
     long f17;
     long f1b;
     long f1f;
-    char p023[0x27 - 0x23];
+    int f23;
+    int f25;
     int f27;
     int f29;
     int f2b[15];
@@ -30,9 +31,26 @@ typedef struct {                /* 0x229-byte records at far DS:6b08 */
     long f85[15];
     long fc1[15];
     long ffd[15];
-    char p139[0x229 - 0x139];
+    int f139[60];               /* trail x per spark [inferred] */
+    int f1b1[60];               /* trail y */
 } REC_229;
+typedef struct {                /* 0x70-byte records at far DS:1e10, DS:1e40 */
+    POINT f00;
+    char p04[0x0c - 0x04];
+    int f0c;
+    int f0e;
+    char p10[0x18 - 0x10];
+    int f18;
+    int f1a;
+    char p1c[0x70 - 0x1c];
+} REC_70S;
 #pragma pack()
+extern REC_70S far *g_1e10;
+extern REC_70S far *g_1e40;
+extern int g_9150;
+extern HBRUSH g_3b38[];
+void far fn_06_78ea(int kind, int x, int y, int vx, int vy, int size, int n,
+                    int c);
 
 void far fn_06_7266(void);
 void far fn_06_717a(void);
@@ -1063,10 +1081,133 @@ int far fn_06_73f6(void)
     return done;
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Updates the fireworks rockets and their sparks; returns 1 when none
+ * is active [inferred]. */
+/* @addr 6:7c14 */
 int far fn_06_7c14(void)
 {
-    return 0;
+    int unused1;
+    int i;
+    int j;
+    int x;
+    int y;
+    int px;
+    int py;
+    int unused2;
+    int unused3;
+    HBRUSH old;
+    int done;
+
+    if (!g_94da)
+        return 1;
+    done = 1;
+    for (i = 0; i < g_94ce; i++) {
+        if (!g_6b08[i].f02)
+            continue;
+        done = 0;
+        if (g_6b08[i].f07 >= 1)
+            PatBlt(g_13dc, g_6b08[i].f23, g_6b08[i].f25, 4, 4, BLACKNESS);
+        if (g_6b08[i].f05 > 0) {
+            x = g_6b08[i].f13 >> 8;
+            y = g_6b08[i].f17 >> 8;
+            if (y)
+                PatBlt(g_13dc, x, y, 4, 4, WHITENESS);
+            if (g_6b08[i].f01 >= 0 && !g_9330
+                && (y < g_90ec / 4 || x < 0 || x > g_90ea))
+                g_6b08[i].f05 = 0;
+            if (y > g_90ec * 3 / 4 && g_6b08[i].f1f > 0)
+                g_6b08[i].f05 = 0;
+            g_6b08[i].f23 = x;
+            g_6b08[i].f25 = y;
+            if (g_9330) {
+                if (g_9130) {
+                    g_6b08[i].f13 = (long)g_1e40->f00.x << 8;
+                    g_6b08[i].f17 = (long)g_1e40->f00.y << 8;
+                    g_6b08[i].f1b = (long)(g_1e40->f0c >> g_9150) << 2;
+                    g_6b08[i].f1b = (long)(g_1e40->f0e >> g_9150) << 2;  /* sic */
+                    if (!g_1e40->f1a)
+                        g_6b08[i].f05 = 0;
+                } else {
+                    g_6b08[i].f13 = (long)g_1e10[g_6b08[i].f01].f00.x << 8;
+                    g_6b08[i].f17 = (long)g_1e10[g_6b08[i].f01].f00.y << 8;
+                    g_6b08[i].f1b = (long)(g_1e10[g_6b08[i].f01].f0c >> g_9150) << 2;
+                    g_6b08[i].f1b = (long)(g_1e10[g_6b08[i].f01].f0e >> g_9150) << 2;  /* sic */
+                    if (g_1e10[g_6b08[i].f01].f18)
+                        g_6b08[i].f05 = 0;
+                }
+            } else {
+                g_6b08[i].f13 += g_6b08[i].f1b;
+                g_6b08[i].f17 += g_6b08[i].f1f;
+                g_6b08[i].f1b += (g_6b08[i].f1b >> g_6b08[i].f0b)
+                               - (g_6b08[i].f1b >> g_6b08[i].f0d);
+                g_6b08[i].f1f += (g_6b08[i].f1f >> g_6b08[i].f0b)
+                               - (g_6b08[i].f1f >> g_6b08[i].f0d) + g_6b08[i].f0f;
+            }
+        }
+        if (g_6b08[i].f05 <= 0) {
+            if (!g_6b08[i].f00) {
+                g_6b08[i].f00 = 1;
+                if (g_6b08[i].f01 <= 0 || rand() % 100 > 90 || g_9330) {
+                    if (!g_9130)
+                        fn_06_78ea(rand() % 2 * 10, g_6b08[i].f13 >> 8, g_6b08[i].f17 >> 8,
+                                   g_6b08[i].f1b >> 8, g_6b08[i].f1f >> 8,
+                                   rand() % 1000 + 4000, 4, 50 - rand() % 10);
+                } else {
+                    fn_06_84fc(g_6b08[i].f02, g_6b08[i].f13 >> 8, g_6b08[i].f17 >> 8,
+                               rand() % 1600 + g_6b08[i].f1b - 800,
+                               rand() % 1600 + g_6b08[i].f1f - 800,
+                               g_6b08[i].f0b, g_6b08[i].f0d, g_6b08[i].f0f,
+                               rand() % 10 + g_6b08[i].f07 / 2, g_6b08[i].f01 - 1);
+                    if (rand() % 20 < 9)
+                        fn_06_84fc(g_6b08[i].f02, g_6b08[i].f13 >> 8, g_6b08[i].f17 >> 8,
+                                   rand() % 1600 + g_6b08[i].f1b - 800,
+                                   rand() % 1600 + g_6b08[i].f1f - 800,
+                                   g_6b08[i].f0b, g_6b08[i].f0d, g_6b08[i].f0f,
+                                   rand() % 10 + g_6b08[i].f07 / 2, g_6b08[i].f01 - 1);
+                    fn_06_78ea(rand() % 2 * 10, g_6b08[i].f13 >> 8, g_6b08[i].f17 >> 8,
+                               g_6b08[i].f1b >> 8, g_6b08[i].f1f >> 8, 800, 4,
+                               50 - rand() % 10);
+                }
+            }
+            if (g_6b08[i].f05 < -g_94d2) {
+                g_6b08[i].f02 = 0;
+                continue;
+            }
+        }
+        for (j = 0; j < g_94d4; j++) {
+            if (g_6b08[i].f07 < j)
+                continue;
+            if (g_6b08[i].f2b[j] >= g_94d2) {
+                if (!g_6b08[i].f00)
+                    fn_06_8684(i, j);
+            } else {
+                if (g_6b08[i].f2b[j] >= 4)
+                    PatBlt(g_13dc, g_6b08[i].f139[g_6b08[i].f29 + j],
+                           g_6b08[i].f1b1[g_6b08[i].f29 + j], 2, 2, BLACKNESS);
+                if (g_6b08[i].f2b[j] < g_94d2 - 4) {
+                    px = g_6b08[i].f49[j] >> 8;
+                    py = g_6b08[i].f85[j] >> 8;
+                    if (py) {
+                        old = SelectObject(g_13dc,
+                                           g_3b38[g_6b08[i].f02 + g_6b08[i].f2b[j]]);
+                        PatBlt(g_13dc, px, py, 2, 2, PATCOPY);
+                        SelectObject(g_13dc, old);
+                    }
+                    g_6b08[i].f139[g_6b08[i].f29 + j] = px;
+                    g_6b08[i].f1b1[g_6b08[i].f29 + j] = py;
+                    g_6b08[i].f49[j] += g_6b08[i].fc1[j];
+                    g_6b08[i].f85[j] += g_6b08[i].ffd[j];
+                }
+                g_6b08[i].f2b[j]++;
+            }
+        }
+        g_6b08[i].f29 += g_94d4;
+        if (g_6b08[i].f29 > g_94d4 * 3)
+            g_6b08[i].f29 = 0;
+        g_6b08[i].f07++;
+        g_6b08[i].f05--;
+    }
+    return done;
 }
 
 /* Draws the champions table [inferred]. */

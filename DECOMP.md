@@ -516,3 +516,13 @@ Conventions
   as a call to an undeclared function. Watch for unexpected `lcall` + `pop bx`.
 - world_map (10:8b1c) reads g_05a0 as the map width (int); g_5006/g_5008/
   g_500c are HBRUSHes; g_3a38 is HDC[].
+- Freed block-scope slots are reused last-in first-out; a 4-byte local only
+  reuses a freed 4-byte slot (two ints do not merge).
+- `x -= a - b` with longs always becomes `x += b - a` (add/adc).
+- Identical string literals block cross-jumping (separate symbols); a shared
+  string must be one extern array (`g_111a[]`) for the tails to merge.
+- `tools/jt.py SEG:OFF`: jump-table-aware disassembly with jump sources at
+  each label.
+- 3:06ec is the message builder (190-case switch on kind); 3:1d0a the
+  status-line builder (passes a near pointer to fn_10_a332: HANDOFF's
+  1010:1d0a text buffer quirk).

@@ -2008,8 +2008,15 @@ int far fn_16_0b4e(int i)
     return 1;
 }
 
-/* Step of the end-of-mission sequence (state g_914a) [inferred]. */
-/* @addr 16:0cfe */
+/* Step of the end-of-mission sequence (state g_914a) [inferred].
+ * near-match 86%: 16:0cfe. Two differences left: (1) case 58's
+ * `f_0da -= (long)g_9e55 - g_9e5d` comes out as add/adc of the negated
+ * difference (the game has sub/sbb; every rewrite tried folds the same way,
+ * a never-read long `d = ...` gives sub but keeps the store); (2) the shared
+ * fn_16_2e3c(0, ...) call tail is kept in the first copy (cases 5, 9, ...)
+ * where the game keeps the later one (cases 3, 7, ...). Block-scope slots
+ * follow a LIFO reuse of freed slots: case 2's x/y must be one POINT so that
+ * the later 4-byte locals (t, l) reuse it at bp-0x72. */
 void far fn_16_0cfe(int a)
 {
     int i;
@@ -2341,7 +2348,6 @@ void far fn_16_0cfe(int a)
             g_914a = 0x21;
         break;
     case 3: case 7: case 12: case 14: case 32: case 37:
-    zero:
         fn_16_2e3c(0, 0);
         break;
     case 33:
