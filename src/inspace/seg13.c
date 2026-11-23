@@ -16,9 +16,13 @@ typedef struct {
     char pad_000[0x4];
     int f_004;    /* DS:7096 */
     int f_006;    /* DS:7098 */
-    char pad_008[0x6];
+    char pad_008[0x2];
+    int f_00a;    /* DS:709c */
+    int f_00c;    /* DS:709e */
     int f_00e;    /* DS:70a0 */
-    char pad_010[0xc];
+    char pad_010[0x2];
+    int f_012;    /* DS:70a4 */
+    char pad_014[0x8];
     int f_01c;    /* DS:70ae */
     char pad_01e[0x6];
     int f_024;    /* DS:70b6 */
@@ -67,7 +71,8 @@ typedef struct {
     int f_0cc;    /* DS:715e */
     char pad_0ce[0x6];
     int f_0d4;    /* DS:7166 */
-    char pad_0d6[0x4];
+    int f_0d6;    /* DS:7168 */
+    char pad_0d8[0x2];
     long f_0da;    /* DS:716c */
     char pad_0de[0x4];
     char f_0e2;    /* DS:7174 */
@@ -268,6 +273,7 @@ extern int g_3854[];
 typedef struct { unsigned char idx, type; } OBJREF;   /* as in seg08.c */
 #define G_05A0_INT (*(int *)&g_05a0)    /* inspace.h declares DS:05a0 long */
 extern int g_05a2;
+extern int g_9146;
 extern int g_9318;
 extern REC70 far *g_1e18;
 extern int subgame_active;          /* DS:9130 */
@@ -2381,4 +2387,166 @@ void far fn_13_2714(int a, int b, int c, int d, int e, int f)
         g_7092[b].f_060[a] = -200;
     if (b == g_9646 && g_7092[g_9646].f_03e == a && g_0a76 == 2)
         PostMessage(g_0a7c, WM_PAINT, 0, 0L);
+}
+
+/* 0x1c-byte records at DS:66e0 [inferred base]. */
+typedef struct {
+    int f_00;
+    int f_02;
+    char pad_04[0x1c - 0x04];
+} REC1C;
+extern REC1C g_66e0[];
+extern char g_507c[];
+extern char g_50e0[];
+extern char g_9eb5;
+int far fn_08_35d0(long a, long b);
+
+/* Nearest target for object n of list type [inferred]: (type << 8) | index,
+ * or -1. */
+/* @addr 13:1076 */
+int far pascal fn_13_1076(int type, int n)
+{
+    char pad[24];
+    int bt, bk, best, py, px, d, u28, ex, ey, ek, nn;
+    int u32, u34, u36, u38;
+    int i;
+    int u3c, u3e, u40;
+    int f20, t, k, u48, own, ok;
+    long dx, dy, ly, lx, r, len;
+
+    nn = n;
+    if (type == g_9324) {
+        own = 1;
+        ex = g_7092[n].f_030;
+        ey = g_7092[n].f_032;
+        ek = g_7092[n].f_036;
+    } else if (type == 6) {
+        own = 0;
+        ex = g_66e0[n].f_00;
+        ey = g_66e0[n].f_02;
+        ek = 2;
+    }
+    f20 = g_1df8[type][n].f_020;
+    bt = -1;
+    best = 20000;
+    for (i = 0; i < g_9318 + g_9146; i++) {
+        if (i < g_9146) {
+            t = g_507c[i];
+            k = g_50e0[i];
+        } else {
+            t = 12;
+            k = (i - g_9146) * 2 + 1;
+        }
+        ok = 1;
+        if ((t == type && k == n) || t == 2 || t == 9 || t == 4
+            || (ek == 2 && t == ex && k == ey) || (ek == 2 && t == 0))
+            ok = 0;
+        if (ok) {
+            d = fn_08_285a(&py, &px, g_1df8[type][n].f_004, g_1df8[t][k].f_004);
+            if (d < 300 && d > 0) {
+                dx = g_1df8[type][n].f_00c - g_1df8[t][k].f_00c;
+                dy = g_1df8[type][n].f_00e - g_1df8[t][k].f_00e;
+                len = fn_08_35d0(dx, dy);
+                ly = py;
+                lx = px;
+                r = (lx * dy + ly * dx) / d;
+                if (r > 0) {
+                    d -= r * 3 / 2;
+                    if (d < best) {
+                        if (d < 60 || (t == 8 && g_9318 * 2 > k && d < 120)) {
+                            if (g_9320 != 6 || g_9eb5 || t != 8) {
+                                best = d;
+                                bt = t;
+                                bk = k;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if (bt != -1)
+        return (bt << 8) | (char)bk;
+    return -1;
+}
+
+#pragma pack(1)
+/* Class records seen from DS:96e2, 8 bytes below g_96ea [inferred]. */
+typedef struct {
+    int f_00;                       /* DS:96e2 */
+    int f_02;
+    int f_04;
+    int f_06;
+    char pad_08[0x0e - 0x08];
+    int f_0e;                       /* DS:96f0 */
+    char pad_10[0x18 - 0x10];
+    int f_18;                       /* DS:96fa */
+    char pad_1a[0x32 - 0x1a];
+    int f_32;                       /* DS:9714 */
+    char pad_34[0x3a - 0x34];
+    int f_3a;                       /* DS:971c */
+    int f_3c;                       /* DS:971e */
+    char pad_3e[0x97 - 0x3e];
+    int f_97;                       /* DS:9779 */
+    char pad_99[0xad - 0x99];
+} RECAD2;
+#pragma pack()
+extern RECAD2 g_96e2[];
+
+/* 0x7c-byte records through the far pointer at DS:6e24 [inferred]. */
+typedef struct {
+    int f_00;
+    char pad_02[0x33 - 0x02];
+    char f_33;
+    char f_34;
+    char f_35;
+    char f_36;
+    char f_37;
+    char pad_38[0x7c - 0x38];
+} REC7C;
+extern REC7C far *g_6e24;
+extern char g_1332[];
+
+/* Combat rating of object n into f_0d6 [inferred]. */
+/* @addr 13:33d6 */
+void far fn_13_33d6(int n)
+{
+    int i, v6, v8, va, u1, u2, v10, u3, v14;
+
+    v10 = g_96e2[g_7092[n].f_04c].f_0e / 20;
+    if (g_7092[n].f_0d4 != -1) {
+        v6 = g_96e2[g_7092[n].f_04c].f_02 * 100 / (20 - 3 * g_6e24[g_7092[n].f_0d4].f_35)
+           + g_96e2[g_7092[n].f_04c].f_04 * 80 / (20 - 3 * g_6e24[g_7092[n].f_0d4].f_36)
+           + g_96e2[g_7092[n].f_04c].f_00 * 80 / (20 - 3 * g_6e24[g_7092[n].f_0d4].f_34);
+        if (g_96e2[g_7092[n].f_04c].f_18 != -1) {
+            v6 += g_96e2[g_7092[n].f_04c].f_06 * 100 / (20 - 3 * g_6e24[g_7092[n].f_0d4].f_37);
+            v6 /= 16;
+        } else
+            v6 /= 12;
+    } else
+        v6 = g_96e2[g_7092[n].f_04c].f_00;
+    v6 = max((int)((long)(g_1df8[g_9324][n].f_044 + v10) * v6 / 86), 1);
+    v14 = g_7092[n].f_00a;
+    if (g_7092[n].f_0d4 != -1)
+        v14 = (long)v14 * ((g_6e24[g_7092[n].f_0d4].f_33 + 10) * 10) / 100;
+    va = ((v14 * 2 - g_7092[n].f_00c) * 10 / (g_1df8[g_9324][n].f_044 + v10)
+          - g_7092[n].f_012 / 10) * 2;
+    v8 = 0;
+    for (i = 1; i < g_7092[n].f_0c9; i++)
+        v8 += g_1332[g_7092[n].f_0b6[i]] / ((i + 1) / 2);
+    if (!g_96e2[g_7092[n].f_04c].f_3c)
+        v6 = v6 * 3 / 4;
+    if (g_96e2[g_7092[n].f_04c].f_3a)
+        v6 = v6 * 6 / 5;
+    if (g_96e2[g_7092[n].f_04c].f_97)
+        v6 = v6 * 6 / 5;
+    if (!g_96e2[g_7092[n].f_04c].f_32)
+        va = va * 5 / 6;
+    va = va * 5 / 6;
+    v6 = v6 * 6 / 5;
+    if (v6 * 5 < va)
+        va = v6 * 5;
+    if (va * 5 < v6)
+        v6 = va * 5;
+    g_7092[n].f_0d6 = min((long)(g_7092[n].f_024 / 2 + 50) * (va + v8 + v6), 0x7fbcL);
 }
