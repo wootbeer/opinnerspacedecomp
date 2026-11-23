@@ -47,7 +47,14 @@ extern int g_52e2;
 typedef struct {
     char p00[0x10];
     int f10;                    /* +10 */
-    char p12[0xba - 0x12];
+    char p12[2];
+    int f14;                    /* +14 */
+    int f16;                    /* +16 */
+    char p18[0x30 - 0x18];
+    int f30;                    /* +30 */
+    char p32[0x40 - 0x32];
+    char f40;                   /* +40 */
+    char p41[0xba - 0x41];
     int fba;                    /* +ba */
     char pbc[0xc5 - 0xbc];
     char fc5;                   /* +c5 */
@@ -93,7 +100,12 @@ typedef struct {
     int y0[2][6];   /* +18 */
     int x1[2][6];   /* +30 */
     int y1[2][6];   /* +48 */
-    char p60[0x7a - 0x60];
+    char p60[0x70 - 0x60];
+    int f70;        /* +70 */
+    int f72;        /* +72 */
+    int f74;        /* +74 */
+    int f76;        /* +76 */
+    int f78;        /* +78: count */
     int f7a;        /* +7a */
     int f7c;        /* +7c */
     char p7e[0x94 - 0x7e];
@@ -140,9 +152,47 @@ extern int g_88c2;
 extern int g_88c4;
 extern int g_88c6;
 extern POINT far *g_1e38;
-void far fn_18_2c1e(int type, int idx);
+int far fn_18_2c1e(int type, int idx);
 int far pascal fn_08_6afa(WORD a, WORD b);
 #define SC(n) ((n) << g_9156 >> 1)
+/* 0xad-byte records; lowest field seen at DS:96ea [inferred]. */
+#pragma pack(1)
+typedef struct {
+    char p00[0x1a];
+    int f1a;                    /* +1a */
+    char p1c[0x20 - 0x1c];
+    int f20;                    /* +20 */
+    char p22[0xad - 0x22];
+} REC_AD;
+#pragma pack()
+extern REC_AD g_96ea[];
+/* 0x1c-byte records at DS:6678 [inferred]. */
+typedef struct {
+    int f00;                    /* +00 */
+    int f02;                    /* +02 */
+    int f04;                    /* +04 */
+    int f06;                    /* +06 */
+    char p08[0x1c - 0x08];
+} REC_1CB;
+extern REC_1CB g_6678[];
+extern int g_9318;
+extern int g_9328;
+extern POINT g_5168[];
+extern int g_943a;
+extern int g_943c;
+extern long g_88cc;
+int far pascal fn_10_7dd4(int far *a, int far *b, int far *c, int far *d,
+                          int far *e, int far *f, int far *g, int far *h,
+                          int i, int j, int k, int l, int far *m, int far *n);
+void far fn_10_754a(int a, int b, int c, int d);
+void far fn_08_804a(int a, int b, int c);
+int far pascal fn_08_6f3c(int t, int i, int n, int k);
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+int far pascal fn_08_6f3c(int t, int i, int n, int k)
+{
+    return 0;
+}
 void far fn_08_7be8(int a, int b, int c, int d);
 
 /* Not yet decompiled: stub so calls to it compile as near calls. */
@@ -751,4 +801,117 @@ int far pascal fn_08_50aa(WORD r)
         }
     }
     return -1;
+}
+
+/* Collision test of shot group n [inferred]: 2 when it hits an object or
+ * a wall rect, 1 when it bounces off the sub-game border, else 0. k is
+ * passed to fn_08_6f3c before it is set (as in the original). */
+/* near-match 74%: 8:3688 (the original keeps g_1e38, n * 0x94 and the
+ * x0/y0 addresses as CSEs across the fn_10_7dd4 call and stores g_943c
+ * before the constants; here they are recomputed) */
+int far pascal fn_08_3688(int n)
+{
+    int i;
+    int u6;
+    int j;
+    int k;
+    int res;
+    int pad[7];
+
+    for (j = 0; j < g_6098[n].f78; j++) {
+        g_5168[j].x = g_6098[n].x1[j][0];
+        g_5168[j].y = g_6098[n].y1[j][0];
+        g_5168[j] = fn_08_29ea(g_5168[j]);
+    }
+    for (i = 0; i < g_9146; i++) {
+        if (g_507c[i] != g_9328) {
+            res = fn_08_6f3c(g_507c[i], g_50e0[i], n, k);
+            if (res == 2)
+                return 2;
+            if (res == 1)
+                return 1;
+        }
+    }
+    if (g_6098[n].f7a == 14
+        && g_1df8[g_70ae[g_6098[n].f7c].f14][g_70ae[g_6098[n].f7c].f16].f1a == 0) {
+        res = fn_08_6f3c(g_70ae[g_6098[n].f7c].f14, g_70ae[g_6098[n].f7c].f16, n, k);
+        if (res == 2)
+            return 2;
+        if (res == 1)
+            return 1;
+    }
+    for (j = 0; j < g_6098[n].f78; j++) {
+        g_5168[j].x = g_6098[n].x1[j][0];
+        g_5168[j].y = g_6098[n].y1[j][0];
+    }
+    for (i = 0; i < g_9318; i++) {
+        RECT r;
+
+        SetRect(&r, g_6678[i].f00, g_6678[i].f02 - 5, g_6678[i].f04, g_6678[i].f06 + 5);
+        if (PtInRect(&r, g_5168[0]))
+            return 2;
+        if (PtInRect(&r, g_5168[1]))
+            return 2;
+    }
+    if (subgame_active != 0) {
+        int flag;
+        int ok;
+        int a28;
+        int a2a;
+
+        j = flag = 0;
+        for (; j < g_6098[n].f78; j++) {
+            if (g_6098[n].x0[j][0] <= g_88c4) {
+                g_1e38->x = g_88c4 - 30;
+                g_1e38->y = g_6098[n].y0[j][0] + g_88c6 - 15;
+                flag = 1;
+            } else if (g_88c4 + g_88c0 - 2 < g_6098[n].x0[j][0]) {
+                g_1e38->x = g_88c4 + g_88c0;
+                g_1e38->y = g_6098[n].y0[j][0] + g_88c6 - 15;
+                flag = 1;
+            } else if (g_6098[n].y0[j][0] <= g_88c6) {
+                g_1e38->y = g_88c6 - 30;
+                g_1e38->x = g_6098[n].x0[j][0] + g_88c4 - 15;
+                flag = 1;
+            } else if (g_88c6 + g_88c2 - 2 < g_6098[n].y0[j][0]) {
+                g_1e38->y = g_88c6 + g_88c2;
+                g_1e38->x = g_6098[n].x0[j][0] + g_88c4 - 15;
+                flag = 1;
+            } else if (fn_18_2c1e(30, n) == 2) {
+                return 2;
+            }
+            if (flag != 0) {
+                k = 14 - g_6098[n].f76 * 14 / g_6098[n].f74;
+                if (g_6098[n].f76 < 20)
+                    k = 23;
+                if (g_6098[n].f7a == g_9324
+                    && (g_6098[n].f7c == g_9646
+                        || g_96ea[g_70ae[g_6098[n].f7c].f30].f20 == 7
+                            && g_70ae[g_6098[n].f7c].f40 == 0))
+                    k <<= 1;
+                if (g_6098[n].f7a == g_9324)
+                    k = g_96ea[g_70ae[g_6098[n].f7c].f30].f1a * k / 250;
+                g_943c = n;
+                g_944a = 16;
+                g_944e = 0;
+                g_9450 = n;
+                a2a = g_6098[n].f70 * 5;
+                a28 = g_6098[n].f72 * 5;
+                ok = fn_10_7dd4(&a2a, &a28, &g_1e38[3].x, &g_1e38[3].y,
+                    &g_6098[n].x0[j][0], &g_6098[n].y0[j][0], &g_1e38->x, &g_1e38->y,
+                    2, g_944c = g_943a = 30, k, 20000, &g_9436, &g_9438);
+                if (ok == 0)
+                    break;
+                fn_10_754a(0x11, 30, n, 2);
+                g_6098[n].f70 = a2a / 5;
+                g_6098[n].f72 = a28 / 5;
+                g_6098[n].x1[j][0] = (int)(g_6098[n].x0[j][0] * g_88cc / g_88c0);
+                g_6098[n].y1[j][0] = (int)(g_6098[n].y0[j][0] * g_88cc / g_88c0);
+                if (g_9208 >= 2 && k * g_9436 > 600)
+                    fn_08_804a(n, k * g_9436, j);
+                return 1;
+            }
+        }
+    }
+    return 0;
 }

@@ -296,3 +296,11 @@ Conventions
   the parameter order.
 - More types: g_5224 is POINT[]; g_9e60/9e70/9e80/9e90, g_1c3e, g_05c0 are
   DWORD; abs32 is long abs32(long); fn_11_63b4 is pascal (n, a).
+- Assigning into a never-read local inside an expression
+  (`if ((u = expr) > k)`, `b.x - (w = W*8)`) changes evaluation order or
+  folding without emitting a store.
+- Object refs `(type << 8) | index` passed to pascal functions: WORD params
+  read with HIBYTE/LOBYTE (a 2-byte struct reorders the loads).
+- A void call inside an `||` chain: `(f(...), 0) || ...`.
+- A `return 0` in a loop compiled as a jump to the final `return 0` was a
+  `break`.
