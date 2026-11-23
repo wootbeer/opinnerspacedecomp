@@ -353,3 +353,8 @@ Conventions
   spilled across calls, not locals.
 - fn_10_73a6's last two parameters are char; fn_18_5350 takes (x, y) pushed
   as one POINT; fn_08_124a is pascal.
+- Taking a variable's address (`*(BYTE *)&v`, a union view) makes it
+  addressable and loses CL's register tracking of it for the whole function.
+- Scratch diff scripts that mask immediates hide `sub sp` frame-size
+  differences: always confirm with match.py.
+- fn_11_5ab6 is pascal (n, k); fn_04_0078 is pascal (n).
