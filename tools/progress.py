@@ -65,6 +65,19 @@ def main():
         'Compiler: MSVC 1.5x CL 8.00c, `/AM /G3 /Gw /Gs /Os`. '
         'Regenerate with `python3 tools/progress.py --write PROGRESS.md`.',
     ]
+    near = {}
+    for src in srcs:
+        for m in re.finditer(r'near-match ([0-9.]+)%: ([0-9]+):([0-9a-f]+)', open(src, encoding='latin-1').read()):
+            key = f'{int(m.group(2))}:{m.group(3)}'
+            if key in inv and key not in {f"{r['seg']}:{r['off']:04x}" for r in matched}:
+                near[key] = (float(m.group(1)), os.path.basename(src), int(inv[key][2]))
+    if near:
+        lines += ['', '## Near-matches (written in C, logic complete; not byte-exact)', '',
+                  'Each differs from the game only in a compiler register, stack-slot or',
+                  'block-placement choice. Kept as-is for the readable/portable source.', '',
+                  '| Function | Size | Match | File |', '|---|---|---|---|']
+        for key, (pct, f, size) in sorted(near.items(), key=lambda kv: -kv[1][0]):
+            lines.append(f'| {key} | {size} | {pct:g}% | {f} |')
     if notes:
         lines += ['', '## Notes', ''] + [f'- {n}' for n in notes]
     text = '\n'.join(lines) + '\n'
