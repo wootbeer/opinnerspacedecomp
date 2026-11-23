@@ -500,3 +500,12 @@ Conventions
 - A hole in a block's slot area can be a named local that is never stored.
 - fn_08_5df2 (main damage handler) returns int; g_1e50 is DWORD (seg12.c
   still says long).
+- A frame slot after the compiler temps holding a CSE'd value is a
+  block-scope local (`int ex; ex = ...;` inside the if).
+- A shared tail inside one branch of an if/else-if chain: gotos to a label
+  after that branch's last leaf; copies or a single tail after the chain do
+  not reproduce it.
+- Struct fields are reloaded where globals are not: a `*(STRUCT *)&g` view
+  reproduces a reload of a byte just used.
+- Ternary with a re-evaluated arm: `2 >= X ? X : 2` keeps the game's order.
+- match.py prints only the first WRONG REFERENCE; `match.run()` returns all.
