@@ -480,3 +480,7 @@ Conventions
 - fn_05_08c0 is the runtime long shift left (__aFlshl). g_3824 is int[8][8].
 - A dead store of a narrowed value (`a = (unsigned)b;`, a never read) drops
   register tracking of the low word only; a dead long store drops both.
+- After `cmp ax, k; jne` CL reuses ax as k: if the game indexes with that
+  register, write the parameter (`g_2f4c[k]`), not the array element.
+- `if (t != 5 && t != 12 && t != 2) for (...)` gives the inner loop's
+  `j = 0; jmp test` at the bottom of the outer loop; `continue` does not.
