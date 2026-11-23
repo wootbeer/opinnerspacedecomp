@@ -14,19 +14,32 @@ extern REC34 g_3d5a[];
 
 /* 0x15a-byte records at DS:7090 [inferred]. */
 typedef struct {
-    char p000[0x3e];
+    char p000[6];
+    int f06;                    /* +06 */
+    int f08;                    /* +08 */
+    char p00a[0x32 - 0x0a];
+    int f32;                    /* +32 */
+    int f34;                    /* +34 */
+    int f36;                    /* +36 */
+    int f38;                    /* +38 */
+    char p03a[0x3e - 0x3a];
     int f3e;                    /* +3e */
     int f40;                    /* +40 */
     char p042[0x4e - 0x42];
     int f4e;                    /* +4e */
-    char p050[0x54 - 0x50];
+    char p050[0x52 - 0x50];
+    int f52;                    /* +52 */
     int f54;                    /* +54 */
     int f56;                    /* +56 */
     char p058[0x5d - 0x58];
     char f5d;                   /* +5d */
-    char p05e[0x147 - 0x5e];
+    char p05e[0x98 - 0x5e];
+    DWORD f98;                  /* +98 */
+    char p09c[0x147 - 0x9c];
     char f147;                  /* +147 */
-    char p148[0x15a - 0x148];
+    char f148;                  /* +148 */
+    char f149;                  /* +149 */
+    char p14a[0x15a - 0x14a];
 } REC_15A;
 extern REC_15A g_7090[];
 
