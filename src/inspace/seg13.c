@@ -343,6 +343,12 @@ extern REC24 g_52ec[];
 extern int g_8fea;
 extern char g_8694[];               /* run-time buffer (BSS) */
 extern char g_86d0[];               /* run-time buffer (BSS) */
+extern DWORD g_1c8a;
+extern HFONT g_90fe;
+extern int g_90ee;
+extern char g_93e0[];               /* run-time buffer (BSS) */
+void far fn_10_a332(LPSTR buf, int id, int n, ...);
+void far fn_11_3f2e(int v);
 
 /* Functions of this file (called near). */
 void far fn_13_4eca(LPCSTR text);
@@ -941,56 +947,105 @@ LRESULT far pascal fn_13_613a(HWND hwnd, UINT msg, WPARAM wParam,
     return 0L;
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Redraw the pilot window (g_95fc): ship cell, name and order lines
+ * [inferred]. */
+/* @addr 13:50b0 */
 void far fn_13_50b0(HDC hdc, int b)
 {
-}
+    int u;
+    int k, s;
+    int got, ok, changed;
+    HPALETTE pal;
+    char buf[80];
+    char old1[60];
+    char old2[60];
+    RECT rc;
+    HFONT font;
+    DWORD oldtext, oldbk;
+    int v;
 
-/* Draw one object cell of a child window [inferred]. */
-/* @addr 13:5a6a */
-void far fn_13_5a6a(HDC hdc, int x, int y, int s, int k, int w, int b, int c)
-{
-    int draw, stars;
-
-    if (b)
-        g_6e38[w].f_14 = 0;
-    else {
-        g_6e38[w].f_14++;
-        if (g_6e38[w].f_14 > 2)
-            g_6e38[w].f_14 = 0;
-    }
-    if (g_6e38[w].f_14 == 0)
-        stars = 1;
+    if (!g_95fc)
+        return;
+    k = g_6e8e;
+    ok = 0;
+    s = g_6e90;
+    if (s == g_9324 && k == g_9646)
+        ok = 1;
     else
-        stars = 0;
-    if (b == 1)
-        PatBlt(hdc, x >> c, y >> c, 45 >> c, 45 >> c, BLACKNESS);
-    if (g_1df8[s][k].f_018 != 0 || s == 2 || b != 0 || g_9208 < 2)
-        stars = 0;
-    if (s == g_9324 && !g_131c)
-        stars = 0;
-    if (stars)
-        fn_13_5460(hdc, 0, w, s, k, c);
-    draw = 1;
-    if (b == 0) {
-        if (s == 7 && g_1df8[s][k].f_018 != 0)
-            draw = 0;
-        if (s == 1)
-            draw = 0;
-        if (fn_13_371c(s, k))
-            draw = 0;
-        if (s == 0 && g_57a8[k].f_00 == 0 && g_1df8[0][k].f_051 == 0)
-            draw = 0;
-        if ((s == 0 || s == 11) && g_1df8[s][k].f_018 != 0
-            && g_1df8[s][k].f_051 == 0)
-            draw = 0;
-        if (s == g_9324)
-            draw = 0;
+        ok = fn_03_0000(s, k);
+    if (!ok && !command_watch_ship(0, 0)) {
+        fn_13_5850();
+        return;
     }
-    if (draw)
-        fn_13_5c22(hdc, x, y, s, k, w, c);
-    if (stars)
-        fn_13_54da(hdc, 0, w, s, k, c);
+    got = 0;
+    if (hdc == 0) {
+        got = 1;
+        hdc = GetDC(g_95fc);
+    }
+    if (g_920e)
+        pal = SelectPalette(hdc, g_920e, 0);
+    fn_13_5a6a(hdc, g_6e8a, g_6e8c, s, k, 2, b, 0);
+    changed = 0;
+    if (g_1c8a <= g_1e50 || g_8694[0] == 0) {
+        lstrcpy(old1, g_8694);
+        lstrcpy(old2, g_86d0);
+        if (s == g_9324)
+            fn_03_1d0a(k == g_9646 ? 100 : (char)g_9646, k, 3);
+        else
+            describe_defender_order_message(g_9646, k, 3);
+        if (lstrcmp(old1, g_8694) != 0 || lstrcmp(old2, g_86d0) != 0)
+            changed = 1;
+    }
+    if (g_1c8a <= g_1e50)
+        g_1c8a = g_1e50 + 500;
+    if (changed) {
+        GetClientRect(g_95fc, &rc);
+        PatBlt(hdc, 0, 0x30, rc.right, 0x30, BLACKNESS);
+        font = SelectObject(hdc, g_90fe);
+        SetTextAlign(hdc, 0);
+        oldbk = SetBkColor(hdc, 0L);
+        if (s == g_9324) {
+            v = fn_13_2688(k, g_9646);
+            if (k == g_9646)
+                LoadString(g_9212, 0x7f9, buf, 80);
+            else {
+                if (g_96ea[g_7092[k].f_04c].f_020
+                    == g_96ea[g_7092[g_9646].f_04c].f_020)
+                    LoadString(g_9212, 0x7fa, buf, 80);
+                else
+                    fn_13_218a(g_96ea[g_7092[k].f_04c].f_020, buf);
+                fn_11_3f2e(v);
+                lstrcat(buf, " - ");
+                lstrcat(buf, g_93e0);
+            }
+            if (v > 80)
+                oldtext = SetTextColor(hdc, PALETTERGB(0, 0xb9, 0xff));
+            else if (v < -80)
+                oldtext = SetTextColor(hdc, PALETTERGB(0xff, 0x6e, 0));
+            else
+                oldtext = SetTextColor(hdc, PALETTERGB(0xaa, 0xaa, 0xaa));
+        } else {
+            oldtext = SetTextColor(hdc, RGB(0, 0x80, 0));
+            fn_10_a332(buf, 0x9e3, 1, s, k, 0, g_52ec[k].f_18,
+                       g_52ec[k].f_1a, 6);
+        }
+        TextOut(hdc, 0, 0x30, buf, lstrlen(buf));
+        if (g_90ee == 1)
+            SetTextColor(hdc, RGB(0xff, 0, 0));
+        else
+            SetTextColor(hdc, RGB(0, 0, 0xff));
+        TextOut(hdc, 0x10, 0x30, g_8694, lstrlen(g_8694));
+        TextOut(hdc, 0x1e, 0x30, g_86d0, lstrlen(g_86d0));
+        SetBkColor(hdc, oldbk);
+        SetTextColor(hdc, oldtext);
+        SelectObject(hdc, font);
+    }
+    if (pal)
+        SelectPalette(hdc, pal, 0);
+    if (got) {
+        ReleaseDC(g_95fc, hdc);
+        hdc = 0;
+    }
 }
 
 /* Redraw the map child window [inferred: g_0a7c, modes 2/3 in g_0a76]. */
