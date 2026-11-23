@@ -176,3 +176,12 @@ Conventions
   records (0xad) DS:96ea; 0x22-byte records DS:915c.
 - Pascal callees: fn_08_08a6, fn_08_2658, draw_scaled_object (retf 0xc),
   fn_08_1b54. fn_10_86ca returns int.
+- A local assigned once and used once can vanish (kept in AX); unused stack
+  slots in the game are often such locals.
+- `y += 18;` before a call is moved into the argument pushes; declaring the
+  coordinates as a POINT prevents it.
+- Loop with `if (...) { X; continue; }` chain gives "else at loop top".
+- Repeated switch-case code is merged; which copy is kept depends on the
+  source shape (`if (c) A; else B; break;`; case group before `default:`).
+- `dy = 16; dx = 16;` in that order gives one dword constant store.
+- g_920e is an HPALETTE; 17:30b0 takes (int id, long v); g_18ac is a POINT.

@@ -22,7 +22,9 @@ typedef struct {
     char f_059;    /* DS:70eb */
     char pad_05a[0x2];
     char f_05c;    /* DS:70ee */
-    char pad_05d[0x4d];
+    char pad_05d[0x25];
+    DWORD f_082;    /* DS:7114 */
+    char pad_086[0x24];
     char f_0aa;    /* DS:713c */
     char f_0ab;    /* DS:713d */
     signed char f_0ac[10];    /* DS:713e */
@@ -38,9 +40,12 @@ typedef struct {
     long f_0da;    /* DS:716c */
     char f_0de;    /* DS:7170 */
     char f_0df;    /* DS:7171 */
-    char pad_0e0[0xa];
+    char f_0e0;    /* DS:7172 */
+    char pad_0e1[0x9];
     char f_0ea;    /* DS:717c */
-    char pad_0eb[0x6f];
+    char pad_0eb[0x5a];
+    char f_145;    /* DS:71d7 */
+    char pad_146[0x14];
 } OBJ15A;
 
 typedef struct {                /* 0x70-byte records */
@@ -58,7 +63,8 @@ typedef struct {                /* 0x70-byte records */
     int f20;
     int f22;
     int f24;
-    char p26[0x2e - 0x26];
+    int f26;
+    char p28[0x2e - 0x28];
     signed char f2e;
     char p2f[0x3a - 0x2f];
     int f3a;
@@ -251,6 +257,52 @@ void far fn_15_0760(void);
 void far fn_15_0cb0(void);
 void far fn_15_10be(void);
 void far fn_16_6afe(void);
+extern int g_9e5b;
+void far fn_16_4bd8(HWND hDlg);
+void far fn_16_5762(HWND hwnd, int n, int kind, LPSTR suffix);
+typedef struct {                /* 0x50-byte records, DGROUP array at DS:2f54 */
+    char p00[0x0a];
+    int f0a;
+    char p0c[0x34 - 0x0c];
+    int f34;
+    char p36[0x50 - 0x36];
+} REC_50;
+extern REC_50 g_2f54[];
+void far fn_10_a332(LPSTR text, char *cls, int a, ...);
+extern char g_953e;
+extern char g_953f;
+extern char g_9540;
+extern char g_9541;
+extern char g_9542[];
+extern char g_955d[];
+extern char g_9563;
+extern char g_957f;
+#include <stdlib.h>
+extern int g_9316;
+typedef struct {                /* 0x14-byte records, DGROUP array at DS:1e90 */
+    int f00;
+    int f02;
+    char p04[0x06 - 0x04];
+    int f06;
+    int f08;
+    int f0a;
+    char p0c[0x10 - 0x0c];
+    long f10;
+} REC_14;
+extern REC_14 g_1e90[45];
+extern POINT g_5170[45];
+extern POINT g_5224[45];
+extern int g_9430;
+extern int g_9130;              /* subgame_active */
+extern int g_668a;
+extern DWORD g_1e80;
+extern int g_95a8;
+extern long g_5078;
+extern int g_951a;
+void far fn_13_4710(int k);
+void far fn_10_754a(int a, int b, int c, int d);
+int far fn_11_aece(void);
+void far fn_13_498e(int a, int b);
 
 /* Parses a number from a short digit string [inferred]. */
 /* near-match 48%: 16:0000 (CL refactors the digit sums: (a-48)*10+(b-48)*100 -> ((b*10+a)-528)*10) */
@@ -832,11 +884,6 @@ int far fn_16_619e(void)
 }
 
 /* Not yet decompiled: stub so calls to it compile as near calls. */
-void far fn_16_541c(HWND hDlg)
-{
-}
-
-/* Not yet decompiled: stub so calls to it compile as near calls. */
 void far fn_16_44fa(HWND hDlg)
 {
 }
@@ -1074,16 +1121,6 @@ BOOL far pascal fn_16_4104(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
     return FALSE;
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
-void far fn_16_51d6(HWND hDlg)
-{
-}
-
-/* Not yet decompiled: stub so calls to it compile as near calls. */
-void far fn_16_5b24(HWND hDlg)
-{
-}
-
 /* @addr 16:0b4e */
 int far fn_16_0b4e(int i)
 {
@@ -1316,4 +1353,278 @@ void far fn_16_6928(int a)
 /* Not yet decompiled: stub so calls to it compile as near calls. */
 void far fn_16_6afe(void)
 {
+}
+
+/* WM_INITDIALOG handler of dialog 16:4104 [inferred]. */
+/* @addr 16:51d6 */
+void far fn_16_51d6(HWND hDlg)
+{
+    int unused0;
+    char buf[120];
+    int unused1;
+    int w;
+    int h;
+    int unused2;
+    int unused3;
+    int y;
+    int unused4;
+    RECT rc;
+
+    g_9532 = hDlg;
+    GetWindowRect(hDlg, &rc);
+    w = rc.right - rc.left;
+    h = rc.bottom - rc.top;
+    y = GetSystemMetrics(SM_CYSCREEN) / 2 - h / 2 - 150;
+    if (y < 50)
+        y = 50;
+    MoveWindow(hDlg, GetSystemMetrics(SM_CXSCREEN) / 2 - w / 2, y, w, h, TRUE);
+    SendMessage(GetDlgItem(hDlg, 0x65), WM_SETFONT, g_90fe, 1L);
+    SendMessage(GetDlgItem(hDlg, 0x66), WM_SETFONT, g_90fe, 1L);
+    SendMessage(GetDlgItem(hDlg, 0x67), WM_SETFONT, g_90fe, 1L);
+    SendMessage(GetDlgItem(hDlg, 0x68), WM_SETFONT, g_90fe, 1L);
+    SendMessage(GetDlgItem(hDlg, 0x6b), WM_SETFONT, g_90fe, 1L);
+    SendMessage(GetDlgItem(hDlg, 0x6c), WM_SETFONT, g_90fe, 1L);
+    SendMessage(GetDlgItem(hDlg, 0x6d), WM_SETFONT, g_90fe, 1L);
+    SendMessage(GetDlgItem(hDlg, 0x6e), WM_SETFONT, g_90fe, 1L);
+    SendMessage(GetDlgItem(hDlg, 0x70), WM_SETFONT, g_90fe, 1L);
+    SendMessage(GetDlgItem(hDlg, 0x71), WM_SETFONT, g_90fe, 1L);
+    g_9e57 = g_7092[g_952e].f_0da;
+    g_9e55 = 0;
+    fn_16_5820(hDlg);
+    fn_06_0f54(g_7092[g_952e].f_0da, 100, 2, buf);
+    lstrcat(buf, " ");
+    fn_09_9580(0x30e3, buf);
+    SetWindowText(GetDlgItem(hDlg, 0x6e), buf);
+    fn_16_4bd8(hDlg);
+    fn_16_43f2(hDlg);
+    SetFocus(GetDlgItem(hDlg, 0x65));
+    if (g_95bc == 0 || g_9e5b == 0)
+        PostMessage(hDlg, WM_COMMAND, 0x69, 0L);
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_16_4bd8(HWND hDlg)
+{
+}
+
+/* WM_INITDIALOG handler of dialog 16:42a2 [inferred]. */
+/* @addr 16:541c */
+void far fn_16_541c(HWND hDlg)
+{
+    HWND hList;
+    char buf[120];
+    int i;
+    int w;
+    int h;
+    int v;
+    int unused1;
+    int y;
+    int unused2;
+    RECT rc;
+    int k;
+    int price;
+    int q;
+    int owned;
+    int found;
+
+    g_959c = hDlg;
+    GetWindowRect(hDlg, &rc);
+    w = rc.right - rc.left;
+    h = rc.bottom - rc.top;
+    y = GetSystemMetrics(SM_CYSCREEN) / 2 - h / 2 - 150;
+    if (y < 50)
+        y = 50;
+    MoveWindow(hDlg, GetSystemMetrics(SM_CXSCREEN) / 2 - w / 2, y, w, h, TRUE);
+    SendMessage(GetDlgItem(hDlg, 0x65), WM_SETFONT, g_90fe, 1L);
+    SendMessage(GetDlgItem(hDlg, 0x66), WM_SETFONT, g_90fe, 1L);
+    SendMessage(GetDlgItem(hDlg, 0x67), WM_SETFONT, g_90fe, 1L);
+    SendMessage(GetDlgItem(hDlg, 0x68), WM_SETFONT, g_90fe, 1L);
+    SendMessage(GetDlgItem(hDlg, 0x6b), WM_SETFONT, g_90fe, 1L);
+    SendMessage(GetDlgItem(hDlg, 0x6c), WM_SETFONT, g_90fe, 1L);
+    SendMessage(GetDlgItem(hDlg, 0x6d), WM_SETFONT, g_90fe, 1L);
+    SendMessage(GetDlgItem(hDlg, 0x6e), WM_SETFONT, g_90fe, 1L);
+    SendMessage(GetDlgItem(hDlg, 0x70), WM_SETFONT, g_90fe, 1L);
+    SendMessage(GetDlgItem(hDlg, 0x71), WM_SETFONT, g_90fe, 1L);
+    g_9e5d = 0;
+    fn_16_5820(hDlg);
+    fn_06_0f54(g_7092[g_952e].f_0da, 100, 2, buf);
+    lstrcat(buf, " ");
+    fn_09_9580(0x30e3, buf);
+    SetWindowText(GetDlgItem(hDlg, 0x6e), buf);
+    hList = GetDlgItem(hDlg, 0x65);
+    SendMessage(hList, WM_SETREDRAW, 0, 0L);
+    SendMessage(hList, 0x405, 0, (LPARAM)(LPSTR)"");
+    for (i = 1; i < 27; i++) {
+        if (g_9564[i] != 0)
+            continue;
+        k = found = owned = 0;
+        for (; k < 10; k++) {
+            if (g_7092[g_9646].f_0b6[k] == i) {
+                found = 1;
+                if (g_2f54[i].f0a != 0)
+                    owned = 1;
+                break;
+            }
+        }
+        if (found && (price = g_2f54[i].f34) != 0) {
+            if (owned) {
+                q = g_7092[g_9646].f_0ac[k];
+                price = price * q / 20;
+            }
+            lstrcpy(buf, "");
+            fn_09_9580(i + 0xba, buf);
+            v = price = price < 250 ? 250 : price;
+            fn_16_5762(hList, v, 1, buf);
+        }
+    }
+    SendMessage(hList, WM_SETREDRAW, 1, 0L);
+    SendMessage(hList, 0x406, 1, 0L);
+    fn_16_43f2(hDlg);
+    SetFocus(GetDlgItem(hDlg, 0x65));
+}
+
+/* OK handler of dialog 16:4104: marks which list entries are chosen [inferred]. */
+/* @addr 16:5b24 */
+void far fn_16_5b24(HWND hDlg)
+{
+    int i;
+    int j;
+    int n;
+    char buf1[50];
+    char buf2[50];
+    char buf3[50];
+    DWORD t;
+
+    if (g_95bc == 0) {
+        t = GetCurrentTime();
+        while (GetCurrentTime() - t < 1500)
+            ;
+    }
+    g_9563 = g_9541 = g_957f = g_953e = g_9540 = g_953f = 0;
+    for (j = 1; j < 27; j++)
+        g_9542[j] = 0;
+    for (j = 0; j <= 5; j++)
+        g_955d[j] = 0;
+    n = (int)SendMessage(GetDlgItem(hDlg, 0x66), 0x40c, 0, 0L);
+    for (i = 0; i < n; i++) {
+        SendMessage(GetDlgItem(hDlg, 0x66), 0x40a, i, (LPARAM)(LPSTR)buf1);
+        fn_09_955c(0x9d4, buf2);
+        if (fn_16_5f0e(buf1, buf2)) {
+            g_953e = 1;
+            continue;
+        }
+        fn_10_a332(buf2, (char *)0x498, 1, 0);
+        if (fn_16_5f0e(buf1, buf2)) {
+            g_9540 = 1;
+            continue;
+        }
+        fn_09_955c(0x481, buf3);
+        if (fn_16_5f0e(buf1, buf3)) {
+            g_953f = 1;
+            continue;
+        }
+        fn_10_a332(buf3, (char *)0x4a1, 1, 0);
+        if (fn_16_5f0e(buf1, buf3)) {
+            g_9541 = 1;
+            continue;
+        }
+        fn_09_955c(0x7b2, buf3);
+        if (fn_16_5f0e(buf1, buf3)) {
+            g_957f = 1;
+            continue;
+        }
+        fn_09_955c(0x904, buf3);
+        if (fn_16_5f0e(buf1, buf3)) {
+            g_9563 = 1;
+            continue;
+        }
+        for (j = 0; j <= 5; j++) {
+            fn_09_955c(0x7b1, buf2);
+            fn_09_9580(j + 0x7b5, buf2);
+            if (fn_16_5f0e(buf1, buf2)) {
+                g_955d[j] = 1;
+                break;
+            }
+        }
+        for (j = 1; j < 27; j++) {
+            fn_09_955c(j + 0xba, buf2);
+            if (fn_16_5f0e(buf1, buf2)) {
+                g_9542[j] = 1;
+                break;
+            }
+        }
+    }
+    g_9532 = 0;
+    EndDialog(hDlg, 1);
+}
+
+/* @addr 16:08e4 */
+void far self_destruct_ship(int unused, int i)
+{
+    int k;
+    int j;
+    int dy;
+    int dx;
+
+    if (g_7092[i].f_145 == 1 && g_9130 == 0)
+        return;
+    for (k = 0; k < 8; k++) {
+        for (j = 0; j < 45; j++) {
+            if (g_1e90[j].f00 == -1) {
+                if (k == 0)
+                    g_1e90[j].f0a = 5;
+                else
+                    g_1e90[j].f0a = 1;
+                g_1e90[j].f00 = 1;
+                g_1e90[j].f10 = g_1e50 + k * 20;
+                g_1e90[j].f02 = 10;
+                g_1e90[j].f06 = g_9324;
+                g_1e90[j].f08 = i;
+                if (k == 0) {
+                    dy = 16;
+                    dx = 16;
+                } else {
+                    dx = rand() % 60 - 12;
+                    dy = rand() % 60 - 12;
+                }
+                g_5170[j].x = g_1df8[g_9324][i].f00 + dx;
+                g_5170[j].y = g_1df8[g_9324][i].f02 + dy;
+                g_5224[j].x = g_1df8[g_9324][i].f04.x + 128;
+                g_5224[j].y = g_1df8[g_9324][i].f04.y + 128;
+                g_9430++;
+                break;
+            }
+        }
+    }
+    g_7092[i].f_0e0 = 1;
+    g_1df8[g_9324][i].f26 = 1;
+    g_7092[i].f_082 = g_1e50 + 6000;
+    fn_13_4710(i);
+    g_7092[i].f_0ea = 0;
+    if (g_9320 == 7) {
+        dx = 1;
+        for (k = 0; k <= g_9316; k++) {
+            if (k != g_9646 && g_7092[k].f_0ea != 0 && g_1e30[k].f18 == 0)
+                dx = 0;
+        }
+        if (i == g_9646)
+            dx = 1;
+        if (dx)
+            g_668a = -1;
+    }
+    fn_10_754a(0x45, g_9324, i, 1);
+    if (i == g_9646) {
+        if (g_95bc) {
+            g_1e84 = g_1e50 + 8000;
+        } else {
+            g_1e84 = 0;
+            g_1e80 = g_1e50 + 8000;
+            g_95a8 = 1;
+        }
+        g_5078 = g_95bc == 0 ? g_5078 / 2 : g_5078 * 4 / 5;
+        if (g_95bc == 0 && g_951a == 0)
+            fn_11_aece();
+    }
+    if (g_9130 == 0)
+        fn_13_498e(i, 1);
 }

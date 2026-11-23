@@ -16,9 +16,13 @@ typedef struct {
     char pad_01e[0x4];
     int f_022;    /* DS:70b4 */
     int f_024;    /* DS:70b6 */
-    char pad_026[0x26];
+    int f_026;
+    int f_028;
+    int f_02a;    /* DS:70bc */
+    char pad_02c[0x20];
     int f_04c;    /* DS:70de */
-    char pad_04e[0xe];
+    char pad_04e[0xd];
+    char f_05b;    /* DS:70ed */
     char f_05c;    /* DS:70ee */
     char pad_05d[0x4d];
     char f_0aa;    /* DS:713c */
@@ -53,7 +57,9 @@ typedef struct {                /* 0x70-byte records, far pointer at DS:1e30 */
 #pragma pack(1)
 typedef struct {                /* 0xad bytes, DGROUP array at DS:96f0 */
     int f00;
-    char p02[0x1a - 0x02];
+    char p02[0x0a - 0x02];
+    int f0a;
+    char p0c[0x1a - 0x0c];
     int f1a;
     char p1c[0xad - 0x1c];
 } REC_AD;
@@ -204,7 +210,9 @@ extern int g_6e54;
 extern int g_094e;
 typedef struct {                /* 0x34-byte records, DGROUP array at DS:3d6c */
     int f00;
-    char p02[0x34 - 0x02];
+    char p02[0x14 - 0x02];
+    int f14;
+    char p16[0x34 - 0x16];
 } REC_34;
 extern REC_34 g_3d6c[];
 extern DWORD g_18b0;
@@ -215,6 +223,46 @@ extern REC_70 far *g_1e00;
 void far fn_10_9962(int unused, HDC dst, int x, int y, int w, int h, HDC src,
                     int xs, int ys, int ws, int hs, DWORD rop);
 void far fn_17_55e2(int n);
+extern int g_90f4;
+void far fn_17_8270(void);
+extern int g_9478;
+extern long g_6090;
+void far fn_09_6fee(void);
+void far fn_17_306e(void);
+void far fn_17_7614(int i);
+void far fn_17_76e4(void);
+void far fn_17_4204(void);
+void far fn_17_7b44(void);
+void far fn_17_32de(int flag);
+extern int g_9472;
+void far fn_17_72aa(int a, int b, int c);
+int far fn_13_2688(int i, int j);
+void far ship_status_lines(int flag);
+extern int g_95bc;              /* flow.interactive */
+extern int g_91f8;
+void far fn_17_4068(int i, LPSTR buf);
+extern int g_9134;
+extern int g_92f2;
+extern int g_9416;
+extern int g_946e;
+extern HWND g_9488;
+void far fn_09_6624(void);
+void far fn_10_744c(int a);
+int far fn_17_0600(int reset);
+int far fn_17_0d22(int reset);
+int far fn_17_1b3e(int reset, int kind);
+int far fn_17_16cc(int reset, int n);
+int far fn_17_20fa(int reset, int a, int b);
+int far fn_17_108c(int reset);
+int far fn_17_1174(int reset);
+int far fn_17_1260(int reset);
+int far fn_17_12f6(int reset);
+int far fn_17_13ca(int reset);
+int far fn_17_15c6(int reset);
+int far fn_17_193c(int reset);
+extern DWORD g_18a8;
+extern POINT g_18ac;           /* bitmap size */
+HBITMAP far fn_11_2ff6(int n);
 
 /* @addr 17:306e */
 void far fn_17_306e(void)
@@ -1048,11 +1096,6 @@ void far fn_17_51b0(void)
 }
 
 /* Not yet decompiled: stub so calls to it compile as near calls. */
-void far fn_17_8572(HWND hDlg)
-{
-}
-
-/* Not yet decompiled: stub so calls to it compile as near calls. */
 void far fn_17_3746(void)
 {
 }
@@ -1709,7 +1752,619 @@ int far fn_17_193c(int reset)
     return 0;
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Loads a text resource (type 5000) into the g_6078 buffer [inferred]. */
+/* @addr 17:30b0 */
 void far fn_17_30b0(int id, long v)
 {
+    int flag;
+    int i;
+    int size;
+    HRSRC hres;
+    HGLOBAL hmem;
+    LPSTR p;
+
+    fn_17_306e();
+    if (g_90f4 == 2) {
+        g_9478 = 1;
+        id = 2;
+    } else {
+        switch (g_93aa) {
+        case 2: case 3:
+        case 8: case 9: case 10: case 11: case 12: case 13:
+        case 15: case 16: case 17:
+            g_9478 = 1;
+            break;
+        default:
+            g_9478 = 0;
+            break;
+        }
+    }
+    g_948e = GlobalAlloc(GHND, 2000L);
+    g_6078 = GlobalLock(g_948e);
+    switch (id) {
+    case 8:
+        fn_17_7614(0);
+        break;
+    case 9:
+        fn_17_7614(1);
+        break;
+    case 402:
+        fn_17_76e4();
+        break;
+    case 12:
+        fn_17_4204();
+        break;
+    case 16:
+        if (g_9468 == 0)
+            fn_17_7b44();
+        else
+            fn_17_8270();
+        break;
+    case 2:
+        fn_09_6fee();
+        break;
+    case 11:
+        if (g_9460 != 0 && !(g_9468 & 1))
+            flag = 1;
+        else
+            flag = 0;
+        fn_17_32de(flag);
+        break;
+    default:
+        if (id == 3) {
+            switch (g_9214) {
+            case 0:
+                id = 0x12d;
+                break;
+            case 1:
+                id = 0xb5;
+                break;
+            case 2:
+                id = 0xb6;
+                break;
+            case 3:
+                id = 0xb4;
+                break;
+            case 4:
+                id = 0xb7;
+                break;
+            }
+        } else if (id < 0x6e) {
+            if (id == 0xf)
+                id = g_9468 + 0x140;
+            else if (id == 0x11)
+                id = 0x89;
+            else if (id == 4)
+                id = 0x12e;
+            else if (id == 5)
+                id = 0x12f;
+            else if (id == 7)
+                id = 0x131;
+            else if (id == 6)
+                id = 0x130;
+            else
+                id += 0x12b;
+        }
+        hres = FindResource(g_9212, MAKEINTRESOURCE(id), MAKEINTRESOURCE(5000));
+        size = SizeofResource(g_9212, hres);
+        hmem = LoadResource(g_9212, hres);
+        p = LockResource(hmem);
+        for (i = 0; i < size; i++)
+            g_6078[i] = p[i];
+        if (hmem) {
+            if (p) {
+                GlobalUnlock(hmem);
+                p = 0;
+            }
+            FreeResource(hmem);
+        }
+        break;
+    }
+    g_6090 = v;
+    fn_17_2c5a(1, 0);
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_17_76e4(void)
+{
+}
+
+/* @addr 17:7088 */
+int far fn_17_7088(int a)
+{
+    int k;
+    int i;
+    int count;
+    int n;
+    int t;
+
+    count = 0;
+    switch (g_9466) {
+    case 1:
+        if (g_9468 == 0) {
+            count = 1;
+            fn_17_72aa(a, 1, 6);
+        }
+        break;
+    case 3:
+        if (g_9468 == 1) {
+            count = 1;
+            fn_17_72aa(a, 1, 6);
+        }
+        break;
+    case 0:
+        count = g_7092[g_9464].f_0c9 + 1;
+        n = g_96f0[g_7092[g_9464].f_04c].f1a;
+        fn_17_72aa(a, n + 1, 4);
+        fn_17_72aa(a, 0, 8);
+        for (i = 1; i < g_7092[g_9464].f_0c9; i++) {
+            k = g_7092[g_9464].f_0b6[i];
+            fn_17_72aa(a, fn_17_7526(k), 9);
+        }
+        break;
+    case 4:
+        if (g_93aa == 13) {
+            for (k = 0; k <= g_9316; k++) {
+                if (g_1e30[k].f18 == 0 && g_7092[k].f_0ea != 0 &&
+                    g_96f0[g_7092[k].f_04c].f1a == g_9468 - 1) {
+                    count++;
+                    fn_17_72aa(a, fn_17_75c6(k), 0);
+                }
+            }
+            if (g_9468 == 8) {
+                count++;
+                fn_17_72aa(a, 0, 6);
+            }
+        }
+        break;
+    case 6:
+        switch (g_9468) {
+        case 0:
+            count = 1;
+            fn_17_72aa(a, 8, 4);
+            break;
+        case 1:
+            count = 1;
+            fn_17_72aa(a, 0, 1);
+            if (g_92f0 != 0) {
+                count = 2;
+                fn_17_72aa(a, 1, 3);
+            }
+            break;
+        }
+        break;
+    case 8:
+        if (g_93a2 == g_9468) {
+            count = 1;
+            fn_17_72aa(a, fn_17_75c6(g_9646), 0);
+        }
+        break;
+    case 9:
+        t = g_9472;
+        for (k = 0; k <= g_9316; k++) {
+            if (g_1e30[k].f18 == 0 && g_7092[k].f_0ea != 0) {
+                for (i = 0; i < g_7092[k].f_0c9; i++) {
+                    if (g_7092[k].f_0b6[i] == t) {
+                        count++;
+                        fn_17_72aa(a, fn_17_75c6(k), 0);
+                        break;
+                    }
+                }
+            }
+        }
+        break;
+    }
+    return count;
+}
+
+/* Draws the header of the pilot panel for object i [names]. */
+/* @addr 17:4354 */
+void far pilot_panel_header(int i)
+{
+    HFONT font;
+    HFONT old;
+    COLORREF oldbk;
+    COLORREF oldtc;
+    char buf[80];
+    char unused[60];
+    int mood;
+    int rel;
+    int flag;
+
+    if (i != g_9646) {
+        rel = fn_13_2688(g_9646, g_9464);
+        if (rel < -80)
+            mood = 0;
+        else if (rel < 80)
+            mood = 1;
+        else
+            mood = 2;
+    }
+    font = CreateFont(15, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, "Arial");
+    old = SelectObject(g_13dc, font);
+    oldbk = SetBkColor(g_13dc, RGB(0, 0, 0));
+    SetBkMode(g_13dc, TRANSPARENT);
+    SetTextAlign(g_13dc, 0);
+    if (i == g_9646) {
+        fn_09_955c(0x20b, buf);
+        oldtc = SetTextColor(g_13dc, PALETTERGB(0, 0xd6, 0xff));
+    } else {
+        switch (mood) {
+        case 0:
+            oldtc = SetTextColor(g_13dc, PALETTERGB(0xff, 0x80, 0));
+            break;
+        case 1:
+            oldtc = SetTextColor(g_13dc, PALETTERGB(0xd2, 0xd2, 0xd2));
+            break;
+        case 2:
+            oldtc = SetTextColor(g_13dc, PALETTERGB(0, 0xaa, 0xff));
+            break;
+        }
+        fn_10_a332(buf, "\r\x03", 1, mood + 0x245);
+    }
+    TextOut(g_13dc, g_5000 - 330, g_5002, buf, lstrlen(buf));
+    fn_10_a332(buf, "\x03", 1, i == g_9646, i != g_9646,
+               g_96f0[g_7092[g_9464].f_04c].f1a == g_96f0[g_7092[g_9646].f_04c].f1a,
+               0x210020fL);
+    TextOut(g_13dc, g_5000 - 330, g_5002 + 20, buf, lstrlen(buf));
+    SetBkColor(g_13dc, oldbk);
+    SetTextColor(g_13dc, oldtc);
+    SelectObject(g_13dc, old);
+    if (font) {
+        DeleteObject(font);
+        font = 0;
+    }
+    if (g_9460 != 0 && !(g_9468 & 1))
+        flag = 1;
+    else
+        flag = 0;
+    ship_status_lines(flag);
+}
+
+/* Draws the ship status lines of the pilot panel [names]. */
+/* @addr 17:3ba6 */
+void far ship_status_lines(int flag)
+{
+    HFONT font;
+    HFONT old;
+    COLORREF oldbk;
+    COLORREF oldtc;
+    char tmp[50];
+    char buf[90];
+    POINT pt;
+    int i;
+
+    font = CreateFont(13, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, "Arial");
+    old = SelectObject(g_13dc, font);
+    oldbk = SetBkColor(g_13dc, RGB(0, 0, 0));
+    SetBkMode(g_13dc, TRANSPARENT);
+    SetTextAlign(g_13dc, 0);
+    oldtc = SetTextColor(g_13dc, RGB(0, 0xff, 0xff));
+    pt.x = g_5000 - 330;
+    pt.y = g_5002 + 90;
+    if (flag) {
+        for (i = 0; i < 3; i++) {
+            fn_09_955c(i + 0x348, buf);
+            lstrcat(buf, ": ");
+            fn_06_0f1a((&g_7092[g_9464].f_024)[i], tmp);
+            lstrcat(buf, tmp);
+            lstrcat(buf, "%");
+            TextOut(g_13dc, pt.x, pt.y, buf, lstrlen(buf));
+            pt.y += 18;
+        }
+        if (g_96f0[g_7092[g_9464].f_04c].f0a != -1) {
+            fn_09_955c(0x34b, buf);
+            lstrcat(buf, ": ");
+            fn_06_0f1a(g_7092[g_9464].f_02a, tmp);
+            lstrcat(buf, tmp);
+            lstrcat(buf, "%");
+            TextOut(g_13dc, pt.x, pt.y, buf, lstrlen(buf));
+        }
+        fn_17_4068(g_9464, buf);
+        pt.y += 36;
+        TextOut(g_13dc, pt.x, pt.y, buf, lstrlen(buf));
+    } else {
+        pt.y += 54;
+        lstrcpy(buf, "");
+        if (g_9464 != g_9646) {
+            if (g_96f0[g_7092[g_9464].f_04c].f1a == g_96f0[g_7092[g_9646].f_04c].f1a) {
+                fn_09_9580(0x147, buf);
+            } else {
+                fn_03_1542(0, 14, g_9464, tmp, 3);
+                lstrcat(buf, tmp);
+            }
+            fn_09_9580(0x136, buf);
+            TextOut(g_13dc, pt.x, pt.y, buf, lstrlen(buf));
+            lstrcpy(buf, "");
+        } else {
+            pt.y += 18;
+            if (g_95bc != 0 && (g_91f8 == 0 || (g_91f8 < 2 && g_9460 != 0))) {
+                fn_09_955c(0x803, buf);
+                TextOut(g_13dc, pt.x, pt.y, buf, lstrlen(buf));
+                lstrcpy(buf, "");
+                pt.y += 18;
+                fn_09_955c(0x804, buf);
+                lstrcat(buf, ". ");
+                TextOut(g_13dc, pt.x, pt.y, buf, lstrlen(buf));
+                lstrcpy(buf, "");
+            } else {
+                fn_09_955c(0x805, buf);
+                TextOut(g_13dc, pt.x, pt.y, buf, lstrlen(buf));
+            }
+        }
+        pt.y += 18;
+        if (g_95bc == 0 || g_9464 != g_9646 || g_91f8 > 1 || (g_91f8 != 0 && g_9460 == 0)) {
+            fn_10_a332(buf, "\x80\x1a\x06", 1, g_7092[g_9464].f_05b + 0xf6,
+                       g_7092[g_9464].f_05b > 2, 0x21e021dL);
+            TextOut(g_13dc, pt.x, pt.y, buf, lstrlen(buf));
+            pt.y += 18;
+            fn_10_a332(buf, "\xc0" "E\x04", 1, g_7092[g_9464].f_05c + 0xfa,
+                       g_7092[g_9464].f_05c > 2, 0x21e021dL);
+            TextOut(g_13dc, pt.x, pt.y, buf, lstrlen(buf));
+            pt.y += 18;
+        }
+    }
+    SetBkColor(g_13dc, oldbk);
+    SetTextColor(g_13dc, oldtc);
+    SelectObject(g_13dc, old);
+    if (font) {
+        DeleteObject(font);
+        font = 0;
+    }
+}
+
+/* @addr 17:03b2 */
+void far fn_17_03b2(void)
+{
+    int k;
+
+    fn_10_744c(0x6e);
+    g_9462 = 0;
+    if (g_93aa >= 18 && g_9134 == 0)
+        g_93aa = 1;
+    PatBlt(g_13dc, g_6084, g_6086, g_6088 - g_6084, g_608a - g_6086, BLACKNESS);
+    switch (g_93aa) {
+    case 1:
+        fn_17_0600(1);
+        break;
+    case 3:
+        if (g_91f8 == 0 || g_9460 != 0)
+            fn_17_0d22(1);
+        break;
+    case 4:
+        if ((g_91f8 == 0 && g_92f2 != 0) || g_9460 != 0)
+            fn_17_1b3e(1, 3);
+        break;
+    case 5:
+        if ((g_094e == 0 && g_91f8 == 1) || g_9460 != 0)
+            fn_17_1b3e(1, 7);
+        break;
+    case 6:
+        if (g_92fe != 0)
+            fn_17_1b3e(1, 9);
+        break;
+    case 7:
+        if ((g_91f8 == 1 || g_9460 != 0) && g_92f0 != 0)
+            fn_17_193c(1);
+        break;
+    case 10:
+        if (g_9460 != 0 && fn_10_5586(g_9472))
+            fn_17_16cc(1, g_9472);
+        break;
+    case 8:
+        if (g_4ee0[0] != 0) {
+            g_91f8++;
+            fn_09_6624();
+            g_91f8--;
+            for (k = 0; k < g_9416; k++)
+                if (g_3d6c[k].f14 == g_4ed4[0])
+                    break;
+            g_946e = k;
+            fn_17_1b3e(1, 8);
+        }
+        break;
+    case 9:
+        if (g_4ee0[1] != 0) {
+            g_91f8++;
+            fn_09_6624();
+            g_91f8--;
+            for (k = 0; k < g_9416; k++)
+                if (g_3d6c[k].f14 == g_4ed4[1])
+                    break;
+            g_946e = k;
+            fn_17_1b3e(1, 8);
+        }
+        break;
+    case 12:
+        if (g_9460 != 0)
+            fn_17_108c(1);
+        break;
+    case 14:
+        if (g_9460 != 0)
+            fn_17_1260(1);
+        break;
+    case 2:
+        if (g_9460 != 0 || g_094e != 0)
+            fn_17_13ca(1);
+        if (g_9488) {
+            ShowWindow(g_9488, SW_HIDE);
+            ShowWindow(g_9488, SW_SHOW);
+        }
+        break;
+    case 15:
+    case 17:
+        if (g_9460 != 0)
+            fn_17_12f6(1);
+        break;
+    case 16:
+        if (g_9460 != 0)
+            fn_17_15c6(1);
+        if (g_9488) {
+            ShowWindow(g_9488, SW_HIDE);
+            ShowWindow(g_9488, SW_SHOW);
+        }
+        break;
+    case 13:
+        if (g_9460 != 0)
+            fn_17_1174(1);
+        break;
+    case 11:
+        fn_17_20fa(1, 0, 0);
+        break;
+    }
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+int far fn_17_0600(int reset)
+{
+    return 0;
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+int far fn_17_0d22(int reset)
+{
+    return 0;
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+int far fn_17_1b3e(int reset, int kind)
+{
+    return 0;
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+int far fn_17_20fa(int reset, int a, int b)
+{
+    return 0;
+}
+
+/* @addr 17:16cc */
+int far fn_17_16cc(int reset, int n)
+{
+    int r;
+    HGDIOBJ old;
+    HDC hdc;
+    BITMAP bm;
+    HPALETTE oldpal;
+
+    if (reset) {
+        g_18a8 = 0;
+        g_9474 = 0;
+        return 0;
+    }
+    if (g_18a8 != 0) {
+        if (g_18a8 < g_1e50)
+            return 1;
+        return 0;
+    }
+    switch (g_9462) {
+    case 0:
+        g_9462++;
+        g_5000 = g_6088 - 280;
+        g_5002 = g_6086 + 60;
+        fn_17_30b0(n + 0x6d, 0x1194L);
+        fn_17_55e2(n);
+        if (g_9490) {
+            DeleteObject(g_9490);
+            g_9490 = 0;
+        }
+        g_9490 = fn_11_2ff6(n);
+        GetObject(g_9490, sizeof(BITMAP), &bm);
+        g_18ac.x = bm.bmWidth;
+        g_18ac.y = bm.bmHeight;
+        hdc = CreateCompatibleDC(g_13dc);
+        old = SelectObject(hdc, g_9490);
+        oldpal = SelectPalette(hdc, g_920e, 0);
+        SetStretchBltMode(g_13dc, 3);
+        fn_10_9962(0, g_13dc, g_6088 / 2 - g_18ac.x - 200, g_5002 + 50, g_18ac.x * 2, g_18ac.y * 2,
+                   hdc, 0, 0, g_18ac.x, g_18ac.y, SRCCOPY);
+        SelectPalette(hdc, oldpal, 0);
+        SelectObject(hdc, old);
+        DeleteDC(hdc);
+        break;
+    case 1:
+        if (g_9460 != 0 && g_9474 != 0) {
+            fn_17_55e2(n);
+            hdc = CreateCompatibleDC(g_13dc);
+            old = SelectObject(hdc, g_9490);
+            oldpal = SelectPalette(hdc, g_920e, 0);
+            SetStretchBltMode(g_13dc, 3);
+            fn_10_9962(0, g_13dc, g_6088 / 2 - g_18ac.x - 200, g_5002 + 50, g_18ac.x * 2, g_18ac.y * 2,
+                       hdc, 0, 0, g_18ac.x, g_18ac.y, SRCCOPY);
+            SelectPalette(hdc, oldpal, 0);
+            SelectObject(hdc, old);
+            DeleteDC(hdc);
+            g_9474 = 0;
+            g_5000 = g_6088 - 280;
+            g_5002 = g_6086 + 60;
+            fn_17_2c5a(1, 1);
+        } else {
+            r = fn_17_2c5a(0, 0);
+            if (r == 2 && g_9460 == 0)
+                g_9462++;
+        }
+        break;
+    case 2:
+        g_18a8 = g_1e50 + 1000;
+        break;
+    }
+    g_9474 = 0;
+    return 0;
+}
+
+/* WM_INITDIALOG handler of a dialog with list 0x199 [inferred]. */
+/* @addr 17:8572 */
+void far fn_17_8572(HWND hDlg)
+{
+    int unused0;
+    char s1[110];
+    char s2[110];
+    int i;
+    int w;
+    int h;
+    int unused1;
+    int unused2;
+    int y;
+    RECT rc;
+    int unused3;
+    int unused4;
+    int unused5;
+    int unused6;
+
+    g_948c = hDlg;
+    fn_10_744c(0x13);
+    GetWindowRect(hDlg, &rc);
+    w = rc.right - rc.left;
+    h = rc.bottom - rc.top;
+    y = GetSystemMetrics(SM_CYSCREEN) / 2 - h / 2 - 150;
+    if (y < 50)
+        y = 50;
+    MoveWindow(hDlg, GetSystemMetrics(SM_CXSCREEN) / 2 - w / 2 - 200, y, w, h, TRUE);
+    SendMessage(GetDlgItem(hDlg, 0x199), WM_SETFONT, g_6094[0], 1L);
+    SendMessage(GetDlgItem(hDlg, 0x198), WM_SETFONT, g_6094[0], 1L);
+    SendMessage(GetDlgItem(hDlg, 0x195), WM_SETFONT, g_6094[0], 1L);
+    SendMessage(GetDlgItem(hDlg, 1), WM_SETFONT, g_6094[1], 1L);
+    SendMessage(GetDlgItem(hDlg, 2), WM_SETFONT, g_6094[1], 1L);
+    for (i = 0; i < g_9470; i++) {
+        LoadString(g_9212, 0x840, s1, 110);
+        fn_17_8f1e(-1, i, 1, GetDlgItem(hDlg, 0x199), s1);
+        fn_17_8910(i, GetDlgItem(hDlg, 0x199), 1);
+    }
+    for (i = 0; i < 9; i++) {
+        LoadString(g_9212, i + 0x52b, s1, 110);
+        fn_17_8f1e(0, 5, 1, GetDlgItem(hDlg, 0x199), s1);
+        LoadString(g_9212, i + 0x514, s1, 110);
+        fn_17_8f1e(2, 5, 1, GetDlgItem(hDlg, 0x199), s1);
+        LoadString(g_9212, i + 0x51d, s1, 110);
+        fn_17_8f1e(2, 5, 1, GetDlgItem(hDlg, 0x199), s1);
+        LoadString(g_9212, i + 0x534, s1, 110);
+        fn_17_8f1e(1, 5, 1, GetDlgItem(hDlg, 0x199), s1);
+    }
+    SendMessage(g_9482, CB_GETLBTEXT, g_9468, (LPARAM)(LPSTR)s2);
+    lstrcpy(s1, s2);
+    lstrcat(s1, " - ");
+    SendMessage(g_9480, CB_GETLBTEXT, g_9466, (LPARAM)(LPSTR)s2);
+    lstrcat(s1, s2);
+    SendMessage(GetDlgItem(hDlg, 0x199), 0x40d, -1, (LPARAM)(LPSTR)s1);
+    SetFocus(GetDlgItem(hDlg, 0x195));
 }
