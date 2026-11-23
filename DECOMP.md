@@ -251,3 +251,14 @@ Conventions
   definition was not deleted by accident.
 - 0x34-byte records start at DS:8560. fn_13_2206 returns int
   ((type << 8) | index). fn_08_0b76 is pascal.
+- Every declared local takes a frame slot even when kept in si/di; frame
+  gaps can be register locals.
+- Locals inside a struct (`struct { int px, py, size; } r;`) stay out of
+  registers.
+- A value in si with no slot can be a CSE of `n + 1`: write the expression
+  twice instead of adding a variable.
+- Both words loaded before either store = a 4-byte struct copy.
+- A switch testing a case value explicitly though it shares default's body
+  needs a separate identical `case N: ...; break;`.
+- Quick test of one function: copy the file's header and inspace.h into a
+  scratch folder with the function.

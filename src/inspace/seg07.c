@@ -13,7 +13,8 @@ typedef struct {
     int f0c;                    /* +c */
     int f0e;                    /* +e */
     int f10;                    /* +10 */
-    char p12[0x18 - 0x12];
+    int f12;                    /* +12 */
+    char p14[0x18 - 0x14];
     int f18;                    /* +18 */
     int f1a;                    /* +1a */
     int f1c;                    /* +1c */
@@ -27,16 +28,23 @@ typedef struct {
     int f2c;                    /* +2c */
     char f2e;                   /* +2e */
     signed char f2f;            /* +2f */
-    char p30[0x44 - 0x30];
+    char p30[0x32 - 0x30];
+    int f32;                    /* +32 */
+    char p34[0x42 - 0x34];
+    int f42;                    /* +42 */
     int f44;                    /* +44 */
     int f46;
     int f48;                    /* +48 */
-    char p4a[0x51 - 0x4a];
+    char p4a[0x4c - 0x4a];
+    DWORD f4c;                  /* +4c */
+    char p50[0x51 - 0x50];
     char f51;                   /* +51 */
     char f52;
     char f53;                   /* +53 */
     char f54;                   /* +54 */
-    char p55[0x66 - 0x55];
+    char p55[0x5e - 0x55];
+    int (far *f5e)(int type, int idx);   /* +5e */
+    void (far *f62)(void);      /* +62 */
     void (far *f66)(int type, int idx);  /* +66 */
     DWORD f6a;                  /* +6a */
     char p6e[0x70 - 0x6e];
@@ -1269,4 +1277,82 @@ void far fn_07_4a38(int type, int idx, int n)
         if (type == g_9324 && idx == g_9646)
             fn_08_45e0(g_9324, g_9646, 25);
     }
+}
+
+/* 20-byte records at DS:5a4c (g_5a50 above names the same array from +4). */
+typedef struct {
+    int f00;                    /* -1 = free [inferred] */
+    int f02;
+    int f04, f06, f08, f0a;
+    int f0c;
+    int f0e;
+    int f10;
+    int f12;
+} REC_14D;
+extern REC_14D g_5a4c[];
+extern int g_5eac[][18];
+extern HGLOBAL g_9100[];
+void far fn_11_3914(void);
+
+/* Splits object idx of the given type in two, growing the g_9328 object
+ * array when no free slot is left [inferred]. */
+/* @addr 7:570a */
+int far fn_07_570a(int type, int idx)
+{
+    int n;
+    int j;
+    int found;
+
+    if (g_5a4c[idx].f12 == 0 && g_1df8[type][idx].f44 == 200) {
+        n = -1;
+        found = 0;
+        do {
+            n++;
+            if (g_92ec[g_9328] <= n) {
+                g_92ec[g_9328] = n + 1;
+                GlobalUnlock(g_9100[g_9328]);
+                g_9100[g_9328] = GlobalReAlloc(g_9100[g_9328],
+                                               (long)max(g_92ec[g_9328], 1) * 0x70, GHND);
+                g_1df8[g_9328] = (REC_70 far *)GlobalLock(g_9100[g_9328]);
+                g_1df8[g_9328][n].f44 = 120;
+                g_1df8[g_9328][n].f42 = 100;
+                g_1df8[g_9328][n].f4c = 0xff;
+                g_1df8[g_9328][n].f62 = fn_11_3914;
+                g_1df8[g_9328][n].f5e = fn_07_570a;
+                g_1df8[g_9328][n].f53 = 0;
+                g_1df8[g_9328][n].f54 = 0;
+                g_1df8[g_9328][n].f32 = -1;
+                g_1df8[g_9328][n].f12 = g_1df8[g_9328][n].f24;
+                g_1df8[g_9328][n].f2e = 0;
+                g_5a4c[n].f00 = -1;
+                g_9406[g_9328] = n + 1;
+            }
+            if (g_5a4c[n].f00 == -1) {
+                g_1df8[type][n].f18 = g_5a4c[n].f10 = g_5a4c[n].f00 = 0;
+                g_5a4c[n].f12 = found = 1;
+                g_1df8[type][n].f2e = 0;
+                g_1df8[type][n].f44 = 200;
+                for (j = 0; j < 5; j++)
+                    g_5eac[n][j + 6] = g_5eac[n][j] = -100;
+                g_1df8[type][n].f04 = g_1df8[type][idx].f04;
+                g_1df8[type][n].f06 = g_1df8[type][idx].f06;
+                g_5a4c[n].f04 = g_5a4c[idx].f04;
+                g_5a4c[n].f06 = g_5a4c[idx].f06;
+                g_5a4c[n].f08 = g_5a4c[idx].f08;
+                g_5a4c[n].f0a = g_5a4c[idx].f0a;
+                g_1df8[type][n].f0c = g_5a4c[idx].f0e / 3 + g_5a4c[idx].f0c;
+                g_1df8[type][n].f0e = g_5a4c[idx].f0c / -3 + g_5a4c[idx].f0e;
+                g_5a4c[n].f02 = 16;
+                break;
+            }
+        } while (!found);
+        fn_07_2080(g_9328, -1);
+        g_1df8[type][idx].f0c = g_5a4c[idx].f0e / -3 + g_5a4c[idx].f0c;
+        g_1df8[type][idx].f0e = g_5a4c[idx].f0c / 3 + g_5a4c[idx].f0e;
+        g_5a4c[idx].f12 = 1;
+        g_5a4c[idx].f02 = 16;
+    } else {
+        *(POINT far *)&g_1df8[type][idx].f0c = *(POINT *)&g_5a4c[idx].f0c;
+    }
+    return 0;
 }
