@@ -394,3 +394,11 @@ Conventions
 - An if/else-if chain on a local gives "store result, dec ax, compare slot";
   a switch keeps the value in ax.
 - fn_02_1a5a's result is used (returns int, whatever g_fp_1d5c leaves).
+- In functions where every path ends in `return 0`, fall through to one final
+  `return 0` (shared `xor ax,ax`).
+- Two int locals assigned constants can stay in memory (one dword store,
+  not constant-propagated); stack position decides load order in `a + b`.
+- `(long)x * 22 / 100` with x an int global gives `mov ax,22; imul word [x]`
+  then __aFldiv.
+- fn_07_5090 is int far (int type, int idx, int amount); REC_70.f5e
+  declarations elsewhere have 2 arguments. g_95f4 is a bitmap handle.
