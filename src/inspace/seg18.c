@@ -1,6 +1,7 @@
 /* INSPACE.EXE segment 18 (selector 1088). */
 #include "inspace.h"
 #include <stdlib.h>
+extern DWORD g_1e50;
 
 extern int g_9668;
 extern int g_9672;
@@ -33,7 +34,11 @@ typedef struct {                /* 0x15a bytes, DGROUP array at DS:70ae */
     int f08[4];
     char p10[0x30 - 0x10];
     int f30;
-    char p32[0x8e - 0x32];
+    char p32[0x3d - 0x32];
+    char f3d;
+    char p3e[0x42 - 0x3e];
+    char f42;
+    char p43[0x8e - 0x43];
     char f8e;
     char f8f;
     char p90[0xad - 0x90];
@@ -45,13 +50,16 @@ typedef struct {                /* 0x15a bytes, DGROUP array at DS:70ae */
     char fc3;
     char pc4[0xc6 - 0xc4];
     char fc6;
-    char pc7[0xce - 0xc7];
+    char pc7[0xcb - 0xc7];
+    char fcb;
+    char pcc[0xce - 0xcc];
     char fce;
     char pcf[0x15a - 0xcf];
 } REC_15A;
 
 typedef struct {                /* 0x7c-byte records at far DS:6e24 */
-    char p00[0x1c];
+    int f00;
+    char p02[0x1c - 0x02];
     unsigned char f1c;
     char p1d[0x38 - 0x1d];
     signed char f38[4];
@@ -114,6 +122,7 @@ typedef struct {                /* far pointer at DS:1e34 */
 } REC_1E34;
 extern REC_1E34 far *g_1e34;
 extern int g_88c0;
+extern int g_92e4;
 extern int g_88c2;
 extern long g_88cc;
 
@@ -135,15 +144,33 @@ typedef struct {                /* 0x70-byte records */
     char p08[0x0c - 0x08];
     int f0c;
     int f0e;
-    char p10[0x18 - 0x10];
+    int f10;
+    int f12;
+    char p14[0x18 - 0x14];
     int f18;
     int f1a;
     char p1c[0x20 - 0x1c];
     int f20;
     int f22;
-    char p24[0x54 - 0x24];
+    int f24;
+    char p26[0x28 - 0x26];
+    int f28;
+    char p2a[0x2c - 0x2a];
+    int f2c;
+    char p2e[0x3c - 0x2e];
+    int f3c;
+    char p3e[0x42 - 0x3e];
+    int f42;
+    int f44;
+    int f46;
+    int f48;
+    char p4a[0x54 - 0x4a];
     char f54;
-    char p55[0x70 - 0x55];
+    char p55[0x5e - 0x55];
+    long f5e;
+    long f62;
+    long f66;
+    char p6a[0x70 - 0x6a];
 } REC_70;
 extern REC_70 far *g_1df8[21];      /* 0-14: 0x460-byte blocks, 15-20: 0x70 */
 extern int g_9324;
@@ -195,7 +222,6 @@ extern int g_2390;
 extern int g_2392;
 extern int g_90ea;
 extern int g_90ec;
-extern DWORD g_1e50;
 extern DWORD g_2408;
 
 void far sprite_dc_release(void);
@@ -251,7 +277,7 @@ extern int g_9328;
 extern int g_934a;
 extern int g_94c4;
 extern int g_9330;
-extern long g_88c4;
+extern POINT g_88c4;
 extern int g_88f0;
 extern int g_88f2;
 extern int g_13a0;
@@ -276,6 +302,109 @@ extern DWORD g_2384;
 extern int flow_interactive;        /* DS:95bc */
 int far fn_09_955c(UINT id, LPSTR buf);
 void far fn_09_9580(UINT id, LPSTR dst);
+
+extern HPALETTE g_9670;
+extern HBITMAP g_966e;
+extern HBITMAP g_966c;
+extern HPALETTE g_965c;
+extern HBITMAP g_965a;
+extern HBITMAP g_9658;
+extern int g_952e;
+extern int g_9e5b;
+extern int g_93a6;
+extern int g_0928;
+extern int g_914a;
+extern int music_pause_state;       /* DS:9222 */
+extern int g_8e64;
+extern LPARAM g_1d38;
+extern DWORD g_05a4;
+extern DWORD g_05b8;
+extern int g_9136;
+extern int g_0594;
+extern int g_0598;
+extern int g_9430;
+extern int g_9434;
+extern int g_1c9e;
+extern int g_9146;
+extern int g_1016;
+extern int g_9456;
+void far sprite_dc_restore(void);
+void far fn_11_1d7c(void);
+void far fn_11_592a(void);
+void far fn_07_2128(void);
+void far fn_11_4db0(void);
+int far pascal fn_08_3aec(int j, int i);
+void far pascal fn_08_3fbe(int i);
+void far fn_07_375a(void);
+void far fn_08_4e14(void);
+void far fn_11_a9ea(int a);
+void far fn_07_40c4(void);
+void far fn_07_3bae(void);
+void far fn_07_5e04(void);
+void far fn_13_447a(void);
+void far fn_18_03d6(void);
+void far fn_18_0d94(void);
+void far fn_18_37d8(void);
+void far fn_18_403e(void);
+void far fn_18_08bc(int big);
+void far fn_18_6046(void);
+void far fn_18_621e(void);
+void far fn_18_034c(void);
+void far fn_18_0d4e(int msg, int key, LPARAM lp);
+void far fn_18_50ac(void);
+
+#pragma pack(1)
+typedef struct {                /* 0xad-byte class records, lowest field DS:96d6 */
+    int f00;
+    char p02[0x14 - 0x02];
+    char f14;
+    char p15;
+    char f16;
+    char p17[0x26 - 0x17];
+    int f26;                    /* sprite cell size */
+    char p28[0x32 - 0x28];
+    int f32;
+    char p34[0x38 - 0x34];
+    int f38;
+    char p3a[0x64 - 0x3a];
+    int f64;
+    int f66;
+    int f68;
+    int f6a;
+    char p6c[0x80 - 0x6c];
+    char f80[0xa5 - 0x80];      /* name [inferred] */
+    long fa5;
+    char pa9[0xad - 0xa9];
+} REC_AD6;
+typedef struct {                /* 0x41-byte records at far DS:6e20 */
+    char p00[0x21];
+    int f21;
+    char p23[0x41 - 0x23];
+} REC_41;
+typedef struct {                /* 0x2c-byte records at far DS:6e1c */
+    char p00[0x1a];
+    signed char f1a;
+    char p1b[0x1e - 0x1b];
+    signed char f1e;
+    signed char f1f;
+    char p20[0x2c - 0x20];
+} REC_2C;
+#pragma pack()
+extern REC_AD6 g_96d6[];
+extern REC_41 far *g_6e20;
+extern REC_2C far *g_6e1c;
+extern int g_931c;
+extern HDC g_39e8[];
+extern HBITMAP g_3974[];
+extern HBITMAP g_3ad0[];
+extern HPALETTE g_3a5c[];
+void far fn_10_6ee6(int idx, int a, LPSTR name, int b, int c, long d, int e,
+                    int f, char g, char h, char mode, int i);
+int far fn_10_86ca(void);
+void far fn_10_9962(int a, HDC dst, int x, int y, int w, int h, HDC src,
+                    int sx, int sy, int sw, int sh, DWORD rop);
+int far fn_14_3eda(void);
+void far fn_14_4074(void);
 
 /* @addr 18:034c */
 void far fn_18_034c(void)
@@ -334,7 +463,7 @@ void far fn_18_0ba0(void)
 }
 
 /* @addr 18:0d4e */
-void far fn_18_0d4e(int msg, int key)
+void far fn_18_0d4e(int msg, int key, LPARAM lp)
 {
     if (g_8e62) {
         switch (msg) {
@@ -685,9 +814,87 @@ void far fn_18_1eac(void)
 {
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Rebuilds the sprite sheet of object n at the current zoom [inferred]. */
+/* @addr 18:2fee */
 void far fn_18_2fee(int n)
 {
+    int idx;
+    int cls;
+    int r;
+    int c;
+    int size;
+    int gap;
+    int t;
+    int unused;
+    int rows;
+    int cell;
+    HBITMAP hbm;
+    HBITMAP oldbm;
+    HDC hdc;
+    HPALETTE oldpal;
+    char mode;
+    char pad[32];
+    BITMAP bm;
+
+    cls = g_70ae[n].f30;
+    idx = n + 40;
+    if (!g_39e8[idx] || !g_70ae[n].f8e || !g_70ae[n].f8f) {
+        if (g_70ae[n].fc6)
+            mode = 0;
+        else
+            mode = 2;
+        if (g_70ae[n].fcb)
+            mode = 1;
+        fn_10_6ee6(idx, g_96d6[cls].f32, g_96d6[cls].f80, 1, 0,
+                   g_96d6[cls].fa5, 1, -1, g_96d6[cls].f14,
+                   g_96d6[cls].f16, mode, 0);
+        g_96d6[cls].f26 = size = fn_10_86ca();
+        gap = 4;
+        SelectObject(g_39e8[idx], g_3974[idx]);
+        GetObject(g_3ad0[idx], sizeof(BITMAP), &bm);
+        SelectObject(g_39e8[idx], g_3ad0[idx]);
+        rows = bm.bmHeight / size;
+        hdc = CreateCompatibleDC(g_13dc);
+        cell = size * (g_9156 * 2 + 1) / 3;
+        hbm = CreateCompatibleBitmap(g_13dc, cell * 16 + 68,
+                                     (cell + 4) * rows + 4);
+        if (g_920e)
+            oldpal = SelectPalette(hdc, g_920e, 0);
+        oldbm = SelectObject(hdc, hbm);
+        PatBlt(hdc, 0, 0, cell * 16 + gap * 17,
+               cell * rows + (rows + 1) * gap, BLACKNESS);
+        SetStretchBltMode(hdc, 3);
+        for (r = 0; r < rows; r++)
+            for (c = 0; c < 16; c++)
+                fn_10_9962(0, hdc, cell * c + (c + 1) * gap,
+                           cell * r + (r + 1) * gap, cell, cell,
+                           g_39e8[idx], size * c, size * r, size, size,
+                           SRCCOPY);
+        SelectObject(g_39e8[idx], g_3974[idx]);
+        if (g_920e)
+            SelectPalette(g_39e8[idx], g_3a5c[idx], 0);
+        DeleteDC(g_39e8[idx]);
+        DeleteObject(g_3ad0[idx]);
+        g_39e8[idx] = hdc;
+        g_3ad0[idx] = hbm;
+        g_3974[idx] = oldbm;
+        g_3a5c[idx] = oldpal;
+        g_1df8[20][n].f22 = cell;
+        g_1df8[20][n].f24 = gap;
+        g_1df8[20][n].f20 = (int)(g_1df8[20][n].f22 * g_88cc / g_88c0);
+        g_70ae[n].f3d = rows - 1;
+        if (g_96d6[cls].f00 < 0)
+            g_96d6[cls].f00 = 4 - g_96d6[cls].f00 - size / 2;
+        t = g_6e24[g_931c].f00;
+        fn_14_3eda();
+        g_96d6[cls].f38 = g_6e1c[g_6e20[t].f21].f1a * (g_9156 * 2 + 1) / 6;
+        g_96d6[cls].f64 = g_6e1c[g_6e20[t].f21].f1e - size / 2;
+        g_96d6[cls].f66 = g_6e1c[g_6e20[t].f21].f1f - size / 2;
+        g_96d6[cls].f68 = -g_96d6[cls].f64;
+        g_96d6[cls].f6a = g_96d6[cls].f66;
+        fn_14_4074();
+    }
+    g_70ae[n].f8e = g_70ae[n].f8f = 1;
 }
 
 /* @addr 18:621e */
@@ -717,7 +924,7 @@ void far fn_18_621e(void)
     fn_10_7480(-3, 1);
 }
 
-/* near-match 58%: 18:3f02 (branch 1 register allocation, 4 bytes more frame) */
+/* @addr 18:3f02 */
 void far fn_18_3f02(int x, int y, int k)
 {
     int unused1;
@@ -734,7 +941,10 @@ void far fn_18_3f02(int x, int y, int k)
     d.y = y - g_1e34->f20 / 2 - g_1e34->f06;
     dir = (fn_08_19b0(d.x, d.y) + 8) % 16;
     t1 = fn_09_88ba(dir - a);
-    t2 = fn_09_88ba(dir > a ? dir - a - 16 : dir - a + 16);
+    if (dir > a)
+        t2 = fn_09_88ba(dir - a - 16);
+    else
+        t2 = fn_09_88ba(dir - a + 16);
     t = min(t2, t1);
     if (g_90f4 == 1)
         g_9676 = min(max((21 - g_a198 * 5) * t * k * 2 / 20, (6 - g_a198) * 4) + g_9676,
@@ -907,14 +1117,119 @@ void far fn_18_2272(void)
 {
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Builds the scaled copies (DCs 35-38) of the sprite sheets 6-8 for the
+ * Demon view [inferred]. */
+/* @addr 18:6374 */
 void far fn_18_6374(void)
 {
+    int sw;
+    int sg;
+    int dg;
+    int dw;
+    int i;
+
+    sw = 0x2c << g_959e >> 1;
+    sg = 4 << g_959e >> 1;
+    dw = 0x2c << g_9156 >> 1;
+    dg = 4 << g_9156 >> 1;
+    if (!g_9156)
+        dw = dw * 2 / 3;
+    g_39e8[35] = CreateCompatibleDC(g_13dc);
+    g_3ad0[35] = CreateCompatibleBitmap(g_13dc, dw * 18 + dg * 19, dg * 2 + dw);
+    if (g_920e)
+        g_3a5c[35] = SelectPalette(g_39e8[35], g_920e, 0);
+    g_3974[35] = SelectObject(g_39e8[35], g_3ad0[35]);
+    PatBlt(g_39e8[35], 0, 0, dw * 18 + dg * 19, dg * 2 + dw, BLACKNESS);
+    SetStretchBltMode(g_39e8[35], 3);
+    for (i = 0; i < 18; i++)
+        fn_10_9962(1, g_39e8[35], (dw + dg) * i + dg, dg, dw, dw, g_39e8[7],
+                   (sg + sw) * i + sg, sg, sw, sw, SRCCOPY);
+    g_39e8[36] = CreateCompatibleDC(g_39e8[6]);
+    g_3ad0[36] = CreateCompatibleBitmap(g_39e8[6], dw * 18 + dg * 19, dg * 2 + dw);
+    g_3974[36] = SelectObject(g_39e8[36], g_3ad0[36]);
+    PatBlt(g_39e8[36], 0, 0, dw * 18 + dg * 19, dg * 2 + dw, BLACKNESS);
+    SetStretchBltMode(g_39e8[36], 2);
+    for (i = 0; i < 18; i++)
+        fn_10_9962(1, g_39e8[36], (dw + dg) * i + dg, dg, dw, dw, g_39e8[6],
+                   (sg + sw) * i + sg, sg, sw, sw, SRCCOPY);
+    dw /= 2;
+    dg /= 2;
+    g_39e8[37] = CreateCompatibleDC(g_13dc);
+    g_3ad0[37] = CreateCompatibleBitmap(g_13dc, dw * 18 + dg * 19, dg * 2 + dw);
+    if (g_920e)
+        g_3a5c[37] = SelectPalette(g_13dc, g_920e, 0);
+    g_3974[37] = SelectObject(g_39e8[37], g_3ad0[37]);
+    PatBlt(g_39e8[37], 0, 0, dw * 18 + dg * 19, dg * 2 + dw, BLACKNESS);
+    SetStretchBltMode(g_39e8[37], 3);
+    for (i = 0; i < 18; i++)
+        fn_10_9962(1, g_39e8[37], (dw + dg) * i + dg, dg, dw, dw, g_39e8[7],
+                   (sg + sw) * i + sg, sg, sw, sw, SRCCOPY);
+    g_39e8[38] = CreateCompatibleDC(g_39e8[8]);
+    g_3ad0[38] = CreateCompatibleBitmap(g_39e8[8], dw * 18 + dg * 19, dg * 2 + dw);
+    g_3974[38] = SelectObject(g_39e8[38], g_3ad0[38]);
+    PatBlt(g_39e8[38], 0, 0, dw * 18 + dg * 19, dg * 2 + dw, BLACKNESS);
+    SetStretchBltMode(g_39e8[38], 2);
+    for (i = 0; i < 18; i++)
+        fn_10_9962(1, g_39e8[38], (dw + dg) * i + dg, dg, dw, dw, g_39e8[6],
+                   (sg + sw) * i + sg, sg, sw, sw, SRCCOPY);
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* @addr 18:3474 */
 void far fn_18_3474(void)
 {
+    int i;
+    int a;
+    int b;
+
+    g_6e24[g_70ae[g_9646].fb8].f74 = g_70ae[g_9646].f06;
+    g_6e24[g_70ae[g_9646].fb8].f72 = g_70ae[g_9646].f8e;
+    g_6e24[g_70ae[g_9646].fb8].f73 = g_70ae[g_9646].f8f;
+    if (g_959e != 1 || !g_9156) {
+        a = g_70ae[g_9646].f8e;
+        b = g_70ae[g_9646].f8f;
+        fn_18_2fee(g_9646);
+        fn_10_5d3c(g_9646);
+        if (g_70ae[g_9646].fc6 && g_96f0[g_70ae[g_9646].f30].f0a == 3) {
+            g_92e4 = 1;
+            if (!a)
+                fn_08_2cd8(g_9646, 0);
+            if (!b)
+                fn_08_2cd8(g_9646, 1);
+            g_92e4 = 0;
+        }
+    } else {
+        g_1df8[20][g_9646].f22 = g_1df8[14][g_9646].f22;
+        g_1df8[20][g_9646].f24 = g_1df8[14][g_9646].f24;
+        g_1df8[20][g_9646].f20 =
+            (int)(g_1df8[20][g_9646].f22 * g_88cc / g_88c0);
+    }
+    for (i = 0; i < 4; i++)
+        g_6e24[g_70ae[g_9646].fb8].f38[i] = g_70ae[g_9646].f08[i];
+    g_6e24[g_70ae[g_9646].fb8].f1c = g_70ae[g_9646].f00 / 40;
+    g_6e24[g_70ae[g_9646].fb8].f74 = g_70ae[g_9646].f06;
+    g_6e24[g_70ae[g_9646].fb8].f72 = g_70ae[g_9646].f8e;
+    g_6e24[g_70ae[g_9646].fb8].f73 = g_70ae[g_9646].f8f;
+    g_1df8[20][g_9646].f04 = (int)g_88cc / 2;
+    g_1df8[20][g_9646].f06 = 150;
+    g_1df8[20][g_9646].f00 = -1000;
+    g_1df8[20][g_9646].f02 = -1000;
+    g_1df8[20][g_9646].f0c = 50;
+    g_1df8[20][g_9646].f0e = 0;
+    g_1df8[20][g_9646].f12 = g_1df8[20][g_9646].f24;
+    g_1df8[20][g_9646].f44 = g_1df8[14][g_9646].f44;
+    g_1df8[20][g_9646].f42 = g_1df8[14][g_9646].f42;
+    g_1df8[20][g_9646].f46 = g_1df8[14][g_9646].f46;
+    g_1df8[20][g_9646].f2c = g_1df8[14][g_9646].f2c;
+    g_1df8[20][g_9646].f48 = g_1df8[14][g_9646].f48;
+    g_1df8[20][g_9646].f66 = g_1df8[14][g_9646].f66;
+    g_1df8[20][g_9646].f62 = g_1df8[14][g_9646].f62;
+    g_1df8[20][g_9646].f5e = g_1df8[14][g_9646].f5e;
+    g_1df8[20][g_9646].f3c = g_1df8[14][g_9646].f3c;
+    g_1df8[20][g_9646].f54 = 0;
+    g_1df8[20][g_9646].f48 = g_1df8[14][g_9646].f48;
+    g_1df8[20][g_9646].f28 = 8;
+    for (i = 0; i < 4; i++)
+        g_a187[i] = 0;
 }
 
 /* Starts the Demon sub-game [inferred]. */
@@ -961,7 +1276,7 @@ void far fn_18_08bc(int big)
         g_58cc[i].f00 = -1;
     g_88c0 = g_6da4->f02;
     g_88c2 = g_6da4->f04;
-    g_88c4 = 0;
+    g_88c4.x = g_88c4.y = 0;
     g_88f0 = g_88c0 * 10 / 255;
     g_88f2 = g_88c2 * 10 / 164;
     g_88f0 = max(g_88f0 / 3 * 3, 6);
@@ -1069,4 +1384,134 @@ int far fn_18_5cec(void)
             return 1;
         }
     }
+}
+
+/* Per-tick update of the Demon sub-game [inferred]. */
+/* @addr 18:0000 */
+void far fn_18_0000(void)
+{
+    int j;
+    int i;
+
+    g_9672 = 0;
+    if (g_8d34 && g_8d34 < g_1e50) {
+        g_8d34 = 0;
+        g_9530 = 2;
+        fn_10_744c(0x22);
+    }
+    if (g_13a0 != -1)
+        g_13a0--;
+    if (g_13a0 == 1)
+        fn_10_7480(6, 1);
+    if (g_9530 == 2) {
+        if (g_1318 > 1 && g_90f4 == 1) {
+            if (g_966a) {
+                if (g_920e)
+                    SelectPalette(g_966a, g_9670, 0);
+                SelectObject(g_966a, g_966e);
+                DeleteObject(g_966c);
+                DeleteDC(g_966a);
+                g_966a = 0;
+            }
+            if (g_9656) {
+                if (g_920e)
+                    SelectPalette(g_9656, g_965c, 0);
+                SelectObject(g_9656, g_965a);
+                DeleteObject(g_9658);
+                DeleteDC(g_9656);
+                g_9656 = 0;
+            }
+            sprite_dc_restore();
+            g_90f4 = 6;
+            g_952e = g_9646;
+            fn_10_7480(g_913e = g_88c4.x = g_88c4.y = g_914a = 0,
+                       g_9530 = g_0928 = g_93a6 = g_9e5b = 1);
+            g_9156 = 0;
+        } else if (g_9660)
+            fn_18_03d6();
+    } else if (g_88d0) {
+        if (g_88d0 == 2) {
+            g_88d0 = g_1e50 + 12000;
+            fn_18_6046();
+        } else if (g_88d0 < g_1e50) {
+            g_88d0 = 0;
+            fn_18_621e();
+        }
+    } else {
+        if (!g_9660) {
+            if (g_90f4 == 1)
+                fn_18_08bc(1);
+            else
+                fn_18_08bc(0);
+        }
+        if (g_6da4->f1c) {
+            fn_18_17f6();
+            g_6da4->f1c = 0;
+        }
+        fn_18_1cbe(0);
+        fn_11_1d7c();
+        fn_18_034c();
+        if (g_9530 == 1 && music_pause_state == -2)
+            fn_10_7480(-3, 1);
+        if (g_8e62)
+            fn_18_0d4e(g_8e62, g_8e64, g_1d38);
+        if (!g_1df8[g_9324][g_9646].f18) {
+            if (g_05a4 <= g_1e50) {
+                g_05a4 = g_1e50 + 50;
+                fn_11_592a();
+            }
+            if (g_05b8 < g_1e50) {
+                g_05b8 = g_1e50 + 10000;
+                fn_07_2128();
+            }
+        }
+        if (!g_1df8[g_9324][g_9646].f18)
+            fn_11_4db0();
+        for (i = g_9136 = 0; i < 5; i++)
+            for (j = 0; j < g_0598 + g_0594; j++)
+                g_9136 = fn_08_3aec(j, i);
+        if (g_9430 > 0)
+            for (j = 0; j <= g_9434; j++)
+                fn_08_3fbe(j);
+        fn_07_375a();
+        g_1c9e++;
+        if (g_1c9e >= 8 && g_90f4 == 6) {
+            g_1c9e = 0;
+            if (g_70ae[g_9646].f42)
+                g_70ae[g_9646].f42--;
+        }
+        g_9146 = 0;
+        fn_08_4e14();
+        if (g_1016)
+            fn_11_a9ea(1);
+        fn_18_0d94();
+        fn_18_37d8();
+        fn_18_403e();
+        fn_07_40c4();
+        fn_07_3bae();
+        fn_18_50ac();
+        if (g_9456 > 0)
+            fn_07_5e04();
+        fn_13_447a();
+    }
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_18_03d6(void)
+{
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_18_0d94(void)
+{
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_18_37d8(void)
+{
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_18_403e(void)
+{
 }

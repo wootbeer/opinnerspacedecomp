@@ -229,7 +229,7 @@ int far fn_09_88ba(int x);
 extern int g_9460;
 void far fn_10_80dc(void);
 int far fn_10_82a2(int a);
-void far fn_10_885e(int a);
+int far fn_10_885e(int a);
 long far fn_10_804c(int a);
 void far fn_10_744c(int a);
 int far fn_10_80a8(void);
@@ -1987,9 +1987,8 @@ void far fn_10_3ea2(void)
 
 /* Builds surface 22 (nine 37-pixel cells of bitmap 0x154) or, in the
  * sub-game, the scaled strip g_9656 [inferred]. */
-/* near-match 99%: 10:58ce (the game has a dead `les bx,[g_1e1c]` before
- * w = 0x25; an unused pointer local, register or not, lands on the stack;
- * everything else matches byte for byte once that is skipped) */
+/* j is a dead store: CL drops the load but keeps its `les bx,[g_1e1c]`. */
+/* @addr 10:58ce */
 void far fn_10_58ce(int a)
 {
     int i;
@@ -2005,6 +2004,7 @@ void far fn_10_58ce(int a)
         return;
     if (g_9656 && subgame_active)
         return;
+    j = g_1e1c->f00;
     w = 0x25;
     m = 5;
     if (g_8fe8)
@@ -2831,8 +2831,209 @@ void far fn_10_4dfe(void)
     }
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
-void far fn_10_885e(int a)
+extern int g_05d0;
+extern int g_1120;
+extern int g_1122;
+extern int g_922c;
+int far fn_02_094c(UINT id);
+
+/* Copy-protection and evaluation-period check [inferred]: with a != 0
+ * checks the CD drive named in WIN.INI ("CDDrive"); then checks a key
+ * through g_fp_3c68 and derives a day count from SYSTEM.INI/WIN.INI
+ * values (g_9224 = days left [inferred]). Sets g_920c (-1, 0..3). */
+/* @addr 10:885e */
+int far fn_10_885e(int a)
 {
-    g_90f4 = a;
+    char msg[150];
+    char buf[100];
+    char drv[80];
+    int r;
+    int yr;
+    int day;
+    int y;
+    int v1;
+    int v3;
+    int v2;
+    int chk;
+    int pad;
+    struct tm *tm;
+    time_t t;
+    long lv3;
+    long l;
+    int r2;
+    int flag;
+    char path[120];
+    int pad2;
+    register int u;
+
+    if (g_920c == -1)
+        return 1;
+    time(&t);
+    tm = localtime(&t);
+    yr = tm->tm_year - 93;
+    day = yr * 365 + tm->tm_yday;
+    g_922c = 1;
+    g_922a = g_11aa = g_920c = flag = 0;
+    if (a != 0) {
+        GetProfileString(g_9690, "CDDrive", "", drv, 40);
+        if (drv[0]) {
+            r = g_fp_3c68(drv, buf, 21);
+            if (r == 0) {
+                g_920c = -1;
+                g_11aa = 1;
+                return 0;
+            }
+            switch (r) {
+            case 1:
+                fn_02_094c(0x9ef);
+                break;
+            case 2:
+                fn_02_094c(0x9f0);
+                break;
+            }
+            wsprintf(msg, g_8e68, (LPSTR)drv);
+            MessageBox(0, msg, g_9690, MB_ICONEXCLAMATION);
+            return -10;
+        }
+    }
+    if (g_05d0 == 1 && (g_1122 + 1) / 2 == g_1120) {
+        flag = 1;
+    } else if (g_05d0 == 2 && g_1122 == 8 && g_1120 == 0x16a0) {
+        g_920c = 3;
+        return 0;
+    }
+    r2 = g_fp_3c68(msg, buf, 2);
+    if (r2 == 0 && flag == 0) {
+        g_920c = -1;
+        if (fn_10_946a(msg))
+            g_11aa = 1;
+        return 0;
+    }
+    if (r2 >= 1) {
+        GetWindowsDirectory(path, 110);
+        u = lstrlen(path);
+        if (path[u - 1] != '\\')
+            lstrcat(path, "\\");
+        lstrcat(path, "SYSTEM.INI");
+        v1 = GetPrivateProfileInt("386Enh", "vidsp", 0, path);
+        v2 = GetPrivateProfileInt("386Enh", "32BitSP", 0, path);
+        v3 = GetProfileInt("windows", "PDev", 0);
+        lv3 = v3;
+        l = (long)v1 * 2 - lv3 - 0x4cf;
+        chk = (int)l;
+        v3 -= v1;
+        y = v3 ^ 0xff;
+        day -= y;
+        g_9224 = day + 1;
+        if (g_9224 < 1)
+            g_9224 = 200;
+        if (chk == v2) {
+            g_9224 = -1 - day;
+            if (day >= 0 && day < 35) {
+                g_920c = 2;
+                flag = 0;
+                return 0;
+            }
+        }
+        if (!flag && day >= 0 && day < 14) {
+            g_920c = 1;
+            return 0;
+        }
+    }
+    if (r2 == 1000)
+        g_922a = 1;
+    g_920c = 0;
+    return 1;
+}
+
+/* Stores GetProcAddress(g_9210, ord) into the function pointer fp and
+ * clears ok when the DLL lacks it. */
+#define GETPROC(fp, ord) \
+    *(FARPROC *)&(fp) = GetProcAddress((HINSTANCE)g_9210, MAKEINTRESOURCE(ord)); \
+    if (!(fp)) \
+        ok = 0
+
+/* Loads the language DLL (<Language>_LANG.DLL, g_9212) and ISPACE.DLL
+ * (g_9210) from the game directory g_8f7a and fetches the ISPACE.DLL entry
+ * points by ordinal; returns 0 after a message box when anything fails.
+ * A missing ISPACE.DLL only warns [sic]. */
+/* @addr 10:6656 */
+int far fn_10_6656(void)
+{
+    OFSTRUCT of;
+    int ok;
+    char path[110];
+    char text[150];
+    char msg[40];
+
+    lstrcpy(path, g_8f7a);
+    GetPrivateProfileString(g_9690, "Language", "", text, 5, g_96a9);
+    lstrcat(path, text);
+    lstrcat(path, "_LANG.DLL");
+    if (OpenFile(path, &of, OF_EXIST) == -1) {
+        lstrcpy(text, "Can't find ");
+        lstrcat(text, path);
+        lstrcat(text, ". Try reinstalling, do not preserve previous settings.");
+        MessageBox(0, text, g_9690, MB_ICONEXCLAMATION);
+        return 0;
+    }
+    g_9212 = LoadLibrary(path);
+    if (g_9212 < 32) {
+        lstrcpy(text, path);
+        lstrcat(text, " is faulty");
+        MessageBox(0, text, g_9690, MB_ICONEXCLAMATION);
+        return 0;
+    }
+    lstrcpy(path, g_8f7a);
+    lstrcat(path, "ISPACE.DLL");
+    if (OpenFile(path, &of, OF_EXIST) == -1) {
+        LoadString(g_9212, 0x845, text, 40);
+        lstrcat(text, path);
+        lstrcat(text, "!");
+        MessageBox(0, text, g_9690, MB_ICONEXCLAMATION);
+    }
+    g_9210 = LoadLibrary(path);
+    if ((HINSTANCE)g_9210 < 32) {
+        lstrcpy(text, path);
+        LoadString(g_9212, 0x7ea, msg, 40);
+        lstrcat(text, msg);
+        MessageBox(0, text, g_9690, MB_ICONEXCLAMATION);
+        return 0;
+    }
+    ok = 1;
+    GETPROC(g_fp_3c28, 1);
+    GETPROC(g_fp_3c2c, 3);
+    GETPROC(g_fp_3c30, 2);
+    GETPROC(g_fp_3c3c, 0x12);
+    GETPROC(g_fp_3c38, 0x11);
+    GETPROC(g_fp_3c50, 4);
+    GETPROC(g_fp_3c4c, 5);
+    GETPROC(g_fp_3c40, 6);
+    GETPROC(g_fp_3c34, 0xc);
+    GETPROC(g_fp_3c44, 0xf);
+    GETPROC(g_fp_3c54, 7);
+    GETPROC(g_fp_3c68, 0x18);
+    GETPROC(g_fp_3c58, 8);
+    GETPROC(g_fp_3c5c, 9);
+    GETPROC(g_fp_3c6c, 0x1d);
+    GETPROC(g_fp_3c70, 0x22);
+    GETPROC(g_fp_3c74, 0x21);
+    GETPROC(g_fp_3c64, 0xa);
+    GETPROC(g_fp_3c7c, 0xe);
+    GETPROC(g_fp_3c48, 0x24);
+    GETPROC(g_fp_3c80, 0x23);
+    GETPROC(g_fp_3c78, 0x20);
+    GETPROC(g_fp_3c84, 0x29);
+    if (!ok) {
+        lstrcpy(text, path);
+        LoadString(g_9212, 0x7ea, msg, 40);
+        lstrcat(text, msg);
+        MessageBox(0, text, g_9690, MB_ICONEXCLAMATION);
+        return 0;
+    }
+    /* g_fp_3c54 returns int here */
+    if (!((int (far pascal *)(long, int))g_fp_3c54)(g_05a0, 5)
+        || !((int (far pascal *)(long, int))g_fp_3c54)(g_05a0, 7))
+        return 0;
+    return 1;
 }

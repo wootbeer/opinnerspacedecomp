@@ -90,12 +90,13 @@ void far fn_06_18e0(void)
     PostMessage(g_0016, 0x9cf, 0, 0L);
 }
 
-/* near-match 73%: 6:190c (the original loads the font height with
- * `mov ax,14; push ax` and pushes the zeros as immediates; plain C gives
- * `push 14` and reuses a zeroed ax) */
+/* The label (no goto) resets CL's register tracking: the game stores the
+ * 0 and pushes the zeros as immediates; the dead store `height = 14`
+ * gives `mov ax,14; push ax`. */
+/* @addr 6:190c */
 void far fn_06_190c(void)
 {
-    int unused1;
+    int height;
     int unused2;
     HPALETTE old;
 
@@ -106,6 +107,8 @@ void far fn_06_190c(void)
     SelectPalette(g_13dc, old, 0);
     ReleaseDC(g_0016, g_13dc);
     g_13dc = 0;
+font:
+    height = 14;
     g_90fe = CreateFont(14, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, PROOF_QUALITY,
                         VARIABLE_PITCH | FF_SWISS, "Arial");
     g_912c = fn_10_6d38("ALPHABET");

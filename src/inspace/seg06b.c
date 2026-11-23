@@ -126,6 +126,40 @@ typedef struct {                /* 0xad bytes at DS:96f0 */
 #pragma pack()
 extern REC_96F0 g_96f0[];      /* quarter-wave sine table, 0..90 degrees [inferred] */
 
+#pragma pack(1)
+typedef struct {                /* 0x4b0-byte effect records at far DS:6b0c */
+    char f00;                   /* state, 0 = free */
+    char f01;
+    int f02;                    /* grid size n */
+    char f04;
+    char f05;
+    int f06;
+    int f08;
+    int f0a;
+    char p0c[0x24c - 0x0c];
+    char f24c[36];
+    long f270[36];
+    long f300[36];
+    long f390[36];
+    long f420[36];
+} REC_FX;
+typedef struct {                /* 0x70-byte records at far DS:1e30 */
+    char p00[0x54];
+    char f54;
+    char p55[0x70 - 0x55];
+} REC_1E30;
+#pragma pack()
+#define FX ((REC_FX far *)g_6b0c)
+extern REC_1E30 far *g_1e30;
+extern int g_92e8;
+extern int g_913a;
+extern POINT g_88c8;
+extern int g_9664;
+extern int g_9666;
+extern int g_965e;
+POINT far pascal fn_08_2bbe(POINT p);
+void far fn_18_0b1e(void);
+
 /* @addr 6:626c */
 void far fn_06_626c(void)
 {
@@ -850,4 +884,67 @@ void far fn_06_5d58(void)
     g_94c4 = 0;
     fn_06_5f7a(1);
     g_1e7c = g_1e50 + 34000;
+}
+
+/* Starts an effect record in the 1200-byte table at DS:6b0c: a grid of
+ * n x n points around (x, y) [inferred: explosion/debris cloud]. */
+/* @addr 6:78ea */
+void far fn_06_78ea(int kind, int x, int y, int vx, int vy, int size, int n,
+                    int c)
+{
+    int unused;
+    int i;
+    int j;
+    int idx;
+    int k;
+
+    if (!g_94dc || g_94c4)
+        return;
+    fn_10_744c(0x69);
+    if (size < 1000 && (rand() & 1))
+        fn_10_754a(8, x, y, 4);
+    else
+        fn_10_754a(0x45, x, y, 4);
+    if (g_9330 && !g_9130 && g_92e8 && !g_913a && !g_1e30[g_9646].f54) {
+        g_88c8.x = x;
+        g_88c8.y = y;
+        g_88c8 = fn_08_2bbe(g_88c8);
+        fn_18_0b1e();
+        g_9664 = g_9666 = 0;
+        g_913a = 1;
+        fn_10_754a(0x27, g_88c8.x, g_88c8.y, 4);
+        g_965e = 1;
+    }
+    for (k = 0; k < g_94d0; k++) {
+        if (FX[k].f00)
+            continue;
+        FX[k].f0a = 0;
+        FX[k].f08 = n;
+        FX[k].f01 = kind;
+        FX[k].f04 = c;
+        FX[k].f00 = 4;
+        FX[k].f05 = 0;
+        FX[k].f06 = size;
+        FX[k].f02 = (n + (size >> 9) - 2) & ~1;
+        if (FX[k].f02 > g_94d6)
+            FX[k].f02 = g_94d6;
+        if (FX[k].f02 < 4)
+            FX[k].f02 = 4;
+        for (j = 0; j < FX[k].f02; j++)
+            for (i = 0; i < FX[k].f02; i++) {
+                idx = FX[k].f02 * j + i;
+                FX[k].f24c[idx] = 0;
+                FX[k].f390[idx] = (long)x << 8;
+                FX[k].f420[idx] = (long)y << 8;
+                FX[k].f270[idx] = ((long)FX[k].f06
+                    * fn_06_71b2(i * 180 / (FX[k].f02 - 1) + 90) >> 8)
+                    * fn_06_71b2(j * 90 / (FX[k].f02 - 1) + 45) >> 6;
+                FX[k].f270[idx] += vx << 8;
+                FX[k].f300[idx] = ((long)FX[k].f06
+                    * fn_06_71b2(j * 180 / (FX[k].f02 - 1) + 90) >> 8)
+                    * fn_06_71b2(i * 90 / (FX[k].f02 - 1) + 45) >> 6;
+                FX[k].f300[idx] += vy << 8;
+            }
+        return;
+    }
 }
