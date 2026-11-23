@@ -53,7 +53,7 @@ typedef struct {
     int f_054;    /* DS:70e6 */
     int f_056;    /* DS:70e8 */
     char f_058;    /* DS:70ea */
-    char pad_059[0x1];
+    char f_059;    /* DS:70eb */
     char f_05a;    /* DS:70ec */
     char f_05b;    /* DS:70ed */
     char f_05c;    /* DS:70ee */

@@ -1547,8 +1547,9 @@ POINT far pascal fn_08_29ea(POINT pt)
 
 /* Integer square root, one Newton step from guess g [inferred]. The loop
  * after the return is dead code in the original. */
-/* near-match 99%: 8:1290 (one instruction: the dead loop's g < 3 test
- * compares the low word as cmp ax,3; the original reloads it from memory) */
+/* The dead store a = (unsigned)b is removed, but it makes CL forget that ax
+ * holds g's low word, so the loop's g < 3 test reloads it (layout only). */
+/* @addr 8:1290 */
 long far pascal fn_08_1290(long n, long g)
 {
     int i;
@@ -1563,6 +1564,7 @@ long far pascal fn_08_1290(long n, long g)
             g = 3;
         b = (n - g * g) / (2 * g) + g;
         g = b;
+        a = (unsigned)b;
         i++;
     } while (i < 1);
 }
