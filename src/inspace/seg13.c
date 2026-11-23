@@ -15,19 +15,22 @@ typedef void (far *FNVOID)(void);     /* REC70 +62, e.g. fn_11_3914 */
  * lowest offset accessed with an index * 0x15a]. Fields named by offset
  * in the record. Generated layout; keep in sync between seg13.c/seg14.c. */
 typedef struct {
-    char pad_000[0x4];
+    int f_000;    /* DS:7092 */
+    int f_002;    /* DS:7094 */
     int f_004;    /* DS:7096 */
     int f_006;    /* DS:7098 */
-    char pad_008[0x2];
+    int f_008;    /* DS:709a */
     int f_00a;    /* DS:709c */
     int f_00c;    /* DS:709e */
     int f_00e;    /* DS:70a0 */
     char pad_010[0x2];
     int f_012;    /* DS:70a4 */
     int f_014;    /* DS:70a6 */
-    char pad_016[0x6];
+    char pad_016[0x4];
+    int f_01a;    /* DS:70ac */
     int f_01c;    /* DS:70ae */
-    char pad_01e[0x6];
+    char pad_01e[0x4];
+    int f_022;    /* DS:70b4 */
     int f_024;    /* DS:70b6 */
     int f_026;    /* DS:70b8 */
     int f_028;    /* DS:70ba */
@@ -36,7 +39,7 @@ typedef struct {
     int f_032;    /* DS:70c4 */
     int f_034;    /* DS:70c6 */
     int f_036;    /* DS:70c8 */
-    char pad_038[0x2];
+    int f_038;    /* DS:70ca */
     int f_03a;    /* DS:70cc */
     int f_03c;    /* DS:70ce */
     int f_03e;    /* DS:70d0 */
@@ -49,18 +52,23 @@ typedef struct {
     int f_052;    /* DS:70e4 */
     int f_054;    /* DS:70e6 */
     int f_056;    /* DS:70e8 */
-    char pad_058[0x3];
+    char f_058;    /* DS:70ea */
+    char pad_059[0x1];
+    char f_05a;    /* DS:70ec */
     char f_05b;    /* DS:70ed */
     char f_05c;    /* DS:70ee */
-    char pad_05d[0x2];
+    char f_05d;    /* DS:70ef */
+    char pad_05e[0x1];
     char f_05f;    /* DS:70f1 */
     int f_060[16];    /* DS:70f2 */
     int f_080;    /* DS:7112 */
-    char pad_082[0x10];
+    unsigned long f_082;    /* DS:7114 */
+    char pad_086[0xc];
     long f_092;    /* DS:7124 */
     unsigned long f_096;    /* DS:7128 */
     unsigned long f_09a;    /* DS:712c */
-    char pad_09e[0x4];
+    int f_09e;    /* DS:7130 */
+    int f_0a0;    /* DS:7132 */
     long f_0a2;    /* DS:7134 */
     char pad_0a6[0x4];
     char f_0aa;    /* DS:713c */
@@ -77,12 +85,15 @@ typedef struct {
     int f_0d6;    /* DS:7168 */
     char pad_0d8[0x2];
     long f_0da;    /* DS:716c */
-    char pad_0de[0x4];
+    char pad_0de[0x3];
+    char f_0e1;    /* DS:7173 */
     char f_0e2;    /* DS:7174 */
-    char pad_0e3[0x3];
+    char f_0e3;    /* DS:7175 */
+    char f_0e4;    /* DS:7176 */
+    char f_0e5;    /* DS:7177 */
     char f_0e6;    /* DS:7178 */
     char f_0e7;    /* DS:7179 */
-    char pad_0e8[0x1];
+    char f_0e8;    /* DS:717a */
     char f_0e9;    /* DS:717b */
     char f_0ea;    /* DS:717c */
     char f_0eb;    /* DS:717d */
@@ -115,18 +126,21 @@ typedef struct {
     int f_024;
     int f_026;
     int f_028;
-    char pad_02a[0x4];
+    char pad_02a[0x2];
+    int f_02c;
     char f_02e;
     char pad_02f[0x3];
     int f_032;
-    char pad_034[0x6];
+    int f_034;
+    int f_036;
+    int f_038;
     int f_03a;
     int f_03c;
     char pad_03e[0x4];
     int f_042;
     int f_044;
     int f_046;
-    char pad_048[0x2];
+    int f_048;
     int f_04a;
     unsigned long f_04c;
     char pad_050[0x1];
@@ -147,18 +161,25 @@ typedef struct {
     char f_001;
     char f_002;
     char f_003;
-    char pad_004[0x2];
+    char f_004[2];
     char f_006;
-    char pad_007[0x2];
+    char f_007;
+    char f_008;
     char f_009;
-    char f_00a[23];
+    char f_00a[21];
+    int f_01f;
     int f_021;
-    char pad_023[0x1e];
+    char pad_023[0x15];
+    char f_038[9];
 } REC41;
 
 /* 0x2c-byte records through the far pointer at DS:6e1c [inferred]. */
 typedef struct {
-    char pad_000[0x1b];
+    char pad_000[0x15];
+    int f_015;
+    int f_017;
+    char f_019;
+    char f_01a;
     char f_01b;
     char f_01c;
     char f_01d;
@@ -166,7 +187,7 @@ typedef struct {
     char f_01f;
     char f_020;
     int f_021;
-    char pad_023[0x9];
+    char f_023[9];
 } REC2C;
 
 /* 0xad-byte records at DS:96ea (base as in seg03.c/seg11.c) [inferred]. */

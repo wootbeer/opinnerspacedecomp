@@ -376,3 +376,10 @@ Conventions
 - Race tracks (10:320a): LAZYLOOP, SDISPEED, GRANDPRI; layout in seg10b.c.
 - More types: g_fp_3c40 returns a bitmap handle; fn_10_6ec6 returns HBITMAP;
   g_2408 is DWORD.
+- To pick which copy of a cross-jumped tail CL keeps, turn one early
+  `return` into `goto out;` with `out:;` at the end.
+- Dword merging of adjacent constant stores has no single order rule: try
+  high field first and low field first.
+- `if ((c = f(k)) != 3 && c != 6 && c != 1)` gives a cmp/cmp/dec chain that
+  looks like a switch.
+- fn_13_a6bc is pascal (int); g_4eec is int[][3]; g_8e08 is long[].
