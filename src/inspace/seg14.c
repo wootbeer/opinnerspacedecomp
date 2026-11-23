@@ -15,14 +15,16 @@ typedef struct {
     int f_006;    /* DS:7098 */
     char pad_008[0x6];
     int f_00e;    /* DS:70a0 */
-    char pad_010[0x14];
+    char pad_010[0xc];
+    int f_01c;    /* DS:70ae */
+    char pad_01e[0x6];
     int f_024;    /* DS:70b6 */
     int f_026;    /* DS:70b8 */
     int f_028;    /* DS:70ba */
     char pad_02a[0x6];
     int f_030;    /* DS:70c2 */
     int f_032;    /* DS:70c4 */
-    char pad_034[0x2];
+    int f_034;    /* DS:70c6 */
     int f_036;    /* DS:70c8 */
     char pad_038[0x2];
     int f_03a;    /* DS:70cc */
@@ -32,7 +34,7 @@ typedef struct {
     int f_042;    /* DS:70d4 */
     char pad_044[0x8];
     int f_04c;    /* DS:70de */
-    char pad_04e[0x2];
+    int f_04e;    /* DS:70e0 */
     int f_050;    /* DS:70e2 */
     int f_052;    /* DS:70e4 */
     int f_054;    /* DS:70e6 */
@@ -40,7 +42,8 @@ typedef struct {
     char pad_058[0x3];
     char f_05b;    /* DS:70ed */
     char f_05c;    /* DS:70ee */
-    char pad_05d[0x3];
+    char pad_05d[0x2];
+    char f_05f;    /* DS:70f1 */
     int f_060[16];    /* DS:70f2 */
     int f_080;    /* DS:7112 */
     char pad_082[0x10];
@@ -52,13 +55,22 @@ typedef struct {
     char pad_0a6[0x4];
     char f_0aa;    /* DS:713c */
     char f_0ab;    /* DS:713d */
-    char pad_0ac[0x20];
+    char pad_0ac[0xa];
+    char f_0b6[16];    /* DS:7148 */
+    char pad_0c6[0x3];
+    char f_0c9;    /* DS:715b */
+    char pad_0ca[0x1];
+    char f_0cb;    /* DS:715d */
     int f_0cc;    /* DS:715e */
     char pad_0ce[0x6];
     int f_0d4;    /* DS:7166 */
     char pad_0d6[0x4];
     int f_0da;    /* DS:716c */
-    char pad_0dc[0xd];
+    char pad_0dc[0x6];
+    char f_0e2;    /* DS:7174 */
+    char pad_0e3[0x4];
+    char f_0e7;    /* DS:7179 */
+    char pad_0e8[0x1];
     char f_0e9;    /* DS:717b */
     char f_0ea;    /* DS:717c */
     char f_0eb;    /* DS:717d */
@@ -85,14 +97,15 @@ typedef struct {
     char pad_01c[0x2];
     int f_01e;
     int f_020;
-    char pad_022[0x4];
+    int f_022;
+    int f_024;
     int f_026;
     int f_028;
     char pad_02a[0x1c];
     int f_046;
     char pad_048[0x9];
     char f_051;
-    char pad_052[0x1];
+    char f_052;
     char f_053;
     char pad_054[0x12];
     FNPTR f_066;
@@ -120,16 +133,34 @@ typedef struct {
     char f_01b;
     char f_01c;
     char f_01d;
-    char pad_01e[0x2];
+    char f_01e;
+    char f_01f;
     char f_020;
     int f_021;
     char pad_023[0x9];
 } REC2C;
 
-/* 0xad-byte records at DS:970a [inferred base]. */
+/* 0xad-byte records at DS:96ea (base as in seg03.c/seg11.c) [inferred]. */
 typedef struct {
-    int f_000;
-    char pad_002[0xab];
+    char f_000;
+    char pad_001[0x1];
+    char f_002;
+    char pad_003[0x3];
+    int f_006;
+    char pad_008[0x16];
+    int f_01e;
+    int f_020;
+    char pad_022[0xc];
+    int f_02e;
+    char pad_030[0x20];
+    int f_050;
+    int f_052;
+    int f_054;
+    int f_056;
+    char pad_058[0x14];
+    char f_06c[37];
+    long f_091;
+    char pad_095[0x18];
 } RECAD;
 #pragma pack()
 /* END STRUCTS */
@@ -145,6 +176,40 @@ extern HGLOBAL g_95ac;
 extern char g_1332[];
 extern int g_0952[];
 extern int g_096c[];
+extern RECAD g_96ea[];
+extern REC70 far *g_1df8[];
+extern int g_9324;
+extern int g_9646;
+extern int g_9156;
+extern int g_90f4;
+extern int g_931e;
+extern unsigned long g_1e68;
+extern int g_39e8[];
+extern int g_4ed8[];
+
+/* 0x7c-byte records through the far pointer at DS:6e24 (REC_7C in
+ * seg04.c). */
+typedef struct {
+    int f_00;
+    char pad_02[0x7a - 0x02];
+    char f_7a;
+    char f_7b;
+} REC7C;
+extern REC7C far *g_6e24;
+
+/* 0x50-byte records at DS:2f5e [inferred]. */
+typedef struct {
+    int f_00;
+    char pad_02[0x50 - 0x02];
+} REC50;
+extern REC50 g_2f5e[];
+
+void far fn_10_86e2(int i);
+void far fn_10_5d3c(int i);
+void far fn_10_533a(int a);
+int far fn_10_86ca(void);                  /* seg10.c declares void */
+void far fn_10_6ee6(int a, int b, char far *s, int c, int d, long e,
+                    int g, int h, char i, char j, char k, int l);
 
 /* @addr 14:455c */
 int far fn_14_455c(int k)
@@ -336,4 +401,77 @@ int far fn_14_40d8(int n)
     for (k = 1; k < 11; k++)
         if (g_0952[k] <= u2 && g_096c[k] > u2)
             return k;
+}
+
+/* (Re)load the sprite of object n [inferred]. */
+/* @addr 14:11a8 */
+void far fn_14_11a8(int n)
+{
+    int slot, c, j, r, v, rec, u;
+    char sel;
+    char buf[30];
+    int f2, f1;
+
+    c = g_7092[n].f_04c;
+    slot = n + 40;
+    if (g_7092[n].f_04e != n && g_7092[g_7092[n].f_04e].f_0ab
+        && g_7092[g_7092[n].f_04e].f_0aa) {
+        if (g_96ea[c].f_02e) {
+            fn_10_86e2(n);
+            fn_10_5d3c(n);
+        }
+        goto done;
+    }
+    if (g_39e8[slot] && g_7092[n].f_0aa && g_7092[n].f_0ab)
+        goto done;
+    if (g_39e8[slot])
+        f1 = 1;
+    else
+        f1 = 0;
+    if (g_7092[n].f_0e2)
+        sel = 0;
+    else
+        sel = 2;
+    if (g_7092[n].f_0e7)
+        sel = 1;
+    if (g_90f4 == 1 && g_1e68 > 0) {
+        if ((g_931e == 1 && n != g_9646) || g_931e == 2)
+            f2 = 1;
+        else
+            f2 = 0;
+    } else if (g_931e == 2)
+        f2 = 1;
+    else
+        f2 = 0;
+    fn_10_6ee6(slot, g_96ea[c].f_01e, g_96ea[c].f_06c, 1, 0x63,
+               g_96ea[c].f_091, 1, 0, g_96ea[c].f_000, g_96ea[c].f_002,
+               sel, f2);
+    r = fn_10_86ca();
+    if (r & 1)
+        v = 5;
+    else
+        v = 6;
+    if (g_7092[n].f_0d4 != -1) {
+        g_6e24[g_7092[n].f_0d4].f_7a = (char)r;
+        g_6e24[g_7092[n].f_0d4].f_7b = (char)v;
+    } else if (!f1) {
+        g_1df8[g_9324][n].f_022 = r;
+        g_1df8[g_9324][n].f_024 = v;
+    }
+    u = g_7092[n].f_0d4;
+    if (u != -1)
+        rec = g_6e24[u].f_00;
+    else
+        rec = g_4ed8[g_7092[n].f_05c];
+    if (g_95a6) {
+        g_96ea[c].f_050 = g_6e1c[g_6e20[rec].f_021].f_01e - r / 2 - g_9156;
+        g_96ea[c].f_052 = g_6e1c[g_6e20[rec].f_021].f_01f - r / 2;
+        g_96ea[c].f_054 = -(g_96ea[c].f_050 + g_9156);
+        g_96ea[c].f_056 = g_96ea[c].f_052;
+    }
+done:
+    g_7092[n].f_0aa = g_7092[n].f_0ab = 1;
+    for (j = 0; j < g_7092[n].f_0c9; j++)
+        if (g_2f5e[g_7092[n].f_0b6[j]].f_00)
+            fn_10_533a(g_7092[n].f_0b6[j]);
 }

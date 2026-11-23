@@ -15,14 +15,16 @@ typedef struct {
     int f_006;    /* DS:7098 */
     char pad_008[0x6];
     int f_00e;    /* DS:70a0 */
-    char pad_010[0x14];
+    char pad_010[0xc];
+    int f_01c;    /* DS:70ae */
+    char pad_01e[0x6];
     int f_024;    /* DS:70b6 */
     int f_026;    /* DS:70b8 */
     int f_028;    /* DS:70ba */
     char pad_02a[0x6];
     int f_030;    /* DS:70c2 */
     int f_032;    /* DS:70c4 */
-    char pad_034[0x2];
+    int f_034;    /* DS:70c6 */
     int f_036;    /* DS:70c8 */
     char pad_038[0x2];
     int f_03a;    /* DS:70cc */
@@ -32,7 +34,7 @@ typedef struct {
     int f_042;    /* DS:70d4 */
     char pad_044[0x8];
     int f_04c;    /* DS:70de */
-    char pad_04e[0x2];
+    int f_04e;    /* DS:70e0 */
     int f_050;    /* DS:70e2 */
     int f_052;    /* DS:70e4 */
     int f_054;    /* DS:70e6 */
@@ -40,7 +42,8 @@ typedef struct {
     char pad_058[0x3];
     char f_05b;    /* DS:70ed */
     char f_05c;    /* DS:70ee */
-    char pad_05d[0x3];
+    char pad_05d[0x2];
+    char f_05f;    /* DS:70f1 */
     int f_060[16];    /* DS:70f2 */
     int f_080;    /* DS:7112 */
     char pad_082[0x10];
@@ -52,13 +55,22 @@ typedef struct {
     char pad_0a6[0x4];
     char f_0aa;    /* DS:713c */
     char f_0ab;    /* DS:713d */
-    char pad_0ac[0x20];
+    char pad_0ac[0xa];
+    char f_0b6[16];    /* DS:7148 */
+    char pad_0c6[0x3];
+    char f_0c9;    /* DS:715b */
+    char pad_0ca[0x1];
+    char f_0cb;    /* DS:715d */
     int f_0cc;    /* DS:715e */
     char pad_0ce[0x6];
     int f_0d4;    /* DS:7166 */
     char pad_0d6[0x4];
     int f_0da;    /* DS:716c */
-    char pad_0dc[0xd];
+    char pad_0dc[0x6];
+    char f_0e2;    /* DS:7174 */
+    char pad_0e3[0x4];
+    char f_0e7;    /* DS:7179 */
+    char pad_0e8[0x1];
     char f_0e9;    /* DS:717b */
     char f_0ea;    /* DS:717c */
     char f_0eb;    /* DS:717d */
@@ -85,14 +97,15 @@ typedef struct {
     char pad_01c[0x2];
     int f_01e;
     int f_020;
-    char pad_022[0x4];
+    int f_022;
+    int f_024;
     int f_026;
     int f_028;
     char pad_02a[0x1c];
     int f_046;
     char pad_048[0x9];
     char f_051;
-    char pad_052[0x1];
+    char f_052;
     char f_053;
     char pad_054[0x12];
     FNPTR f_066;
@@ -120,16 +133,34 @@ typedef struct {
     char f_01b;
     char f_01c;
     char f_01d;
-    char pad_01e[0x2];
+    char f_01e;
+    char f_01f;
     char f_020;
     int f_021;
     char pad_023[0x9];
 } REC2C;
 
-/* 0xad-byte records at DS:970a [inferred base]. */
+/* 0xad-byte records at DS:96ea (base as in seg03.c/seg11.c) [inferred]. */
 typedef struct {
-    int f_000;
-    char pad_002[0xab];
+    char f_000;
+    char pad_001[0x1];
+    char f_002;
+    char pad_003[0x3];
+    int f_006;
+    char pad_008[0x16];
+    int f_01e;
+    int f_020;
+    char pad_022[0xc];
+    int f_02e;
+    char pad_030[0x20];
+    int f_050;
+    int f_052;
+    int f_054;
+    int f_056;
+    char pad_058[0x14];
+    char f_06c[37];
+    long f_091;
+    char pad_095[0x18];
 } RECAD;
 #pragma pack()
 /* END STRUCTS */
@@ -151,7 +182,7 @@ extern char g_a157[];
 extern char g_a14d[];
 extern char g_a161;
 extern char g_a163;
-extern RECAD g_970a[];
+extern RECAD g_96ea[];
 extern REC70 far *g_1df8[];
 extern REC70 far *g_1e00;
 extern int g_9406[];
@@ -192,6 +223,8 @@ void far fn_13_2714(int, int, int, int, int, int);
 int far fn_13_2688(int i, int j);
 void far fn_03_00f4(int a, int s, int k);  /* seg03.c: (int, long) */
 extern int g_91fa;
+int far fn_04_5d9c(int a, int i);
+extern int flow_interactive;       /* DS:95bc */
 void far fn_03_33b4(int n);
 extern int g_9320;
 extern int g_964a;
@@ -441,7 +474,7 @@ void far fn_13_b93a(void)
 
     for (i = 0; i <= g_9316; i++) {
         if (g_7092[i].f_0ea && g_1e30[i].f_018 == 0
-            && g_970a[g_7092[i].f_04c].f_000 == 7 && g_7092[i].f_05c > 1
+            && g_96ea[g_7092[i].f_04c].f_020 == 7 && g_7092[i].f_05c > 1
             && g_1e30[i].f_01a != 0) {
             s1 = 0;
             s2 = 0;
@@ -513,17 +546,17 @@ void far fn_13_9f3e(int i)
 {
     int u1, u2, u3, t, cls, m, z;
 
-    cls = g_970a[g_7092[i].f_04c].f_000;
+    cls = g_96ea[g_7092[i].f_04c].f_020;
     m = g_7092[i].f_03c;
     t = g_7092[i].f_03e;
     u1 = z = 0;
-    if (m != 14 || g_970a[g_7092[t].f_04c].f_000 != cls) {
+    if (m != 14 || g_96ea[g_7092[t].f_04c].f_020 != cls) {
         t = -1;
         fn_03_06ec(i, 7, 0, 0x32);
     } else if (g_7092[t].f_050 != 0 && g_7092[t].f_050 != 7
                && g_7092[t].f_096 > g_1e50 && g_7092[t].f_05b > 1) {
         fn_03_06ec(i, 14, t, 0x31);
-    } else if (g_970a[g_7092[t].f_04c].f_000 == 7) {
+    } else if (g_96ea[g_7092[t].f_04c].f_020 == 7) {
         fn_03_06ec(i, 14, t, 0x40);
     } else {
         if (g_7092[t].f_050 != 0)
@@ -579,14 +612,14 @@ void far fn_13_a01c(int i)
 {
     int u1, u2, u3, t, cls, m, z;
 
-    cls = g_970a[g_7092[i].f_04c].f_000;
+    cls = g_96ea[g_7092[i].f_04c].f_020;
     m = g_7092[i].f_03c;
     t = g_7092[i].f_03e;
     u1 = z = 0;
-    if (m == 14 && g_970a[g_7092[t].f_04c].f_000 == 7) {
+    if (m == 14 && g_96ea[g_7092[t].f_04c].f_020 == 7) {
         fn_03_06ec(i, m, t, 0x40);
-    } else if (m != 14 || g_970a[g_7092[i].f_04c].f_000
-                          != g_970a[g_7092[t].f_04c].f_000) {
+    } else if (m != 14 || g_96ea[g_7092[i].f_04c].f_020
+                          != g_96ea[g_7092[t].f_04c].f_020) {
         fn_03_06ec(i, 7, 0, 0x36);
     } else if (g_7092[t].f_050 != 0 && g_7092[t].f_050 != 7
                && g_7092[t].f_09a > g_1e50 && g_7092[t].f_05b > 0) {
@@ -626,7 +659,7 @@ void far fn_13_9810(int i)
     }
     if (m != 14)
         return;
-    if (g_970a[g_7092[t].f_04c].f_000 == 7) {
+    if (g_96ea[g_7092[t].f_04c].f_020 == 7) {
         fn_03_06ec(i, 14, t, 0x40);
         return;
     }
@@ -823,7 +856,7 @@ void far fn_13_b6f2(int a, int t)
         return;
     }
     for (i = 0; i <= g_9316; i++) {
-        if (g_970a[g_7092[i].f_04c].f_000 == 7 && g_1e30[i].f_018 == 0
+        if (g_96ea[g_7092[i].f_04c].f_020 == 7 && g_1e30[i].f_018 == 0
             && g_7092[i].f_050 != 0x16 && g_7092[i].f_050 != 0x17
             && (d = fn_08_285a(&y, &x, g_1e30[i].f_004, g_1e30[a].f_004))
                < 2400
@@ -838,7 +871,7 @@ void far fn_13_b6f2(int a, int t)
                 fn_03_06ec(a, 14, i, 0x44);
                 return;
             }
-        } else if (g_970a[g_7092[i].f_04c].f_000 == 7
+        } else if (g_96ea[g_7092[i].f_04c].f_020 == 7
                    && g_1e30[i].f_018 == 0)
             flag = 0;
     }
@@ -860,8 +893,8 @@ int far fn_13_9ce0(int a)
     k = g_7092[a].f_03e;
     if (!g_1df8[s][k].f_053) {
         for (i = 0; i <= g_9316; i++)
-            if (g_970a[g_7092[i].f_04c].f_000
-                    == g_970a[g_7092[a].f_04c].f_000 && i != a)
+            if (g_96ea[g_7092[i].f_04c].f_020
+                    == g_96ea[g_7092[a].f_04c].f_020 && i != a)
                 break;
         if (i <= g_9316) {
             if (s == 14)
@@ -877,8 +910,8 @@ int far fn_13_9ce0(int a)
             && (g_7092[i].f_050 == 0 || g_7092[i].f_050 == 7
                 || g_7092[i].f_096 < g_1e50)
             && i != a
-            && g_970a[g_7092[i].f_04c].f_000
-               == g_970a[g_7092[a].f_04c].f_000) {
+            && g_96ea[g_7092[i].f_04c].f_020
+               == g_96ea[g_7092[a].f_04c].f_020) {
             if (g_7092[i].f_050 != 0)
                 fn_03_06ec(g_7092[i].f_056, 14, i, 0x13);
             g_7092[i].f_050 = 9;
@@ -901,7 +934,7 @@ int far fn_13_9ce0(int a)
     if (done)
         return 0;
     for (i = 0; i <= g_9316; i++)
-        if (g_970a[g_7092[i].f_04c].f_000 == g_970a[g_7092[a].f_04c].f_000
+        if (g_96ea[g_7092[i].f_04c].f_020 == g_96ea[g_7092[a].f_04c].f_020
             && i != a)
             break;
     if (i <= g_9316)
@@ -909,4 +942,123 @@ int far fn_13_9ce0(int a)
     else
         fn_03_06ec(a, 7, 0, 0x27);
     return 0;
+}
+
+/* near-match 38%: 13:8e98 (the game stores done = 1 right after f_050 = 5
+ * and reloads the record index after each call; CL sinks the store and
+ * keeps the index in si) */
+void far fn_13_8e98(int a)
+{
+    int i, u, s, k, done;
+
+    u = done = 0;
+    s = g_7092[a].f_03c;
+    k = g_7092[a].f_03e;
+    if (s != 14)
+        return;
+    if ((a != g_9646 || g_9134 != 0) && g_7092[a].f_09a > g_1e50)
+        return;
+    g_7092[a].f_09a = g_1e50 + 5000;
+    if (fn_13_910a(a)) {
+        fn_03_06ec(a, 7, 0, 100);
+        return;
+    }
+    for (i = 0; i <= g_9316; i++) {
+        if (g_96ea[g_7092[i].f_04c].f_020 != 6 && g_1e30[i].f_018 == 0
+            && g_7092[i].f_0ea
+            && (g_7092[i].f_050 == 0 || g_7092[i].f_050 == 7
+                || g_7092[i].f_096 < g_1e50 || a == g_9646)
+            && (u = fn_13_2688(i, k) + -50 * g_7092[i].f_05b
+                    + fn_13_2688(i, a)) > 0
+            && i != a && k != i) {
+            if (i == g_9646 && g_9134 && flow_interactive) {
+                if (g_1e50 - 15000 > g_8858) {
+                    g_964e = 5;
+                    g_9654 = a;
+                    g_9650 = s;
+                    g_9652 = k;
+                    g_8858 = g_1e50;
+                    fn_03_06ec(g_9646, 14, a, 0x34);
+                }
+                return;
+            }
+            if (g_96ea[g_7092[i].f_04c].f_020 != 7) {
+                g_7092[i].f_050 = 5;
+                done = 1;
+                fn_03_06ec(g_7092[i].f_056, 14, a, 0x13);
+                g_7092[i].f_092 = g_1e50 + 200;
+                g_7092[i].f_096 = g_1e50 + 20000;
+                g_7092[a].f_09a = g_1e50 + 15000;
+                g_7092[i].f_052 = g_7092[a].f_03c;
+                g_7092[i].f_054 = g_7092[a].f_03e;
+                g_7092[i].f_0eb = 1;
+                fn_03_06ec(i, 14, a, 2);
+                g_7092[i].f_056 = a;
+                fn_13_2714(g_7092[a].f_03e, a, 15, 0x32, 1, -1);
+                break;
+            }
+        }
+    }
+    if (done)
+        return;
+    if (a != g_9646 || flow_interactive)
+        fn_03_06ec(a, 7, 0, 5);
+}
+
+/* Pick an ally of a against b, or a negative reason code [inferred]. */
+/* @addr 13:78b8 */
+int far fn_13_78b8(int a, int b)
+{
+    int i, r, m, d;
+
+    if (g_96ea[g_7092[a].f_04c].f_006 / 10 > g_7092[a].f_01c)
+        return -6;
+    m = fn_13_2688(a, b);
+    if (g_96ea[g_7092[b].f_04c].f_020 == g_96ea[g_7092[a].f_04c].f_020)
+        m += 200;
+    if (g_7092[b].f_05b < 3)
+        m += (3 - g_7092[b].f_05b) * 4;
+    m += 20 * g_7092[a].f_0f4[b][6];
+    m += 40 * g_7092[a].f_0f4[b][8];
+    if (g_7092[a].f_0cb == b)
+        m += 600;
+    for (i = 0; i <= g_9316; i++) {
+        if (g_1e30[i].f_018 == 0 && i != a && i != b && g_7092[i].f_0ea
+            && g_7092[i].f_030 == g_7092[a].f_052
+            && g_7092[i].f_032 == g_7092[a].f_054
+            && (g_7092[i].f_036 == 1 || fn_13_2688(i, b) < 0)) {
+            r = fn_13_2688(a, i);
+            if (g_96ea[g_7092[i].f_04c].f_020 == g_96ea[g_7092[a].f_04c].f_020)
+                r += 200;
+            if (g_96ea[g_7092[i].f_04c].f_020 == 7) {
+                if (g_96ea[g_7092[a].f_04c].f_020 == 3
+                    || g_96ea[g_7092[a].f_04c].f_020 == 6)
+                    r -= 150;
+                else if (g_96ea[g_7092[a].f_04c].f_020 == 1
+                         || g_96ea[g_7092[a].f_04c].f_020 == 5)
+                    r += 20;
+                else
+                    r += 100;
+            }
+            r += 25 * g_7092[i].f_0f4[b][1];
+            d = fn_04_5d9c(a, i);
+            d += g_7092[a].f_05b * d / -5;
+            if (g_96ea[g_7092[b].f_04c].f_020 == g_96ea[g_7092[a].f_04c].f_020
+                || g_96ea[g_7092[a].f_04c].f_020 == 4)
+                d <<= 1;
+            if (g_7092[a].f_0cb == b)
+                d += 50;
+            if (d < 50)
+                return -2;
+            if (m < r) {
+                if (g_96ea[g_7092[i].f_04c].f_020 == 7)
+                    return -3;
+                if (g_7092[b].f_0f4[i][1] + 2 < g_7092[i].f_0f4[b][1])
+                    return -4;
+                return -5;
+            }
+            return i;
+        }
+    }
+    return -1;
 }

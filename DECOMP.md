@@ -168,3 +168,11 @@ Conventions
   source file (inventory/files.tsv).
 - More type notes: g_1d48 is a POINT (GetCursorPos); fn_06_1c0c takes one
   argument; fn_06_12b6 is pascal with a 26-byte struct by value.
+- `u1 = z = 0;` with u1 unused reproduces dead `xor reg,reg` zeroing.
+- `if (p.b != 14) return;` (early return) keeps struct fields in memory.
+- `u = rec.f; if (u != -1)` gives the `mov cx,ax; inc ax; je` pattern.
+- Window procs: `UINT cmd; switch (cmd = wParam & 0xfff0)`.
+- Record bases (lowest offset touched): 0x1e-byte records DS:6e38; class
+  records (0xad) DS:96ea; 0x22-byte records DS:915c.
+- Pascal callees: fn_08_08a6, fn_08_2658, draw_scaled_object (retf 0xc),
+  fn_08_1b54. fn_10_86ca returns int.

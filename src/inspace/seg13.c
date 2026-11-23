@@ -18,14 +18,16 @@ typedef struct {
     int f_006;    /* DS:7098 */
     char pad_008[0x6];
     int f_00e;    /* DS:70a0 */
-    char pad_010[0x14];
+    char pad_010[0xc];
+    int f_01c;    /* DS:70ae */
+    char pad_01e[0x6];
     int f_024;    /* DS:70b6 */
     int f_026;    /* DS:70b8 */
     int f_028;    /* DS:70ba */
     char pad_02a[0x6];
     int f_030;    /* DS:70c2 */
     int f_032;    /* DS:70c4 */
-    char pad_034[0x2];
+    int f_034;    /* DS:70c6 */
     int f_036;    /* DS:70c8 */
     char pad_038[0x2];
     int f_03a;    /* DS:70cc */
@@ -35,7 +37,7 @@ typedef struct {
     int f_042;    /* DS:70d4 */
     char pad_044[0x8];
     int f_04c;    /* DS:70de */
-    char pad_04e[0x2];
+    int f_04e;    /* DS:70e0 */
     int f_050;    /* DS:70e2 */
     int f_052;    /* DS:70e4 */
     int f_054;    /* DS:70e6 */
@@ -43,7 +45,8 @@ typedef struct {
     char pad_058[0x3];
     char f_05b;    /* DS:70ed */
     char f_05c;    /* DS:70ee */
-    char pad_05d[0x3];
+    char pad_05d[0x2];
+    char f_05f;    /* DS:70f1 */
     int f_060[16];    /* DS:70f2 */
     int f_080;    /* DS:7112 */
     char pad_082[0x10];
@@ -55,13 +58,22 @@ typedef struct {
     char pad_0a6[0x4];
     char f_0aa;    /* DS:713c */
     char f_0ab;    /* DS:713d */
-    char pad_0ac[0x20];
+    char pad_0ac[0xa];
+    char f_0b6[16];    /* DS:7148 */
+    char pad_0c6[0x3];
+    char f_0c9;    /* DS:715b */
+    char pad_0ca[0x1];
+    char f_0cb;    /* DS:715d */
     int f_0cc;    /* DS:715e */
     char pad_0ce[0x6];
     int f_0d4;    /* DS:7166 */
     char pad_0d6[0x4];
     int f_0da;    /* DS:716c */
-    char pad_0dc[0xd];
+    char pad_0dc[0x6];
+    char f_0e2;    /* DS:7174 */
+    char pad_0e3[0x4];
+    char f_0e7;    /* DS:7179 */
+    char pad_0e8[0x1];
     char f_0e9;    /* DS:717b */
     char f_0ea;    /* DS:717c */
     char f_0eb;    /* DS:717d */
@@ -88,14 +100,15 @@ typedef struct {
     char pad_01c[0x2];
     int f_01e;
     int f_020;
-    char pad_022[0x4];
+    int f_022;
+    int f_024;
     int f_026;
     int f_028;
     char pad_02a[0x1c];
     int f_046;
     char pad_048[0x9];
     char f_051;
-    char pad_052[0x1];
+    char f_052;
     char f_053;
     char pad_054[0x12];
     FNPTR f_066;
@@ -123,16 +136,34 @@ typedef struct {
     char f_01b;
     char f_01c;
     char f_01d;
-    char pad_01e[0x2];
+    char f_01e;
+    char f_01f;
     char f_020;
     int f_021;
     char pad_023[0x9];
 } REC2C;
 
-/* 0xad-byte records at DS:970a [inferred base]. */
+/* 0xad-byte records at DS:96ea (base as in seg03.c/seg11.c) [inferred]. */
 typedef struct {
-    int f_000;
-    char pad_002[0xab];
+    char f_000;
+    char pad_001[0x1];
+    char f_002;
+    char pad_003[0x3];
+    int f_006;
+    char pad_008[0x16];
+    int f_01e;
+    int f_020;
+    char pad_022[0xc];
+    int f_02e;
+    char pad_030[0x20];
+    int f_050;
+    int f_052;
+    int f_054;
+    int f_056;
+    char pad_058[0x14];
+    char f_06c[37];
+    long f_091;
+    char pad_095[0x18];
 } RECAD;
 #pragma pack()
 /* END STRUCTS */
@@ -156,7 +187,7 @@ typedef struct {
 } REC1E;
 extern REC1E g_6e38[];
 
-extern RECAD g_970a[];
+extern RECAD g_96ea[];
 
 /* 0x1e-byte records at DS:6f98, eight of them [inferred: smart-window
  * entries, see fn_13_638a]. */
@@ -214,6 +245,38 @@ extern int g_238c;
 extern int g_951a;
 extern int g_9646;
 extern int g_8f68;
+extern int g_0992;
+extern int g_932a;
+extern int g_9334;
+extern int g_3854[];
+typedef struct { unsigned char idx, type; } OBJREF;   /* as in seg08.c */
+#define G_05A0_INT (*(int *)&g_05a0)    /* inspace.h declares DS:05a0 long */
+extern int g_05a2;
+extern int g_9318;
+extern REC70 far *g_1e18;
+extern int subgame_active;          /* DS:9130 */
+
+/* 0x22-byte records at DS:915c, three of them [inferred: explosions];
+ * seg10b.c's SURF_22 at DS:9168 is the same array from +0x0c. */
+typedef struct {
+    int f_00;
+    int f_02;
+    int f_04;
+    int f_06;
+    int f_08;
+    int f_0a;
+    HDC f_0c;                       /* DS:9168 */
+    HDC f_0e;
+    char pad_10[0x1a - 0x10];
+    int f_1a;
+    int f_1c;
+    char pad_1e[0x22 - 0x1e];
+} REC22;
+extern REC22 g_915c[];
+extern int g_9156;
+extern HBITMAP g_39c4[];
+extern HDC g_3a38[];
+extern HBITMAP g_3b20[];
 extern HMENU g_9606;
 extern int g_8ff0;
 extern int g_094e;
@@ -299,6 +362,7 @@ void far fn_13_54da(HDC hdc, int a, int k, int j, int i, int shift);
 void far fn_13_5c22(HDC hdc, int x, int y, int s, int k, int w, int c);
 void far fn_13_6450(HDC hdc, int b, int c);
 void far fn_13_6890(int i);
+void far fn_13_6716(int i);
 
 void far pascal draw_scaled_object(int s, int k, int a, int b, int c,
                                    int d);
@@ -314,6 +378,17 @@ void far fn_11_3ed8(int w);
 void far fn_03_00f4(int a, int s, int k);  /* seg03.c: (int, long) */
 int far fn_13_2206(void);
 void far fn_07_63b6(HMENU menu, LPCSTR text, int checked, UINT id);
+int far fn_10_6c02(int a, int b, int c);
+int far fn_10_6308(int a, int b, int c, int d);
+int far fn_10_6ec6(int a);
+void far pascal fn_08_08a6(int i);
+void far fn_10_37d0(int i);
+void far fn_07_5d6a(POINT p, int a, int c, int d);
+int far pascal fn_08_2658(int s, int k, int a, int b);
+void far fn_04_5e8e(int i, int n, int a, int b);
+int far fn_13_adbe(int a, int b, int c);   /* summon_with_music, seg13b.c */
+void far fn_13_b6f2(int a, int t);         /* seg13b.c */
+void far fn_13_2714(int, int, int, int, int, int);
 void far fn_07_1208(void);
 void far fn_03_045a(int a);
 void far fn_07_63f2(void);
@@ -407,6 +482,84 @@ void far fn_13_5878(void)
     SetActiveWindow(g_0016);
 }
 
+/* Turn direction cur (0..15) one step toward the target [inferred].
+ * Mode 2 with the Demon sub-game uses the homing table; modes 3/4 aim
+ * off to the side, 5/0x1e straight away. d stays unset for other modes
+ * (HANDOFF: never reached; launch code stores modes 2, 3 and 4). */
+/* @addr 13:0d6c */
+int far pascal steer_toward_direction(int y2, int x2, int y1, int x1, int cur,
+                                      int mode, int obj, int a, int b, int c)
+{
+    struct { int y, x; } v;
+    int d, u1, u2, u3, u4, u5, u6;
+
+    if (obj > -1) {
+        if (g_7092[obj].f_0e9 != 0)
+            return cur;
+        if (g_7092[obj].f_00e > 0 && g_7092[obj].f_00e < 7)
+            return cur;
+    }
+    y2 >>= 3;
+    y1 >>= 3;
+    x1 >>= 3;
+    x2 >>= 3;
+    v.x = x1 - x2;
+    if (fn_09_88ba(v.x) > G_05A0_INT >> 1 && g_9320 != 6) {
+        v.x = (0 > v.x ? x1 + G_05A0_INT : x1 - G_05A0_INT) - x2;
+    }
+    v.y = y1 - y2;
+    if (fn_09_88ba(v.y) > g_05a2 >> 1 && g_9320 != 6) {
+        v.y = (0 > v.y ? y1 + g_05a2 : y1 - g_05a2) - y2;
+    }
+    if (mode == 2) {
+        if (g_9320 == 6 && a != 4) {
+            d = fn_08_19b0(v.x, v.y);
+            if (obj > -1 && g_7092[obj].f_147 && g_7092[obj].f_030 == 8) {
+                if (g_1e18[g_7092[obj].f_146 + g_9318 * 2].f_052)
+                    d = (g_7092[obj].f_147 + d) & 15;
+                else
+                    d = (char)(d - g_7092[obj].f_147) & 15;
+            }
+            if (obj > -1) {
+                if (fn_09_88ba(g_1e30[obj].f_028 - d) >= 6
+                    && fn_09_88ba(g_1e30[obj].f_028 - d) <= 10)
+                    g_7092[obj].f_05f = 0;
+                else
+                    g_7092[obj].f_05f = 1;
+            }
+        } else if (c != 0 || g_9320 == 6) {
+            d = fn_08_2658(g_9324, obj, a, b);
+            if (g_9320 == 6)
+                g_7092[obj].f_05f = 1;
+        } else
+            d = fn_08_19b0(v.x, v.y);
+    } else if (mode == 4)
+        d = fn_08_19b0(v.y - (v.x >> 2), -(v.x + (v.y >> 2)));
+    else if (mode == 3)
+        d = fn_08_19b0(-((v.x >> 2) + v.y), v.x - (v.y >> 2));
+    else if (mode == 5 || mode == 0x1e)
+        d = fn_08_19b0(-v.x, -v.y);
+    if (d < 0 || d > 15)
+        return cur;
+    if (mode == 0x1e || obj == -100)
+        return d;
+    if (d == cur)
+        return d;
+    fn_13_6716(obj);
+    if (d < cur) {
+        if (cur - d < 9)
+            cur--;
+        else if (++cur > 15)
+            cur = 0;
+    } else {
+        if (d - cur < 9)
+            cur++;
+        else if (--cur < 0)
+            cur = 15;
+    }
+    return cur;
+}
+
 /* @addr 13:100c */
 int far pascal fn_13_100c(int i, int v)
 {
@@ -480,8 +633,8 @@ int far fn_13_2688(int i, int j)
     int a, b, u;
     int r;
 
-    a = g_970a[g_7092[i].f_04c].f_000;
-    b = g_970a[g_7092[j].f_04c].f_000;
+    a = g_96ea[g_7092[i].f_04c].f_020;
+    b = g_96ea[g_7092[j].f_04c].f_020;
     r = g_7092[i].f_060[j] + g_3824[a][b];
     if (r > 0)
         r += (3 - g_7092[i].f_05b) * 20;
@@ -970,7 +1123,7 @@ void far pascal fn_13_2e60(int p, int q, int t)
     if (t == 9)
         return;
     if (t == 2 || t == 3) {
-        if (g_970a[g_7092[q].f_04c].f_000 == g_970a[g_7092[p].f_04c].f_000)
+        if (g_96ea[g_7092[q].f_04c].f_020 == g_96ea[g_7092[p].f_04c].f_020)
             return;
         if (fn_13_2688(p, q) > 70)
             return;
@@ -993,8 +1146,8 @@ void far fn_13_3302(void)
             && g_7092[i].f_146 == g_7092[g_9646].f_030
             && g_7092[i].f_147 == g_7092[g_9646].f_032 && i != g_9646
             && (fn_13_2688(i, g_9646) > 0
-                || g_970a[g_7092[i].f_04c].f_000
-                   == g_970a[g_7092[g_9646].f_04c].f_000))
+                || g_96ea[g_7092[i].f_04c].f_020
+                   == g_96ea[g_7092[g_9646].f_04c].f_020))
             fn_03_06ec(g_9646, 14, i, 0xb8);
         g_7092[i].f_146 = g_7092[i].f_147 = -1;
     }
@@ -1056,8 +1209,8 @@ void far fn_13_498e(int a, int b)
     if (b) {
         for (i = 0; i <= g_9316; i++) {
             if (g_7092[i].f_0ea
-                && ((g_970a[g_7092[i].f_04c].f_000 == 7 && g_7092[i].f_05c > 1)
-                    || g_970a[g_7092[i].f_04c].f_000 == 3)) {
+                && ((g_96ea[g_7092[i].f_04c].f_020 == 7 && g_7092[i].f_05c > 1)
+                    || g_96ea[g_7092[i].f_04c].f_020 == 3)) {
                 g_7092[i].f_050 = 0;
                 g_7092[i].f_004 = g_7092[i].f_030 = 11;
                 g_7092[i].f_032 = g_7092[i].f_006 = sel;
@@ -1348,4 +1501,186 @@ void far fn_13_24aa(int w)
     else
         g_6e38[w].f_0c = PALETTERGB(0, 0x72, 0);
     fn_11_3ed8(w);
+}
+
+/* Build object k's 16 rotation frames into its sprite DC [inferred]. */
+/* @addr 13:4710 */
+void far fn_13_4710(int k)
+{
+    HBITMAP bm2, old2, bm1, old1, bm3, old3;
+    HDC dc2, dc1, dc3;
+    HPALETTE pal;
+    int u1, u2, j, size, w, m, off, h;
+
+    fn_10_754a(0x6a, g_9324, k, 1);
+    size = (32 << g_9156) >> 1;
+    bm1 = fn_10_6308(-1, -1, fn_10_6c02(0xe6, 0, -1), -1);
+    bm2 = fn_10_6ec6(bm1);
+    dc1 = CreateCompatibleDC(g_13dc);
+    old1 = SelectObject(dc1, bm1);
+    if (g_920e)
+        pal = SelectPalette(dc1, g_920e, 0);
+    dc2 = CreateCompatibleDC(g_13dc);
+    old2 = SelectObject(dc2, bm2);
+    SelectObject(g_3a38[k], g_39c4[k]);
+    bm3 = fn_10_6ec6(g_3b20[k]);
+    g_39c4[k] = SelectObject(g_3a38[k], g_3b20[k]);
+    dc3 = CreateCompatibleDC(g_13dc);
+    old3 = SelectObject(dc3, bm3);
+    w = g_1df8[g_9324][k].f_022;
+    h = g_1df8[g_9324][k].f_024;
+    m = min(w, size);
+    off = max((w - size) / 2, 0);
+    BitBlt(dc3, 0, -((9 << g_9156) >> 1), w * 16 + h * 17, w + h * 2,
+           dc3, 0, 0, SRCAND);
+    for (j = 0; j < 16; j++) {
+        BitBlt(g_3a38[k], (h + w) * j + h + off, h + off, m, m,
+               dc2, (j % 5) * size, 0, SRCAND);
+        BitBlt(g_3a38[k], (h + w) * j + h + off, h + off, m, m,
+               dc1, (j % 5) * size, 0, SRCPAINT);
+        BitBlt(g_3a38[k], (h + w) * j + h, h, w, w,
+               dc3, (h + w) * j + h, h, 0x00220326L);
+    }
+    SelectObject(dc1, old1);
+    SelectObject(dc2, old2);
+    SelectObject(dc3, old3);
+    if (pal)
+        SelectPalette(dc1, pal, 0);
+    DeleteDC(dc1);
+    DeleteDC(dc3);
+    DeleteDC(dc2);
+    DeleteObject(bm2);
+    DeleteObject(bm3);
+    DeleteObject(bm1);
+}
+
+/* Animate the three explosion surfaces [inferred]. */
+/* @addr 13:447a */
+void far fn_13_447a(void)
+{
+    int i, s;
+    HBITMAP bm2, old2, bm1, old1;
+    HDC dc2, dc1;
+    HPALETTE pal;
+    POINT p;
+    int s2;
+
+    for (i = 0; i < 3; i++) {
+        if (g_915c[i].f_1a > 0) {
+            fn_08_08a6(i);
+            g_915c[i].f_00 += g_915c[i].f_08;
+            g_915c[i].f_02 += g_915c[i].f_0a;
+            g_915c[i].f_08 -= g_915c[i].f_08 >> 4;
+            g_915c[i].f_0a -= g_915c[i].f_0a >> 4;
+            if (g_915c[i].f_1a == 1) {
+                bm1 = fn_10_6308(-1, -1, fn_10_6c02(0xe6, 0, -1), -1);
+                bm2 = fn_10_6ec6(bm1);
+                dc1 = CreateCompatibleDC(g_13dc);
+                old1 = SelectObject(dc1, bm1);
+                if (g_920e)
+                    pal = SelectPalette(dc1, g_920e, 0);
+                dc2 = CreateCompatibleDC(g_13dc);
+                old2 = SelectObject(dc2, bm2);
+                if (!subgame_active)
+                    s = (32 << g_9156) >> 1;
+                else
+                    s = ((g_9156 << 6) + 32) / 3;
+                BitBlt(g_915c[i].f_0c, 0, 0, s * 5, s, dc2, 0, 0, SRCAND);
+                BitBlt(g_915c[i].f_0c, 0, 0, s * 5, s, dc1, 0, 0, SRCPAINT);
+                BitBlt(g_915c[i].f_0c, 0, 0, s * 5, s, g_915c[i].f_0e, 0, 0,
+                       0x00220326L);
+                fn_07_1208();
+                SelectObject(dc1, old1);
+                SelectObject(dc2, old2);
+                if (pal)
+                    SelectPalette(dc1, pal, 0);
+                DeleteDC(dc1);
+                DeleteDC(dc2);
+                DeleteObject(bm2);
+                DeleteObject(bm1);
+            } else if (g_915c[i].f_1a == 0x32 || g_915c[i].f_1a == 0x38
+                       || g_915c[i].f_1a == 0x3d || g_915c[i].f_1a == 0x3f
+                       || g_915c[i].f_1a == 0x41 || g_915c[i].f_1a == 0x42) {
+                p.x = g_915c[i].f_00 + 0x80;
+                p.y = g_915c[i].f_02 + 0x80;
+                fn_07_5d6a(p, 1, rand() % 60 - 30, rand() % 60 - 30);
+            }
+            g_915c[i].f_1a++;
+            if (g_915c[i].f_1a == g_915c[i].f_1c) {
+                if (!subgame_active)
+                    s2 = (32 << g_9156) >> 1;
+                else
+                    s2 = ((g_9156 << 6) + 32) / 3;
+                g_915c[i].f_1a = 0;
+                PatBlt(g_13dc, g_915c[i].f_04, g_915c[i].f_06, s2, s2,
+                       BLACKNESS);
+                fn_10_37d0(i);
+            }
+        }
+    }
+}
+
+/* Aftermath of object r being collected by n [inferred]. Compares
+ * f_004 with both type and index (as the game does). */
+/* @addr 13:3008 */
+void far ship_collected_aftermath(OBJREF r, int n)
+{
+    int i, t, k, chance, v;
+
+    t = r.type;
+    k = r.idx;
+    if ((g_7092[n].f_050 == 9 || g_7092[n].f_050 == 12)
+        && g_7092[n].f_052 == t && g_7092[n].f_054 == k) {
+        fn_03_06ec(g_7092[n].f_056, g_9324, n, 0x20);
+        g_7092[n].f_050 = 0;
+        g_7092[n].f_092 = g_1e50;
+        for (i = 0; i <= g_9316; i++) {
+            if (i != n && g_7092[i].f_004 == t && g_7092[i].f_004 == k
+                && g_7092[i].f_034 == 2 && g_1df8[g_9324][i].f_018 == 0
+                && g_7092[i].f_0ea) {
+                fn_03_06ec(n, g_9324, i, 0x49);
+                fn_13_2714(i, g_7092[n].f_056, -5, -20, 0, -1);
+                fn_03_06ec(g_7092[n].f_056, g_9324, i, 0x4a);
+                fn_04_5e8e(i, n, 0x5a, 2);
+            }
+        }
+    } else {
+        for (i = 0; i <= g_9316; i++) {
+            if (i != n && g_7092[i].f_030 == t && g_7092[i].f_036 == 2
+                && g_7092[i].f_032 == k && g_1df8[g_9324][i].f_018 == 0
+                && g_7092[i].f_0ea) {
+                if (g_96ea[g_7092[i].f_04c].f_020 == 7 && t == 6
+                    && i == g_9646)
+                    fn_13_b6f2(n, 4);
+                else if (g_7092[i].f_146 == t && g_7092[i].f_147 == k
+                         && (t == 0 || t == 11)) {
+                    fn_03_06ec(n, g_9324, i, 0x49);
+                    if (t == 4)
+                        v = 0x32;
+                    else
+                        v = 0x5a;
+                    fn_04_5e8e(i, n, v, 2);
+                }
+            }
+        }
+    }
+    if (n != g_9646 && g_7092[n].f_0cc > 350 && g_9208 + 3 > g_9316
+        && g_96ea[g_7092[n].f_04c].f_020 != 3 && g_0992 + 20 < g_932a) {
+        chance = (g_7092[n].f_0cc - 200) / 50
+                 + g_3854[g_96ea[g_7092[n].f_04c].f_020] / -100
+                 - g_9316 / 2 + g_9334 / 2 + 2;
+        if (g_7092[n].f_024 < 40)
+            chance++;
+        if (rand() % 30 < chance && g_9334 > 0) {
+            for (i = 0; i <= g_9316; i++)
+                if (!g_7092[i].f_0ea || g_96ea[g_7092[i].f_04c].f_020 == 0
+                    || !g_7092[i].f_0cb)
+                    fn_13_adbe(n, 3, 0x69);
+        }
+    }
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_13_2714(int a, int b, int c, int d, int e, int f)
+{
 }
