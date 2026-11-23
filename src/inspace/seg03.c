@@ -154,8 +154,26 @@ typedef struct {                /* 0x50-byte records at DS:2f4c */
 } REC_50;
 extern REC_50 g_2f4c[];
 
+extern DWORD g_870c;
+extern int g_9608;
+extern int g_1cb0;
+extern int g_1cb2;
+extern DWORD g_1cb4;
+extern int g_094e;
+extern int g_0a76;
+extern int g_90ea;
+extern int g_9602;
+extern int g_9604;
+extern int g_964e;
+extern int g_9650;
+extern int g_9652;
+extern char g_8740[];               /* run-time buffer (BSS) */
+void far fn_10_744c(int a);
+void far fn_06_1010(int v, int div, int width, char far *buf);
+void far fn_07_119c(int a, int b);  /* defined with one parameter */
+void far fn_11_3e6e(void);
+
 /* Not yet decompiled: stubs so calls to them compile as near calls. */
-void far fn_03_06ec(int n, int kind, int target, int d) { }
 void far fn_03_1d0a(int n, int target, int c) { }
 
 /* @addr 3:0000 */
@@ -311,6 +329,680 @@ int far fn_03_065e(int a, int b, int c)
         goto yes;
     }
     return 0;
+}
+
+/* Builds the message lines for event kind about target (type, k) of the
+ * player's object n [inferred]. */
+/* @addr 3:06ec */
+void far fn_03_06ec(int n, int type, int k, int kind)
+{
+    char buf[50];
+    char pad[40];               /* unused locals: frame layout */
+    int i;
+    int u1, u2, u3;
+    int t;
+    int a;
+    int u4;
+    int b;
+    int c;
+    int tt;
+    int tn;
+    int s54;
+    int s52;
+    int u5, u6, u7, u8, u9;
+
+    if (n != g_9646)
+        return;
+    if (type == 0xe && k == g_9646)
+        return;
+    if (kind == 0xb7 && (g_7090[k].f32 == 0xc || g_7090[k].f06 == 0xc))
+        return;
+    g_6e70 = k;
+    g_6e72 = type;
+    if (type == 0xe) {
+        tt = g_7090[k].f54;
+        tn = g_7090[k].f56;
+    }
+    s54 = g_6e54;
+    s52 = g_6e52;
+    if (g_0a76 != 3)
+        fn_07_119c(3, 0);
+    if (g_0a7c)
+        fn_11_3e6e();
+    if (type == -1) {
+        LoadString(g_9212, 0x8a5, g_8740, 40);
+        lstrcpy(g_8768, "");
+        lstrcpy(g_87b8, "");
+        g_870c = g_1e50 + 3000;
+        g_9608 = 0;
+        return;
+    }
+    if (type != 0xe && type != 7 && type != 2)
+        return;
+    fn_03_1542(0, type, k, g_8740, 0);
+    t = k;
+    if (g_094e) {
+        if (type == 7)
+            g_870c = g_1e50 + 2500;
+        else
+            g_870c = g_1e50 + 5000;
+    } else
+        g_870c = g_1e50 + 7000;
+    g_9608 = 0;
+    g_1cb2 = k;
+    g_1cb0 = kind;
+    switch (kind) {
+    case 1:
+        g_870c = g_1e50 + 9000;
+        switch (g_7090[t].f52) {
+        case 1:
+            fn_10_744c(0x37);
+            fn_10_a332(g_8db0, 0x125, 2);
+            break;
+        case 5:
+            fn_10_744c(0x6d);
+            fn_10_a332(g_8db0, 0x127, 2, tt, tn, 5, tt == 0xe && tn == g_9646);
+            break;
+        case 2:
+        case 3:
+            fn_10_744c(0x6c);
+            if (g_7090[t].f54 == 9) {
+                if (fn_13_2688(t, g_9646) > -50)
+                    fn_10_a332(g_8db0, 0x57a, 2);
+                else
+                    fn_10_a332(g_8db0, 0x57b, 2);
+            } else
+                fn_10_a332(g_8db0, 0x128, 2, tt, tn, 5, tt == 0xe && tn == g_9646);
+            break;
+        case 4:
+            fn_10_744c(0x6c);
+            fn_10_a332(g_8db0, 0x129, 2, tt, tn, 5, tt == 0xe && tn == g_9646);
+            break;
+        case 7:
+            fn_10_a332(g_8db0, 0x16f, 2);
+            break;
+        case 9:
+            fn_10_a332(g_8db0, 0x185, 1, tt, tn, 5);
+            break;
+        case 12:
+            fn_10_a332(g_8db0, 0x1bc, 2);
+            break;
+        case 13:
+            if (g_7090[t].f56 == t) {
+                fn_10_744c(0x44);
+                fn_10_a332(g_8db0, 0x1c2, 2);
+            } else
+                fn_10_a332(g_8db0, 0x2a9, 2);
+            break;
+        case 10:
+            fn_10_744c(0x36);
+            fn_10_a332(g_8db0, 0x1aa, 2);
+            break;
+        }
+        break;
+    case 2:
+    case 52:
+        g_870c = 0;
+        g_9608 = 1;
+        if (kind == 2) {
+            a = g_7090[n].f52;
+            b = g_7090[n].f54;
+            c = g_7090[n].f56;
+        } else {
+            a = g_964e;
+            b = g_9650;
+            c = g_9652;
+        }
+        switch (a) {
+        case 2:
+        case 3:
+        case 4:
+            if (b == 0xe && g_7090[c].f32 == 0xe && g_7090[c].f34 == t
+                && g_7090[c].f38 == 1)
+                fn_10_744c(0x34);
+            else
+                fn_10_744c(0x40);
+            if (g_7090[n].f54 == 9)
+                fn_10_a332(g_8db0, 0xbcb, 2);
+            else
+                fn_10_a332(g_8db0, 0x12e, 2, b, c, 5);
+            break;
+        case 5:
+            fn_10_744c(0x34);
+            fn_10_a332(g_8db0, 0x12f, 2, b, c, 5);
+            break;
+        case 1:
+            fn_10_744c(0x34);
+            fn_10_a332(g_8db0, 0xbcc, 2, (LPSTR)g_380c);
+            break;
+        case 9:
+            fn_10_a332(g_8db0, 0x184, 2, b, c, 5);
+            break;
+        case 10:
+            fn_10_a332(g_8db0, 0x1ac, 2);
+            break;
+        case 12:
+            fn_10_a332(g_8db0, 0x1ba, 2);
+            break;
+        }
+        break;
+    case 19:
+        switch (g_7090[t].f52) {
+        case 1:
+            fn_10_744c(0x44);
+            fn_10_a332(g_8db0, 0x156, 2);
+            break;
+        case 2:
+        case 3:
+        case 4:
+            fn_10_744c(0x44);
+            fn_10_a332(g_8db0, 0x158, 2, tt, tn, 5);
+            break;
+        case 5:
+            fn_10_744c(0x44);
+            fn_10_a332(g_8db0, 0x159, 2, tt, tn, 0);
+            break;
+        case 6:
+            fn_10_744c(0x6b);
+            fn_10_a332(g_8db0, 0x159, 2, tt, tn, 5);
+            break;
+        case 9:
+            fn_10_a332(g_8db0, 0x183, 2, tt, tn, 5);
+            break;
+        case 10:
+            fn_10_a332(g_8db0, 0x1a8, 2);
+            break;
+        case 12:
+            fn_10_a332(g_8db0, 0x1be, 2);
+            break;
+        }
+        break;
+    case 3:
+        switch (g_7090[n].f52) {
+        case 1:
+            fn_10_744c(0x3b);
+            fn_10_a332(g_8db0, 0x12c, 2, (LPSTR)g_380c);
+            break;
+        case 2:
+        case 3:
+        case 4:
+            fn_10_744c(0x3b);
+            fn_10_a332(g_8db0, 0x186, 2, (LPSTR)g_380c);
+            break;
+        case 9:
+            fn_10_744c(0x66);
+            fn_10_a332(g_8db0, 0x198, 2, tt, tn, 5);
+            break;
+        }
+        break;
+    case 4:
+        fn_10_a332(g_8db0, 0x148, 2, s54, s52, 5);
+        break;
+    case 100:
+        fn_10_a332(g_8db0, 0x148, 2, (LPSTR)g_380c);
+        break;
+    case 24:
+        fn_10_744c(0x3c);
+        fn_10_a332(g_8db0, 0x173, 2);
+        break;
+    case 5:
+        fn_10_a332(g_8db0, 0x14b, 2, s54, s52, 5);
+        break;
+    case 6:
+        fn_10_a332(g_8db0, 0x149, 2);
+        break;
+    case 14:
+        fn_10_a332(g_8db0, 0x14c, 2, (LPSTR)g_380c);
+        break;
+    case 15:
+        fn_10_a332(g_8db0, 0x14e, 2, 0x14e);
+        break;
+    case 20:
+        fn_10_a332(g_8db0, 0x14e, 2, s54, s52, 2);
+        break;
+    case 16:
+        fn_10_744c(0x3c);
+        fn_10_a332(g_8db0, 0x154, 2);
+        break;
+    case 17:
+        fn_10_a332(g_8db0, 0x150, 2, g_380c);   /* near pointer (sic) */
+        break;
+    case 18:
+        fn_10_a332(g_8db0, 0x152, 2);
+        break;
+    case 22:
+        fn_10_744c(0x3f);
+        fn_10_a332(g_8db0, 0x164, 2);
+        break;
+    case 21:
+        fn_10_744c(0x3f);
+        fn_10_a332(g_8db0, 0x166, 2);
+        break;
+    case 23:
+        fn_10_a332(g_8db0, 0x168, 2, g_7090[g_9646].f06, g_7090[g_9646].f08, 5);
+        break;
+    case 7:
+        fn_10_744c(0x33);
+        fn_10_a332(g_8db0, 0x6e, 2, (LPSTR)g_380c);
+        break;
+    case 132:
+        fn_10_744c(0x2c);
+        fn_10_a332(g_8db0, 0x470, 2);
+        break;
+    case 8:
+        fn_10_744c(0x2c);
+        fn_10_a332(g_8db0, 0x15c, 2);
+        break;
+    case 9:
+        fn_10_744c(0x2c);
+        fn_10_a332(g_8db0, 0x79, 2);
+        break;
+    case 13:
+        if (g_1cb4 < g_1e50) {
+            g_1cb4 = g_1e50 + 4000;
+            fn_10_744c(0x67);
+        }
+        fn_10_a332(g_8db0, 0x15e, 2, (LPSTR)g_380c);
+        break;
+    case 10:
+    case 11:
+    case 12:
+        fn_10_744c(0x6e);
+        if (kind == 10)
+            fn_10_744c(0x2d);
+        else
+            fn_10_744c(0x2c);
+        fn_10_a332(g_8db0, 0x86, 2, kind + 0x75, kind == 10, 0x207, 0x87,
+                   g_90ea > 700);
+        break;
+    case 82:
+    case 83:
+        fn_10_a332(g_8db0, 0x205, 2, kind + 0x2e);
+        break;
+    case 84:
+        fn_10_a332(g_8db0, 0x8a, 2, (LPSTR)g_380c);
+        break;
+    case 31:
+        fn_10_a332(g_8db0, 0x181, 2);
+        break;
+    case 25:
+        fn_10_744c(0x3f);
+        fn_10_a332(g_8db0, 0x175, 2);
+        break;
+    case 26:
+        fn_10_a332(g_8db0, 0x177, 2);
+        break;
+    case 30:
+        fn_10_a332(g_8db0, 0x17d, 2, 0xe, g_9646, 0);
+        break;
+    case 29:
+        fn_10_744c(0x3f);
+        fn_10_a332(g_8db0, 0x17b, 2);
+        break;
+    case 27:
+        fn_10_a332(g_8db0, 0x17f, 2);
+        break;
+    case 28:
+        fn_10_a332(g_8db0, 0x179, 2);
+        break;
+    case 32:
+        fn_10_a332(g_8db0, 0x188, 2, tt, tn, 5);
+        break;
+    case 33:
+        fn_10_a332(g_8db0, 0x18a, 2, tt, tn, 5);
+        break;
+    case 34:
+        fn_10_a332(g_8db0, 0x18c, 2, tt, tn, 5);
+        break;
+    case 85:
+        if (g_9602 == 0) {
+            fn_06_1010(g_9604, 100, 2, buf);
+            fn_10_a332(g_8db0, 0x23e, 2, (LPSTR)buf);
+        } else
+            fn_10_a332(g_8db0, 0x23f, 2, g_9602, 0x9e2);
+        break;
+    case 86:
+        fn_06_1010(g_9604, 100, 2, buf);
+        fn_10_a332(g_8db0, 0x2a8, 2, (LPSTR)buf);
+        break;
+    case 181:
+        fn_10_a332(g_8db0, 0x798, 2);
+        break;
+    case 35:
+        fn_10_744c(0x3c);
+        fn_10_a332(g_8db0, 0x18e, 2, s54, s52, 5);
+        break;
+    case 36:
+        fn_10_744c(0x3c);
+        fn_10_a332(g_8db0, 0x190, 2, s54, s52, 2);
+        break;
+    case 37:
+        fn_10_744c(0x3c);
+        fn_10_a332(g_8db0, 0x191, 2, s54, s52, 2);
+        break;
+    case 113:
+        fn_10_a332(g_8db0, 0x429, 2);
+        break;
+    case 38:
+        fn_10_744c(0x3c);
+        fn_10_a332(g_8db0, 0x194, 2);
+        break;
+    case 39:
+        fn_10_a332(g_8db0, 0x196, 2);
+        break;
+    case 48:
+        fn_10_a332(g_8db0, 0x199, 2);
+        break;
+    case 41:
+    case 42:
+    case 43:
+        fn_10_a332(g_8db0, kind + 0x172, 2);
+        break;
+    case 45:
+        fn_10_a332(g_8db0, kind + 0x171, 2);
+        break;
+    case 51:
+        fn_10_a332(g_8db0, 0x1b2, 2, s54, s52, 5);
+        break;
+    case 50:
+        fn_10_a332(g_8db0, 0x1ae, 2);
+        break;
+    case 49:
+        fn_10_a332(g_8db0, 0x1b0, 2);
+        break;
+    case 71:
+        fn_10_a332(g_8db0, 0x28a, 2);
+        break;
+    case 55:
+        fn_10_a332(g_8db0, 0x1b8, 2);
+        break;
+    case 54:
+        fn_10_a332(g_8db0, 0x1b4, 2);
+        break;
+    case 53:
+        fn_10_a332(g_8db0, 0x1b6, 2);
+        break;
+    case 56:
+        fn_10_a332(g_8db0, 0x1c0, 2);
+        break;
+    case 57:
+        fn_10_a332(g_8db0, 0x1c4, 2);
+        break;
+    case 64:
+        fn_10_a332(g_8db0, 0x22b, 2);
+        break;
+    case 59:
+    case 60:
+    case 61:
+    case 62:
+    case 63:
+    case 65:
+    case 66:
+    case 67:
+    case 68:
+    case 87:
+    case 88:
+        switch (rand() % 4) {
+        case 0:
+            fn_10_744c(0x3d);
+            break;
+        case 1:
+            fn_10_744c(0x3e);
+            break;
+        case 2:
+            fn_10_744c(0x3f);
+            break;
+        }
+        fn_10_a332(g_8db0, kind + 0x1eb, 2);
+        break;
+    case 92:
+        fn_10_a332(g_8db0, 0x3b6, 2);
+        break;
+    case 69:
+        fn_10_a332(g_8db0, 0x23a, 2);
+        break;
+    case 192:
+        fn_10_a332(g_8db0, 0x3c4, 2);
+        break;
+    case 70:
+        fn_10_a332(g_8db0, 0x23c, 2);
+        break;
+    case 93:
+        fn_10_a332(g_8db0, 0x3c0, 2);
+        break;
+    case 101:
+        fn_10_a332(g_8db0, 0x3c1, 2);
+        break;
+    case 134:
+        fn_10_a332(g_8db0, 0x3c2, 2);
+        break;
+    case 185:
+        fn_10_a332(g_8db0, 0x3c3, 2);
+        break;
+    case 135:
+        fn_10_a332(g_8db0, 0x58f, 2);
+        break;
+    case 72:
+        fn_10_744c(0x67);
+        fn_10_a332(g_8db0, 0x28c, 2);
+        break;
+    case 73:
+        fn_10_a332(g_8db0, 0x28e, 2, g_7090[k].f32, g_7090[k].f34, 0);
+        break;
+    case 74:
+        fn_10_a332(g_8db0, 0x28f, 2);
+        break;
+    case 75:
+        fn_10_a332(g_8db0, 0x291, 2);
+        break;
+    case 76:
+        fn_10_a332(g_8db0, 0x293, 2);
+        break;
+    case 77:
+        fn_10_a332(g_8db0, 0x295, 2);
+        break;
+    case 78:
+        fn_10_a332(g_8db0, 0x297, 2);
+        break;
+    case 81:
+        fn_10_744c(0x3b);
+        fn_10_a332(g_8db0, 0x299, 2);
+        break;
+    case 79:
+        fn_10_744c(0x3b);
+        fn_03_3498(g_8d38, g_8768, g_87b8);
+        break;
+    case 80:
+        fn_10_744c(0x3f);
+        fn_03_3498(g_8d38, g_8768, g_87b8);
+        break;
+    case 89:
+        fn_10_744c(0x36);
+        fn_10_a332(g_8db0, 0x2ab, 2);
+        break;
+    case 90:
+        fn_10_744c(0x3c);
+        fn_10_a332(g_8db0, 0x2ad, 2);
+        break;
+    case 91:
+        fn_10_a332(g_8db0, 0x2af, 2, 4, 0x2b0, (LPSTR)g_380c);
+        break;
+    case 112:
+        fn_10_a332(g_8db0, 0x428, 2, 4, 0x2b0, (LPSTR)g_380c);
+        break;
+    case 94:
+        fn_10_a332(g_8db0, 0x2b4, 2, 4, 0x2b0, (LPSTR)g_380c);
+        break;
+    case 99:
+        fn_10_a332(g_8db0, 0x422, 2);
+        break;
+    case 95:
+        fn_10_a332(g_8db0, 0x41a, 2);
+        break;
+    case 137:
+        fn_10_a332(g_8db0, 0x591, 2);
+        break;
+    case 96:
+        fn_10_a332(g_8db0, 0x41c, 2, 0xe, g_7090[k].f08, 5);
+        break;
+    case 97:
+        fn_10_a332(g_8db0, 0x41e, 2, 0xe, g_7090[k].f08, 5);
+        break;
+    case 98:
+        fn_10_a332(g_8db0, 0x41e, 2, g_7090[k].f06, g_7090[k].f08, 2);
+        break;
+    case 102:
+        fn_10_a332(g_8db0, 0x2b5, 2, g_7090[k].f32, g_7090[k].f34, 5);
+        break;
+    case 103:
+        fn_10_744c(0x3f);
+        fn_10_a332(g_8db0, 0x2b7, 2);
+        break;
+    case 182:
+        fn_10_a332(g_8db0, 0x25b, 2);
+        break;
+    case 104:
+        fn_10_744c(0x2c);
+        fn_10_a332(g_8db0, 0x2b9, 2);
+        break;
+    case 106:
+        fn_10_744c(0x37);
+        fn_10_a332(g_8db0, 0x2bf, 2);
+        break;
+    case 105:
+        fn_10_744c(0x2c);
+        fn_10_a332(g_8db0, 0x2bb, 2);
+        break;
+    case 108:
+        fn_10_a332(g_8db0, 0x2c1, 2);
+        break;
+    case 107:
+        fn_10_744c(0x30);
+        fn_10_a332(g_8db0, 0x2bd, 2);
+        break;
+    case 110:
+        fn_10_744c(0x30);
+        fn_10_a332(g_8db0, 0x2c3, 2);
+        break;
+    case 109:
+        fn_10_744c(0x2c);
+        fn_10_a332(g_8db0, 0x2da, 2);
+        break;
+    case 111:
+        fn_13_218a(g_96ea[g_7090[k].f4e].f20, buf);
+        fn_10_a332(g_8db0, 0x426, 2, (LPSTR)buf);
+        break;
+    case 115:
+        fn_10_744c(0x34);
+        fn_10_a332(g_8db0, 0x579, 2);
+        break;
+    case 116:
+        fn_10_a332(g_8db0, 0x580, 2);
+        break;
+    case 117:
+        fn_10_744c(0x3b);
+        fn_10_a332(g_8db0, 0x581, 2);
+        break;
+    case 118:
+        fn_10_744c(0x3b);
+        fn_10_a332(g_8db0, 0x582, 2);
+        break;
+    case 119:
+        fn_10_744c(0x3b);
+        if (g_7090[g_9646].f32 == 0xe)
+            fn_10_a332(g_8db0, 0x583, 2);
+        else
+            fn_10_a332(g_8db0, 0x584, 2);
+        break;
+    case 127:
+        fn_10_744c(0x3f);
+        fn_10_a332(g_8db0, 0x588, 2);
+        break;
+    case 128:
+        fn_10_a332(g_8db0, 0x589, 2);
+        break;
+    case 129:
+        fn_10_a332(g_8db0, 0x58a, 2);
+        break;
+    case 130:
+        fn_10_a332(g_8db0, 0x58b, 2);
+        break;
+    case 136:
+        fn_10_a332(g_8db0, 0x590, 2);
+        break;
+    case 138:
+        fn_10_744c(0x44);
+        fn_10_a332(g_8db0, 0x592, 2);
+        break;
+    case 141:
+        fn_10_744c(0x3c);
+        fn_10_a332(g_8db0, 0x73c, 2,
+                   (int)((g_7090[k].f98 - g_1e50) / 1000));
+        break;
+    case 139:
+        fn_10_a332(g_8db0, 0x73a, 2, 4, 0, 0);
+        break;
+    case 140: case 142: case 143: case 144: case 145: case 146: case 147:
+    case 148: case 149: case 150: case 151: case 152: case 153: case 154:
+    case 155: case 156: case 157: case 158: case 159: case 160: case 161:
+    case 162: case 163:
+        fn_10_a332(g_8db0, kind + 0x6af, 2);
+        break;
+    case 164:
+        fn_10_744c(0x30);
+        fn_10_a332(g_8db0, 0x593, 2);
+        break;
+    case 165: case 166: case 167: case 168: case 169: case 170: case 171:
+    case 172: case 173:
+        fn_10_a332(g_8db0, kind + 0x6c7, 2);
+        break;
+    case 175: case 176: case 177: case 178:
+        fn_10_a332(g_8db0, kind + 0x6d1, 2);
+        break;
+    case 179:
+        fn_10_a332(g_8db0, 0x784, 2, 4, 0, 0);
+        break;
+    case 174:
+        fn_10_a332(g_8db0, 0x794, 2);
+        break;
+    case 180:
+        fn_10_a332(g_8db0, 0x796, 2);
+        break;
+    case 186:
+        fn_10_a332(g_8db0, 0x78a, 2);
+        break;
+    case 187:
+        fn_10_a332(g_8db0, 0x78c, 2);
+        break;
+    case 188:
+        fn_10_a332(g_8db0, 0x79c, 2, 4, 0, 2);
+        break;
+    case 189:
+        fn_10_a332(g_8db0, 0x7d0, 2, tt, tn, 5);
+        break;
+    case 190:
+        fn_10_a332(g_8db0, 0x7d5, 2);
+        break;
+    case 191:
+        fn_10_a332(g_8db0, 0x7d2, 2);
+        break;
+    case 183:
+        fn_10_744c(0x36);
+        fn_10_a332(g_8db0, 0x1aa, 2);
+        break;
+    case 184:
+        fn_10_a332(g_8db0, 0x1aa, 2, (int)g_7090[k].f148,
+                   (int)g_7090[k].f149, 5);
+        break;
+    }
+    if (g_90ea > 0x27b) {
+        for (i = 0; i < lstrlen(g_8768); i++)
+            if (g_8768[i] < '{' && g_8768[i] > '`')
+                g_8768[i] -= 0x20;
+        for (i = 0; i < lstrlen(g_87b8); i++)
+            if (g_87b8[i] < '{' && g_87b8[i] > '`')
+                g_87b8[i] -= 0x20;
+    }
 }
 
 /* Writes the name of object (type, n) into buf, with an article chosen
