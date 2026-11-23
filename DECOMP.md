@@ -279,3 +279,12 @@ Conventions
   decides which gets which.
 - More types: g_13dc is an HDC (unsigned); g_fp_3c54 returns int; g_9210 is
   an HINSTANCE.
+- A bare label (no goto) resets CL's register tracking: constants pushed as
+  immediates after it (6:190c).
+- `p.x = p.y = 0` on a POINT gives one dword `xor eax` store; also works
+  inside an argument chain.
+- HIBYTE/LOBYTE of LOWORD/HIWORD reproduce byte stores of a long result.
+- g_1df8 index = (DS offset - 0x1df8) / 4. Sprite DC arrays: g_39e8 (HDC),
+  g_3974 (old bitmap), g_3ad0 (bitmap), g_3a5c (palette).
+- More types: g_88c4 is a POINT; fn_18_1934 is int far pascal (key, unused,
+  HDC); fn_08_3aec and fn_08_3fbe are pascal; fn_10_804c returns long.

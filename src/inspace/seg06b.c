@@ -120,7 +120,9 @@ typedef struct {                /* 0x15a bytes at DS:70ae */
 extern REC_70AE g_70ae[];
 #pragma pack(1)
 typedef struct {                /* 0xad bytes at DS:96f0 */
-    char p00[0x52];
+    char p00[0x0a];
+    int f0a;
+    char p0c[0x52 - 0x0c];
     char f52[0xad - 0x52];
 } REC_96F0;
 #pragma pack()
@@ -159,6 +161,118 @@ extern int g_9666;
 extern int g_965e;
 POINT far pascal fn_08_2bbe(POINT p);
 void far fn_18_0b1e(void);
+
+#pragma pack(1)
+typedef struct {                /* 0x1a9-byte save summary [inferred] */
+    long f00;
+    char f04[0x18 - 0x04];      /* name */
+    char f18;
+    char f19;
+    char f1a;
+    char f1b;
+    char f1c;
+    char f1d;
+    long f1e;
+    int f22;
+    int f24;
+    int f26;
+    int f28;
+    int f2a;
+    int f2c;
+    int f2e;
+    int f30;
+    int f32;
+    int f34;
+    int f36[8][8];
+    int fb6[8][3];
+    int fe6[8][3];
+    int f116[8][3];
+    int f146[8];
+    int f156;
+    int f158;
+    int f15a;
+    int f15c;
+    int f15e;
+    int f160;
+    int f162;
+    int f164;
+    int f166;
+    int f168;
+    long f16a;
+    char f16e;
+    char f16f;
+    char f170;
+    char f171;
+    char f172;
+    char f173;
+    char f174[10];
+    char f17e[10];
+    char p188[0x18a - 0x188];
+    char f18a;
+    long f18b;
+    char f18f;
+    char f190[7];
+    char p197[0x1a9 - 0x197];
+} REC_SAVE;
+typedef struct {                /* 0x15a-byte object records from DS:7092 */
+    char p00[0x16];
+    char f16;
+    char p17[0x24 - 0x17];
+    int f24[4];
+    char p2c[0x4c - 0x2c];
+    int f4c;                    /* class */
+    char p4e[0x5b - 0x4e];
+    signed char f5b;
+    signed char f5c;
+    char p5d[0xaa - 0x5d];
+    char faa;
+    char fab;
+    char pac[0xcc - 0xac];
+    int fcc;
+    int fce;
+    int fd0;
+    char pd2[0xda - 0xd2];
+    long fda;
+    char pde[0xe2 - 0xde];
+    char fe2;
+    char pe3[0x15a - 0xe3];
+} REC_7092;
+typedef struct { int f00; char p02[0x7c - 0x02]; } REC_7CB;
+typedef struct { char p000[0x1d0]; char f1d0; char p1d1[0x297 - 0x1d1]; } REC_297B;
+#pragma pack()
+extern REC_7092 g_7092[];
+extern int g_939e;
+extern char g_93a0;
+extern int g_94a4;
+extern long g_5078;
+extern long g_05a8;
+extern int g_91f8;
+extern int g_94a2;
+extern int g_931c;
+extern int g_9432;
+extern int g_964a;
+extern int g_931a;
+extern int g_9134;
+extern int g_94ac;
+extern int g_93ac;
+extern int g_94ca;
+extern int g_9346;
+extern int g_967c;
+extern char g_a14d[10];
+extern char g_a157[10];
+extern int g_3824[8][8];
+extern int g_4eec[8][3];
+extern int g_4fd0[8][3];
+extern int g_6b10[8][3];
+extern int g_6b40[8];
+extern int g_945c;
+extern int g_945e;
+extern int g_a1cd;
+extern int g_a1cf;
+extern char g_a191[];
+extern int g_1318;
+extern int g_9156;
+long far fn_10_804c(int a);
 
 /* @addr 6:626c */
 void far fn_06_626c(void)
@@ -594,9 +708,98 @@ void far fn_06_6576(void)
 {
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
-void far fn_06_8eea(void far *p)
+/* Fills the save summary record [inferred]. */
+/* @addr 6:8eea */
+void far fn_06_8eea(REC_SAVE far *p)
 {
+    int i;
+    int j;
+    int n;
+    int sum;
+    long t;
+    int v;
+
+    p->f170 = 0;
+    if (g_7092[g_9646].fe2) {
+        p->f170 = !g_7092[g_9646].faa;
+        p->f170 += !g_7092[g_9646].fab * 2;
+    }
+    p->f171 = g_9156;
+    p->f26 = g_7092[g_9646].f5b;
+    p->f28 = g_7092[g_9646].f5c;
+    p->f24 = g_91f8;
+    p->f2a = g_94a2;
+    p->f2c = g_931c;
+    p->f2e = g_9432;
+    p->f30 = g_964a;
+    p->f32 = g_94a4;
+    p->f34 = g_931a;
+    p->f1e = g_1e58;
+    p->f16a = g_5078;
+    p->f18b = g_05a8;
+    p->f15c = g_7092[g_9646].fce;
+    p->f15a = g_7092[g_9646].fd0;
+    p->f162 = (int)((g_7092[g_9646].fda = min(g_7092[g_9646].fda, 327670L)) / 10);
+    p->f164 = g_7092[g_9646].fcc;
+    p->f172 = g_7092[g_9646].f16;
+    p->f22 = ((REC_7CB far *)g_6e24)[g_931c].f00;
+    p->f160 = 0;
+    p->f16e = g_9134;
+    p->f16f = g_94ac;
+    p->f166 = g_93ac;
+    p->f168 = g_94ca;
+    p->f18f = g_9346;
+    p->f18a = g_967c;
+    for (i = 0; i < 10; i++) {
+        p->f174[i] = g_a14d[i];
+        p->f17e[i] = g_a157[i];
+    }
+    p->f00 = g_939a;
+    v = g_939e;
+    p->f18 = v >> 8;
+    p->f19 = v;
+    p->f1a = g_93a0;
+    t = fn_10_804c(0);
+    p->f1b = HIBYTE(LOWORD(t));
+    p->f1c = LOBYTE(LOWORD(t));
+    p->f1d = LOBYTE(HIWORD(t));
+    for (i = 0; i < g_94a4; i++)
+        if (((REC_297B far *)g_69f4)[i].f1d0 == 2)
+            p->f160++;
+    lstrcpy(p->f04, g_380c);
+    if (g_96f0[g_7092[g_9646].f4c].f0a == -1)
+        n = 3;
+    else
+        n = 4;
+    for (i = sum = 0; i < n; i++)
+        sum += g_7092[g_9646].f24[i];
+    sum /= n;
+    if (sum > 70)
+        p->f15e = 100;
+    else if (sum > 45)
+        p->f15e = 101;
+    else if (sum > 27)
+        p->f15e = 102;
+    else
+        p->f15e = 103;
+    for (i = 0; i < 8; i++) {
+        for (j = 0; j < 8; j++)
+            p->f36[i][j] = g_3824[i][j];
+        for (j = 0; j < 3; j++) {
+            p->fb6[i][j] = g_4eec[i][j];
+            p->fe6[i][j] = g_4fd0[i][j];
+            p->f116[i][j] = g_6b10[i][j];
+        }
+        p->f146[i] = g_6b40[i];
+    }
+    p->f156 = g_945c;
+    p->f158 = g_945e;
+    p->f190[0] = g_a1cd / 128;
+    p->f190[1] = g_a1cd % 128;
+    p->f190[6] = g_a1cf;
+    for (i = 2; i < 6; i++)
+        p->f190[i] = g_a191[i];
+    p->f173 = g_1318;
 }
 
 /* Saves the game (mode 0: .sav, 1: .ded, 2: .don) [inferred]. */
