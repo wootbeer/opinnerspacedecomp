@@ -377,7 +377,7 @@ int16_t fn_06_8cb2(int16_t unused, int16_t n, uint16_t v, int16_t j, int16_t k)
     }
     if (v && (g_6afc[i].f_32[j][k] > v || g_6afc[i].f_32[j][k] == 0)) {
         g_6afc[i].f_32[j][k] = v;
-        if (n == g_9646 && flow_interactive)
+        if (n == main_ship && flow_interactive)
             fn_17_8e60(n, g_6afc[i].f_14[j]);
         else
             lstrcpy(g_6afc[i].f_14[j], "----");
@@ -680,13 +680,13 @@ void fn_06_8eea(REC_SAVE_seg06b *p)
     int16_t v;
 
     p->f_170 = 0;
-    if (g_7090[g_9646].f_0e4) {
-        p->f_170 = !g_7090[g_9646].f_0ac;
-        p->f_170 += !g_7090[g_9646].f_0ad * 2;
+    if (g_7090[main_ship].f_0e4) {
+        p->f_170 = !g_7090[main_ship].f_0ac;
+        p->f_170 += !g_7090[main_ship].f_0ad * 2;
     }
     p->f_171 = g_9156;
-    p->f_026 = g_7090[g_9646].f_05d;
-    p->f_028 = g_7090[g_9646].f_05e;
+    p->f_026 = g_7090[main_ship].f_05d;
+    p->f_028 = g_7090[main_ship].f_05e;
     p->f_024 = g_91f8;
     p->f_02a = g_94a2;
     p->f_02c = g_931c;
@@ -697,11 +697,11 @@ void fn_06_8eea(REC_SAVE_seg06b *p)
     p->f_01e = g_1e58;
     p->f_16a = g_5078;
     p->f_18b = g_05a8;
-    p->f_15c = g_7090[g_9646].f_0d0;
-    p->f_15a = g_7090[g_9646].f_0d2;
-    p->f_162 = (int16_t)((g_7090[g_9646].f_0dc = min(g_7090[g_9646].f_0dc, 327670L)) / 10);
-    p->f_164 = g_7090[g_9646].f_0ce;
-    p->f_172 = g_7090[g_9646].f_018;
+    p->f_15c = g_7090[main_ship].f_0d0;
+    p->f_15a = g_7090[main_ship].f_0d2;
+    p->f_162 = (int16_t)((g_7090[main_ship].f_0dc = min(g_7090[main_ship].f_0dc, 327670L)) / 10);
+    p->f_164 = g_7090[main_ship].f_0ce;
+    p->f_172 = g_7090[main_ship].f_018;
     p->f_022 = ((REC_7CB_seg06b *)g_6e24)[g_931c].f_00;
     p->f_160 = 0;
     p->f_16e = g_9134;
@@ -727,12 +727,12 @@ void fn_06_8eea(REC_SAVE_seg06b *p)
         if (((REC_297B *)g_69f4)[i].f_1d0 == 2)
             p->f_160++;
     lstrcpy(p->f_004, g_380c);
-    if (g_96d2[g_7090[g_9646].f_04e].f_28 == -1)
+    if (g_96d2[g_7090[main_ship].f_04e].f_28 == -1)
         n = 3;
     else
         n = 4;
     for (i = sum = 0; i < n; i++)
-        sum += g_7090[g_9646].f_026[i];
+        sum += g_7090[main_ship].f_026[i];
     sum /= n;
     if (sum > 70)
         p->f_15e = 100;
@@ -758,7 +758,7 @@ void fn_06_8eea(REC_SAVE_seg06b *p)
     p->f_190[1] = g_a1cd % 128;
     p->f_190[6] = g_a1cf;
     for (i = 2; i < 6; i++)
-        p->f_190[i] = (g_a18f + 2)[i];
+        p->f_190[i] = g_a193[i - 2];
     p->f_173 = g_1318;
 }
 
@@ -1287,7 +1287,7 @@ void fn_06_78ea(int16_t kind, int16_t x, int16_t y, int16_t vx, int16_t vy, int1
         fn_10_754a(8, x, y, 4);
     else
         fn_10_754a(0x45, x, y, 4);
-    if (g_9330 && !subgame_active && g_92e8 && !g_913a && !g_1df8[14][g_9646].f_54) {
+    if (g_9330 && !subgame_active && g_92e8 && !g_913a && !g_1df8[14][main_ship].f_54) {
         g_88c8.x = x;
         g_88c8.y = y;
         g_88c8 = fn_08_2bbe(g_88c8);
@@ -1386,7 +1386,7 @@ void fn_06_99b6(void)
             ((REC_7C *)g_6e24)[g_7090[i].f_0d6].f_76 = rank;
             /* bare label: resets CL's register tracking (layout only) */
         reset:
-            me = g_9646;
+            me = main_ship;
             if (!g_7090[i].flag || g_7090[i].f_082 < 0 || i == me) {
                 for (j = 0; j < 8; j++)
                     if (((REC_297C *)g_69f4)[g_94a2].f_1c0[j] == g_7090[i].f_0d6)
@@ -1403,7 +1403,7 @@ void fn_06_99b6(void)
                         }
             }
         }
-        g_931c = g_7090[g_9646].f_0d6;
+        g_931c = g_7090[main_ship].f_0d6;
         ((REC_297C *)g_69f4)[g_94a2].f_0a3 = 0;
         ((REC_297C *)g_69f4)[g_94a2].f_0a0 = 0;
         ((REC_297C *)g_69f4)[g_94a2].f_0a1 = 0;
@@ -1535,7 +1535,7 @@ int16_t fn_06_930a(void)
     }
     g_a161 = p->f_188;
     g_a162 = p->f_189;
-    g_7090[g_9646].f_018 = p->f_172;
+    g_7090[main_ship].f_018 = p->f_172;
     g_7090[0].f_0d2 = p->f_15a;
     g_7090[0].f_0d0 = p->f_15c;
     g_9134 = p->f_16e;
@@ -1560,7 +1560,7 @@ int16_t fn_06_930a(void)
     g_a1cd += p->f_190[1];
     g_a1cf = p->f_190[6];
     for (i = 2; i < 6; i++)
-        (g_a18f + 2)[i] = p->f_190[i];
+        g_a193[i - 2] = p->f_190[i];
     g_1318 = p->f_173;
     fn_14_3eda();
     for (i = 0; i < g_931a; i++) {

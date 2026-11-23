@@ -16,8 +16,8 @@ void fn_15_0760(void)
         if ((g_929c >= 2 || g_92a2 >= 1) && g_92d6 != -1) {
             BitBlt(g_13dc, 0, 0, LO16(g_90ea), g_0010, g_929a, 0, 0, SRCCOPY);
             if ((g_92a2 != 1 || g_92d8 == -1) && g_929c <= 6) {
-                r.size = (g_6e24[g_7090[g_9646].f_0d6].f_7a
-                        + (g_6e24[g_7090[g_9646].f_0d6].f_7b - 6) / 2) * 4;
+                r.size = (g_6e24[g_7090[main_ship].f_0d6].f_7a
+                        + (g_6e24[g_7090[main_ship].f_0d6].f_7b - 6) / 2) * 4;
                 r.px = LO16(g_90ea) / 2 - r.size / 2;
                 BitBlt(g_13dc, r.px, r.py = g_92d6 + 5, r.size, r.size, g_3cdc[1], 0, g_3ce8[1], SRCAND);
                 BitBlt(g_13dc, r.px, r.py, r.size, r.size, g_3cdc[0], 0, g_3ce8[1], SRCPAINT);
@@ -167,7 +167,7 @@ void fn_15_0cb0(void)
             g_92d4 = 9;
         else {
             fn_10_6da6(0, 1);
-            fn_10_6e76(0x6d, 2);
+            fn_10_6e76(0x2006dL);
             if (!g_92a6) {
                 g_92a6 = GlobalAlloc(GHND, 8L);
                 if (!g_92a6)
@@ -400,7 +400,7 @@ void fn_15_10be(void)
             do
                 fn_10_740c();
             while (GetCurrentTime() - t2 < 450);
-            fn_10_6e76(8, 0);
+            fn_10_6e76(8L);
             fn_10_6dd4(0);
             g_95b8 = 7;
             if (!g_92e4)
@@ -525,20 +525,20 @@ void fn_15_3590(void)
             fn_10_993a(2, 0x89);
         }
         if (g_90f4 == 6) {
-            fn_10_6e76(-1, 1);
+            fn_10_6e76(MAKELONG(-1, 1));
             for (i = 40; i < 228; i += 4)
                 fn_10_6d7a(i, i, i);
             fn_10_6e4c();
             fn_10_6da6(1, 0);
-            fn_10_6e76(0, 2);
+            fn_10_6e76(0x20000L);
             for (i = 40; i < 228; i += 4)
                 fn_10_6d7a(i, i, i);
             fn_10_6e4c();
             fn_15_482e();
-            fn_10_6e76(-1, 1);
+            fn_10_6e76(MAKELONG(-1, 1));
             fn_10_6dd4(1);
         } else
-            fn_10_6e76(-2, 2);
+            fn_10_6e76(MAKELONG(-2, 2));
         fn_15_374c(1);
         break;
     case 1:
@@ -580,10 +580,10 @@ void fn_15_1eac(void)
         scale = 4;
     else
         scale = 2;
-    size = (g_6e24[g_7090[g_9646].f_0d6].f_7a + (g_6e24[g_7090[g_9646].f_0d6].f_7b - 6) / 2) * scale;
+    size = (g_6e24[g_7090[main_ship].f_0d6].f_7a + (g_6e24[g_7090[main_ship].f_0d6].f_7b - 6) / 2) * scale;
     for (i = g_3ce8[0] = h = 0; i < 2; i++) {
-        g_3d08[i].x = g_3d08[i].y = (g_6e24[g_7090[g_9646].f_0d6].f_7a
-                                     + (g_6e24[g_7090[g_9646].f_0d6].f_7b - 6) / 2) * 4;
+        g_3d08[i].x = g_3d08[i].y = (g_6e24[g_7090[main_ship].f_0d6].f_7a
+                                     + (g_6e24[g_7090[main_ship].f_0d6].f_7b - 6) / 2) * 4;
         g_3ce8[i] = h;
         h += g_3d08[i].y;
         dc[i] = CreateCompatibleDC(g_13dc);
@@ -680,8 +680,8 @@ void fn_15_1a42(void)
         mult = 4;
     else
         mult = 2;
-    g_92a4 = size = (g_6e24[g_7090[g_9646].f_0d6].f_7a
-                     + (g_6e24[g_7090[g_9646].f_0d6].f_7b - 6) / 2) * mult;
+    g_92a4 = size = (g_6e24[g_7090[main_ship].f_0d6].f_7a
+                     + (g_6e24[g_7090[main_ship].f_0d6].f_7b - 6) / 2) * mult;
     if (g_90f4 != 9 || !g_92be || g_92be == 2)
         fn_15_20ca();
     g_3d08[0].x = g_92c6;
@@ -801,7 +801,7 @@ int16_t fn_15_374c(int16_t a)
     int16_t u;                      /* unused */
     HGDIOBJ old;
 
-    sz = (g_6e24[g_7090[g_9646].f_0d6].f_7a + (g_6e24[g_7090[g_9646].f_0d6].f_7b - 6) / 2) * 4;
+    sz = (g_6e24[g_7090[main_ship].f_0d6].f_7a + (g_6e24[g_7090[main_ship].f_0d6].f_7b - 6) / 2) * 4;
     if (a) {
         if (g_90f4 == 6) {
             g_9580 = CreateCompatibleDC(g_13dc);
@@ -1020,16 +1020,16 @@ int16_t fn_15_2a08(void)
         g_3cc8[1] = fn_10_6ec6(g_3cc8[0]);
         g_9156 = save;
     } else {
-        if (g_96d2[g_7090[g_9646].f_04e].f_28 == 3)
+        if (g_96d2[g_7090[main_ship].f_04e].f_28 == 3)
             be = 1;
         else
             be = 0;
-        c4 = g_96d2[g_7090[g_9646].f_04e].f_44;
+        c4 = g_96d2[g_7090[main_ship].f_04e].f_44;
         GetObject(g_92b0[0], sizeof(BITMAP), &bm);
         sz = bm.bmHeight / sc;
-        c0 = g_96d2[g_7090[g_9646].f_04e].f_48;
-        c2 = g_7090[g_9646].f_0e4;
-        v19 = g_6e1c[g_6e20[g_6e24[g_7090[g_9646].f_0d6].f_00].f_21].f_19;
+        c0 = g_96d2[g_7090[main_ship].f_04e].f_48;
+        c2 = g_7090[main_ship].f_0e4;
+        v19 = g_6e1c[g_6e20[g_6e24[g_7090[main_ship].f_0d6].f_00].f_21].f_19;
     }
     fn_14_4074();
     if (g_92b0[2]) {
@@ -1903,14 +1903,14 @@ void fn_15_20ca(void)
         sc = 4;
     else
         sc = 2;
-    if (g_96d2[g_7090[g_9646].f_04e].f_44)
+    if (g_96d2[g_7090[main_ship].f_04e].f_44)
         be = 1;
     else
         be = 0;
-    sz = g_6e24[g_7090[g_9646].f_0d6].f_7a + (g_6e24[g_7090[g_9646].f_0d6].f_7b - 6) / 2;
-    g_92b0[0] = fn_10_73a6(g_96d2[g_7090[g_9646].f_04e].f_36, g_96d2[g_7090[g_9646].f_04e].f_84,
-                           -2, -2, 2, 0, 1, LO8(g_96d2[g_7090[g_9646].f_04e].f_18),
-                           LO8(g_96d2[g_7090[g_9646].f_04e].f_1a));
+    sz = g_6e24[g_7090[main_ship].f_0d6].f_7a + (g_6e24[g_7090[main_ship].f_0d6].f_7b - 6) / 2;
+    g_92b0[0] = fn_10_73a6(g_96d2[g_7090[main_ship].f_04e].f_36, g_96d2[g_7090[main_ship].f_04e].f_84,
+                           -2, -2, 2, 0, 1, LO8(g_96d2[g_7090[main_ship].f_04e].f_18),
+                           LO8(g_96d2[g_7090[main_ship].f_04e].f_1a));
     g_92b0[1] = CreateCompatibleBitmap(g_13dc, sc * sz, sc * sz);
     g_92b0[2] = CreateCompatibleBitmap(g_13dc, sc * sz, sc * sz);
     bmp = fn_10_6ec6(g_92b0[0]);
@@ -1932,31 +1932,31 @@ void fn_15_20ca(void)
         pal2[i] = SelectPalette(dcs2[i], g_920e, 0);
     }
     fn_14_3eda();
-    if (!g_96d2[g_7090[g_9646].f_04e].f_48) {
+    if (!g_96d2[g_7090[main_ship].f_04e].f_48) {
         if (g_90f4 == 9)
             fn_10_9962(0, dcs1[1], 0, sc * sz - 1, sc * sz, -(sc * sz), dcs1[0], 0, 0, sc * sz,
                        sc * sz, SRCCOPY);
         else
             BitBlt(dcs1[1], 0, 0, sc * sz, sc * sz, dcs1[0], 0, 0, SRCCOPY);
-        off = sz / 2 - g_6e1c[g_6e20[g_6e24[g_7090[g_9646].f_0d6].f_00].f_21].f_1a / 2;
-        if (!g_7090[g_9646].f_0ac && g_96d2[g_7090[g_9646].f_04e].f_28 == 3)
+        off = sz / 2 - g_6e1c[g_6e20[g_6e24[g_7090[main_ship].f_0d6].f_00].f_21].f_1a / 2;
+        if (!g_7090[main_ship].f_0ac && g_96d2[g_7090[main_ship].f_04e].f_28 == 3)
             PatBlt(dcs1[1], 0, 0, sc * off, sc * sz, BLACKNESS);
-        if (!g_7090[g_9646].f_0ad && g_96d2[g_7090[g_9646].f_04e].f_28 == 3)
+        if (!g_7090[main_ship].f_0ad && g_96d2[g_7090[main_ship].f_04e].f_28 == 3)
             PatBlt(dcs1[1], (sz - off) * sc, 0, sc * off, sc * sz, BLACKNESS);
         BitBlt(dcs1[2], 0, 0, sc * sz, sc * sz, dcs1[1], 0, 0, SRCCOPY);
         if (!g_9e5b)
             fn_15_28b2(dcs1[1], dcs1[2], sc, sz);
     }
-    if (g_7090[g_9646].f_0e4) {
+    if (g_7090[main_ship].f_0e4) {
         pt.x = sz / 2 - 4;
-        pt.y = g_6e1c[g_6e20[g_6e24[g_7090[g_9646].f_0d6].f_00].f_21].f_19;
+        pt.y = g_6e1c[g_6e20[g_6e24[g_7090[main_ship].f_0d6].f_00].f_21].f_19;
         if (g_90f4 == 9)
             pt.y = sz - pt.y;
-        if (sc == 4 && g_96d2[g_7090[g_9646].f_04e].f_44)
+        if (sc == 4 && g_96d2[g_7090[main_ship].f_04e].f_44)
             off14 = 18;
         else
             off14 = 0;
-        if (g_96d2[g_7090[g_9646].f_04e].f_48)
+        if (g_96d2[g_7090[main_ship].f_04e].f_48)
             PatBlt(dcs1[1], 0, 0, sc * sz, sc * sz, BLACKNESS);
         if (g_90f0 == 0) {
             if (g_90f4 == 9) {
@@ -1981,7 +1981,7 @@ void fn_15_20ca(void)
         }
     }
     fn_14_4074();
-    if (g_96d2[g_7090[g_9646].f_04e].f_48) {
+    if (g_96d2[g_7090[main_ship].f_04e].f_48) {
         if (g_90f4 == 9) {
             fn_10_9962(0, dcs1[1], 0, sc * sz, sc * sz, -(sc * sz), mdc, 0, 0, sc * sz, sc * sz,
                        SRCAND);
@@ -1995,13 +1995,13 @@ void fn_15_20ca(void)
             BitBlt(dcs1[2], 0, 0, sc * sz, sc * sz, dcs1[0], 0, 0, SRCCOPY);
         }
         fn_14_3eda();
-        off = sz / 2 - g_6e1c[g_6e20[g_6e24[g_7090[g_9646].f_0d6].f_00].f_21].f_1a / 2;
+        off = sz / 2 - g_6e1c[g_6e20[g_6e24[g_7090[main_ship].f_0d6].f_00].f_21].f_1a / 2;
         fn_14_4074();
-        if (!g_7090[g_9646].f_0ac && g_96d2[g_7090[g_9646].f_04e].f_28 == 3) {
+        if (!g_7090[main_ship].f_0ac && g_96d2[g_7090[main_ship].f_04e].f_28 == 3) {
             PatBlt(dcs1[1], 0, 0, sc * off, sc * sz, BLACKNESS);
             PatBlt(dcs1[2], 0, 0, sc * off, sc * sz, BLACKNESS);
         }
-        if (!g_7090[g_9646].f_0ad && g_96d2[g_7090[g_9646].f_04e].f_28 == 3) {
+        if (!g_7090[main_ship].f_0ad && g_96d2[g_7090[main_ship].f_04e].f_28 == 3) {
             PatBlt(dcs1[1], (sz - off) * sc, 0, sc * off, sc * sz, BLACKNESS);
             PatBlt(dcs1[2], (sz - off) * sc, 0, sc * off, sc * sz, BLACKNESS);
         }

@@ -7,6 +7,7 @@
 
 /* Old-style definition: 8:9b4e passes a PAIR by value, 8:99ce two ints. */
 /* 8:9028 */
+void fn_08_9028(int16_t i, int16_t a, int16_t kind, int16_t idx)
 {
     if (g_52ec[i].f_18.a == 0xe && (g_52ec[i].f_12 == 0xf
         || kind == 0xe && g_52ec[i].f_18.b == idx))
@@ -187,7 +188,7 @@ void fn_08_9464(void)
             }
         }
     }
-    fn_07_2080(2, -1);
+    fn_07_2080(2);
 }
 
 /* 8:9564 */
@@ -267,7 +268,7 @@ void fn_08_9b4e(void)
         if (g_1df8[2][i].f_18 == 0 && g_52ec[i].f_18.a == 0xe
             && g_52ec[i].f_12 != 0xf) {
             if (g_7090[g_52ec[i].f_18.b].f_038 == 1)
-                fn_08_9028(i, 10, g_7090[g_52ec[i].f_18.b].f_032);
+                fn_08_9028(i, 10, g_7090[g_52ec[i].f_18.b].f_032.a, g_7090[g_52ec[i].f_18.b].f_032.b);
             else
                 g_52ec[i].f_12 = 5;
         }
@@ -383,7 +384,7 @@ void fn_08_8256(void)
             g_0b6c = -g_0b6c;
     }
     for (j = 0; j < g_9406[2]; j++) {
-        if (g_52ec[j].f_18.a == 14 && g_52ec[j].f_18.b == g_9646 || g_6e38[0].f_1a.b == 2 && j == g_6e38[0].f_1a.a)
+        if (g_52ec[j].f_18.a == 14 && g_52ec[j].f_18.b == main_ship || g_6e38[0].f_1a.b == 2 && j == g_6e38[0].f_1a.a)
             if (g_1e50 - 2000 > g_1870)
                 g_1870 = g_1e50;
         if (g_1df8[2][j].f_1a && g_52ec[j].f_12 != 15 && g_52ec[j].f_20 < g_1e50)

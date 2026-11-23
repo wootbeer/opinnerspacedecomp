@@ -1,10 +1,106 @@
-seg09.c:1756: view g_5b2c of a 2-D table at +4
-seg09.c:1757: view g_5b2c of a 2-D table at +4
-seg09.c:1758: view g_5b2c of a 2-D table at +4
+seg02.c:144: call to fn_06_1c0c: dropped 1 extra argument(s): 1
+seg03.c:420: call to fn_07_119c: dropped 1 extra argument(s): 0
+seg06b.c:1130: view g_a191 read as g_a193 with the last index shifted by -2
+seg06b.c:1958: view g_a191 read as g_a193 with the last index shifted by -2
+seg06c.c:88: call to fn_06_1c0c: dropped 1 extra argument(s): 0
+seg06c.c:311: call to fn_10_6e76: two words -> long
+seg07.c:501: call to fn_08_1d54: packed word -> OBJREF
+seg07.c:542: call to fn_08_1d54: packed word -> OBJREF
+seg07.c:588: call to fn_08_1d54: packed word -> OBJREF
+seg07.c:610: call to fn_08_1d54: packed word -> OBJREF
+seg07.c:771: call to fn_07_2080: dropped 1 extra argument(s): -1
+seg07.c:819: call to fn_08_1d54: packed word -> OBJREF
+seg07.c:836: call to fn_08_1d54: packed word -> OBJREF
+seg07.c:955: call to fn_08_99ce: dropped 1 extra argument(s): 1
+seg07.c:1696: call to fn_07_2080: dropped 1 extra argument(s): -1
+seg07.c:1735: call to fn_07_2080: dropped 1 extra argument(s): -1
+seg07.c:1953: call to fn_07_2080: dropped 1 extra argument(s): n
+seg07b.c:570: call to fn_16_7210: dropped 1 extra argument(s): 0
+seg07b.c:883: call to fn_07_119c: dropped 1 extra argument(s): 0
+seg07b.c:1234: call to fn_07_2080: dropped 1 extra argument(s): g_221c[i].idx
+seg08.c:1081: call to fn_07_2080: dropped 1 extra argument(s): -1
+seg08.c:1128: call to fn_08_1cbe: packed word -> OBJREF
+seg08b.c:1245: call to fn_18_5350: record -> two values
+seg08b.c:1882: call to fn_07_2080: dropped 1 extra argument(s): idx
+seg08b.c:1896: call to fn_08_99ce: dropped 1 extra argument(s): ret
+seg08b.c:2079: call to fn_08_99ce: dropped 1 extra argument(s): ret + 2
+seg08c.c:396: call to fn_07_2080: dropped 1 extra argument(s): -1
+seg08c.c:478: call to fn_08_9028: record -> two values
+seg09.c:602: call to fn_11_3cc2: dropped 1 extra argument(s): 0
+seg09.c:792: call to fn_17_30b0: two words -> long
+seg09b.c:2187: view g_9f39 read as g_9f3a with the last index shifted by -1
+seg11.c:1438: call to fn_16_638a: two words -> long
+seg11.c:2089: call to fn_10_7328: long -> two words
+seg11.c:4461: call to fn_07_2080: dropped 1 extra argument(s): -1
+seg11.c:4989: call to fn_07_2080: dropped 1 extra argument(s): -1
+seg11c.c:337: call to fn_13_9a18: long -> two words
+seg11d.c:202: call to fn_11_3cc2: dropped 1 extra argument(s): 1
+seg12.c:463: call to fn_07_2080: dropped 1 extra argument(s): idx
+seg12.c:745: call to fn_07_2080: dropped 1 extra argument(s): -1
+seg12.c:867: call to fn_07_2080: dropped 1 extra argument(s): -1
+seg12.c:1224: call to fn_07_2080: dropped 1 extra argument(s): -1
+seg12.c:1439: call to fn_07_2080: dropped 1 extra argument(s): -1
+seg12.c:1585: call to fn_07_2080: dropped 1 extra argument(s): -1
+seg12.c:1606: call to fn_08_1d54: packed word -> OBJREF
+seg12.c:1627: call to fn_07_2080: dropped 1 extra argument(s): -1
+seg12.c:2147: call to fn_07_2080: dropped 1 extra argument(s): idx
+seg12.c:2158: call to fn_08_1cbe: packed word -> OBJREF
+seg12.c:2261: call to fn_07_2080: dropped 1 extra argument(s): idx
+seg12.c:2312: call to fn_08_1d54: packed word -> OBJREF
+seg12.c:2329: call to fn_07_2080: dropped 1 extra argument(s): i
+seg12.c:2334: call to fn_08_1d54: packed word -> OBJREF
+seg12.c:2412: call to fn_07_2080: dropped 1 extra argument(s): -1
+seg12.c:2446: call to fn_08_1d54: packed word -> OBJREF
+seg12.c:2468: call to fn_08_1d54: packed word -> OBJREF
+seg12.c:2732: call to fn_07_5d6a: record -> two values
+seg12.c:2900: call to fn_07_2080: dropped 1 extra argument(s): i
+seg12.c:2903: call to fn_07_2080: dropped 1 extra argument(s): i
+seg12.c:2912: call to fn_07_2080: dropped 1 extra argument(s): i
+seg12.c:2972: call to fn_08_1d54: packed word -> OBJREF
+seg13.c:1845: call to fn_07_2080: dropped 1 extra argument(s): -1
+seg13.c:1916: call to fn_07_2080: dropped 1 extra argument(s): -1
+seg13.c:2657: call to fn_07_5d6a: record -> two values
+seg13.c:3064: call to fn_07_2080: dropped 1 extra argument(s): -1
+seg13.c:3139: call to fn_07_2080: dropped 1 extra argument(s): g_9e41.f_00 = -1
+seg14.c:634: call to fn_10_6ee6: long -> two words
+seg14.c:1448: call to fn_10_1eb6: dropped 2 extra argument(s): a9c[i], 1
+seg14.c:1473: call to fn_10_1eb6: dropped 2 extra argument(s): -1, 0
+seg15.c:571: call to fn_10_6e76: two words -> long
+seg15.c:682: call to fn_15_80b0: aliased record passed as itself
+seg15.c:682: call to fn_15_80b0: MAKELONG -> POINT
+seg15.c:699: call to fn_15_80b0: aliased record passed as itself
+seg15.c:699: call to fn_15_80b0: MAKELONG -> POINT
+seg15.c:789: call to fn_15_80b0: aliased record passed as itself
+seg15.c:789: call to fn_15_80b0: aliased record passed as itself
+seg15.c:949: call to fn_10_6e76: two words -> long
+seg15b.c:400: call to fn_10_6e76: two words -> long
+seg15b.c:633: call to fn_10_6e76: two words -> long
+seg15b.c:758: call to fn_10_6e76: two words -> long
+seg15b.c:763: call to fn_10_6e76: two words -> long
+seg15b.c:768: call to fn_10_6e76: two words -> long
+seg15b.c:771: call to fn_10_6e76: two words -> long
 seg16.c:1277: field f2c lies in the next record
-VIEW: 413
+seg16.c:2006: call to fn_07_2080: dropped 1 extra argument(s): -1
+seg16.c:2569: call to fn_10_6e76: two words -> long
+seg16.c:2579: call to fn_16_7210: dropped 1 extra argument(s): 1
+seg16.c:2809: call to fn_10_6e76: two words -> long
+seg16.c:2814: call to fn_10_6e76: two words -> long
+seg16.c:3036: call to fn_10_6e76: two words -> long
+seg16b.c:119: call to fn_10_6e76: two words -> long
+seg18.c:916: call to fn_10_1eb6: dropped 2 extra argument(s): g_70ae[g_9646].f30, 1
+seg18.c:1068: call to fn_10_6ee6: long -> two words
+seg18.c:1354: call to fn_10_6ee6: long -> two words
+seg18.c:1662: call to fn_10_1eb6: dropped 2 extra argument(s): g_70ae[g_9646].f30, 1
+seg18.c:1997: call to fn_10_1eb6: dropped 2 extra argument(s): g_70ae[g_9646].f30, 1
+seg18.c:3118: call to fn_07_2080: dropped 1 extra argument(s): 0
+VIEW: 410
 alias kept: 8
 alias resolved: 228
+call adapted: 91
+call override: 3
+flat index: 4
+function cast dropped: 4
+objref from word: 2
 == table length (15)
   g_52ec: 32 records of 0x24 up to next global 576c
   g_3d50: 80 records of 0x34 up to next global 4d90
@@ -248,10 +344,10 @@ alias resolved: 228
   ('ptr', 7672)+53: char overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
   ('ptr', 7672)+54: char overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
   ('ptr', 7672)+55: char[0x9] overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
-  ('ptr', 7672)+5e: fn()->void *, fn(int, int)->int *, fn(int, int, int)->int * -> fn(int, int)->int *
-  ('ptr', 7672)+5e: fn(int, int)->int * overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
-  ('ptr', 7672)+62: fn()->void *, fn(int, int, HDC)->void * -> fn()->void *
-  ('ptr', 7672)+62: fn()->void * overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
+  ('ptr', 7672)+5e: fn()->void *, fn(int, int)->int *, fn(int, int, int)->int * -> fn(int, int, int)->int *
+  ('ptr', 7672)+5e: fn(int, int, int)->int * overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
+  ('ptr', 7672)+62: fn()->void *, fn(int, int, HDC)->void * -> fn(int, int, HDC)->void *
+  ('ptr', 7672)+62: fn(int, int, HDC)->void * overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
   ('ptr', 7672)+66: fn()->void *, fn(int, int)->void * -> fn(int, int)->void *
   ('ptr', 7672)+66: fn(int, int)->void * overlaps 24:rest char[0x4c]; 24:rest char[0x4c]; 4:rest char[0x6c]; 26:rest char[0x4a]; 1a:rest char[0x56]
   ('ptr', 7672)+6a: DWORD, ulong, void far * -> DWORD
@@ -407,3 +503,50 @@ alias resolved: 228
   DS+a198: char, schar -> char
 == api calls not found in the headers (0)
 == identifiers not found in the headers (0)
+== dropped call arguments (46)
+  seg02.c:144 fn_06_1c0c: dropped 1 extra argument(s): 1
+  seg03.c:420 fn_07_119c: dropped 1 extra argument(s): 0
+  seg06c.c:88 fn_06_1c0c: dropped 1 extra argument(s): 0
+  seg07.c:771 fn_07_2080: dropped 1 extra argument(s): -1
+  seg07.c:955 fn_08_99ce: dropped 1 extra argument(s): 1
+  seg07.c:1696 fn_07_2080: dropped 1 extra argument(s): -1
+  seg07.c:1735 fn_07_2080: dropped 1 extra argument(s): -1
+  seg07.c:1953 fn_07_2080: dropped 1 extra argument(s): n
+  seg07b.c:570 fn_16_7210: dropped 1 extra argument(s): 0
+  seg07b.c:883 fn_07_119c: dropped 1 extra argument(s): 0
+  seg07b.c:1234 fn_07_2080: dropped 1 extra argument(s): g_221c[i].idx
+  seg08.c:1081 fn_07_2080: dropped 1 extra argument(s): -1
+  seg08b.c:1882 fn_07_2080: dropped 1 extra argument(s): idx
+  seg08b.c:1896 fn_08_99ce: dropped 1 extra argument(s): ret
+  seg08b.c:2079 fn_08_99ce: dropped 1 extra argument(s): ret + 2
+  seg08c.c:396 fn_07_2080: dropped 1 extra argument(s): -1
+  seg09.c:602 fn_11_3cc2: dropped 1 extra argument(s): 0
+  seg11.c:4461 fn_07_2080: dropped 1 extra argument(s): -1
+  seg11.c:4989 fn_07_2080: dropped 1 extra argument(s): -1
+  seg11d.c:202 fn_11_3cc2: dropped 1 extra argument(s): 1
+  seg12.c:463 fn_07_2080: dropped 1 extra argument(s): idx
+  seg12.c:745 fn_07_2080: dropped 1 extra argument(s): -1
+  seg12.c:867 fn_07_2080: dropped 1 extra argument(s): -1
+  seg12.c:1224 fn_07_2080: dropped 1 extra argument(s): -1
+  seg12.c:1439 fn_07_2080: dropped 1 extra argument(s): -1
+  seg12.c:1585 fn_07_2080: dropped 1 extra argument(s): -1
+  seg12.c:1627 fn_07_2080: dropped 1 extra argument(s): -1
+  seg12.c:2147 fn_07_2080: dropped 1 extra argument(s): idx
+  seg12.c:2261 fn_07_2080: dropped 1 extra argument(s): idx
+  seg12.c:2329 fn_07_2080: dropped 1 extra argument(s): i
+  seg12.c:2412 fn_07_2080: dropped 1 extra argument(s): -1
+  seg12.c:2900 fn_07_2080: dropped 1 extra argument(s): i
+  seg12.c:2903 fn_07_2080: dropped 1 extra argument(s): i
+  seg12.c:2912 fn_07_2080: dropped 1 extra argument(s): i
+  seg13.c:1845 fn_07_2080: dropped 1 extra argument(s): -1
+  seg13.c:1916 fn_07_2080: dropped 1 extra argument(s): -1
+  seg13.c:3064 fn_07_2080: dropped 1 extra argument(s): -1
+  seg13.c:3139 fn_07_2080: dropped 1 extra argument(s): g_9e41.f_00 = -1
+  seg14.c:1448 fn_10_1eb6: dropped 2 extra argument(s): a9c[i], 1
+  seg14.c:1473 fn_10_1eb6: dropped 2 extra argument(s): -1, 0
+  seg16.c:2006 fn_07_2080: dropped 1 extra argument(s): -1
+  seg16.c:2579 fn_16_7210: dropped 1 extra argument(s): 1
+  seg18.c:916 fn_10_1eb6: dropped 2 extra argument(s): g_70ae[main_ship].f30, 1
+  seg18.c:1662 fn_10_1eb6: dropped 2 extra argument(s): g_70ae[main_ship].f30, 1
+  seg18.c:1997 fn_10_1eb6: dropped 2 extra argument(s): g_70ae[main_ship].f30, 1
+  seg18.c:3118 fn_07_2080: dropped 1 extra argument(s): 0

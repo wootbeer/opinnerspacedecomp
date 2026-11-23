@@ -111,10 +111,10 @@ void fn_15_5932(void)
 }
 
 /* 15:80b0 */
-void fn_15_80b0(int32_t a, int32_t b)
+void fn_15_80b0(POINT a, POINT b)
 {
     fn_15_80da();
-    fn_11_a4a6(a, VIEW(int32_t, g_3b98, 0) = b, 14);
+    fn_11_a4a6(a, g_3b98 = b, 14);
 }
 
 /* 15:80da */
@@ -408,7 +408,7 @@ void fn_15_7a62(LPCSTR s)
 void fn_15_7b34(void)
 {
     g_6e28 = g_1e50 + 90000L;
-    fn_10_6e76(8, g_95dc = 0);
+    fn_10_6e76(MAKELONG(8, g_95dc = 0));
     fn_10_6e4c();
     fn_10_0552(0x16, 1);
     fn_10_58ce(0);
@@ -519,7 +519,7 @@ void fn_15_7cda(void)
     else
         n = 4;
     for (i = 0; i < n; i++) {
-        fn_15_80b0(*(int32_t *)&p1, MAKELONG(rand() % 300 + LO16(g_90ea) / 2 - 150, y2));
+        fn_15_80b0(p1, (POINT){rand() % 300 + LO16(g_90ea) / 2 - 150, y2});
         fn_10_754a(0x22, LOWORD(VIEW(int32_t, g_3b98, 0)), HIWORD(VIEW(int32_t, g_3b98, 0)), 4);
         t = GetCurrentTime() + 40;
         do
@@ -536,7 +536,7 @@ void fn_15_7cda(void)
     while (GetCurrentTime() < t);
     y2 = g_0010 / 2 + 100;
     for (i = 0; i < n; i++) {
-        fn_15_80b0(*(int32_t *)&p1, MAKELONG(rand() % 300 + LO16(g_90ea) / 2 - 150, y2));
+        fn_15_80b0(p1, (POINT){rand() % 300 + LO16(g_90ea) / 2 - 150, y2});
         fn_10_754a(0x22, LOWORD(VIEW(int32_t, g_3b98, 0)), HIWORD(VIEW(int32_t, g_3b98, 0)), 4);
         t = GetCurrentTime() + 40;
         do
@@ -625,7 +625,7 @@ int16_t fn_15_8174(int16_t which, int16_t n)
         if (orig / 2 != n)
             p2.x += 10;
         p2.y = g_0010 / 2 + dy;
-        fn_15_80b0(*(int32_t *)&p1, *(int32_t *)&p2);
+        fn_15_80b0(p1, p2);
     }
     oldbk = SetBkColor(g_13dc, 0L);
     SetBkMode(g_13dc, TRANSPARENT);
@@ -785,7 +785,7 @@ void fn_15_5962(int16_t a)
         fn_06_7266();
         g_6e28 = g_1e50 + 65000;
         g_95cc = 0;
-        fn_10_6e76(8, g_94c4 = 1);
+        fn_10_6e76(MAKELONG(8, g_94c4 = 1));
         if (g_0010 < 440)
             g_95de = 40;
         else if (g_0010 < 500)

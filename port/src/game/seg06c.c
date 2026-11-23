@@ -21,7 +21,7 @@ int16_t fn_06_12b6(HINSTANCE hInst, HINSTANCE hPrev, WNDCLASS wc)
     if (hPrev) {
         GetInstanceData(hPrev, (BYTE *)&g_0016, 2);
         if (IsWindow(g_0016)) {
-            fn_06_1c0c(0);
+            fn_06_1c0c();
             PostMessage(g_0016, WM_SYSCOMMAND, SC_MAXIMIZE, 0L);
         } else
             MessageBox(g_90fc, "Another version of game already running.", g_9690, MB_ICONEXCLAMATION);
@@ -244,7 +244,7 @@ void fn_06_190c(void)
     g_13dc = GetDC(g_0016);
     fn_10_6e00();
     old = SelectPalette(g_13dc, g_920e, 0);
-    fn_10_6e76(-1000, 2);
+    fn_10_6e76(MAKELONG(-1000, 2));
     SelectPalette(g_13dc, old, 0);
     ReleaseDC(g_0016, g_13dc);
     g_13dc = 0;

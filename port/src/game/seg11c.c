@@ -79,7 +79,7 @@ void fn_11_6b64(int16_t msg, WPARAM wparam, int32_t lparam)
         pause = 1;
     else
         pause = 0;
-    if ((g_7090[g_9646].f_084 > g_1e50 || g_1df8[g_9324][g_9646].f_18) && !pause)
+    if ((g_7090[main_ship].f_084 > g_1e50 || g_1df8[g_9324][main_ship].f_18) && !pause)
         return;
     if (msg == 0x99e || GetKeyState(VK_CONTROL) & 0x8000)
         ctrl = 1;
@@ -99,7 +99,7 @@ void fn_11_6b64(int16_t msg, WPARAM wparam, int32_t lparam)
         case VK_F3: case VK_F4: case VK_F5: case VK_F6: case VK_F7:
         case VK_F8: case VK_F9:
             if (g_951c)
-                fn_11_72e0(wparam);
+                handle_cheat_key(wparam);
             break;
         case VK_F12:
             if (g_9134)
@@ -107,7 +107,7 @@ void fn_11_6b64(int16_t msg, WPARAM wparam, int32_t lparam)
             else if (g_9320 != 6 && !g_92e8 && fn_10_a96c()) {
                 g_9134 = 1;
                 lstrcpy(g_8630, "");
-                fn_13_2f30(g_9646);
+                fn_13_2f30(main_ship);
             }
             g_1038 = 1;
             g_9378 = g_9134;
@@ -119,10 +119,10 @@ void fn_11_6b64(int16_t msg, WPARAM wparam, int32_t lparam)
             break;
         case VK_CAPITAL:
             if (!g_9134) {
-                if (g_7090[g_9646].f_0e9)
-                    fn_11_4b00(g_9646);
-                else if (g_7090[g_9646].f_0e7)
-                    fn_11_4c72(g_9646);
+                if (g_7090[main_ship].f_0e9)
+                    fn_11_4b00(main_ship);
+                else if (g_7090[main_ship].f_0e7)
+                    fn_11_4c72(main_ship);
             }
             break;
         case VK_RETURN:
@@ -150,72 +150,72 @@ void fn_11_6b64(int16_t msg, WPARAM wparam, int32_t lparam)
             break;
         case 'D':
             if (ctrl)
-                fn_13_8e98(g_9646);
+                fn_13_8e98(main_ship);
             else
                 fn_13_a4f4();
             break;
         case 'X':
             if (ctrl && alt)
-                self_destruct_ship(g_9324, g_9646);
+                self_destruct_ship(g_9324, main_ship);
             break;
         case VK_RETURN:
         case 'Z':
-            if (!g_9134 && g_7090[g_9646].f_0b8[g_7090[g_9646].f_018] == 0xd)
+            if (!g_9134 && g_7090[main_ship].f_0b8[g_7090[main_ship].f_018] == 0xd)
                 fn_11_ac86();
             break;
         case 'H':
             if (ctrl)
-                fn_13_81c2(g_9646);
+                fn_13_81c2(main_ship);
             if (alt)
-                fn_13_9ae8(g_9646);
+                fn_13_9ae8(main_ship);
             else if (!ctrl && flow_interactive) {
-                if (fn_16_0b4e(g_9646))
-                    fn_03_06ec(g_9646, 7, 0, 7);
-                else if ((u4 = LO16(g_7090[g_9646].f_0dc)) + g_7090[g_9646].f_0ce < -300)
-                    fn_03_06ec(g_9646, 7, 0, 0x84);
+                if (fn_16_0b4e(main_ship))
+                    fn_03_06ec(main_ship, 7, 0, 7);
+                else if ((u4 = LO16(g_7090[main_ship].f_0dc)) + g_7090[main_ship].f_0ce < -300)
+                    fn_03_06ec(main_ship, 7, 0, 0x84);
                 else
-                    fn_03_06ec(g_9646, 7, 0, 8);
+                    fn_03_06ec(main_ship, 7, 0, 8);
             }
             break;
         case 'F':
             if (ctrl)
-                fn_13_915c(g_9646);
+                fn_13_915c(main_ship);
             break;
         case 'G':
             if (ctrl)
-                fn_13_a01c(g_9646);
+                fn_13_a01c(main_ship);
             else
                 fn_13_a47c();
             break;
         case 'C':
             if (ctrl)
-                fn_13_9ce0(g_9646);
+                fn_13_9ce0(main_ship);
             else
                 fn_13_a234();
             break;
         case 'S':
             if (ctrl && alt)
-                fn_13_4ac4(g_9646);
+                fn_13_4ac4(main_ship);
             else if (ctrl)
-                fn_13_9810(g_9646);
+                fn_13_9810(main_ship);
             else
                 fn_13_a568();
             break;
         case 'A':
             if (ctrl)
-                fn_13_8570(g_9646);
+                fn_13_8570(main_ship);
             if (alt)
-                fn_13_9a18(g_9646, g_7090[g_9646].f_03e);
+                fn_13_9a18(main_ship, LO16(g_7090[main_ship].f_03e), HI16(g_7090[main_ship].f_03e));
             else if (!ctrl)
                 fn_13_a186();
             break;
         case 'E':
             if (ctrl)
-                fn_13_9f3e(g_9646);
+                fn_13_9f3e(main_ship);
             if (alt) {
                 found = -1;
                 for (i = 0; i < g_9406[2]; i++)
-                    if (g_52ec[i].f_18.a == g_9324 && g_52ec[i].f_18.b == g_9646) {
+                    if (g_52ec[i].f_18.a == g_9324 && g_52ec[i].f_18.b == main_ship) {
                         fn_08_9028(i, 0xf, 0xc, 1);
                         found = i;
                     }
@@ -225,14 +225,14 @@ void fn_11_6b64(int16_t msg, WPARAM wparam, int32_t lparam)
                 fn_13_a3c8();
             break;
         case 'W':
-            command_watch_ship(ctrl, alt);
+            fn_13_563c(ctrl, alt);
             break;
         case 'T':
             if (ctrl) {
                 g_0a62 = !g_0a62;
                 if (g_0a62) {
-                    ref = fn_13_2206();
-                    fn_03_00f4(g_9646, ref.type, ref.idx);
+                    ref = objref_of(fn_13_2206());
+                    fn_03_00f4(main_ship, ref.type, ref.idx);
                 }
                 if (g_0a7c)
                     PostMessage(g_0a7c, WM_PAINT, 0, 0L);

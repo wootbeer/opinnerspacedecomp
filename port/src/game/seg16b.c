@@ -62,7 +62,7 @@ void fn_16_7210(void)
         PatBlt(g_13dc, 0, 0, LO16(g_90ea), g_0010, BLACKNESS);
         fn_15_1328(1);
         fn_15_14be();
-        fn_10_6e76(8, 0);
+        fn_10_6e76(8L);
         fn_10_6dd4(0);
         g_1e84 = g_1e50;
         break;

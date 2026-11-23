@@ -35,6 +35,7 @@ class Edits:
     def __init__(self, text):
         self.text = text
         self.edits = []          # (start, end, pieces, prio)
+        self.active = set()
 
     def add(self, s, e, pieces, prio=0):
         if isinstance(pieces, str):
@@ -60,18 +61,32 @@ class Edits:
             top.append(x)
         out = []
         pos = s
-        for (a, b, pieces, prio) in top:
+        for x in top:
+            a, b, pieces, prio = x
             out.append(self.text[pos:a])
+            self.active.add(id(x))
             for p in pieces:
                 if isinstance(p, tuple):
                     out.append(self.render_span(p[0], p[1]))
                 else:
                     out.append(p)
+            self.active.discard(id(x))
             pos = max(pos, b)
         out.append(self.text[pos:e])
         return ''.join(out)
 
     def render_span(self, s, e):
+        # an edit covering exactly this span applies to it too
+        exact = [x for x in self.edits if (x[0], x[1]) == (s, e) and s != e and
+                 id(x) not in self.active]
+        if exact:
+            x = max(exact, key=lambda x: x[3])
+            self.active.add(id(x))
+            out = []
+            for p in x[2]:
+                out.append(self.render_span(p[0], p[1]) if isinstance(p, tuple) else p)
+            self.active.discard(id(x))
+            return ''.join(out)
         return self.render(s, e)
 
 
@@ -113,6 +128,7 @@ class FileTranslator:
         self.toks = [t for t in lex(m.src)]
         self.tokpos = {t.pos: i for i, t in enumerate(self.toks)}
         self.notes = []
+        self.dropped = []
         self.counts = defaultdict(int)
 
     # -- positions ------------------------------------------------------------
@@ -365,6 +381,10 @@ class FileTranslator:
             return self.view_cast(t, off, size, vt, path)
         if isinstance(t, Arr):
             es = t.of.size() if not isinstance(t.of, Kind) else t.of.size
+            if es and isinstance(vt, Arr) and isinstance(t.of, Arr) and not isinstance(vt.of, Arr) \
+                    and off // es < (t.n or 1 << 30):
+                # 1-D view of a 2-D array: index into the row it starts in
+                return self.sub_path(t.of, off % es, min(size, es), vt, path + '[%d]' % (off // es))
             if es and isinstance(vt, Arr) and off % es == 0 and \
                     self.compatible(strip_arr(t), strip_arr(vt)):
                 if off == 0:
@@ -499,6 +519,8 @@ class FileTranslator:
             r = self.rewrite_alias(node, node.expr, 0, scope)
             if r:
                 return 'skip'
+        if isinstance(node, c_ast.ArrayRef) and self.rewrite_shifted_view(node, scope, parent):
+            return 'skip'
         if isinstance(node, c_ast.ArrayRef):
             inner = node.name
             if isinstance(inner, c_ast.Cast):
@@ -511,8 +533,18 @@ class FileTranslator:
                     return 'skip'
             if isinstance(inner, c_ast.ID) and self.is_global(inner.name, scope):
                 self.rewrite_table_index(node, inner, scope, parent)
+        if isinstance(node, (c_ast.UnaryOp, c_ast.StructRef)) and self.rewrite_win_ptr_deref(node, scope):
+            return 'skip'
+        if isinstance(node, c_ast.ArrayRef) and isinstance(node.name, c_ast.StructRef):
+            self.rewrite_flat_index(node, scope)
         if isinstance(node, c_ast.StructRef):
             self.rewrite_field(node, scope)
+        if isinstance(node, c_ast.FuncCall):
+            self.rewrite_call(node, scope, parent)
+        if isinstance(node, c_ast.Assignment) and node.op == '=':
+            self.rewrite_getproc(node, scope)
+            self.rewrite_fnptr_store(node, scope)
+            self.rewrite_objref_word(node, scope)
         if isinstance(node, c_ast.ID) and self.is_global(node.name, scope):
             if not (isinstance(parent, c_ast.ArrayRef) and parent.name is node) and \
                     not (isinstance(parent, c_ast.StructRef) and parent.field is node) and \
@@ -520,6 +552,445 @@ class FileTranslator:
                          isinstance(scope.lookup(node.name), Func)):
                 self.rewrite_global_id(node, scope, parent)
         return None
+
+    # -- calls: adapt the arguments to the callee's real signature -----------
+    def callee_type(self, node, scope):
+        """(name, Func, pascal) of a call's callee, from its definition."""
+        n = node.name
+        if isinstance(n, c_ast.ID) and n.name in self.mg.functions and \
+                not self.shadowed(n.name, scope):
+            return n.name, self.mg.functions[n.name][0], self.mg.is_pascal(n.name)
+        vt = self.typeof(n, scope)
+        if vt is None:
+            return None
+        t = vt.t
+        if isinstance(n, c_ast.ID) and self.is_global(n.name, scope):
+            addr = pm.global_addr(n.name)
+            g, off = self.mg.global_at(addr) if addr is not None else (None, None)
+            if g is not None and off == 0:
+                t = g.type
+        elif isinstance(n, c_ast.StructRef):
+            mt = self.merged_field_type(n, scope)
+            if mt is not None:
+                t = mt
+        if isinstance(t, Ptr) and isinstance(t.to, Func):
+            return None, t.to, getattr(t, 'pascal', False)
+        return None
+
+    def merged_field_type(self, X, scope):
+        try:
+            loc = self.location(X, scope, False)
+        except ValueError:
+            return None
+        if loc is None or not isinstance(loc[1], Kind):
+            return None
+        for f in loc[1].fields:
+            if f.off == loc[2]:
+                return f.type
+        return None
+
+    def shadowed(self, name, scope):
+        s = scope
+        while s is not None and s.parent is not None:
+            if name in s.vars and name not in getattr(s, 'externs', ()):
+                return True
+            s = s.parent
+        return False
+
+    @staticmethod
+    def words(t):
+        if t is None:
+            return None
+        sz = t.size if isinstance(t, Kind) else t.size()
+        return max(1, (sz + 1) // 2)
+
+    def two_fields(self, t):
+        """Field names of a 4-byte record of two 16-bit fields, or None."""
+        if isinstance(t, Win) and t.name in ('POINT', 'SIZE'):
+            return [n for n, o, _ in Win.FIELDS[t.name]]
+        k = t if isinstance(t, Kind) else (self.mg.view_of_type(t).kind
+                                           if isinstance(t, Struct) and self.mg.view_of_type(t) else None)
+        if k is None or k.size != 4:
+            return None
+        fs = [f for f in k.fields if f.size == 2]
+        if len(fs) == 2 and fs[0].off == 0 and fs[1].off == 2:
+            return [fs[0].name, fs[1].name]
+        return None
+
+    @staticmethod
+    def signed16(v):
+        return v - 0x10000 if v >= 0x8000 else v
+
+    def arg_spans(self, node):
+        """(open paren index, close paren index, [(start, end)] per argument)."""
+        e = self.node_end(node.name)
+        if e is None:
+            return None
+        i = self.tok_at(self.find_tok(e, '('))
+        j = self.match_close(i)
+        spans = []
+        d = 0
+        start = None
+        for k in range(i + 1, j):
+            t = self.toks[k]
+            if t.kind in ('ws', 'nl', 'comment'):
+                continue
+            if t.kind == 'punct' and t.text in '([{':
+                d += 1
+            elif t.kind == 'punct' and t.text in ')]}':
+                d -= 1
+            elif d == 0 and t.text == ',':
+                spans.append((start, last))
+                start = None
+                continue
+            if start is None:
+                start = t.pos
+            last = t.pos + len(t.text)
+        if start is not None:
+            spans.append((start, last))
+        return i, j, spans
+
+    def is_plain(self, node):
+        """No side effects: safe to name twice."""
+        for n in walk(node):
+            if isinstance(n, (c_ast.FuncCall, c_ast.Assignment)) or \
+                    isinstance(n, c_ast.UnaryOp) and n.op in ('++', '--', 'p++', 'p--'):
+                return False
+        return True
+
+    def objref_parts(self, a):
+        """(idx node, type node or constant) of '(char)i | t << 8' style packing."""
+        k = self.m.tb.const_eval(a)
+        if k is not None:
+            return None
+        if isinstance(a, c_ast.Cast):
+            return a.expr, 0
+        if isinstance(a, c_ast.BinaryOp) and a.op == '|' and isinstance(a.left, c_ast.Cast):
+            r = a.right
+            k = self.m.tb.const_eval(r)
+            if k is not None and k & 0xff == 0:
+                return a.left.expr, k >> 8
+            if isinstance(r, c_ast.BinaryOp) and r.op == '<<' and self.m.tb.const_eval(r.right) == 8:
+                return a.left.expr, r.left
+        return None
+
+    def rewrite_call(self, node, scope, parent=None):
+        ct = self.callee_type(node, scope)
+        if ct is None:
+            return
+        name, ft, pascal = ct
+        args = node.args.exprs if node.args else []
+        sp = self.arg_spans(node)
+        if sp is None:
+            return
+        oi, ci, spans = sp
+        if len(spans) != len(args):
+            return
+        line = node.coord.line if node.coord else 0
+        ov = pm.OV.calls.get((self.m.fn, line, name))
+        if ov is not None:
+            self.ed.add(self.toks[oi].pos, self.toks[ci].pos + 1, '(' + ov + ')')
+            self.counts['call override'] += 1
+            return
+        if ft.var:
+            return
+        params = [t for _, t in ft.params]
+        ats = [self.typeof(a, scope) for a in args]
+        out = []
+        changed = []
+        i = j = 0
+        while i < len(params) and j < len(args):
+            p = params[i]
+            pw = self.words(p)
+            at = ats[j].t if ats[j] is not None else None
+            aw = self.words(at) if at is not None else pw
+            pf = self.two_fields(p)
+            af = self.two_fields(at) if at is not None else None
+            nxt = j + 1 < len(args) and (ats[j + 1] is None or self.words(ats[j + 1].t) == 1)
+            if pf and not af and pw == aw == 2:
+                a = args[j]
+                if isinstance(a, c_ast.UnaryOp) and a.op == '*' and isinstance(a.expr, c_ast.Cast) \
+                        and isinstance(a.expr.expr, c_ast.UnaryOp) and a.expr.expr.op == '&':
+                    xt = self.typeof(a.expr.expr.expr, scope)
+                    if xt is not None and self.two_fields(xt.t) == pf:
+                        out.append([self.span(a.expr.expr.expr)])
+                        changed.append('aliased record passed as itself')
+                        i += 1
+                        j += 1
+                        continue
+                if isinstance(a, c_ast.FuncCall) and isinstance(a.name, c_ast.ID) and \
+                        a.name.name == 'MAKELONG' and len(a.args.exprs) == 2:
+                    sub = self.arg_spans(a)[2]
+                    out.append(['(%s){' % self.sp.typename(p), sub[0], ', ', sub[1], '}'])
+                    changed.append('MAKELONG -> %s' % self.sp.typename(p))
+                    i += 1
+                    j += 1
+                    continue
+            if pw == aw and not (pf and at is not None and not af and isinstance(at, Prim)) and \
+                    not (pw == 1 and isinstance(p, Struct) and isinstance(at, Prim)):
+                out.append([spans[j]])
+                i += 1
+                j += 1
+                continue
+            more_args = len(args) - j > len(params) - i
+            fewer_args = len(args) - j < len(params) - i
+            if pw == 2 and aw == 1 and nxt and more_args:
+                lo, hi = (spans[j + 1], spans[j]) if pascal else (spans[j], spans[j + 1])
+                if pf:
+                    out.append(['(%s){' % self.sp.typename(p), lo, ', ', hi, '}'])
+                    changed.append('two values -> %s' % self.sp.typename(p))
+                else:
+                    kl = self.m.tb.const_eval(args[j + 1] if pascal else args[j])
+                    kh = self.m.tb.const_eval(args[j] if pascal else args[j + 1])
+                    if kl is not None and kh is not None and 0 <= kl < 0x10000 and 0 <= kh < 0x8000:
+                        out.append(['%dL' % kl if kh == 0 else
+                                    '0x%xL' % (((kh & 0xffff) << 16) | (kl & 0xffff))])
+                    else:
+                        out.append(['MAKELONG(', lo, ', ', hi, ')'])
+                    changed.append('two words -> long')
+                i += 1
+                j += 2
+                continue
+            if pw == 1 and aw == 2 and af and i + 1 < len(params) and fewer_args and \
+                    self.words(params[i + 1]) == 1 and self.is_plain(args[j]):
+                f0, f1 = (af[1], af[0]) if pascal else (af[0], af[1])
+                out.append([spans[j], '.' + f0, ', ', spans[j], '.' + f1])
+                changed.append('record -> two values')
+                i += 2
+                j += 1
+                continue
+            if pw == 1 and aw == 2 and not af and fewer_args and i + 1 < len(params) and \
+                    self.words(params[i + 1]) == 1 and isinstance(at, (Prim, Win)) and \
+                    not isinstance(at, Ptr):
+                k = self.m.tb.const_eval(args[j])
+                if k is not None:
+                    lo, hi = str(self.signed16(k & 0xffff)), str(self.signed16((k >> 16) & 0xffff))
+                    parts = [lo, ', ', hi]
+                elif self.is_plain(args[j]) and isinstance(args[j], (c_ast.ID, c_ast.StructRef,
+                                                                       c_ast.ArrayRef)):
+                    parts = ['LO16(', spans[j], '), HI16(', spans[j], ')']
+                else:
+                    parts = None
+                if parts is not None:
+                    if pascal:
+                        parts = parts[3:] + [', '] + parts[:2] if k is not None else \
+                            ['HI16(', spans[j], '), LO16(', spans[j], ')']
+                    out.append(parts)
+                    changed.append('long -> two words')
+                    i += 2
+                    j += 1
+                    continue
+            if pw == 1 and isinstance(p, Struct) and isinstance(at, Prim):
+                parts = self.objref_parts(args[j])
+                k = self.mg.view_of_type(p)
+                if parts is not None and k is not None:
+                    idx, typ = parts
+                    ti = typ if isinstance(typ, int) else None
+                    out.append(['(%s){' % k.kind.name, self.span(idx), ', ',
+                                str(ti) if ti is not None else self.span(typ), '}'])
+                    changed.append('packed word -> %s' % k.kind.name)
+                    i += 1
+                    j += 1
+                    continue
+            # leave as is
+            out.append([spans[j]])
+            i += 1
+            j += 1
+        effects = []
+        if j < len(args):
+            changed.append('dropped %d extra argument(s): %s' % (
+                len(args) - j, ', '.join(self.src[a:b] for a, b in spans[j:])))
+            # keep side effects of dropped arguments (evaluated first: right to left)
+            effects = [spans[k] for k in range(len(args) - 1, j - 1, -1) if not self.is_plain(args[k])]
+        if i < len(params):
+            self.note(node, 'call to %s passes %d argument(s) for %d parameters' % (
+                name or 'pointer', len(args), len(params)))
+            self.counts['call too few'] += 1
+            return
+        if not changed:
+            return
+        pieces = ['(']
+        for k, a in enumerate(out):
+            if k:
+                pieces.append(', ')
+            pieces.extend(a)
+        pieces.append(')')
+        self.ed.add(self.toks[oi].pos, self.toks[ci].pos + 1, pieces)
+        if effects:
+            cs = self.node_start(node)
+            if isinstance(parent, c_ast.Compound):
+                ls = self.src.rfind('\n', 0, cs) + 1
+                indent = self.src[ls:cs] if not self.src[ls:cs].strip() else ''
+                pre = []
+                for sp_ in effects:
+                    pre += [sp_, ';\n' + indent]
+                self.ed.add(cs, cs, pre)
+            else:
+                pre = ['(']
+                for sp_ in effects:
+                    pre += [sp_, ', ']
+                self.ed.add(cs, cs, pre)
+                self.ed.add(self.toks[ci].pos + 1, self.toks[ci].pos + 1, ')')
+        for c in changed:
+            self.note(node, 'call to %s: %s' % (name or 'pointer', c))
+            self.counts['call adapted'] += 1
+            if c.startswith('dropped'):
+                self.dropped.append('%s:%d %s: %s' % (self.m.fn, line, name or self.src[
+                    self.pos(node) or 0:self.toks[oi].pos].strip(), c))
+
+    def rewrite_flat_index(self, node, scope):
+        """f[j] through a 1-D view of a field merged as a 2-D array."""
+        vt = self.typeof(node.name, scope)
+        if vt is None or not isinstance(vt.t, Arr) or isinstance(vt.t.of, Arr):
+            return
+        mt = self.merged_field_type(node.name, scope)
+        if not isinstance(mt, Arr) or not isinstance(mt.of, Arr) or isinstance(mt.of.of, Arr):
+            return
+        m = mt.of.n
+        if not m or mt.of.of.size() != vt.t.of.size():
+            return
+        if not self.is_plain(node.subscript):
+            return
+        e = self.node_end(node.name)
+        bi = self.tok_at(self.find_tok(e, '['))
+        be = self.match_close(bi)
+        k = self.m.tb.const_eval(node.subscript)
+        if k is not None:
+            self.ed.add(self.toks[bi].pos, self.toks[be].pos + 1, '[%d][%d]' % (k // m, k % m))
+        else:
+            sp = self.span(node.subscript)
+            self.ed.add(self.toks[bi].pos, self.toks[be].pos + 1,
+                        ['[', sp, ' / %d][' % m, sp, ' %% %d]' % m])
+        self.counts['flat index'] += 1
+
+    def rewrite_shifted_view(self, node, scope, parent):
+        """v[a][b] where v is an array view a few elements below a global of the
+        same shape (the 1994 compiler folded a constant index into the base)."""
+        if isinstance(parent, c_ast.ArrayRef) and parent.name is node:
+            return False
+        subs = []
+        base = node
+        while isinstance(base, c_ast.ArrayRef):
+            subs.insert(0, base.subscript)
+            base = base.name
+        if not isinstance(base, c_ast.ID) or not self.is_global(base.name, scope):
+            return False
+        addr = pm.global_addr(base.name)
+        vt = scope.lookup(base.name)
+        if addr is None or addr in self.mg.globals or not isinstance(vt, Arr):
+            return False
+        dims = []
+        t = vt
+        while isinstance(t, Arr):
+            dims.append(t.n)
+            t = t.of
+        if len(subs) != len(dims) or not isinstance(t, Prim):
+            return False
+        es = t.size()
+        nxt = [a for a in self.mg.globals if addr < a <= addr + 8]
+        if not nxt:
+            return False
+        g = self.mg.globals[min(nxt)]
+        gd, gt = [], g.type
+        while isinstance(gt, Arr):
+            gd.append(gt.n)
+            gt = gt.of
+        if gd[1:] != dims[1:] or not isinstance(gt, Prim) or gt.size() != es:
+            return False
+        k = (g.addr - addr) // es
+        if (g.addr - addr) % es or k >= (dims[-1] or 1 << 30):
+            return False
+        pieces = [g.name]
+        for i, sub in enumerate(subs):
+            pieces += ['[', self.span(sub), ' - %d]' % k if i == len(subs) - 1 else ']']
+            self.visit(sub, scope, node)
+        s = self.pos(base)
+        e = self.node_end(node)
+        self.ed.add(s, e, pieces, prio=1)
+        self.note(node, 'view %s read as %s with the last index shifted by %d' % (base.name, g.name, -k))
+        return True
+
+    def rewrite_objref_word(self, node, scope):
+        """ref = f() where f returns the OBJREF packed in a word."""
+        r = node.rvalue
+        if not isinstance(r, c_ast.FuncCall):
+            return
+        lt = self.typeof(node.lvalue, scope)
+        rt = self.typeof(r, scope)
+        ct = self.callee_type(r, scope)
+        if lt is None or ct is None or not isinstance(lt.t, Struct):
+            return
+        v = self.mg.view_of_type(lt.t)
+        if v is None or v.kind.name != 'OBJREF' or not isinstance(ct[1].ret, Prim):
+            return
+        s = self.node_start(r)
+        e = self.node_end(r)
+        if s is None or e is None:
+            return
+        self.ed.add(s, e, ['objref_of(', (s, e), ')'], prio=1)
+        self.counts['objref from word'] += 1
+
+    def fn_sig(self, f):
+        """Spelling of a function type without parameter names."""
+        return self.sp.typename(Ptr(Func(f.ret, [(None, t) for _, t in f.params], f.var), True))
+
+    def rewrite_fnptr_store(self, node, scope):
+        """p = (cast)fn: drop the cast when fn has the pointer's real type."""
+        r = node.rvalue
+        cast = None
+        if isinstance(r, c_ast.Cast):
+            cast, r = r, r.expr
+        if cast is None or not isinstance(r, c_ast.ID) or r.name not in self.mg.functions:
+            return
+        lt = None
+        if isinstance(node.lvalue, c_ast.StructRef):
+            lt = self.merged_field_type(node.lvalue, scope)
+        elif isinstance(node.lvalue, c_ast.ID) and self.is_global(node.lvalue.name, scope):
+            addr = pm.global_addr(node.lvalue.name)
+            g, off = self.mg.global_at(addr) if addr is not None else (None, None)
+            lt = g.type if g is not None and off == 0 else None
+        if not (isinstance(lt, Ptr) and isinstance(lt.to, Func)):
+            return
+        ft = self.mg.functions[r.name][0]
+        if self.fn_sig(ft) != self.fn_sig(lt.to):
+            return
+        ci = self.tok_at(self.pos(cast))
+        if self.toks[ci].text != '(':
+            ci = self.prev_sig(ci)
+        ce = self.match_close(ci)
+        if ce is None:
+            return
+        self.ed.add(self.toks[ci].pos, self.pos(r), '')
+        self.counts['function cast dropped'] += 1
+
+    def rewrite_getproc(self, node, scope):
+        """g = GetProcAddress(...): cast to the global's function pointer type."""
+        r = node.rvalue
+        cast = None
+        if isinstance(r, c_ast.Cast):
+            cast, r = r, r.expr
+        if not (isinstance(r, c_ast.FuncCall) and isinstance(r.name, c_ast.ID) and
+                r.name.name == 'GetProcAddress'):
+            return
+        lv = node.lvalue
+        if not (isinstance(lv, c_ast.ID) and self.is_global(lv.name, scope)):
+            return
+        addr = pm.global_addr(lv.name)
+        g, off = self.mg.global_at(addr) if addr is not None else (None, None)
+        if g is None or off or not isinstance(g.type, Ptr) or not isinstance(g.type.to, Func):
+            return
+        tn = '(%s)' % self.sp.typename(g.type)
+        s = self.pos(r.name)
+        if cast is not None:
+            ci = self.tok_at(self.pos(cast))
+            if self.toks[ci].text != '(':
+                ci = self.prev_sig(ci)
+            ce = self.match_close(ci) if self.toks[ci].text == '(' else None
+            if ce is None:
+                return
+            self.ed.add(self.toks[ci].pos, self.toks[ce].pos + 1, tn)
+        else:
+            self.ed.add(s, s, tn)
 
     # -- rewrites -------------------------------------------------------------
     def view_for_decl(self, name):
@@ -556,6 +1027,16 @@ class FileTranslator:
         vt = scope.lookup(name)
         if vt is None or isinstance(vt, Func):
             return
+        if isinstance(parent, c_ast.Assignment) and parent.lvalue is node:
+            # whole-object store of a value of the merged type: no view needed
+            g, off = self.mg.global_at(addr)
+            rt = self.typeof(parent.rvalue, scope)
+            if g is not None and off == 0 and rt is not None and \
+                    g.type.size() == vt.size() and self.compatible(g.type, rt.t) and \
+                    not self.compatible(g.type, vt):
+                if g.name != name:
+                    self.ed.add(p, p + len(name), g.name)
+                return
         res = self.ds_path(addr, vt.size(), vt)
         if res is None:
             self.note(node, 'no merged global for %s' % name)
@@ -579,7 +1060,10 @@ class FileTranslator:
         q, r = divmod(v.delta, S)
         q += self.extra_q.get(id(node), 0)
         if k.inner and v.delta:
-            self.note(node, 'view %s of a 2-D table at +%x' % (inner.name, v.delta))
+            if len(k.inner) != 1 or isinstance(parent, c_ast.ArrayRef) and parent.name is node:
+                self.note(node, 'view %s of a 2-D table at +%x' % (inner.name, v.delta))
+                return
+            self.rewrite_flat_table_index(node, inner, tn, k.inner[0], q, p)
             return
         if tn != inner.name:
             self.ed.add(p, p + len(inner.name), tn)
@@ -595,6 +1079,30 @@ class FileTranslator:
                 if pre:
                     self.ed.add(p, p, pre)
                 self.ed.add(close + 1, close + 1, path + post)
+
+    def rewrite_flat_table_index(self, node, inner, tn, n, q, p):
+        """v[k] where v is a 1-D view into a table of rows of n records."""
+        i = self.tok_at(self.find_tok(p + len(inner.name), '['))
+        j = self.match_close(i)
+        sub = node.subscript
+        a = b = None
+        if q == 0 and isinstance(sub, c_ast.BinaryOp) and sub.op == '+' and \
+                isinstance(sub.left, c_ast.BinaryOp) and sub.left.op == '*' and \
+                self.m.tb.const_eval(sub.left.right) == n:
+            a, b = self.span(sub.left.left), self.span(sub.right)
+            pieces = [tn, '[', a, '][', b, ']']
+        elif self.is_plain(sub):
+            sp = self.span(sub)
+            k = self.m.tb.const_eval(sub)
+            if k is not None:
+                pieces = [tn, '[%d][%d]' % ((k + q) // n, (k + q) % n)]
+            else:
+                qs = ' + %d' % q if q else ''
+                pieces = [tn, '[(', sp, qs + ') / %d][(' % n, sp, qs + ') %% %d]' % n]
+        else:
+            self.note(node, 'view %s of a 2-D table: index has side effects' % inner.name)
+            return
+        self.ed.add(p, self.toks[j].pos + 1, pieces)
 
     def rewrite_field(self, node, scope):
         bt = self.typeof(node.name, scope)
@@ -672,6 +1180,66 @@ class FileTranslator:
         fp = self.pos(node.field)
         self.ed.add(fp, fp + len(node.field.name), res[1][1:])
 
+    def win_ptr_kind(self, name):
+        """Merged record kind behind a global POINT/RECT pointer, or None."""
+        addr = pm.global_addr(name)
+        if addr is None:
+            return None
+        g, off = self.mg.global_at(addr)
+        if g is None:
+            return None
+        mt = g.type
+        while isinstance(mt, Arr):
+            es = mt.of.size if isinstance(mt.of, Kind) else mt.of.size()
+            off %= es
+            mt = mt.of
+        if off or not isinstance(mt, Ptr) or not isinstance(mt.to, Struct):
+            return None
+        v = self.mg.view_of_type(mt.to)
+        return v.kind if v is not None else None
+
+    def rewrite_win_ptr_deref(self, node, scope):
+        """*p and p[k].x where p is a global POINT pointer onto a record."""
+        if isinstance(node, c_ast.UnaryOp) and node.op == '*':
+            ident, k, field = node.expr, 0, None
+        elif isinstance(node, c_ast.StructRef) and node.type == '.' and \
+                isinstance(node.name, c_ast.ArrayRef):
+            ident, k, field = node.name.name, self.m.tb.const_eval(node.name.subscript), node.field.name
+        else:
+            return False
+        if not isinstance(ident, c_ast.ID) or k is None or not self.is_global(ident.name, scope):
+            return False
+        vt = scope.lookup(ident.name)
+        if not (isinstance(vt, Ptr) and isinstance(vt.to, Win) and vt.to.name in Win.FIELDS):
+            return False
+        kind = self.win_ptr_kind(ident.name)
+        if kind is None:
+            return False
+        w = vt.to
+        off = k * w.size()
+        size, at = w.size(), w
+        if field is not None:
+            fo = [o for n, o, _ in Win.FIELDS[w.name] if n == field]
+            if not fo:
+                return False
+            off += fo[0]
+            size, at = 2, Prim('int')
+        res = self.sub_path(kind, off, size, at, '')
+        base = self.ds_path(pm.global_addr(ident.name), vt.size(), vt)
+        if res is None or base is None or res[0] or base[0]:
+            return False
+        s = self.node_start(node)
+        e = self.node_end(node)
+        if s is None or e is None:
+            return False
+        if field is None:
+            si = self.prev_sig(self.tok_at(s))
+            if self.toks[si].text != '*':
+                return False
+            s = self.toks[si].pos
+        self.ed.add(s, e, base[1] + '->' + res[1][1:], prio=1)
+        return True
+
     def rewrite_field_on_global(self, node, f, scope):
         """g[i][j].f where g is a plain global array whose merged element type
         is not this struct (e.g. a PAIR view of a POINT array)."""
@@ -713,7 +1281,7 @@ class FileTranslator:
             self.ed.add(fp + len(fname), fp + len(fname), post)
         return True
 
-    def location(self, X, scope):
+    def location(self, X, scope, visit=True):
         """(container pieces, merged type, byte offset) of an lvalue, or None."""
         if isinstance(X, c_ast.ID) and self.is_global(X.name, scope):
             addr = pm.global_addr(X.name)
@@ -730,6 +1298,8 @@ class FileTranslator:
             if v is not None and v.kind.key[0] == 'table' and not v.kind.inner:
                 S = v.kind.size
                 q, r = divmod(v.delta, S)
+                if visit:
+                    self.visit(X.subscript, scope, X)
                 return ([self.table_name(v.kind) + '[', self.span(X.subscript),
                          (' + %d]' % q) if q else ']'], v.kind, r)
             addr = pm.global_addr(X.name.name)
@@ -749,7 +1319,7 @@ class FileTranslator:
                 st = st.to if isinstance(st, Ptr) else None
             if not isinstance(st, Struct):
                 if isinstance(st, Win) and st.name in Win.FIELDS:
-                    inner = self.location(X.name, scope) if X.type == '.' else None
+                    inner = self.location(X.name, scope, visit) if X.type == '.' else None
                     if inner is None:
                         return None
                     for n, o, _ in Win.FIELDS[st.name]:
@@ -762,14 +1332,16 @@ class FileTranslator:
                 return None
             S = v.kind.size or 1
             if X.type == '.':
-                inner = self.location(X.name, scope)
+                inner = self.location(X.name, scope, visit)
                 if inner is not None and inner[1] is v.kind:
                     return (inner[0], v.kind, inner[2] + f[2])
                 if inner is None:
-                    self.visit(X.name, scope, X)
+                    if visit:
+                        self.visit(X.name, scope, X)
                     return ([self.span(X.name)], v.kind, f[2] + v.delta % S)
                 return None
-            self.visit(X.name, scope, X)
+            if visit:
+                self.visit(X.name, scope, X)
             return (['(*', self.span(X.name), ')'], v.kind, f[2] + v.delta % S)
         return None
 
@@ -1050,15 +1622,21 @@ class FileTranslator:
             i += 1
 
 
+DROPPED = []
+
+
 def translate(fn, mg, sp, notes, counts):
     m = [x for x in mg.models if x.fn == fn][0]
     tr = FileTranslator(m, mg, sp)
     tr.extra_q = {}
     text = tr.run()
     text = re.sub(r'\n{3,}', '\n\n', text)
+    text = re.sub(r'\)\n\n+\{\n', ')\n{\n', text)     # padding left by header overrides
+    text = pm.apply_names(text)
     with open(os.path.join(OUT, fn), 'w') as f:
         f.write(text)
     notes.extend(tr.notes)
+    DROPPED.extend(tr.dropped)
     for k, v in tr.counts.items():
         counts[k] += v
 
@@ -1079,6 +1657,7 @@ def main(argv):
         f.write('\n'.join(notes) + '\n')
         for k, v in sorted(counts.items()):
             f.write('%s: %d\n' % (k, v))
+        mg.report['dropped call arguments'] = [pm.apply_names(d) for d in DROPPED]
         for sec, lines in mg.report.items():
             f.write('== %s (%d)\n' % (sec, len(lines)))
             for ln in lines:

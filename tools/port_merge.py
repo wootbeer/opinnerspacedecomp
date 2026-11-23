@@ -18,6 +18,9 @@ from collections import defaultdict
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from pycparser import c_parser, c_ast  # noqa: E402
+from port_overrides import overrides  # noqa: E402
+
+OV = overrides()
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, 'src', 'inspace')
@@ -348,7 +351,7 @@ def header_parse_text():
     global _HDR
     if _HDR is None:
         with open(os.path.join(SRC, 'inspace.h'), encoding='latin-1') as f:
-            _HDR = '# 1 "inspace.h"\n' + ParseText(f.read()).text + '\n'
+            _HDR = '# 1 "inspace.h"\n' + ParseText(OV.apply('inspace.h', f.read())).text + '\n'
     return _HDR
 
 
@@ -356,6 +359,7 @@ def prepare(path):
     """Return (src_text_after_macro_expansion, ParseText, ast)."""
     with open(path, encoding='latin-1') as f:
         raw = f.read()
+    raw = OV.apply(os.path.basename(path), raw)
     src = expand_macros(raw)
     pt = ParseText(src)
     text = PRELUDE + header_parse_text() + '# 1 "%s"\n' % os.path.basename(path) + pt.text
@@ -750,6 +754,37 @@ ADDR_NAME = {o: n for n, o in NAME_ADDR.items()}
 FUNC_NAME = {((s - 0x1000) // 8 + 1, o): n for n, (s, o) in CONFIRMED.items() if s != 0x1090}
 
 
+def confirmed_name(ident):
+    """Confirmed name for a g_XXXX / g_fp_XXXX / fn_SS_OOOO identifier, or None."""
+    m = re.match(r'^g_(?:fp_)?([0-9a-f]{4})$', ident)
+    if m:
+        return ADDR_NAME.get(int(m.group(1), 16))
+    m = re.match(r'^fn_(\d\d)_([0-9a-f]{4})$', ident)
+    if m:
+        return FUNC_NAME.get((int(m.group(1)), int(m.group(2), 16)))
+    return None
+
+
+INFERRED_IDENT = {n: ('g_%04x' % o if s == 0x1090 else 'fn_%02d_%04x' % ((s - 0x1000) // 8 + 1, o))
+                  for (s, o), n in INFERRED.items()}
+
+
+def apply_names(text):
+    """Replace address names by confirmed names in code (not comments or strings)."""
+    out = []
+    pos = 0
+    for t in lex(text):
+        if t.kind == 'ident':
+            # inferred names stay comments: the code keeps the address name
+            n = confirmed_name(t.text) or INFERRED_IDENT.get(t.text)
+            if n:
+                out.append(text[pos:t.pos])
+                out.append(n)
+                pos = t.pos + len(t.text)
+    out.append(text[pos:])
+    return ''.join(out)
+
+
 def global_addr(name):
     m = re.match(r'^g_(?:fp_)?([0-9a-f]{4})$', name)
     if m:
@@ -969,6 +1004,14 @@ def type_rank(t):
     return 0
 
 
+def fn_params(t):
+    """Parameter count of a function pointer: a slot called with several
+    shapes takes the longest (the shorter callers' callees ignore the rest)."""
+    if isinstance(t, Ptr) and isinstance(t.to, Func):
+        return len(t.to.params)
+    return 0
+
+
 class Item:
     """One declared view of memory: offset, type, name, file."""
     __slots__ = ('off', 'type', 'name', 'file')
@@ -1046,7 +1089,8 @@ def merge_items(items, total=None, fmt=None, report=None, what=''):
     for it in items:
         cnt[(it.off, repr(it.type))] += 1
     order = sorted(compat, key=lambda it: (-it.size, -type_rank(it.type), -cnt[(it.off, repr(it.type))], it.off)) + \
-        sorted(scal, key=lambda it: (-type_rank(it.type), -it.size, -cnt[(it.off, repr(it.type))], it.off))
+        sorted(scal, key=lambda it: (-type_rank(it.type), -it.size, -fn_params(it.type),
+                                     -cnt[(it.off, repr(it.type))], it.off))
     chosen = []
     for it in order:
         if any(overlap(it, c) for c in chosen):
@@ -1167,6 +1211,21 @@ class Merge:
         self.type_views[id(t)].append(v)
         k.views.append(v)
         return v
+
+    def is_pascal(self, name):
+        """True if name's definition is declared pascal (arguments pushed left to right)."""
+        if not hasattr(self, '_pascal'):
+            self._pascal = {}
+        if name not in self._pascal:
+            r = None
+            f = getattr(self, 'functions', {}).get(name)
+            if f is not None:
+                m = [x for x in self.models if x.fn == f[1]][0]
+                d = OV.find_def(m.src, name)
+                if d is not None:
+                    r = re.search(r'\bpascal\b', m.src[d[0]:d[1]]) is not None
+            self._pascal[name] = bool(r)
+        return self._pascal[name]
 
     def view_of_type(self, t):
         vs = self.type_views.get(id(t))
@@ -1679,6 +1738,17 @@ def emit_game_h(mg, path):
         w('} %s;' % k.name)
         w('#pragma pack(pop)')
         w('')
+    if any(k.name == 'OBJREF' for k in order):
+        w('/* An OBJREF packed in a word as (type << 8) | idx, as some functions')
+        w(' * return it. */')
+        w('static inline OBJREF objref_of(int16_t w)')
+        w('{')
+        w('    OBJREF r;')
+        w('    r.idx = (uint8_t)w;')
+        w('    r.type = (uint8_t)((uint16_t)w >> 8);')
+        w('    return r;')
+        w('}')
+        w('')
     # other typedefs (function pointer types and the like)
     seen = {}
     for m in mg.models:
@@ -1701,14 +1771,18 @@ def emit_game_h(mg, path):
     w('')
     w('/* Game functions. */')
     for name, (t, file, addr) in sorted(mg.functions.items(), key=lambda x: x[1][2] or (99, 0)):
-        w('%s;' % sp.decl(t, name))
+        mm = re.match(r'^fn_(\d\d)_([0-9a-f]{4})$', name)
+        inf = INFERRED_FN.get((int(mm.group(1)), int(mm.group(2), 16))) if mm else \
+            (name if name in INFERRED_IDENT else None)
+        w('%s;%s' % (sp.decl(t, name), ' /* %s [inferred] */' % inf if inf else ''))
     w('')
     w('#endif')
     with open(path, 'w') as f:
-        f.write('\n'.join(out) + '\n')
+        f.write(apply_names('\n'.join(out) + '\n'))
 
 
 INFERRED_DS = {o: n for (s, o), n in INFERRED.items() if s == 0x1090}
+INFERRED_FN = {((s - 0x1000) // 8 + 1, o): n for (s, o), n in INFERRED.items() if s != 0x1090}
 
 
 def collect_functions(mg):
@@ -2045,6 +2119,6 @@ def emit_win16api_h(mg, path):
     w('')
     w('#endif')
     with open(path, 'w') as f:
-        f.write('\n'.join(out) + '\n')
+        f.write(apply_names('\n'.join(out) + '\n'))
     mg.report['api calls not found in the headers'] = unknown
     mg.report['identifiers not found in the headers'] = missing

@@ -614,8 +614,8 @@ typedef struct {
     char f_53;
     char f_54;
     char f_55[9];
-    int16_t (*f_5e)(int16_t type, int16_t idx);
-    void (*f_62)(void);
+    int16_t (*f_5e)(int16_t type, int16_t idx, int16_t dmg);
+    void (*f_62)(int16_t type, int16_t n, HDC dc);
     void (*f_66)(int16_t type, int16_t idx);
     DWORD f_6a;
     HPALETTE rest;
@@ -1043,6 +1043,16 @@ typedef struct {
 } REC_SAVE_seg06b;
 #pragma pack(pop)
 
+/* An OBJREF packed in a word as (type << 8) | idx, as some functions
+ * return it. */
+static inline OBJREF objref_of(int16_t w)
+{
+    OBJREF r;
+    r.idx = (uint8_t)w;
+    r.type = (uint8_t)((uint16_t)w >> 8);
+    return r;
+}
+
 typedef int16_t (*FP7I)(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t);
 typedef int16_t (*FP3C5C)(int16_t, POINT, int16_t, int16_t, int16_t, int32_t, DWORD, LPCSTR);
 typedef void (*FNV)(void);
@@ -1366,11 +1376,11 @@ extern DWORD g_1d40; /* DS:1d40 */
 extern DWORD g_1d44; /* DS:1d44 */
 extern int16_t g_1d48; /* DS:1d48 */
 extern int16_t g_1d4a; /* DS:1d4a */
-extern FARPROC g_1d4c; /* DS:1d4c */
-extern FARPROC g_1d50; /* DS:1d50 */
-extern FARPROC g_1d54; /* DS:1d54 */
+extern void (*g_1d4c)(HINSTANCE); /* DS:1d4c */
+extern void (*g_1d50)(HINSTANCE); /* DS:1d50 */
+extern void (*g_1d54)(HINSTANCE); /* DS:1d54 */
 extern int16_t (*g_fp_1d58)(int16_t); /* DS:1d58 */
-extern void (*g_fp_1d5c)(int16_t, int16_t, int32_t); /* DS:1d5c */
+extern int16_t (*g_fp_1d5c)(int16_t, int16_t, int32_t); /* DS:1d5c */
 extern char g_1d60[]; /* DS:1d60 */
 extern int16_t g_1dc4; /* DS:1dc4 */
 extern int16_t g_1dc6; /* DS:1dc6 */
@@ -1475,7 +1485,7 @@ extern int16_t (*g_fp_3c3c)(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t
 extern void (*g_fp_3c40)(int16_t, int16_t, int16_t); /* DS:3c40 */
 extern int16_t (*g_fp_3c44)(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t); /* DS:3c44 */
 extern int16_t (*g_fp_3c48)(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int32_t); /* DS:3c48 */
-extern void (*g_fp_3c4c)(void); /* DS:3c4c */
+extern int16_t (*g_fp_3c4c)(void); /* DS:3c4c */
 extern int16_t (*g_fp_3c50)(int16_t, int16_t, int16_t, int16_t, int32_t, int16_t); /* DS:3c50 */
 extern void (*g_fp_3c54)(int32_t, int16_t); /* DS:3c54 */
 extern int16_t (*g_fp_3c58)(POINT, int16_t, int16_t, int32_t); /* DS:3c58 */
@@ -1483,13 +1493,13 @@ extern int16_t (*g_fp_3c5c)(int16_t, POINT, int16_t, int32_t, int32_t, DWORD, LP
 extern HGDIOBJ g_3c60[2]; /* DS:3c60 */
 extern int16_t (*g_fp_3c64)(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t); /* DS:3c64 */
 extern int16_t (*g_fp_3c68)(char *, char *, int16_t); /* DS:3c68 */
-extern void (*g_fp_3c6c)(int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t); /* DS:3c6c */
+extern int16_t (*g_fp_3c6c)(int16_t *, int16_t *, int16_t *, int16_t *, int16_t *, int16_t *, int16_t *, int16_t *, int16_t, int16_t, int16_t, int16_t, int16_t *, int16_t *); /* DS:3c6c */
 extern void (*g_fp_3c70)(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t); /* DS:3c70 */
 extern void (*g_fp_3c74)(int16_t, int16_t, int32_t, int16_t, int32_t, int16_t, int16_t, int32_t); /* DS:3c74 */
-extern void (*g_fp_3c78)(int16_t, int16_t, int32_t, int16_t, int16_t, int32_t, int16_t, int32_t, int16_t, int16_t, int16_t, int32_t, int16_t); /* DS:3c78 */
+extern HBITMAP (*g_fp_3c78)(int16_t, int16_t, RECT *, HGLOBAL, int16_t, int32_t, int16_t, int32_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t); /* DS:3c78 */
 extern void (*g_fp_3c7c)(int16_t, int16_t, int16_t, int16_t, int16_t); /* DS:3c7c */
 extern void (*g_fp_3c80)(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t); /* DS:3c80 */
-extern void (*g_fp_3c84)(int16_t, int32_t); /* DS:3c84 */
+extern int16_t (*g_fp_3c84)(int16_t, int32_t); /* DS:3c84 */
 extern DWORD g_3c88; /* DS:3c88 */
 extern POINT g_3c8c[3]; /* DS:3c8c */
 extern int16_t g_3c9a; /* DS:3c9a */
@@ -1626,7 +1636,7 @@ extern int16_t g_6db2; /* DS:6db2 */
 extern int16_t g_6db4; /* DS:6db4 */
 extern int16_t g_6db6; /* DS:6db6 */
 extern char ambulance_line[0x50]; /* DS:6db8 */
-extern RECT g_6e08; /* DS:6e08 */
+extern RECT demon_host_rect; /* DS:6e08 */
 extern DWORD g_6e10; /* DS:6e10 */
 extern POINT g_6e14; /* DS:6e14 */
 extern POINT g_6e18; /* DS:6e18 */
@@ -2115,7 +2125,7 @@ extern HMENU g_9606; /* DS:9606 */
 extern int16_t g_9608; /* DS:9608 */
 extern char g_960a[]; /* DS:960a */
 extern char g_9628[]; /* DS:9628 */
-extern int16_t g_9646; /* DS:9646 */
+extern int16_t main_ship; /* DS:9646 */
 extern int16_t g_9648; /* DS:9648 */
 extern int16_t g_964a; /* DS:964a */
 extern int16_t g_964c; /* DS:964c */
@@ -2249,7 +2259,7 @@ void fn_02_170e(void);
 int16_t fn_02_18b8(int16_t a);
 void fn_02_190a(DWORD ctx);
 void fn_02_1994(void);
-void fn_02_1a5a(int16_t a, int16_t b, int32_t c);
+int16_t fn_02_1a5a(int16_t a, int16_t b, int32_t c);
 int16_t fn_02_1a7a(int16_t a);
 void fn_02_1a9e(void);
 int16_t fn_02_1ac8(void);
@@ -2417,7 +2427,7 @@ void fn_07_4ffe(int16_t n);
 int16_t fn_07_5090(int16_t type, int16_t idx, int16_t amount);
 void fn_07_5660(int16_t n);
 void fn_07_56ba(int16_t n);
-int16_t fn_07_570a(int16_t type, int16_t idx);
+int16_t fn_07_570a(int16_t type, int16_t idx, int16_t amount);
 void fn_07_5a46(void);
 void fn_07_5ae8(int16_t a, int16_t b);
 void fn_07_5b68(int16_t type, int16_t idx, int16_t flag);
@@ -2442,7 +2452,7 @@ void fn_08_158a(int16_t still);
 void fn_08_190e(void);
 int16_t fn_08_19b0(int16_t dx, int16_t dy);
 void fn_08_1b54(WORD r, int16_t n);
-void fn_08_1cbe(int16_t r, int16_t v);
+void fn_08_1cbe(OBJREF r, int16_t v);
 void fn_08_1d54(OBJREF r, int16_t v);
 int16_t fn_08_2658(int16_t t1, int16_t i1, int16_t t2, int16_t i2);
 int16_t fn_08_285a(int16_t *p, int16_t *q, POINT a, POINT b);
@@ -2581,7 +2591,7 @@ void fn_10_5cfa(void);
 void fn_10_5d3c(int16_t n);
 int16_t fn_10_6308(int16_t a, int16_t b, int16_t c, int16_t d);
 int16_t fn_10_6656(void);
-void fn_10_6b54(void);
+int16_t fn_10_6b54(void);
 void fn_10_6b70(int16_t a);
 void fn_10_6bca(int16_t a, int16_t b, int16_t c, int16_t d, int16_t e, int16_t f, int16_t g, int16_t h, int16_t i, int16_t j, int32_t k);
 int16_t fn_10_6c02(int16_t a, int16_t b, int16_t c);
@@ -2598,11 +2608,11 @@ void fn_10_6e76(int32_t a);
 void fn_10_6ea0(uint16_t a);
 HBITMAP fn_10_6ec6(int16_t a);
 void fn_10_6ee6(int16_t a, int16_t b, char *s, int16_t c, int16_t d, int16_t e, int16_t f, int16_t g, int16_t h, int16_t i, int16_t j, int16_t k, int16_t l);
-void fn_10_6fec(int16_t a, int32_t b, int16_t c, int16_t d, int16_t e, int16_t f, int16_t g, int16_t h, char i, char j, char k, int16_t l);
+HBITMAP fn_10_6fec(int16_t a, int32_t b, int16_t c, int16_t d, int16_t e, int16_t f, int16_t g, int16_t h, char i, char j, char k, int16_t l);
 int16_t fn_10_7032(int16_t a, int16_t b, int16_t c);
 void fn_10_7328(int16_t a, int32_t b, int16_t c, int16_t d, char e, char f, int16_t g, int16_t h, char i, char m);
-void fn_10_7370(int16_t a, int16_t b, int16_t c, int16_t d, int16_t e, int16_t f, int16_t g);
-void fn_10_73a6(int16_t a, int32_t b, int16_t c, int16_t d, int16_t e, int16_t f, int16_t g, char h, char i);
+HBITMAP fn_10_7370(int16_t a, int16_t b, int16_t c, int16_t d, int16_t e, int16_t f, int16_t g);
+int16_t fn_10_73a6(int16_t a, int32_t b, int16_t c, int16_t d, int16_t e, int16_t f, int16_t g, char h, char i);
 void fn_10_73e2(void);
 void fn_10_740c(void);
 void fn_10_744c(int16_t a);
@@ -2614,7 +2624,7 @@ void fn_10_7b48(void);
 void fn_10_7d58(int16_t x, int16_t y);
 void fn_10_7d8e(void);
 void fn_10_7db8(void);
-void fn_10_7dd4(int32_t a, int32_t b, int32_t c, int32_t d, int32_t e, int32_t f, int32_t g, int32_t h, int32_t i, int32_t j, int32_t k, int32_t l);
+int16_t fn_10_7dd4(int16_t *a, int16_t *b, int16_t *c, int16_t *d, int16_t *e, int16_t *f, int16_t *g, int16_t *h, int16_t i, int16_t j, int16_t k, int16_t l, int16_t *m, int16_t *n);
 void fn_10_7e1c(int16_t d);
 void fn_10_7f18(void);
 void fn_10_7f88(void);
@@ -2626,7 +2636,7 @@ int16_t fn_10_82a2(int16_t a);
 int16_t fn_10_8568(int16_t a);
 void fn_10_8686(void);
 void fn_10_86a8(void);
-void fn_10_86ca(void);
+int16_t fn_10_86ca(void);
 void fn_10_86e2(int16_t i);
 void fn_10_87de(void);
 int16_t fn_10_885e(int16_t a);
@@ -2634,7 +2644,7 @@ HBITMAP world_map(int16_t w, int16_t h, int16_t a, int16_t map, int16_t c, int16
 int16_t fn_10_946a(char *p);
 void fn_10_949c(int16_t a, int16_t b, int16_t c, int16_t d, int16_t e, int16_t f);
 void fn_10_94c4(int16_t a, int16_t b, int32_t c, int16_t d, int16_t e, int32_t f);
-void fn_10_9526(int32_t a, int16_t b, int16_t c, int32_t d, int16_t e, int32_t f, int16_t g, int16_t h, int16_t i, int32_t j, int16_t k);
+HBITMAP fn_10_9526(RECT *a, HGLOBAL b, int16_t c, int32_t d, int16_t e, int32_t f, int16_t g, int16_t h, int16_t i, int16_t x, int16_t y, int16_t k);
 void fn_10_9568(void);
 int16_t fn_10_9672(void);
 int16_t fn_10_9764(int16_t a);
@@ -2664,7 +2674,7 @@ void fn_11_1bcc(void);
 void fn_11_1d7c(void);
 void fn_11_1ef6(int16_t force);
 int16_t fn_11_2120(void);
-void fn_11_2154(int16_t align, int16_t color, int16_t x, int16_t y, int16_t s);
+void fn_11_2154(int16_t align, int32_t color, int16_t x, int16_t y, LPSTR s);
 LONG fn_11_22fa(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 void fn_11_238e(HWND hwnd, HDC dc);
 void fn_11_2ce6(HDC dc, int16_t i);
@@ -2700,7 +2710,7 @@ void fn_11_6874(int16_t n);
 void fn_11_6aa8(int16_t msg, int16_t wparam, int32_t lparam);
 void fn_11_6b64(int16_t msg, WPARAM wparam, int32_t lparam);
 void fn_11_72b2(void);
-int16_t fn_11_72e0(int16_t key);
+int16_t handle_cheat_key(int16_t key);
 void fn_11_7504(void);
 void fn_11_7588(int16_t n);
 void fn_11_7650(int16_t a, int16_t b);
@@ -2800,7 +2810,7 @@ LRESULT fn_13_4f4e(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 void fn_13_50b0(HDC hdc, int16_t b);
 void fn_13_5460(HDC hdc, int16_t a, int16_t k, int16_t j, int16_t i, int16_t shift);
 void fn_13_54da(HDC hdc, int16_t a, int16_t k, int16_t j, int16_t i, int16_t shift);
-int16_t command_watch_ship(int16_t a, int16_t b);
+int16_t fn_13_563c(int16_t a, int16_t b); /* command_watch_ship [inferred] */
 void fn_13_57ac(void);
 void fn_13_5850(void);
 void fn_13_5878(void);
@@ -2842,9 +2852,9 @@ void fn_13_a568(void);
 void fn_13_a5c2(void);
 void fn_13_a65a(void);
 void fn_13_a6bc(int16_t n);
-int16_t fn_13_adbe(int16_t a, int16_t b, int16_t c);
+int16_t fn_13_adbe(int16_t a, int16_t b, int16_t c); /* summon_with_music [inferred] */
 int16_t fn_13_ae68(int16_t a, int16_t b, int16_t c);
-void fn_13_b6f2(int16_t a, int16_t t);
+void report_crime(int16_t a, int16_t t);
 void fn_13_b93a(void);
 void fn_13_ba04(void);
 void fn_14_0000(int16_t arg);
@@ -2904,7 +2914,7 @@ void fn_15_7a62(LPCSTR s);
 void fn_15_7b34(void);
 void fn_15_7ba6(void);
 void fn_15_7cda(void);
-void fn_15_80b0(int32_t a, int32_t b);
+void fn_15_80b0(POINT a, POINT b);
 void fn_15_80da(void);
 void fn_15_811a(void);
 int16_t fn_15_8174(int16_t which, int16_t n);
@@ -3081,7 +3091,7 @@ void fn_12_4d8e(void);
 void fn_12_3e98(int16_t unused);
 void fn_15_454c(void);
 int16_t fn_16_0000(LPSTR s);
-int16_t fn_16_085e(void);
+int16_t fn_16_085e(int16_t type, int16_t idx, int16_t amount);
 void fn_17_3746(void);
 int16_t fn_18_2c1e(int16_t type, int16_t idx);
 void fn_18_49d8(int16_t n, int16_t m);

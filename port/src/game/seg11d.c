@@ -40,7 +40,7 @@ void fn_11_1bcc(void)
                 }
             }
             if (g_7090[i].f_0b8[g_7090[i].f_018] == 3) {
-                if (i == g_9646)
+                if (i == main_ship)
                     g_1df8[g_9324][i].f_50 += (0x6d - g_1df8[g_9324][i].f_50) / 2;
                 else
                     g_1df8[g_9324][i].f_50 += (0x6d - g_1df8[g_9324][i].f_50) / 5;
@@ -66,47 +66,47 @@ int16_t fn_11_aece(void)
     if (g_9320 == 6 || g_9320 == 7)
         return 0;
     ok = g_1032 = 0;
-    start = g_9646;
+    start = main_ship;
     if (g_1df8[g_9324][start].f_18 != 0)
         return 0;
     if (g_92e8 != 0)
         return 0;
     do {
-        if (g_9646 < g_9316)
-            g_9646++;
+        if (main_ship < g_9316)
+            main_ship++;
         else
-            g_9646 = 0;
+            main_ship = 0;
         ok = 1;
-        if (g_1df8[g_9324][g_9646].f_18 != 0 || g_7090[g_9646].flag == 0)
+        if (g_1df8[g_9324][main_ship].f_18 != 0 || g_7090[main_ship].flag == 0)
             ok = 0;
-        if (start == g_9646)
+        if (start == main_ship)
             ok = 1;
-        else if (g_96d2[g_7090[g_9646].f_04e].f_38 != g_96d2[g_7090[start].f_04e].f_38)
+        else if (g_96d2[g_7090[main_ship].f_04e].f_38 != g_96d2[g_7090[start].f_04e].f_38)
             ok = 0;
     } while (!ok);
-    if (start == g_9646)
+    if (start == main_ship)
         return 0;
-    cand = g_9646;
-    g_9646 = start;
+    cand = main_ship;
+    main_ship = start;
     tmp = g_7090[cand].f_0d0;
-    g_7090[cand].f_0d0 = g_7090[g_9646].f_0d0;
-    g_7090[g_9646].f_0d0 = tmp;
+    g_7090[cand].f_0d0 = g_7090[main_ship].f_0d0;
+    g_7090[main_ship].f_0d0 = tmp;
     tmp = g_7090[cand].f_0d2;
-    g_7090[cand].f_0d2 = g_7090[g_9646].f_0d2;
-    g_7090[g_9646].f_0d2 = tmp;
-    fn_03_06ec(g_9646, g_9324, cand, 0x71);
-    g_9646 = cand;
+    g_7090[cand].f_0d2 = g_7090[main_ship].f_0d2;
+    g_7090[main_ship].f_0d2 = tmp;
+    fn_03_06ec(main_ship, g_9324, cand, 0x71);
+    main_ship = cand;
     g_96d2[g_7090[cand].f_04e].f_42 = 1;
-    r = fn_13_2206();
-    fn_03_00f4(g_9646, r.type, r.idx);
-    fn_08_4d60(&g_7090[cand].f_0d6, &g_7090[g_9646].f_0d6);
-    g_931c = g_7090[g_9646].f_0d6;
+    r = objref_of(fn_13_2206());
+    fn_03_00f4(main_ship, r.type, r.idx);
+    fn_08_4d60(&g_7090[cand].f_0d6, &g_7090[main_ship].f_0d6);
+    g_931c = g_7090[main_ship].f_0d6;
     g_1e80 = g_1e84 = 0;
     g_9134 = 1;
     if (g_951a == 0)
         VIEW(int32_t, g_6b50, 0) = VIEW(int32_t, g_1df8[g_9324][start].f_04, 0);
     g_951a = 1;
-    fn_11_3cc2(g_9646, 1);
+    fn_11_3cc2(main_ship);
     fn_11_ae94();
     fn_11_2f8c();
     return 1;

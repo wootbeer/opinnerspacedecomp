@@ -61,7 +61,7 @@ void fn_02_1c08(void)
 
     if (g_90f4 == 1) {
         fn_13_4eca("GameFrame 2 iMainSmart = ");
-        fn_06_0f1a(g_9646, buf);
+        fn_06_0f1a(main_ship, buf);
         fn_13_4eca(buf);
         fn_13_4eca("\n\r");
     }
@@ -76,7 +76,7 @@ void fn_02_1c08(void)
         pal = SelectPalette(g_13dc, g_920e, 0);
     if (g_90f4 == 1) {
         fn_13_4eca("GameFrame 3 iMainSmart = ");
-        fn_06_0f1a(g_9646, buf);
+        fn_06_0f1a(main_ship, buf);
         fn_13_4eca(buf);
         fn_13_4eca("\n\r");
     }
@@ -86,7 +86,7 @@ void fn_02_1c08(void)
         fn_07_0000();
     if (g_90f4 == 1) {
         fn_13_4eca("GameFrame 1 iMainSmart = ");
-        fn_06_0f1a(g_9646, buf);
+        fn_06_0f1a(main_ship, buf);
         fn_13_4eca(buf);
         fn_13_4eca("\n\r");
     }

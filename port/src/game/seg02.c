@@ -11,7 +11,7 @@
 /* 2:0000 */
 int16_t WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR cmd, int16_t show)
 {
-    BLOCK26 s;
+    WNDCLASS s;
     MSG msg;
     int16_t handled;
     HACCEL acc;
@@ -31,7 +31,7 @@ int16_t WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR cmd, int16_t show)
         g_1d4c(g_8e66);
         g_1d50(g_8e66);
     }
-    fn_06_1c0c(1);
+    fn_06_1c0c();
     g_1d3c = GetCurrentTime();
     acc = LoadAccelerators(g_9212, "MainAccel");
     handled = 0;
@@ -45,7 +45,7 @@ int16_t WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR cmd, int16_t show)
             }
             if (g_90f4 == 1) {
                 fn_13_4eca("GMAIN iMainSmart = ");
-                fn_06_0f1a(g_9646, buf);
+                fn_06_0f1a(main_ship, buf);
                 fn_13_4eca(buf);
                 fn_13_4eca("\n\r");
             }
@@ -81,9 +81,9 @@ int16_t fn_02_094c(UINT id)
 }
 
 /* 2:1a5a */
-void fn_02_1a5a(int16_t a, int16_t b, int32_t c)
+int16_t fn_02_1a5a(int16_t a, int16_t b, int32_t c)
 {
-    g_fp_1d5c(a, b, c);
+    return g_fp_1d5c(a, b, c);
 }
 
 /* 2:1a7a */
@@ -234,7 +234,7 @@ void fn_02_170e(void)
         EnableMenuItem(m, 1, fl);
         EnableMenuItem(m, 2, fl);
         for (i = cnt = 0; i < g_9406[2]; i++)
-            if (g_52ec[i].f_18.a == 14 && g_52ec[i].f_18.b == g_9646) {
+            if (g_52ec[i].f_18.a == 14 && g_52ec[i].f_18.b == main_ship) {
                 cnt++;
                 break;
             }
@@ -320,7 +320,7 @@ void fn_02_088e(void)
         x = x > 760 ? 760 : x;
         g_1dc8 = x + g_1dc4;
         g_1dca = GetSystemMetrics(SM_CYCAPTION) + g_1dc6 + 345;
-        fn_10_7480(-2);
+        fn_10_7480(-2, 0);
         LoadString(g_9212, 0x886, buf, 80);
         CreateWindow("IS_HELP", buf, WS_VISIBLE | WS_CAPTION | WS_SYSMENU,
                      g_1dc4, g_1dc6, x, GetSystemMetrics(SM_CYCAPTION) + 345,
@@ -341,11 +341,11 @@ void fn_02_1994(void)
         if (OpenFile(path, &of, OF_EXIST) != HFILE_ERROR) {
             g_0024 = LoadLibrary(path);
             if (g_0024) {
-                g_1d4c = GetProcAddress(g_0024, g_0078);
-                g_1d50 = GetProcAddress(g_0024, g_007a);
-                g_1d54 = GetProcAddress(g_0024, g_007c);
+                g_1d4c = (void (*)(HINSTANCE))GetProcAddress(g_0024, g_0078);
+                g_1d50 = (void (*)(HINSTANCE))GetProcAddress(g_0024, g_007a);
+                g_1d54 = (void (*)(HINSTANCE))GetProcAddress(g_0024, g_007c);
                 g_fp_1d58 = (int16_t (*)(int16_t))GetProcAddress(g_0024, g_007e);
-                g_fp_1d5c = (void (*)(int16_t, int16_t, int32_t))GetProcAddress(g_0024, g_0080);
+                g_fp_1d5c = (int16_t (*)(int16_t, int16_t, int32_t))GetProcAddress(g_0024, g_0080);
             }
         }
     }
@@ -399,8 +399,8 @@ void fn_02_0ba4(void)
     g_0010 = rc.bottom < GetSystemMetrics(SM_CYSCREEN) ? rc.bottom : GetSystemMetrics(SM_CYSCREEN);
     g_0a70 = 0x55;
     HI16(g_90ea) = g_0010 - 0x55;
-    PatBlt(g_13dc, g_1df8[14][g_9646].f_00.x - 20, g_1df8[14][g_9646].f_00.y - 20,
-           g_1df8[14][g_9646].f_22 + 40, g_1df8[14][g_9646].f_22 + 40, BLACKNESS);
+    PatBlt(g_13dc, g_1df8[14][main_ship].f_00.x - 20, g_1df8[14][main_ship].f_00.y - 20,
+           g_1df8[14][main_ship].f_22 + 40, g_1df8[14][main_ship].f_22 + 40, BLACKNESS);
     fn_07_11cc();
     fn_07_1208();
     g_8e58 = 0;
@@ -796,7 +796,7 @@ LONG fn_02_0224(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
     if (g_90f4 == 1) {
         fn_13_4eca("WndProc iMainSmart = ");
-        fn_06_0f1a(g_9646, buf);
+        fn_06_0f1a(main_ship, buf);
         fn_13_4eca(buf);
         fn_13_4eca(": Message is ");
         fn_06_0f1a(msg, buf);
@@ -841,7 +841,7 @@ LONG fn_02_0224(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         fn_06_1b3c();
         break;
     case 0xa04:
-        fn_10_7480(wParam);
+        fn_10_7480(wParam, 0);
         break;
     case 0x9f0:
     case 0x9fa:
@@ -1011,7 +1011,7 @@ LONG fn_02_0224(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     }
     if (g_90f4 == 1) {
         fn_13_4eca("WndProc 2 iMainSmart = ");
-        fn_06_0f1a(g_9646, buf);
+        fn_06_0f1a(main_ship, buf);
         fn_13_4eca(buf);
         fn_13_4eca("\n\r");
     }

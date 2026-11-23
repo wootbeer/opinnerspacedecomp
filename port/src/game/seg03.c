@@ -12,7 +12,7 @@ int16_t fn_03_0000(int16_t type, int16_t n)
         return 0;
     if (g_92ec[type] <= n)
         return 0;
-    if (type == 0xe && n != g_9646
+    if (type == 0xe && n != main_ship
         && (g_1df8[type][n].f_18 == 0 || g_7090[n].f_147 != 0))
         return 1;
     if (g_1df8[type][n].f_18 != 0)
@@ -20,7 +20,7 @@ int16_t fn_03_0000(int16_t type, int16_t n)
     if (type == 0 || type == 7 || type == 1)
         return 1;
     if (type == 2 && (g_52ec[n].f_12 == 0xf
-                      || g_52ec[n].f_18.a == 0xe && g_52ec[n].f_18.b == g_9646))
+                      || g_52ec[n].f_18.a == 0xe && g_52ec[n].f_18.b == main_ship))
         return 1;
     if (type == 9 || type == 0xb)
         return 1;
@@ -42,7 +42,7 @@ void fn_03_00f4(int16_t n, int16_t type, int16_t k)
 
     LO16(g_7090[n].f_03e) = type;
     HI16(g_7090[n].f_03e) = k;
-    if (n != g_9646)
+    if (n != main_ship)
         return;
     g_6e38[0].f_1a.b = type;
     g_6e38[0].f_1a.a = k;
@@ -65,7 +65,7 @@ void fn_03_00f4(int16_t n, int16_t type, int16_t k)
         fn_03_1542(0, type, k, buf, 0);
         if (g_92e8)
             LoadString(g_9212, 0x89f, g_960a, 40);
-        else if (g_96d2[g_7090[g_9646].f_04e].f_38
+        else if (g_96d2[g_7090[main_ship].f_04e].f_38
                  == g_96d2[g_7090[k].f_04e].f_38)
             LoadString(g_9212, 0x142, g_960a, 40);
         else
@@ -124,7 +124,7 @@ int16_t fn_03_065e(int16_t a, int16_t b, int16_t c)
 {
     if (!fn_03_0000(a, b))
         return 0;
-    if (a == 0xe && b == g_9646)
+    if (a == 0xe && b == main_ship)
         return 0;
     switch (c) {
     case 1:
@@ -178,9 +178,9 @@ void fn_03_06ec(int16_t n, int16_t type, int16_t k, int16_t kind)
     int16_t s52;
     int16_t u5, u6, u7, u8, u9;
 
-    if (n != g_9646)
+    if (n != main_ship)
         return;
-    if (type == 0xe && k == g_9646)
+    if (type == 0xe && k == main_ship)
         return;
     if (kind == 0xb7 && (g_7090[k].f_032.a == 0xc || g_7090[k].f_006 == 0xc))
         return;
@@ -193,7 +193,7 @@ void fn_03_06ec(int16_t n, int16_t type, int16_t k, int16_t kind)
     s54 = g_6e38[0].f_1a.b;
     s52 = g_6e38[0].f_1a.a;
     if (g_0a76 != 3)
-        fn_07_119c(3, 0);
+        fn_07_119c(3);
     if (g_0a7c)
         fn_11_3e6e();
     if (type == -1) {
@@ -228,22 +228,22 @@ void fn_03_06ec(int16_t n, int16_t type, int16_t k, int16_t kind)
             break;
         case 5:
             fn_10_744c(0x6d);
-            fn_10_a332(g_8db0, 0x127, 2, tt, tn, 5, tt == 0xe && tn == g_9646);
+            fn_10_a332(g_8db0, 0x127, 2, tt, tn, 5, tt == 0xe && tn == main_ship);
             break;
         case 2:
         case 3:
             fn_10_744c(0x6c);
             if (g_7090[t].f_054 == 9) {
-                if (fn_13_2688(t, g_9646) > -50)
+                if (fn_13_2688(t, main_ship) > -50)
                     fn_10_a332(g_8db0, 0x57a, 2);
                 else
                     fn_10_a332(g_8db0, 0x57b, 2);
             } else
-                fn_10_a332(g_8db0, 0x128, 2, tt, tn, 5, tt == 0xe && tn == g_9646);
+                fn_10_a332(g_8db0, 0x128, 2, tt, tn, 5, tt == 0xe && tn == main_ship);
             break;
         case 4:
             fn_10_744c(0x6c);
-            fn_10_a332(g_8db0, 0x129, 2, tt, tn, 5, tt == 0xe && tn == g_9646);
+            fn_10_a332(g_8db0, 0x129, 2, tt, tn, 5, tt == 0xe && tn == main_ship);
             break;
         case 7:
             fn_10_a332(g_8db0, 0x16f, 2);
@@ -406,7 +406,7 @@ void fn_03_06ec(int16_t n, int16_t type, int16_t k, int16_t kind)
         fn_10_a332(g_8db0, 0x166, 2);
         break;
     case 23:
-        fn_10_a332(g_8db0, 0x168, 2, g_7090[g_9646].f_006, g_7090[g_9646].f_008, 5);
+        fn_10_a332(g_8db0, 0x168, 2, g_7090[main_ship].f_006, g_7090[main_ship].f_008, 5);
         break;
     case 7:
         fn_10_744c(0x33);
@@ -460,7 +460,7 @@ void fn_03_06ec(int16_t n, int16_t type, int16_t k, int16_t kind)
         fn_10_a332(g_8db0, 0x177, 2);
         break;
     case 30:
-        fn_10_a332(g_8db0, 0x17d, 2, 0xe, g_9646, 0);
+        fn_10_a332(g_8db0, 0x17d, 2, 0xe, main_ship, 0);
         break;
     case 29:
         fn_10_744c(0x3f);
@@ -736,7 +736,7 @@ void fn_03_06ec(int16_t n, int16_t type, int16_t k, int16_t kind)
         break;
     case 119:
         fn_10_744c(0x3b);
-        if (g_7090[g_9646].f_032.a == 0xe)
+        if (g_7090[main_ship].f_032.a == 0xe)
             fn_10_a332(g_8db0, 0x583, 2);
         else
             fn_10_a332(g_8db0, 0x584, 2);
@@ -1102,10 +1102,10 @@ void fn_03_33b4(int16_t id)
 
     switch (id) {
     case 2:
-        if (g_7090[g_9646].f_054 == 9)
+        if (g_7090[main_ship].f_054 == 9)
             LoadString(g_9212, 0x578, buf, 40);
         else
-            fn_03_1542(0, g_7090[g_9646].f_054, g_7090[g_9646].f_056, buf, 0);
+            fn_03_1542(0, g_7090[main_ship].f_054, g_7090[main_ship].f_056, buf, 0);
         g_05c0 = g_1e50 + 1200;
         fn_10_a332(g_8630, 0x57c, g_058c = 1, (LPSTR)buf);
         break;
@@ -1116,7 +1116,7 @@ void fn_03_33b4(int16_t id)
         break;
     case 3:
     case 9:
-        fn_10_a332(g_8630, id, 1, g_7090[g_9646].f_054, g_7090[g_9646].f_056, 5);
+        fn_10_a332(g_8630, id, 1, g_7090[main_ship].f_054, g_7090[main_ship].f_056, 5);
         g_058c = 1;
         g_05c0 = g_1e50 + 1200;
         break;
@@ -1205,11 +1205,11 @@ void fn_03_1d0a(int16_t me, int16_t o, int16_t mode)
 
     tt = g_7090[o].f_032.a;
     tn = g_7090[o].f_032.b;
-    if (tt != 0xe || tn != me || o == g_9646 && g_9134 && flow_interactive)
+    if (tt != 0xe || tn != me || o == main_ship && g_9134 && flow_interactive)
         fn_03_1542(1, tt, tn, name, 5);
     else
         LoadString(g_9212, 0x1c8, name, 40);
-    if (o != g_9646 || !flow_interactive || g_9460)
+    if (o != main_ship || !flow_interactive || g_9460)
         LoadString(g_9212, 0x43b, pre, 40);
     else
         LoadString(g_9212, 0x43a, pre, 40);
@@ -1241,7 +1241,7 @@ void fn_03_1d0a(int16_t me, int16_t o, int16_t mode)
             LoadString(g_9212, 0x440, s1, 40);
         else if (g_1df8[14][o].f_51)
             LoadString(g_9212, 0x43f, s1, 40);
-        else if (o == g_9646) {
+        else if (o == main_ship) {
             LoadString(g_9212, 0x441, s1, 40);
             fn_06_0f1a(g_7090[o].f_148, line2);
             lstrcat(s1, line2);
@@ -1294,7 +1294,7 @@ void fn_03_1d0a(int16_t me, int16_t o, int16_t mode)
                     if (g_9316 - i + 1 == 0) {
                         g_7090[o].f_094 = 0;
                         g_7090[o].f_052 = -1;
-                        if (o != g_9646 || !flow_interactive)
+                        if (o != main_ship || !flow_interactive)
                             fn_04_0078(o);
                     }
                 } else {
@@ -1304,7 +1304,7 @@ void fn_03_1d0a(int16_t me, int16_t o, int16_t mode)
                     }
                     g_7090[o].f_094 = 0;
                     g_7090[o].f_052 = -1;
-                    if (o != g_9646 || !flow_interactive)
+                    if (o != main_ship || !flow_interactive)
                         fn_04_0078(o);
                 }
             } else if (g_7090[o].f_146 == 0xd) {
@@ -1313,10 +1313,10 @@ void fn_03_1d0a(int16_t me, int16_t o, int16_t mode)
                 else
                     id = 0x1f1;
             } else if (g_7090[o].f_052 >= 2 && g_7090[o].f_052 <= 4
-                       && (o != g_9646 || !flow_interactive) || g_9320 == 7) {
+                       && (o != main_ship || !flow_interactive) || g_9320 == 7) {
                 if (g_7090[o].f_058 == o) {
                     if (mode == 3 && g_7090[o].f_054 == 0xe
-                        && g_7090[o].f_056 == g_9646) {
+                        && g_7090[o].f_056 == main_ship) {
                         sz = mood = cnt = 0;
                         for (i = 0; i <= g_9316; i++)
                             if (i != me && !g_1df8[14][i].f_18
@@ -1545,16 +1545,16 @@ void fn_03_1d0a(int16_t me, int16_t o, int16_t mode)
                 id = 0x1f7;
             break;
         case 3:
-            if (tt == 0xe && (g_9134 != 1 || !flow_interactive || o != g_9646
+            if (tt == 0xe && (g_9134 != 1 || !flow_interactive || o != main_ship
                               || g_7090[o].f_052 == 5)) {
                 if (g_7090[o].f_052 != 7) {
                     fn_10_a332(s1, 0x1d0, 1, (LPSTR)name);
-                    if (tn == me && (!g_9134 || o != g_9646 || !flow_interactive))
+                    if (tn == me && (!g_9134 || o != main_ship || !flow_interactive))
                         LoadString(g_9212, 0x1c8, name, 40);
-                    else if (!g_9134 || o != g_9646 || !flow_interactive)
+                    else if (!g_9134 || o != main_ship || !flow_interactive)
                         LoadString(g_9212, 0x1cf, name, 40);
                     if (g_7090[o].f_052 == 5) {
-                        if (flow_interactive && o == g_9646) {
+                        if (flow_interactive && o == main_ship) {
                             if (!g_9134)
                                 LoadString(g_9212, 0x127, s1, 40);
                             else
@@ -1582,7 +1582,7 @@ void fn_03_1d0a(int16_t me, int16_t o, int16_t mode)
                     id = 0x1d5;
                 }
             } else if (g_7090[o].f_052 == 7
-                       || o == g_9646 && g_7090[o].f_032.a == 8
+                       || o == main_ship && g_7090[o].f_032.a == 8
                           && g_7090[o].f_032.b == 0) {
                 LoadString(g_9212, 0x1d6, s1, 40);
                 if (tt == 0)
@@ -1625,7 +1625,7 @@ void fn_03_1d0a(int16_t me, int16_t o, int16_t mode)
                     } else
                         id = 0x1dd;
                 }
-            } else if (g_1df8[tt][tn].f_53 || o == g_9646 && g_9134 < 2) {
+            } else if (g_1df8[tt][tn].f_53 || o == main_ship && g_9134 < 2) {
                 fn_03_1542(1, tt, tn, name, 2);
                 fn_10_a332(s1, 0x1de, 1, (LPSTR)name);
                 if (g_7090[o].f_052 == 9 || g_7090[o].f_052 == 0xc) {
@@ -1677,7 +1677,7 @@ void fn_03_1d0a(int16_t me, int16_t o, int16_t mode)
             break;
         }
     }
-    if (o == g_9646 && flow_interactive && !g_9460)
+    if (o == main_ship && flow_interactive && !g_9460)
         lstrcpy(line2, "");
     else if (id > 10000)
         fn_10_a332(line2, id - 10000, 1, (LPSTR)name);
@@ -1774,7 +1774,7 @@ void fn_03_045a(int16_t mode)
                     continue;
                 if (!fn_03_065e(type, n, mode))
                     continue;
-                d = fn_08_285a(&oa, &ob, g_1df8[0xe][g_9646].f_04,
+                d = fn_08_285a(&oa, &ob, g_1df8[0xe][main_ship].f_04,
                                g_1df8[type][n].f_04);
                 if (d < best) {
                     best = d;
@@ -1784,7 +1784,7 @@ void fn_03_045a(int16_t mode)
             }
         }
         if (best < 20000) {
-            fn_03_062e(flag, g_9646, btype, bn);
+            fn_03_062e(flag, main_ship, btype, bn);
             return;
         }
     }
@@ -1808,10 +1808,10 @@ void fn_03_045a(int16_t mode)
         for (n = 0; n < g_9406[type]; n++) {
             if (fn_03_065e(type, n, mode)) {
             found:
-                fn_03_062e(flag, g_9646, type, n);
+                fn_03_062e(flag, main_ship, type, n);
                 return;
             }
         }
     }
-    fn_03_062e(flag, g_9646, 0xc, 1);
+    fn_03_062e(flag, main_ship, 0xc, 1);
 }

@@ -196,7 +196,7 @@ void fn_17_4204(void)
     int16_t k;
     int16_t v;
 
-    k = g_96d2[g_7090[g_9646].f_04e].f_38;
+    k = g_96d2[g_7090[main_ship].f_04e].f_38;
     for (i = 0; i < 3; i++)
         cnt[i] = 0;
     for (i = 0; i < 8; i++) {
@@ -211,7 +211,7 @@ void fn_17_4204(void)
         else
             cnt[2]++;
     }
-    fn_13_218a(g_96d2[g_7090[g_9646].f_04e].f_38, name);
+    fn_13_218a(g_96d2[g_7090[main_ship].f_04e].f_38, name);
     fn_10_a332(g_6078, "", 1, (LPSTR)name, !cnt[0], cnt[0], cnt[0], 0x9dd,
                !cnt[2], cnt[2], cnt[2], 0x9de, cnt[1], cnt[1], 0x9d8);
 }
@@ -607,7 +607,7 @@ void fn_17_56fe(int16_t i, LPSTR buf)
     int16_t v;
     char tmp[50];
 
-    k = g_96d2[g_7090[g_9646].f_04e].f_38;
+    k = g_96d2[g_7090[main_ship].f_04e].f_38;
     fn_13_218a(i, buf);
     lstrcat(buf, "...(");
     v = g_3824[i][k];
@@ -808,7 +808,7 @@ void fn_17_65da(void)
     SendMessage(g_947a[4], WM_SETFONT, g_6094[0], 1L);
     fn_17_8910(g_9466, g_947a[4], 0);
     if (g_9466 == 0)
-        g_9464 = g_9646;
+        g_9464 = main_ship;
     g_9468 = 0;
     SendMessage(g_947a[4], CB_SETCURSEL, 0, 0L);
 }
@@ -973,7 +973,7 @@ void fn_17_67e6(void)
                                   g_9460, (HMENU)0x6c, g_8e66, NULL);
             fn_02_1a7a(g_947a[7]);
             fn_06_8b90((g_9468 - 1) / 2);
-            fn_06_8cb2((g_9468 - 1) / 2, g_9646, 0, 0, 1);
+            fn_06_8cb2((g_9468 - 1) / 2, main_ship, 0, 0, 1);
             sel = -1;
             for (j = 0; j < g_94c8; j++) {
                 best = 60000;
@@ -988,7 +988,7 @@ void fn_17_67e6(void)
                     }
                 }
                 if (bi >= 0) {
-                    if (lstrcmp(g_96d2[g_7090[g_9646].f_04e].f_70, g_6afc[bi].f_00) == 0)
+                    if (lstrcmp(g_96d2[g_7090[main_ship].f_04e].f_70, g_6afc[bi].f_00) == 0)
                         sel = j;
                     fn_17_7ba6(j + 1, buf);
                     lstrcat(buf, "\t050");
@@ -1222,7 +1222,7 @@ void fn_17_458e(void)
     oldbk = SetBkColor(g_13dc, 0L);
     SetBkMode(g_13dc, TRANSPARENT);
     SetTextAlign(g_13dc, 0);
-    me = g_96d2[g_7090[g_9646].f_04e].f_38;
+    me = g_96d2[g_7090[main_ship].f_04e].f_38;
     oldtxt = SetTextColor(g_13dc, RGB(0, 255, 255));
     pt.y = g_6084.top + 60;
     pt.x = g_5000;
@@ -1297,7 +1297,7 @@ void fn_17_51b0(void)
     oldbk = SetBkColor(g_13dc, RGB(0, 0, 0));
     SetBkMode(g_13dc, TRANSPARENT);
     SetTextAlign(g_13dc, 0);
-    side = g_96d2[g_7090[g_9646].f_04e].f_38;
+    side = g_96d2[g_7090[main_ship].f_04e].f_38;
     fn_13_218a(g_9468 - 1, name);
     if ((rel = g_3824[g_9468 - 1][side]) > 80 || g_9468 - side - 1 == 0)
         oldtext = SetTextColor(g_13dc, PALETTERGB(0, 0xd6, 0xff));
@@ -1487,11 +1487,11 @@ void fn_17_33ee(void)
     int16_t id1;
     int16_t id2;
 
-    if (g_9464 == g_9646) {
+    if (g_9464 == main_ship) {
         fn_06_0f54(g_7090[g_9464].f_0dc, 100, 2, buf3e);
         fn_06_1010(g_7090[g_9464].f_0ce, 100, 2, buf66);
         fn_10_a332(g_6078, (char *)0xbdb, 0, g_91f8 < 1 ? 1 : g_91f8, (LPSTR)g_38c8, g_1e58,
-                   g_7090[g_9646].f_0d2, 0x9d3, g_7090[g_9646].f_0d0, 0x9d3,
+                   g_7090[main_ship].f_0d2, 0x9d3, g_7090[main_ship].f_0d0, 0x9d3,
                    (LPSTR)buf3e, (LPSTR)buf66);
         if (g_9460)
             return;
@@ -1513,7 +1513,7 @@ void fn_17_33ee(void)
             lstrcat(g_6078, g_09ee);
         }
         c1 = g_96d2[g_7090[g_9464].f_04e].f_38;
-        c2 = g_96d2[g_7090[g_9646].f_04e].f_38;
+        c2 = g_96d2[g_7090[main_ship].f_04e].f_38;
         if (c1 == c2) {
             rel = 90;
             id1 = 0x319;
@@ -1526,7 +1526,7 @@ void fn_17_33ee(void)
             else
                 id1 = 0x318;
         }
-        rel2 = fn_13_2688(g_9646, g_9464);
+        rel2 = fn_13_2688(main_ship, g_9464);
         if (rel2 < -80)
             id2 = 0x316;
         else if (rel2 < 80)
@@ -1538,7 +1538,7 @@ void fn_17_33ee(void)
                    0x800, 0x31b, id2);
         if (g_9460) {
             lstrcpy(buff2, g_8d38);
-            fn_03_1d0a(g_9646, g_9464, 2);
+            fn_03_1d0a(main_ship, g_9464, 2);
             lstrcpy(g_8db0, g_8d38);
             ((void (*)(char *))fn_11_3fd4)(g_8db0);
             fn_03_3498(g_8db0, g_8768, g_87b8);
@@ -2145,7 +2145,7 @@ void fn_17_4068(int16_t i, LPSTR buf)
         id = 0x2d1;
     else
         id = 0x2d2;
-    fn_10_a332(buf, "n", 1, i == g_9646, i != g_9646, id);
+    fn_10_a332(buf, "n", 1, i == main_ship, i != main_ship, id);
 }
 
 /* 17:5008 */
@@ -2468,7 +2468,7 @@ void fn_17_7324(void)
 
     g_93aa = 11;
     g_9462 = -2;
-    g_9464 = g_9646;
+    g_9464 = main_ship;
     if (g_93c6 == 6) {
         g_9466 = 8;
         fn_06_6576();
@@ -2478,13 +2478,13 @@ void fn_17_7324(void)
         g_9468 = 0;
     } else if (g_93c6 == 2) {
         g_9466 = 0;
-        g_9468 = fn_17_75c6(g_9646);
+        g_9468 = fn_17_75c6(main_ship);
     } else if (g_93c6 == 3) {
         g_9466 = 0;
-        g_9468 = fn_17_75c6(g_9646) + 1;
+        g_9468 = fn_17_75c6(main_ship) + 1;
     } else if (g_93c6 == 0) {
         g_9466 = 9;
-        t = g_7090[g_9646].f_0b8[g_7090[g_9646].f_018];
+        t = g_7090[main_ship].f_0b8[g_7090[main_ship].f_018];
         g_9468 = fn_17_7526(t);
         r = fn_17_7526(-1);
         if (t == 0) {
@@ -2492,7 +2492,7 @@ void fn_17_7324(void)
                 g_9468 = 0;
             } else {
                 g_9466 = 0;
-                g_9468 = fn_17_75c6(g_9646);
+                g_9468 = fn_17_75c6(main_ship);
             }
         }
     } else {
@@ -2504,11 +2504,11 @@ void fn_17_7324(void)
             idx = g_6e38[0].f_1a.a;
         } else {
             kind = 14;
-            idx = g_9646;
+            idx = main_ship;
         }
         if (g_93c6 == 4 && (kind == 0 || kind == 7)) {
             kind = 14;
-            idx = g_9646;
+            idx = main_ship;
         }
         if (g_094e != 0 && g_93c6 == 4) {
             g_9466 = 7;
@@ -2741,7 +2741,7 @@ void fn_17_76e4(void)
     lstrcpy(g_6078, "");
     if (g_9460 && ((g_9468 + 1) & 1)) {
         fn_06_8b90((g_9468 - 1) / 2);
-        fn_06_8cb2((g_9468 - 1) / 2, g_9646, 0, 0, 1);
+        fn_06_8cb2((g_9468 - 1) / 2, main_ship, 0, 0, 1);
         for (i = 0; i < 3; i++)
             for (j = 0; j < 2; j++)
                 best[i][j] = 0;
@@ -2888,7 +2888,7 @@ int16_t fn_17_7088(int16_t a)
     case 8:
         if (g_93a2 == g_9468) {
             count = 1;
-            fn_17_72aa(a, fn_17_75c6(g_9646), 0);
+            fn_17_72aa(a, fn_17_75c6(main_ship), 0);
         }
         break;
     case 9:
@@ -2923,8 +2923,8 @@ void pilot_panel_header(int16_t i)
     int16_t rel;
     int16_t flag;
 
-    if (i != g_9646) {
-        rel = fn_13_2688(g_9646, g_9464);
+    if (i != main_ship) {
+        rel = fn_13_2688(main_ship, g_9464);
         if (rel < -80)
             mood = 0;
         else if (rel < 80)
@@ -2937,7 +2937,7 @@ void pilot_panel_header(int16_t i)
     oldbk = SetBkColor(g_13dc, RGB(0, 0, 0));
     SetBkMode(g_13dc, TRANSPARENT);
     SetTextAlign(g_13dc, 0);
-    if (i == g_9646) {
+    if (i == main_ship) {
         fn_09_955c(0x20b, buf);
         oldtc = SetTextColor(g_13dc, PALETTERGB(0, 0xd6, 0xff));
     } else {
@@ -2955,8 +2955,8 @@ void pilot_panel_header(int16_t i)
         fn_10_a332(buf, "\r\x03", 1, mood + 0x245);
     }
     TextOut(g_13dc, g_5000 - 330, g_5002, buf, lstrlen(buf));
-    fn_10_a332(buf, "\x03", 1, i == g_9646, i != g_9646,
-               g_96d2[g_7090[g_9464].f_04e].f_38 == g_96d2[g_7090[g_9646].f_04e].f_38,
+    fn_10_a332(buf, "\x03", 1, i == main_ship, i != main_ship,
+               g_96d2[g_7090[g_9464].f_04e].f_38 == g_96d2[g_7090[main_ship].f_04e].f_38,
                0x210020fL);
     TextOut(g_13dc, g_5000 - 330, g_5002 + 20, buf, lstrlen(buf));
     SetBkColor(g_13dc, oldbk);
@@ -3018,8 +3018,8 @@ void ship_status_lines(int16_t flag)
     } else {
         pt.y += 54;
         lstrcpy(buf, "");
-        if (g_9464 != g_9646) {
-            if (g_96d2[g_7090[g_9464].f_04e].f_38 == g_96d2[g_7090[g_9646].f_04e].f_38) {
+        if (g_9464 != main_ship) {
+            if (g_96d2[g_7090[g_9464].f_04e].f_38 == g_96d2[g_7090[main_ship].f_04e].f_38) {
                 fn_09_9580(0x147, buf);
             } else {
                 fn_03_1542(0, 14, g_9464, tmp, 3);
@@ -3045,7 +3045,7 @@ void ship_status_lines(int16_t flag)
             }
         }
         pt.y += 18;
-        if (flow_interactive == 0 || g_9464 != g_9646 || g_91f8 > 1 || (g_91f8 != 0 && g_9460 == 0)) {
+        if (flow_interactive == 0 || g_9464 != main_ship || g_91f8 > 1 || (g_91f8 != 0 && g_9460 == 0)) {
             fn_10_a332(buf, "\x80\x1a\x06", 1, g_7090[g_9464].f_05d + 0xf6,
                        g_7090[g_9464].f_05d > 2, 0x21e021dL);
             TextOut(g_13dc, pt.x, pt.y, buf, lstrlen(buf));
@@ -3720,7 +3720,7 @@ int16_t fn_17_20fa(int16_t reset, int16_t a, int16_t b)
             g_9462++;
             g_5000 = ha + g_1906.x + 39;
             g_5002 = (g_6084.top - g_6084.bottom) / 2 + g_6084.bottom - 0x56;
-            if (g_91f8 && g_9464 == g_9646)
+            if (g_91f8 && g_9464 == main_ship)
                 fn_17_30b0(g_93aa, 3500L);
             else
                 fn_17_30b0(g_93aa, 5000L);

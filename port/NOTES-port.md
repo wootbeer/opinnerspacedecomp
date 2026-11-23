@@ -19,61 +19,60 @@
   - It maps the 16-bit types to `int16_t`/`int32_t`/... and replaces `@addr` tags with an address comment.
   - It rewrites accesses through other views onto the merged tables. Index shifts become `[i + q]`, fields are renamed by true offset, and `*(T *)&x` / `((T *)&x)[k]` aliases become the global or field they name.
 - **win16api.h** is generated from the MSVC 1.5x headers. It holds the API prototypes and constants the game uses, with fixed-width types. Standard C functions come from the host libc.
+- **Names.** Confirmed names from `names/INSPACE.EXE.txt` replace `g_XXXX` / `fn_SS_OOOO` everywhere in the generated code (declarations, definitions, calls, uses). Names tagged `[inferred]` are only comments in game.h; where the decomp already used one as an identifier (`command_watch_ship`), the code goes back to the address name.
+- **Signatures** (`tools/port_overrides.py`, `port/overrides/signatures.txt`). The callee's definition is the real signature. The overrides file lists the exceptions (thunks whose callers use the result or pass other types, K&R definitions, a few single calls); they are applied to the decomp text in memory before parsing, so game.h, the definition and all callers follow. The translator then adapts every call to the callee's signature: extra arguments are dropped (side effects kept, as statements before the call), two values become a `(POINT){x, y}` or a long (`MAKELONG` or a literal), a long or a two-int record passed for two int parameters is split, `(char)idx | type << 8` becomes `(OBJREF){idx, type}`, and a function stored in a function pointer loses its cast when it has the pointer's type. Each adaptation is a note in translate-notes; dropped arguments are listed under `== dropped call arguments`.
 
 ## Current state
 
 - 32 files are translated, with 842 functions and one definition each.
-- These files compile without errors: seg02b, seg06, seg06b, seg09a, seg11b, seg13b.
-- The other 26 files have 157 errors in total (gcc 13, `-std=c99 -Wall -Wextra -pedantic -fsigned-char`).
+- All 32 files compile without errors (gcc 13, `-std=c99 -Wall -Wextra -pedantic -fsigned-char -fsyntax-only`); 1374 warnings, see 11 and 12 below.
 
 ## Needs human judgement
 
-1. **Function signatures that differ between files (about 135 errors).** Each decomp file had its own prototypes. game.h uses the definition's signature, so callers that disagree now fail to compile. The main cases, with the number of errors:
-
-   | Function | Errors |
-   |---|---|
-   | `fn_07_2080` | 30 |
-   | `fn_10_6e76` | 14 |
-   | `fn_08_1d54` | 12 |
-   | `fn_10_9526` | 6 |
-   | `fn_10_7dd4` | 5 |
-   | `fn_10_1eb6` | 5 |
-   | `fn_07_5d6a` | 4 |
-   | `fn_10_6ee6` | 3 |
-   | `fn_08_99ce` | 3 |
-
-   The rest have 1 or 2 each: `fn_18_5350`, `fn_16_7210`, `fn_11_a4a6`, `fn_11_3cc2`, `fn_10_7480`, `fn_08_9028`, `fn_07_119c`, `fn_06_1c0c`, `fn_17_30b0`, `fn_16_638a`, `fn_13_9a18`, `fn_10_7328`, `fn_08_285a`, `fn_06_12b6`, and the far pointers `g_1d4c`/`g_1d50`/`g_1d54`, `REC_70.f_5e`/`f_62`.
-
-   The errors come in four forms:
-   - **Extra arguments:** the original cdecl caller passed arguments the callee ignores.
-   - **Struct versus two ints:** a POINT passed by value at some call sites and two ints at others (DECOMP: 8:9028, 8:1d54, 18:5350).
-   - **void versus int returns:** a `void` definition whose result is used, e.g. `fn_02_1a5a` (DECOMP: "returns whatever g_fp_1d5c leaves").
-   - **Function-pointer signatures that differ by caller:** `REC_70.f_5e` is seen with 0, 2 and 3 arguments.
-
-   Each one needs a decision on the real signature.
-2. **Table extents.** Lengths not declared anywhere are guessed as "up to the next declared global"; see `== table length` in translate-notes.
+1. **Signature decisions.** See the comments in `port/overrides/signatures.txt`. Ones to check:
+   - **seg10 thunks into the graphics DLL** (`fn_10_86ca`, `6b54`, `7370`, `73a6`, `6fec`, `7dd4`, `9526`) and the hook thunk `fn_02_1a5a` were defined `void` but their callers use the DLL routine's result, so they return it. `fn_10_7dd4` (collision test) takes 8 int pointers, 4 ints and 2 int pointers (the definition passed them on as 12 longs); `fn_10_9526` takes a `RECT *` first and two ints x, y where the definition had one long. The DLL pointers `g_fp_3c4c/3c6c/3c78/3c84` and `g_fp_1d5c` were changed to match. Other thunks keep `long` parameters that callers fill with string pointers (`fn_10_73a6`, `6fec`, `7328`): far-pointer step.
+   - **K&R definitions** `fn_08_1cbe` (OBJREF, int), `fn_08_9028` (four ints), `fn_11_2154` (int align) are written as prototypes.
+   - **`REC_70` function pointers:** a slot called with several shapes takes the longest signature: `f_5e` is `int16_t (*)(type, idx, amount)`, `f_62` is `void (*)(type, n, HDC)`, `f_66` is `void (*)(type, idx)`. Earlier, `f_5e(type, idx)` and `f_62()` would have dropped the amount and the HDC. `fn_07_570a` and `fn_16_085e`, stored in `f_5e`, got the unused parameters (they ignored them in 1994 too).
+   - `g_1d4c/1d50/1d54` (hook DLL procedures) are `void (*)(HINSTANCE)`; the GetProcAddress results are cast to the pointer's type.
+   - `fn_15_80b0` takes two POINTs (callers passed POINTs seen as longs, or MAKELONG(x, y)).
+   - `fn_13_2206` returns the OBJREF packed in a word, as defined; the two callers that store it into an OBJREF use `objref_of()` (game.h).
+   - WinMain passes an uninitialised 26-byte block as the WNDCLASS of `fn_06_12b6`; the local is now a WNDCLASS (still uninitialised).
+2. **Dropped arguments** (the callee ignores them; they may show a bug or a changed signature in 1994):
+   - `fn_07_2080(t)`: 30 callers pass a second value, -1 or the object index (`idx`, `i`, `n`, `g_221c[i].idx`). The function only uses the type.
+   - `fn_10_1eb6(a)`: 5 callers (seg14, seg18) pass `(a, x, 1)`, e.g. `g_70ae[main_ship].f30` as the second value.
+   - `fn_08_99ce(a, b, kind, idx)`: 3 callers pass a fifth value (`1`, `ret`, `ret + 2`).
+   - `fn_06_1c0c(void)` is called with 1 and 0; `fn_16_7210(void)` with 0 and 1; `fn_07_119c(a)` and `fn_11_3cc2(n)` with an extra 0 or 1.
+3. **Too few arguments in the original:** `fn_10_7480(a, b)` is called with one argument at seg02.c:433 and :1008; the callee then reads an uninitialised word of the caller's frame as `b` (only forwarded to the music DLL as `pt.y`). The port passes 0.
+4. **Possible original bug:** seg09b.c:2187 reads `g_9f39[g_9322][g_94a8]`, which is `g_9f3a[g_9322][g_94a8 - 1]` (the compiler folded the -1 into the base). For `g_94a8 == 0` (a difficulty value the same function sets) it reads the byte before the row: `g_9f3a[map - 1][1]`, or for map 0 the last byte of `g_9ec2`. The port reads `g_9f3a[g_9322][g_94a8 - 1]`, which is out of bounds in that case.
+5. **Table extents.** Lengths not declared anywhere are guessed as "up to the next declared global"; see `== table length` in translate-notes.
    - `g_6670` is joined with `g_66e0` as one 0x1c table of 14 records. That is a guess.
    - `g_57a8` (0x23) and `g_8870` (0x18) do not end on a record boundary.
-3. **Object table base.** It is DS:7090, the lowest address any view uses (a view at 7090 has a field at +0). DECOMP.md calls 7092 the real record start. If 7092 is chosen, every object field name shifts by 2.
-4. **Type conflicts the merge settled by rank** (`== field types`, `== global types`):
+6. **Object table base.** It is DS:7090, the lowest address any view uses (a view at 7090 has a field at +0). DECOMP.md calls 7092 the real record start. If 7092 is chosen, every object field name shifts by 2.
+7. **Type conflicts the merge settled by rank** (`== field types`, `== global types`):
    - `REC_70 +6a` is DWORD in most files and `void far *` in one. DWORD was chosen.
-   - `REC_70 +5e/+62/+66` are function pointers with several signatures.
    - `g_05a0` is `long` in inspace.h, but the code reads it as width + height ints. It stays `int32_t`, and the int views become `LO16`/`HI16`. A POINT-like pair may be the better final type.
-5. **Signedness of views.** A file that declared a global `int` while the merged type is `uint16_t` (or the reverse) still compiles. No casts are inserted yet, so compares and divisions through such a view can change meaning. The list is in `== global types` / `== field types`.
-6. **16-bit arithmetic.** `int` is 32 bits natively, so intermediate results no longer wrap at 16 bits, and `uint16_t` promotes to signed `int`. Compares, divisions, shifts and widening to 32 bits of such expressions need `(int16_t)`/`(uint16_t)` casts where overflow is possible. This is not done yet. A typed pass can find these places; the translator already infers 16-bit types. The 50 "left shift of negative value" warnings belong here too.
-7. **Struct views over plain globals** (`RACEV` at DS:9ea2) are resolved to the individual globals. 8 aliasing casts could not be resolved and are left as they were (`alias kept`).
-8. **Layout-only constructs are not removed yet.** They still show as warnings:
-   - 558 unused locals (mostly frame fillers)
+8. **Signedness of views.** A file that declared a global `int` while the merged type is `uint16_t` (or the reverse) still compiles. No casts are inserted yet, so compares and divisions through such a view can change meaning. The list is in `== global types` / `== field types`.
+9. **16-bit arithmetic.** `int` is 32 bits natively, so intermediate results no longer wrap at 16 bits, and `uint16_t` promotes to signed `int`. Compares, divisions, shifts and widening to 32 bits of such expressions need `(int16_t)`/`(uint16_t)` casts where overflow is possible. This is not done yet. A typed pass can find these places; the translator already infers 16-bit types. The 50 "left shift of negative value" warnings belong here too.
+10. **Struct views over plain globals** (`RACEV` at DS:9ea2) are resolved to the individual globals. 8 aliasing casts could not be resolved and are left as they were (`alias kept`).
+11. **Layout-only constructs are not removed yet.** They still show as warnings:
+   - 559 unused locals (mostly frame fillers)
    - 80 variables set but never used
    - 8 unused labels
    - `if (0)` blocks, `(f(), 0) ||` chains and volatile dead loads are still in the code
 
    Removing unused locals is safe and mechanical. The rest needs a per-case look.
-9. **Other warnings:**
+12. **Other warnings:**
    - 197 `char` array subscripts. The original indexed with a signed char, so the fix is an explicit `(int)` cast, not unsigned.
-   - 94 precedence warnings.
-   - 45 unused parameters.
-   - About 150 pointer/integer conversions. Most are string or near-pointer arguments passed where the prototype says int, and `(long)` casts of far pointers; see "Far pointers" below.
+   - 95 `&&` within `||` and 31 other precedence warnings.
+   - 49 unused parameters.
+   - About 220 pointer/integer conversions. Most are string or near-pointer arguments passed where the prototype says int, and `(long)` casts of far pointers; see "Far pointers" below.
+
+13. **Layout tricks added or resolved to make the code compile** (to revisit with the later steps):
+   - A long passed for two int parameters is split with `LO16(x), HI16(x)`: `fn_10_6ee6` (3 callers), `fn_10_7328`, `fn_13_9a18`; the long fields (`g_96d2[].f_a9`, `g_7090[].f_03e`) are probably two ints.
+   - 1-D views of 2-D arrays are indexed in the 2-D array: `g_6098[].f_30/f_48[j]` becomes `[j / 6][j % 6]` (seg13), `g_5b2c[i * 4 + j]` becomes `g_5b28[i][j]` (seg09), `g_3854[x]` becomes `g_3824[3][x]` (seg13).
+   - `POINT *` views of `g_1df8` slots (`*g_1e38`, `g_1e38[3].x`) become fields of the record (`g_1df8[16]->f_00`, `->f_0c`).
+   - Views a few bytes below a global of the same shape are rewritten onto it with a shifted index (`g_a191[i]` = `g_a193[i - 2]`, `g_9f39` above).
+   - seg10.c:1668 passes the record's position, read through a long/POINT union in the decomp, as the POINT (`call` override, written in port terms).
 
 ## Far pointers and save files
 

@@ -41,7 +41,7 @@ int16_t fn_12_0dc4(int16_t type, int16_t idx, int16_t v)
     g_1df8[type][idx].f_50 = g_1df8[type][idx].f_1e / 10 < 1 ? 1 : g_1df8[type][idx].f_1e / 10;
     if (g_1df8[type][idx].f_50 > 5) {
         g_1df8[type][idx].f_66(type, idx);
-        fn_07_2080(type, idx);
+        fn_07_2080(type);
         return 1;
     }
     return 0;
@@ -231,7 +231,7 @@ void fn_12_274a(int16_t type, int16_t idx)
     }
     if (!(type == 8 && g_3d50[idx].f_1c == 1)) {
         g_1df8[type][idx].f_18 = 1;
-        if (type == g_9324 && idx == g_9646) {
+        if (type == g_9324 && idx == main_ship) {
             if (flow_interactive) {
                 g_1e84 = g_1e50 + 1500;
             } else {
@@ -272,7 +272,7 @@ void fn_12_0e5c(int16_t idx)
         g_1df8[4][idx].f_51 = 0;
     v = 9 - g_1df8[4][idx].f_51;
     SetStretchBltMode(g_13dc, 3);
-    if (g_1df8[4][idx].f_48 == g_9646 && g_9208 > 1 && (v & 1))
+    if (g_1df8[4][idx].f_48 == main_ship && g_9208 > 1 && (v & 1))
         fn_07_1208();
     if ((g_9214 == 3 || g_9214 == 4) && g_1df8[4][idx].f_26 != 0)
         sx = h + w;
@@ -317,7 +317,7 @@ void fn_12_0e5c(int16_t idx)
         break;
     case 9:
         PatBlt(g_13dc, g_1df8[4][idx].f_00.x, g_1df8[4][idx].f_00.y, w, w, BLACKNESS);
-        fn_07_2080(4, -1);
+        fn_07_2080(4);
         fn_07_1208();
         break;
     }
@@ -368,7 +368,7 @@ void fn_12_129e(int16_t type, int16_t idx)
         g_6670[idx + 4].f_04.x = 16;
         k = g_2f4c[16].f_04;
     }
-    if (g_1df8[type][idx].f_48 == g_9646 && g_9208 > 1 && (v & 1))
+    if (g_1df8[type][idx].f_48 == main_ship && g_9208 > 1 && (v & 1))
         fn_07_1208();
     if (g_1df8[type][idx].f_1a == 0)
         return;
@@ -409,7 +409,7 @@ void fn_12_129e(int16_t type, int16_t idx)
         break;
     case 9:
         PatBlt(g_13dc, g_1df8[type][idx].f_00.x, g_1df8[type][idx].f_00.y, w, w, BLACKNESS);
-        fn_07_2080(type, -1);
+        fn_07_2080(type);
         fn_07_1208();
         break;
     }
@@ -565,7 +565,7 @@ void fn_12_1776(int16_t a)
             n = 0;
             if (HIBYTE(ref2) == g_9324)
                 n = g_7090[LOBYTE(ref2)].f_0e8;
-            if (HIBYTE(ref2) == g_9324 && LOBYTE(ref2) == g_9646
+            if (HIBYTE(ref2) == g_9324 && LOBYTE(ref2) == main_ship
                 && (g_1df8[HIBYTE(ref2)][LOBYTE(ref2)].f_2e == 0 || n)) {
                 fn_12_2288(HIBYTE(ref2), LOBYTE(ref2));
                 g_1e80 = g_1e50 + 1000;
@@ -754,7 +754,7 @@ void fn_12_2db6(int16_t type, int16_t idx, int16_t c, int16_t d, int16_t kind)
             break;
         }
     } while (found == 0);
-    fn_07_2080(g_9328, -1);
+    fn_07_2080(g_9328);
 }
 
 /* Turn direction cur (0..15) one step toward the direction from a to b
@@ -969,7 +969,7 @@ void fn_12_3778(void)
             g_65cc[i].f_14 = g_65cc[i].f_10;
             g_65cc[i].f_1c = g_65cc[i].f_18;
             SelectObject(g_13dc, old);
-            fn_07_2080(10, -1);
+            fn_07_2080(10);
         }
     }
 }
@@ -1047,12 +1047,12 @@ void fn_12_4d8e(void)
         return;
     if (g_9eb5 == -1)
         return;
-    r.left = r.right = ((g_1df8[12][1].f_04.x - g_1df8[14][g_9646].f_04.x) >> 4 << g_9156)
-        + g_1df8[14][g_9646].f_00.x + (0x16 << g_9156);
-    r.top = ((g_9ea8[g_9322].y - g_1df8[14][g_9646].f_04.y + 50) >> 4 << g_9156)
-        + g_1df8[14][g_9646].f_00.y;
-    r.bottom = ((g_9ea8[g_9322].x - g_1df8[14][g_9646].f_04.y + 50) >> 4 << g_9156)
-        + g_1df8[14][g_9646].f_00.y;
+    r.left = r.right = ((g_1df8[12][1].f_04.x - g_1df8[14][main_ship].f_04.x) >> 4 << g_9156)
+        + g_1df8[14][main_ship].f_00.x + (0x16 << g_9156);
+    r.top = ((g_9ea8[g_9322].y - g_1df8[14][main_ship].f_04.y + 50) >> 4 << g_9156)
+        + g_1df8[14][main_ship].f_00.y;
+    r.bottom = ((g_9ea8[g_9322].x - g_1df8[14][main_ship].f_04.y + 50) >> 4 << g_9156)
+        + g_1df8[14][main_ship].f_00.y;
     if (min(g_1c18.right, g_1c18.left) < LO16(g_90ea) && max(g_1c18.right, g_1c18.left) > 0
         && min(g_1c18.bottom, g_1c18.top) < HI16(g_90ea) && max(g_1c18.bottom, g_1c18.top) > 0)
         PatBlt(g_13dc, g_1c18.right, g_1c18.bottom, 2, g_1c18.top - g_1c18.bottom, BLACKNESS);
@@ -1068,8 +1068,8 @@ void fn_12_4d8e(void)
     if (min(r.right, r.left) < LO16(g_90ea) && max(r.right, r.left) > 0
         && min(r.bottom, r.top) < HI16(g_90ea) && max(r.bottom, r.top) > 0) {
         PatBlt(g_13dc, r.right, r.bottom, 2, r.top - r.bottom, WHITENESS);
-        if (g_1df8[14][g_9646].f_22 + g_1df8[14][g_9646].f_00.x > g_1c18.right
-            && g_1df8[14][g_9646].f_00.x < g_1c18.right + 2)
+        if (g_1df8[14][main_ship].f_22 + g_1df8[14][main_ship].f_00.x > g_1c18.right
+            && g_1df8[14][main_ship].f_00.x < g_1c18.right + 2)
             hazards_ship_redraw_pending = 1;
     }
 }
@@ -1115,7 +1115,7 @@ void fn_12_515e(void)
                         g_1df8[4][n].f_51 = 0;
                         g_1df8[4][n].f_26 = g_1df8[4][n].f_51;
                         g_1df8[4][n].f_2f = g_1df8[4][n].f_26;
-                        fn_07_2080(4, -1);
+                        fn_07_2080(4);
                         return;
                     }
                 }
@@ -1136,7 +1136,7 @@ void fn_12_6b1e(void)
             if (g_8560[i].f_04 > 2)
                 g_1df8[11][i].f_53 = 1;
             fn_08_1b54((char)i | 0xb00, 1);
-            fn_08_1d54((char)i | 0xb00, 0x28);
+            fn_08_1d54((OBJREF){i, 11}, 0x28);
             g_1df8[11][i].f_10 = (g_1df8[11][i].f_22 + g_1df8[11][i].f_24) * (g_8560[i].f_00 - 1)
                 + g_1df8[11][i].f_24;
             fn_08_0b76((char)i | 0xb00, 3, g_39e8[g_1df8[11][i].f_4a], 0);
@@ -1157,7 +1157,7 @@ void fn_12_6b1e(void)
             }
             if (g_8560[i].f_04 > g_8560[i].f_06 && g_92e8 == 0) {
                 g_1df8[11][i].f_66(11, i);
-                fn_07_2080(11, -1);
+                fn_07_2080(11);
             }
         } else if (g_1df8[11][i].f_51) {
             fn_12_129e(11, i);
@@ -1241,8 +1241,8 @@ void fn_12_3e98(int16_t unused)
 
     if (g_9320 != 6)
         return;
-    o.x = (g_1df8[14][g_9646].f_0c >> 4 << g_9156) + (3 << g_9156);
-    o.y = (3 << g_9156) + (g_1df8[14][g_9646].f_0e >> 4 << g_9156);
+    o.x = (g_1df8[14][main_ship].f_0c >> 4 << g_9156) + (3 << g_9156);
+    o.y = (3 << g_9156) + (g_1df8[14][main_ship].f_0e >> 4 << g_9156);
     fn_12_4f4e();
     old = SelectObject(g_13dc, GetStockObject(BLACK_PEN));
     for (i = 0; i < g_9eb9[g_9322]; i++)
@@ -1251,7 +1251,7 @@ void fn_12_3e98(int16_t unused)
     SelectObject(g_13dc, old);
     if (g_9eb5 != 0)
         return;
-    spd = (fn_09_88ba(g_1df8[14][g_9646].f_0c) + fn_09_88ba(g_1df8[14][g_9646].f_0e))
+    spd = (fn_09_88ba(g_1df8[14][main_ship].f_0c) + fn_09_88ba(g_1df8[14][main_ship].f_0e))
         << g_9156 >> 4;
     if (g_8ff2)
         old = SelectObject(g_13dc, GetStockObject(WHITE_PEN));
@@ -1264,18 +1264,18 @@ void fn_12_3e98(int16_t unused)
         old = SelectObject(g_13dc, g_3b44[0]);
     for (i = 0; i < g_9eb9[g_9322]; i++) {
         if (g_1df8[8][i + 2].f_51 - i != 2 && g_1bb8[i] <= 0) {
-            g_1934[i].x = ((g_1df8[8][i + 2].f_04.x - g_1df8[14][g_9646].f_04.x) >> 4 << g_9156)
-                + g_1df8[14][g_9646].f_00.x + o.x;
-            g_1934[i].y = ((g_1df8[8][i + 2].f_04.y - g_1df8[14][g_9646].f_04.y) >> 4 << g_9156)
-                + g_1df8[14][g_9646].f_00.y + o.y;
-            g_19d4[i].x = ((g_1df8[8][g_1df8[8][i + 2].f_51].f_04.x - g_1df8[14][g_9646].f_04.x) >> 4
-                           << g_9156) + g_1df8[14][g_9646].f_00.x + o.x;
-            g_19d4[i].y = ((g_1df8[8][g_1df8[8][i + 2].f_51].f_04.y - g_1df8[14][g_9646].f_04.y) >> 4
-                           << g_9156) + g_1df8[14][g_9646].f_00.y + o.y;
-            if (g_1df8[g_9324][g_9646].f_04.x + (int32_t)((LO16(g_90ea) << g_9150) / 2) + 1500 > g_67f8[i].left
-                && g_1df8[14][g_9646].f_04.x - (LO16(g_90ea) << g_9150) / 2 - 1500 < g_67f8[i].right
-                && g_1df8[14][g_9646].f_04.y + (int32_t)((HI16(g_90ea) << g_9150) / 2) + 1500 > g_67f8[i].top
-                && g_1df8[14][g_9646].f_04.y - (HI16(g_90ea) << g_9150) / 2 - 1500 < g_67f8[i].bottom) {
+            g_1934[i].x = ((g_1df8[8][i + 2].f_04.x - g_1df8[14][main_ship].f_04.x) >> 4 << g_9156)
+                + g_1df8[14][main_ship].f_00.x + o.x;
+            g_1934[i].y = ((g_1df8[8][i + 2].f_04.y - g_1df8[14][main_ship].f_04.y) >> 4 << g_9156)
+                + g_1df8[14][main_ship].f_00.y + o.y;
+            g_19d4[i].x = ((g_1df8[8][g_1df8[8][i + 2].f_51].f_04.x - g_1df8[14][main_ship].f_04.x) >> 4
+                           << g_9156) + g_1df8[14][main_ship].f_00.x + o.x;
+            g_19d4[i].y = ((g_1df8[8][g_1df8[8][i + 2].f_51].f_04.y - g_1df8[14][main_ship].f_04.y) >> 4
+                           << g_9156) + g_1df8[14][main_ship].f_00.y + o.y;
+            if (g_1df8[g_9324][main_ship].f_04.x + (int32_t)((LO16(g_90ea) << g_9150) / 2) + 1500 > g_67f8[i].left
+                && g_1df8[14][main_ship].f_04.x - (LO16(g_90ea) << g_9150) / 2 - 1500 < g_67f8[i].right
+                && g_1df8[14][main_ship].f_04.y + (int32_t)((HI16(g_90ea) << g_9150) / 2) + 1500 > g_67f8[i].top
+                && g_1df8[14][main_ship].f_04.y - (HI16(g_90ea) << g_9150) / 2 - 1500 < g_67f8[i].bottom) {
                 if ((4 - g_9208) * 5 < spd)
                     g_1bb8[i] = 1;
                 else if (10 - g_9208 * 3 < spd)
@@ -1364,7 +1364,7 @@ void fn_12_3e98(int16_t unused)
                             else
                                 proj = -4;
                         }
-                        if (t == 14 && (j != g_9646 || flow_interactive == 0)) {
+                        if (t == 14 && (j != main_ship || flow_interactive == 0)) {
                             if (g_7090[j].f_148 == g_1c08[j]) {
                                 g_1c10[j]++;
                                 if (g_1c10[j] > 8)
@@ -1387,15 +1387,15 @@ void fn_12_3e98(int16_t unused)
                             g_1df8[14][j].f_26 = 1;
                             if (g_1df8[14][j].f_1a != 0)
                                 g_1bb4 = g_7090[j].f_084 = g_1e50 + 300;
-                            if (j != g_9646 || flow_interactive == 0) {
+                            if (j != main_ship || flow_interactive == 0) {
                                 l90 = g_1df8[t][j].f_04.x - n.x * 200 / r - a.x + r - 50;
                                 l8c = g_1df8[t][j].f_04.y - n.y * 200 / r - a.y + r - 50;
-                                if (g_7090[j].f_032.a == 8 && (j != g_9646 || flow_interactive == 0)) {
+                                if (g_7090[j].f_032.a == 8 && (j != main_ship || flow_interactive == 0)) {
                                     l98 = g_1df8[8][g_7090[j].f_148 + g_9318 * 2].f_04.x
                                         - g_1df8[t][j].f_04.x + 50 + n.x * 200 / r - r;
                                     l94 = g_1df8[8][g_7090[j].f_148 + g_9318 * 2].f_04.y
                                         - g_1df8[t][j].f_04.y + 50 + n.y * 200 / r - r;
-                                } else if (j != g_9646 || flow_interactive == 0) {
+                                } else if (j != main_ship || flow_interactive == 0) {
                                     l98 = g_1df8[g_7090[j].f_032.a][g_7090[j].f_032.b].f_04.x
                                         - g_1df8[t][j].f_04.x + 50 + n.x * 200 / r - r;
                                     l94 = g_1df8[g_7090[j].f_032.a][g_7090[j].f_032.b].f_04.y
@@ -1659,7 +1659,7 @@ void fn_12_07c0(int16_t idx)
         if (d < g_2f4c[kind].f_28) {
             g_1df8[6][idx].f_48 <<= 1;
             fn_12_274a(6, idx);
-            fn_07_2080(6, idx);
+            fn_07_2080(6);
         }
     }
     v.x = g_1050[dir].x * g_2f4c[kind].f_14;
@@ -1670,7 +1670,7 @@ void fn_12_07c0(int16_t idx)
     }
     g_1df8[6][idx].f_0c += v.x;
     g_1df8[6][idx].f_0e += v.y;
-    fn_08_1cbe((char)idx | 0x600, g_2f4c[kind].f_16);
+    fn_08_1cbe((OBJREF){idx, 6}, g_2f4c[kind].f_16);
 }
 
 /* Break object (type, idx) up into debris particles [inferred]. */
@@ -1757,11 +1757,11 @@ void fn_12_2288(int16_t type, int16_t idx)
     } else {
         if (type == 14 && g_7090[idx].f_052 >= 2 && g_7090[idx].f_052 <= 4
             && g_7090[idx].f_058 == idx && g_7090[idx].f_054 == 14) {
-            if (idx == g_9646) {
+            if (idx == main_ship) {
                 if (g_1df8[14][g_7090[idx].f_056].f_18 == 0
                     && g_7090[g_7090[idx].f_056].f_0d6 != -1)
                     g_93b6 = g_7090[g_7090[idx].f_056].f_0d6;
-            } else if (g_7090[idx].f_056 == g_9646 && g_7090[idx].f_0d6 != -1) {
+            } else if (g_7090[idx].f_056 == main_ship && g_7090[idx].f_0d6 != -1) {
                 g_93b6 = g_7090[idx].f_0d6;
             }
         }
@@ -1773,29 +1773,29 @@ void fn_12_2288(int16_t type, int16_t idx)
             fn_07_13b2(1, type, idx);
         } else {
             g_1df8[type][idx].f_18 = 1;
-            fn_07_2080(type, idx);
+            fn_07_2080(type);
             fn_10_754a(0x27, type, idx, 1);
         }
         if (type == g_9324 && g_96d2[g_7090[idx].f_04e].f_38 == 7 && g_7090[idx].f_054 == g_9324
             && g_1df8[g_9324][idx].f_36 == g_9324
             && g_1df8[g_9324][idx].f_38 == g_7090[idx].f_056) {
             fn_12_2288(g_9324, g_1df8[g_9324][idx].f_38);
-            if (g_1df8[g_9324][idx].f_38 == g_9646) {
+            if (g_1df8[g_9324][idx].f_38 == main_ship) {
                 g_1e80 = g_1e50 + 1000;
                 g_93a4 = 1;
             }
         }
-        if (type == g_9324 && idx == g_9646 && g_1df8[g_9324][idx].f_32 == g_9324
+        if (type == g_9324 && idx == main_ship && g_1df8[g_9324][idx].f_32 == g_9324
             && g_96d2[g_7090[g_1df8[g_9324][idx].f_34].f_04e].f_38 == 7)
             g_93a4 = 1;
         if (type == g_9324 && g_92e8 && idx == 1)
-            g_1df8[14][g_9646].f_54 = 0;
+            g_1df8[14][main_ship].f_54 = 0;
         if (type == 0)
             fn_07_5ae8(idx, 0);
         if (g_9320 == 7 && type == g_9324) {
             all = 1;
             for (i = 0; i <= g_9316; i++)
-                if (i != idx && i != g_9646 && g_7090[i].flag && g_1df8[14][i].f_18 == 0)
+                if (i != idx && i != main_ship && g_7090[i].flag && g_1df8[14][i].f_18 == 0)
                     all = 0;
             if (all)
                 g_6670[0].f_1a = -1;
@@ -1824,7 +1824,7 @@ void fn_12_0ae4(void)
                 g_1df8[4][i].f_0c = g_1df8[4][i].f_0e;
             }
             if (g_1df8[4][i].f_1a) {
-                fn_08_1d54((char)i | 0x400, 0x28);
+                fn_08_1d54((OBJREF){i, 4}, 0x28);
                 fn_08_1b54((char)i | 0x400, 1);
                 g_1df8[4][i].f_10 = g_1df8[4][i].f_26 / 5 * (size + gap) + size;
                 fn_08_0b76((char)i | 0x400, 1, g_39e8[4], 0);
@@ -1841,12 +1841,12 @@ void fn_12_0ae4(void)
                         }
                         if (g_1df8[4][i].f_50 > rand() % 120 && g_1df8[4][i].f_50 > rand() % 20) {
                             fn_12_274a(4, i);
-                            fn_07_2080(4, i);
+                            fn_07_2080(4);
                         }
                     }
                 }
             } else if (g_9142 % 3 == 0) {
-                fn_08_1d54((char)i | 0x400, 0x28);
+                fn_08_1d54((OBJREF){i, 4}, 0x28);
                 fn_08_1b54((char)i | 0x400, 3);
             }
             if (g_1df8[4][i].f_1a != 0 && g_1df8[4][i].f_1c == 0) {
@@ -1924,7 +1924,7 @@ int16_t fn_12_3498(int16_t type, int16_t idx, int16_t k)
         g_1df8[g_65cc[k].f_04][g_65cc[k].f_06].f_36 = -1;
         g_65cc[k].f_00 = -1;
         g_65cc[k].f_04 = -1;
-        fn_07_2080(10, -1);
+        fn_07_2080(10);
     }
     g_65cc[k].f_08 = 0;
     return 1;
@@ -1958,7 +1958,7 @@ void fn_12_532c(void)
                     g_1df8[9][i].f_26 = 899;
             }
             if (g_1df8[9][i].f_1a) {
-                fn_08_1d54((char)i | 0x900, 0x1e);
+                fn_08_1d54((OBJREF){i, 9}, 0x1e);
                 fn_08_1b54((char)i | 0x900, 1);
                 g_1df8[9][i].f_10 = (g_1df8[9][i].f_22 + g_1df8[9][i].f_24) * g_1df8[9][i].f_28
                     + g_1df8[9][i].f_24;
@@ -1980,7 +1980,7 @@ void fn_12_532c(void)
                     }
                 }
             } else if (g_9142 % 3 == 0) {
-                fn_08_1d54((char)i | 0x900, 0x1e);
+                fn_08_1d54((OBJREF){i, 9}, 0x1e);
                 fn_08_1b54((char)i | 0x900, 3);
             }
             if (g_1df8[9][i].f_1a != 0 && g_1df8[9][i].f_1c == 0) {
@@ -2020,7 +2020,7 @@ int16_t fn_12_1f7a(int16_t p)
             if (IntersectRect(&r2, &g_6670[p].r, &r)) {
                 t = 0;
                 if (g_507c[i] == g_9324) {
-                    if (g_50e0[i] == g_9646)
+                    if (g_50e0[i] == main_ship)
                         t = g_7090[g_50e0[i]].f_088 + 300;
                     else
                         t = g_7090[g_50e0[i]].f_088 + 3000;
@@ -2034,7 +2034,7 @@ int16_t fn_12_1f7a(int16_t p)
             }
             if (g_507c[i] == g_9324 && g_7090[g_50e0[i]].f_032.a == 12
                 && g_7090[g_50e0[i]].f_032.b == g_6670[p].f_18 && g_7090[g_50e0[i]].f_038 == 2) {
-                if (g_50e0[i] != g_9646 || g_9134 != 0) {
+                if (g_50e0[i] != main_ship || g_9134 != 0) {
                     SetRect(&r, g_1df8[g_507c[i]][g_50e0[i]].f_04.x - 320,
                             g_1df8[g_507c[i]][g_50e0[i]].f_04.y - 320,
                             g_1df8[g_507c[i]][g_50e0[i]].f_04.x + 800,
@@ -2118,7 +2118,7 @@ void fn_12_3148(void)
             }
             if (g_65cc[i].f_08 > 41)
                 fn_12_3498(-1, -1, i);
-            if (g_65cc[i].f_04 == g_9324 && g_65cc[i].f_06 == g_9646 && g_951a == 0)
+            if (g_65cc[i].f_04 == g_9324 && g_65cc[i].f_06 == main_ship && g_951a == 0)
                 fn_07_1208();
         }
     }
@@ -2179,7 +2179,7 @@ void fn_12_390e(int16_t n)
             r = rand() % 4;
             p.x += (g_1df8[8][n].f_22 / 2 * g_1050[r * 4].x / 14 - 5) * 8 + g_1df8[8][n].f_20 / 2;
             p.y += (g_1df8[8][n].f_22 / 2 * g_1050[r * 4].y / 14 - 5) * 8 + g_1df8[8][n].f_20 / 2;
-            fn_07_5d6a(p, 1, g_1050[r * 4].x * 2, g_1050[r * 4].y * 2);
+            fn_07_5d6a(p.x, p.y, 1, g_1050[r * 4].x * 2, g_1050[r * 4].y * 2);
         }
         if (g_3d50[n].f_30 == 3) {
             g_1df8[8][n].f_10 = (g_1df8[8][n].f_22 + g_1df8[8][n].f_24)
@@ -2338,10 +2338,10 @@ void fn_12_0000(void)
                 if (++g_6670[i + 4].r.right >= g_2f4c[k].f_26) {
                     if (g_2f4c[k].f_2c == 1) {
                         fn_12_274a(6, i);
-                        fn_07_2080(6, i);
+                        fn_07_2080(6);
                     } else if (g_2f4c[k].f_2c == 4) {
                         fn_07_2e02(6, i);
-                        fn_07_2080(6, i);
+                        fn_07_2080(6);
                     } else if (g_2f4c[k].f_2c == 5) {
                         fn_12_6a60(6, i);
                     } else if (g_2f4c[k].f_2c == 6) {
@@ -2350,7 +2350,7 @@ void fn_12_0000(void)
                         g_6670[i + 4].f_1a = 1;
                         if (g_1df8[g_6670[i + 4].r.left][g_6670[i + 4].r.top].f_18 != 0) {
                             fn_07_2e02(6, i);
-                            fn_07_2080(6, i);
+                            fn_07_2080(6);
                         }
                     }
                     if (g_2f4c[k].f_2c != 6)
@@ -2410,7 +2410,7 @@ void fn_12_5636(int16_t n)
             g_3d50[n].f_1a = 0;
     }
     if (g_1df8[8][n].f_54 == 0) {
-        fn_08_1d54((char)n | 0x800, 0x1e);
+        fn_08_1d54((OBJREF){n, 8}, 0x1e);
         fn_08_1b54((char)n | 0x800, 1);
     }
     if (g_1df8[8][n].f_1a != 0 || g_9320 == 6) {

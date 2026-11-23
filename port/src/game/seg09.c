@@ -146,8 +146,8 @@ void fn_09_60bc(void)
     g_913e = 0;
     if (g_9334 > 4 && g_92e8 == 0 && g_9320 != 6 && g_9320 != 7 && g_920c != 0 && g_920c != 3
         && (g_0992 + 30 < g_932a || g_91f8 - g_93ac > 15)) {
-        for (i = cnt = 0; i < g_7090[g_9646].cnt; i++) {
-            w = g_7090[g_9646].f_0b8[i];
+        for (i = cnt = 0; i < g_7090[main_ship].cnt; i++) {
+            w = g_7090[main_ship].f_0b8[i];
             if (w == 0x18 || w == 0x19 || w == 0x17 || w == 0x16)
                 cnt++;
             if (w == 0x1a)
@@ -155,8 +155,8 @@ void fn_09_60bc(void)
         }
         if (g_91f8 - g_93ac > 4 && cnt < 4) {
             chance = ((g_91f8 - g_93ac - 3) * 2 + g_9334) * 2;
-            for (i = 1; i <= g_7090[g_9646].cnt; i++)
-                if (g_7090[g_9646].f_0b8[i] >= 0x16 && g_7090[g_9646].f_0b8[i] <= 0x1a)
+            for (i = 1; i <= g_7090[main_ship].cnt; i++)
+                if (g_7090[main_ship].f_0b8[i] >= 0x16 && g_7090[main_ship].f_0b8[i] <= 0x1a)
                     chance = chance * 4 / 5;
             if (rand() % 100 < chance)
                 g_913e = 1;
@@ -167,7 +167,7 @@ void fn_09_60bc(void)
         hit = 0;
         if (g_94b0 == 0) {
             for (t = 0; t <= 8; t++)
-                if (i != g_9646 && g_69f4[g_94a2].f_1c0[t] == g_7090[i].f_0d6)
+                if (i != main_ship && g_69f4[g_94a2].f_1c0[t] == g_7090[i].f_0d6)
                     hit = 1;
         }
         if (hit != 0 && g_9320 != 6) {
@@ -192,7 +192,7 @@ void fn_09_60bc(void)
         } else {
             g_1df8[14][i].f_04.x = -1000;
             g_1df8[14][i].f_04.y = (-10 - i) * 100;
-            if (i == g_9646) {
+            if (i == main_ship) {
                 g_1df8[14][i].f_04 = g_1df8[12][0].f_04;
                 fn_08_0000();
             }
@@ -204,27 +204,27 @@ void fn_09_60bc(void)
         if (g_96d2[g_7090[i].f_04e].f_38 != 7 || g_7090[i].f_05e != 0)
             g_7090[i].f_0cd = -1;
     }
-    fn_08_4d94(&g_7090[g_9646].f_088, &g_7090[0].f_088);
+    fn_08_4d94(&g_7090[main_ship].f_088, &g_7090[0].f_088);
     fn_03_045a(2);
-    fn_11_3cc2(g_9646, 0);
+    fn_11_3cc2(main_ship);
     g_0a76 = 2;
     g_9648 = 0;
     if (g_91f8 <= 1) {
         for (i = 0; i < 2; i++)
-            (&g_7090[g_9646].f_05d)[i] = 2;
-        g_7090[g_9646].f_0d0 = g_7090[g_9646].f_0d2 = 0;
+            (&g_7090[main_ship].f_05d)[i] = 2;
+        g_7090[main_ship].f_0d0 = g_7090[main_ship].f_0d2 = 0;
     }
     if (g_9320 == 7)
         g_6670[0].f_1a = 0;
-    g_9370 = g_7090[g_9646].f_0d2;
-    g_9372 = g_7090[g_9646].f_0d0;
+    g_9370 = g_7090[main_ship].f_0d2;
+    g_9372 = g_7090[main_ship].f_0d0;
     for (i = g_964c = g_934e = 0; i < 2; i++)
-        g_9374[i] = (&g_7090[g_9646].f_05d)[i];
-    cls = g_96d2[g_7090[g_9646].f_04e].f_38;
+        g_9374[i] = (&g_7090[main_ship].f_05d)[i];
+    cls = g_96d2[g_7090[main_ship].f_04e].f_38;
     for (i = 0; i < 8; i++)
         g_9350[i] = g_3824[i][cls];
     for (i = 0; i < 8; i++)
-        g_9360[i] = fn_13_2688(i, g_9646);
+        g_9360[i] = fn_13_2688(i, main_ship);
     g_93b6 = -1;
     if (g_094e)
         music = 3;
@@ -236,7 +236,7 @@ void fn_09_60bc(void)
         music = 1;
     fn_10_7480(music, 1);
     fn_13_4eca("start wave iMainSmart = ");
-    fn_06_0f1a(g_9646, buf);
+    fn_06_0f1a(main_ship, buf);
     fn_13_4eca(buf);
     fn_13_4eca("\n\r");
 }
@@ -275,9 +275,9 @@ void fn_09_6a12(void)
     fn_10_94c4(0, 0, 0x8000L, LO16(g_90ea) / 2 - 240, g_0010 / 2 - 115, buf);
     fn_10_a332(buf, 0x9e5, 1);
     fn_10_94c4(0, 0, 0x8000L, LO16(g_90ea) / 2 - 240, g_0010 / 2 - 85, buf);
-    fn_10_a332(buf, 0x9e6, 1, g_7090[g_9646].f_0d2);
+    fn_10_a332(buf, 0x9e6, 1, g_7090[main_ship].f_0d2);
     fn_10_94c4(0, 2, 0x8000L, LO16(g_90ea) / 2 + 124, g_0010 / 2 - 85, buf);
-    fn_10_a332(buf, 0x9e7, 1, g_7090[g_9646].f_0d0);
+    fn_10_a332(buf, 0x9e7, 1, g_7090[main_ship].f_0d0);
     fn_10_94c4(0, 2, 0x8000L, LO16(g_90ea) / 2 + 124, g_0010 / 2 - 55, buf);
     fn_10_a332(buf, 0x9e8, 1, g_1e58);
     fn_10_94c4(0, 6, 0xffL, LO16(g_90ea) / 2, g_0010 / 2 + 65, buf);
@@ -294,7 +294,7 @@ void fn_09_6bc2(void)
     g_1e74 = 0;
     if (g_9320 == 6) {
         for (i = 0; i <= g_9316; i++) {
-            if (g_7090[i].f_032.a == 0 && i != g_9646) {
+            if (g_7090[i].f_032.a == 0 && i != main_ship) {
                 for (j = 0; j < g_9406[0]; j++) {
                     if (g_1df8[0][j].f_18 == 0) {
                         g_7090[i].f_0ce += g_1df8[0][j].f_1e * -90 / 210 + 100;
@@ -312,7 +312,7 @@ void fn_09_6bc2(void)
         g_9346 = -1;
         for (i = 0; i <= g_9316; i++) {
             if (g_96d2[g_7090[i].f_04e].f_38 == 7 && g_7090[i].f_05e == 0
-                && g_7090[i].f_056 == g_9646)
+                && g_7090[i].f_056 == main_ship)
                 g_7090[i].flag = 0;
         }
     } else
@@ -396,7 +396,7 @@ void fn_09_6dec(int16_t force)
         clip = 1;
         SelectClipRgn(g_13dc, g_93ae);
         if (g_6078 == 0)
-            fn_17_30b0(11, 0xdac, 0);
+            fn_17_30b0(11, 3500L);
         else
             fn_17_2c5a(1, 1);
     }
@@ -456,9 +456,9 @@ void fn_09_6fee(void)
     int16_t flag4;
 
     lstrcpy(g_6078, "");
-    cls = g_96d2[g_7090[g_9646].f_04e].f_38;
-    dx = g_7090[g_9646].f_0d2 - g_9370;
-    dy = g_7090[g_9646].f_0d0 - g_9372;
+    cls = g_96d2[g_7090[main_ship].f_04e].f_38;
+    dx = g_7090[main_ship].f_0d2 - g_9370;
+    dy = g_7090[main_ship].f_0d0 - g_9372;
     if (g_38c8[1] != ':' && g_9320 == 6) {
         fn_09_95ba(0x8bf);
         show = 1;
@@ -508,7 +508,7 @@ void fn_09_6fee(void)
             k3 = 2;
             break;
         }
-        n = fn_06_8cb2(g_9322, g_9646, 0, k3, 1);
+        n = fn_06_8cb2(g_9322, main_ship, 0, k3, 1);
         for (i = 0; i <= n4; i++) {
             order[i] = i;
             if (g_1df8[14][i].f_51 == 2)
@@ -537,7 +537,7 @@ void fn_09_6fee(void)
                 }
                 fn_03_1542(0, 14, order[i], buf, 0);
                 lstrcat(g_6078, buf);
-                if (order[i] == g_9646)
+                if (order[i] == main_ship)
                     fn_09_95ba(0x8a6);
                 lstrcat(g_6078, "\t350");
                 fn_09_95ba(0x896);
@@ -564,7 +564,7 @@ void fn_09_6fee(void)
             mins[3][j] = g_6afc[n].f_32[0][j];
         }
         for (i = 0; i <= n4; i++) {
-            if (i == g_9646 && flow_interactive != 0)
+            if (i == main_ship && flow_interactive != 0)
                 flag4 = 0;
             else
                 flag4 = 1;
@@ -594,7 +594,7 @@ void fn_09_6fee(void)
             fn_11_4928(0, mins[0][0], buf);
             lstrcat(g_6078, buf);
             fn_17_42ea(1);
-            fn_03_1542(0, 14, g_9646, buf, 0);
+            fn_03_1542(0, 14, main_ship, buf, 0);
             lstrcat(g_6078, buf);
             fn_09_95ba(0x8cc);
             lstrcat(g_6078, buf2);
@@ -617,7 +617,7 @@ void fn_09_6fee(void)
         fn_11_4928(0, mins[1][0], buf);
         lstrcat(g_6078, buf);
         fn_17_42ea(1);
-        fn_03_1542(0, 14, g_9646, buf, 0);
+        fn_03_1542(0, 14, main_ship, buf, 0);
         lstrcat(g_6078, buf);
         fn_09_95ba(0x8cd);
         fn_09_95ba(0x221);
@@ -629,9 +629,9 @@ void fn_09_6fee(void)
         lstrcat(g_6078, buf);
         fn_17_42ea(1);
         fn_17_42ea(1);
-        if (n4 != 0 && g_1df8[14][g_9646].f_51 == 2) {
+        if (n4 != 0 && g_1df8[14][main_ship].f_51 == 2) {
             flag5 = 0;
-            if (order[0] == g_9646) {
+            if (order[0] == main_ship) {
                 if (g_1df8[14][order[1]].f_51 == 2) {
                     ldiff = g_9e60[order[1]] - g_9e60[order[0]];
                     fn_11_4928(1, ldiff, buf);
@@ -640,13 +640,13 @@ void fn_09_6fee(void)
                 }
                 fn_10_a332(g_6078, 0xbc0, 0, (LPSTR)g_380c, flag5, (LPSTR)buf3, (LPSTR)buf);
             } else {
-                ldiff = g_9e60[g_9646] - g_9e60[order[0]];
+                ldiff = g_9e60[main_ship] - g_9e60[order[0]];
                 fn_11_4928(1, ldiff, buf);
                 fn_03_1542(0, 14, order[0], buf3, 0);
                 fn_10_a332(g_6078, 0xbc1, 0, (LPSTR)buf3, (LPSTR)buf);
             }
         }
-        if (g_1df8[14][g_9646].f_51 == 2) {
+        if (g_1df8[14][main_ship].f_51 == 2) {
             i = mins[3][0] = mins[3][1] = mins[2][0] = mins[2][1] = mins[1][0] = mins[1][1] =
                 mins[0][0] = mins[0][1] = 0;
             for (; i < g_94c8; i++)
@@ -665,17 +665,17 @@ void fn_09_6fee(void)
             }
             a = b = d = 0;
             if (k3 > 0) {
-                if (g_9e60[g_9646] <= mins[0][1]) {
+                if (g_9e60[main_ship] <= mins[0][1]) {
                     a = 1;
                     d++;
-                } else if (g_9e60[g_9646] <= mins[0][0]) {
+                } else if (g_9e60[main_ship] <= mins[0][0]) {
                     a = 1;
                     b = 1;
                     d++;
                 }
-                if (g_9e60[g_9646] <= mins[2][1])
+                if (g_9e60[main_ship] <= mins[2][1])
                     d++;
-                else if (g_9e60[g_9646] <= mins[2][0]) {
+                else if (g_9e60[main_ship] <= mins[2][0]) {
                     b = 1;
                     d++;
                 }
@@ -683,24 +683,24 @@ void fn_09_6fee(void)
                     if (a != 0)
                         LoadString(g_9212, 0x8d7, buf, 40);
                     else {
-                        fn_03_1542(0, 14, g_9646, buf, 0);
+                        fn_03_1542(0, 14, main_ship, buf, 0);
                         lstrcat(buf, "S!  ");
                     }
                     fn_10_a332(g_6078, 0xbc7, 0, g_9ea0, b, (LPSTR)buf);
                 }
             }
             a = b = c = 0;
-            if (g_9e90[g_9646] <= mins[1][1]) {
+            if (g_9e90[main_ship] <= mins[1][1]) {
                 a = 1;
                 c++;
-            } else if (g_9e90[g_9646] <= mins[1][0]) {
+            } else if (g_9e90[main_ship] <= mins[1][0]) {
                 a = 1;
                 b = 1;
                 c++;
             }
-            if (g_9e90[g_9646] <= mins[3][1])
+            if (g_9e90[main_ship] <= mins[3][1])
                 c++;
-            else if (g_9e90[g_9646] <= mins[3][0]) {
+            else if (g_9e90[main_ship] <= mins[3][0]) {
                 b = 1;
                 c++;
             }
@@ -708,12 +708,12 @@ void fn_09_6fee(void)
                 if (a != 0)
                     LoadString(g_9212, 0x8d7, buf, 40);
                 else {
-                    fn_03_1542(0, 14, g_9646, buf, 0);
+                    fn_03_1542(0, 14, main_ship, buf, 0);
                     lstrcat(buf, "S!  ");
                 }
                 fn_10_a332(g_6078, 0xbc8, 0, d, b, (LPSTR)buf);
             }
-        } else if (g_1df8[14][g_9646].f_51 == 0)
+        } else if (g_1df8[14][main_ship].f_51 == 0)
             fn_09_95ba(0x8db);
         fn_06_8dfe(g_9322);
         fn_06_8eb4();
@@ -749,9 +749,9 @@ void fn_09_6fee(void)
                 fn_09_95ba(0x7cc);
                 f3 = 0;
             }
-            if (g_7090[g_9646].f_026[0] < 40)
+            if (g_7090[main_ship].f_026[0] < 40)
                 fn_09_95ba(f3 + 0x646);
-            else if (g_7090[g_9646].f_026[0] < 70)
+            else if (g_7090[main_ship].f_026[0] < 70)
                 fn_09_95ba(f3 + 0x648);
             else
                 fn_09_95ba(f3 + 0x64a);
@@ -786,7 +786,7 @@ void fn_09_6fee(void)
 
                     LoadString(g_9212, 0x36f, buf, 40);
                     if (g_7090[i].f_006 == 14) {
-                        if (g_7090[i].f_008 == g_9646) {
+                        if (g_7090[i].f_008 == main_ship) {
                             LoadString(g_9212, 0x375, buf3, 40);
                             lstrcat(buf, buf3);
                             lstrcat(buf, g_09ee);
@@ -815,11 +815,11 @@ void fn_09_6fee(void)
                 int16_t sum;
                 int16_t ok;
 
-                if (i != g_9646 && g_96d2[g_7090[i].f_04e].f_38 != 7) {
+                if (i != main_ship && g_96d2[g_7090[i].f_04e].f_38 != 7) {
                     for (j = sum = 0; j < 8; j++)
-                        sum += g_7090[i].f_0f6[g_9646][j];
+                        sum += g_7090[i].f_0f6[main_ship][j];
                     if (score[k] < sum && i != idx[0] && i != idx[1] &&
-                        g_7090[i].f_0ee[g_9646] != 3 && g_7090[i].f_0ee[g_9646] != 0) {
+                        g_7090[i].f_0ee[main_ship] != 3 && g_7090[i].f_0ee[main_ship] != 0) {
                         ok = 1;
                         for (j = 0; j < 8; j++)
                             if (used[j] == i)
@@ -837,7 +837,7 @@ void fn_09_6fee(void)
                 char buf3[60];
                 int16_t strid;
 
-                switch (g_7090[idx[i]].f_0ee[g_9646]) {
+                switch (g_7090[idx[i]].f_0ee[main_ship]) {
                 case 8:
                     strid = 0x385;
                     break;
@@ -849,7 +849,7 @@ void fn_09_6fee(void)
                     break;
                 case 1:
                     if (g_7090[idx[i]].flag == 0 && g_7090[idx[i]].f_006 == 14 &&
-                        g_7090[idx[i]].f_008 == g_9646)
+                        g_7090[idx[i]].f_008 == main_ship)
                         strid = 0x37d;
                     else
                         strid = 0x384;
@@ -871,7 +871,7 @@ void fn_09_6fee(void)
                 fn_13_218a(g_96d2[g_7090[idx[i]].f_04e].f_38, buf3);
                 fn_10_a332(g_6078, 0xbc9, 0, strid, g_96d2[g_7090[idx[i]].f_04e].f_38 == cls,
                            (LPSTR)buf, g_96d2[g_7090[idx[i]].f_04e].f_38 != cls, (LPSTR)buf3);
-                if ((g_7090[idx[i]].f_062 + 8)[g_9646] > 5)
+                if ((g_7090[idx[i]].f_062 + 8)[main_ship] > 5)
                     fn_09_8838(idx[i]);
             }
         }
@@ -885,7 +885,7 @@ void fn_09_6fee(void)
             for (j = has[i] = 0; j <= g_9316; j++)
                 if (g_96d2[g_7090[j].f_04e].f_38 == i)
                     has[i] = 1;
-        cls = g_96d2[g_7090[g_9646].f_04e].f_38;
+        cls = g_96d2[g_7090[main_ship].f_04e].f_38;
         for (j = count = 0; j < 2; j++)
             for (i = 0; i < 8; i++) {
                 if (i != cls && has[i] && (j == 0 || best[0] != i)) {
@@ -980,11 +980,11 @@ void fn_09_8838(int16_t n)
     int16_t v;
     char buf[50];
 
-    v = g_96d2[g_7090[g_9646].f_04e].f_38;
+    v = g_96d2[g_7090[main_ship].f_04e].f_38;
     if (g_7090[n].flag) {
         fn_03_1542(0, 14, n, buf, 1);
         lstrcat(g_6078, buf);
-        if (g_7090[n].f_0ee[g_9646] <= 5)
+        if (g_7090[n].f_0ee[main_ship] <= 5)
             fn_09_95ba(0x372);
         else
             fn_09_95ba(0x371);
@@ -1358,9 +1358,9 @@ void fn_09_6624(void)
     }
     for (i = 0; i < 10; i++)
         for (j = 0; j < 4; j++) {
-            g_5b2c[i * 4 + j].f_0c = 0;
-            g_5b2c[i * 4 + j].q.y = -100;
-            g_5b2c[i * 4 + j].q.x = -100;
+            g_5b28[i][j].f_0c = 0;
+            g_5b28[i][j].q.y = -100;
+            g_5b28[i][j].q.x = -100;
         }
     g_9e49 = 10;
     g_9492 = g_9494 = 1;
@@ -1528,7 +1528,7 @@ void fn_09_91b0(void)
     g_933a[0] = saved;
     g_933c -= saved;
     for (i = hostile = 0; i <= g_9316; i++)
-        if ((g_7090[i].f_062 + 8)[g_9646] && g_7090[i].f_0ee[g_9646] <= 5)
+        if ((g_7090[i].f_062 + 8)[main_ship] && g_7090[i].f_0ee[main_ship] <= 5)
             hostile++;
     if (hostile)
         fn_10_a332((LPSTR)g_4fcc, 0xbdd, 0, hostile, 0x9ea);

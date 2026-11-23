@@ -1,0 +1,83 @@
+# Signature decisions for the port (read by tools/port_overrides.py).
+#
+# The decomp keeps each 1994 file's own prototypes, and some disagree with
+# the callee's definition because they produced the same bytes.  The
+# definition is the real signature, except where it is a byte-for-byte
+# pass-through (the seg10 and seg02 thunks into the graphics and hook
+# DLLs) or where callers prove it returns a value.  Those cases are below.
+# Mechanical caller adaptations (dropped extra arguments, two values
+# packed into a POINT or long, a record split into two values) are made
+# by tools/port_translate.py and listed in port/translate-notes.txt.
+#
+#   fn NAME: PROTOTYPE [| return] [| forward]
+#   extern NAME: DECLARATION
+#   call FILE:LINE NAME: ARGUMENTS
+# FILE:LINE is the decomp line of the call.  A line starting with
+# whitespace continues the entry.
+
+# --- Thunks into the graphics DLL (seg10).  The DLL routine's result is
+# left in ax and the callers use it, so the thunks return it.
+fn fn_10_86ca: int far fn_10_86ca(void) | return
+extern g_fp_3c4c: extern int (far pascal *g_fp_3c4c)(void);
+
+fn fn_10_6b54: int far fn_10_6b54(void) | return
+extern g_fp_3c84: extern int (far pascal *g_fp_3c84)(int, long);
+
+fn fn_10_7370: HBITMAP far fn_10_7370(int a, int b, int c, int d, int e, int f, int g) | return
+fn fn_10_73a6: int far fn_10_73a6(int a, long b, int c, int d, int e, int f, int g, char h, char i) | return
+fn fn_10_6fec: HBITMAP far fn_10_6fec(int a, long b, int c, int d, int e, int f, int g, int h,
+        char i, char j, char k, int l) | return
+
+# Collision test: eight far int pointers, four ints and two far int
+# pointers (the definition passed them on as twelve longs).
+fn fn_10_7dd4: int far pascal fn_10_7dd4(int far *a, int far *b, int far *c, int far *d,
+        int far *e, int far *f, int far *g, int far *h, int i, int j, int k, int l,
+        int far *m, int far *n) | return | forward
+extern g_fp_3c6c: extern int (far pascal *g_fp_3c6c)(int far *, int far *, int far *,
+        int far *, int far *, int far *, int far *, int far *, int, int, int, int,
+        int far *, int far *);
+
+# Bitmap from a rectangle; the definition's "long j" is the two ints x, y.
+fn fn_10_9526: HBITMAP far fn_10_9526(RECT far *a, HGLOBAL b, int c, long d, int e, long f,
+        int g, int h, int i, int x, int y, int k) | return | forward
+extern g_fp_3c78: extern HBITMAP (far pascal *g_fp_3c78)(int, int, RECT far *, HGLOBAL, int,
+        long, int, long, int, int, int, int, int, int);
+
+# --- Hook DLL (seg02): the message hook's result is used by both window
+# procedures.
+fn fn_02_1a5a: int far fn_02_1a5a(int a, int b, long c) | return
+extern g_fp_1d5c: extern int (far pascal *g_fp_1d5c)(int, int, long);
+# Called with the instance handle only.
+extern g_1d4c: extern void (far pascal *g_1d4c)(HINSTANCE);
+extern g_1d50: extern void (far pascal *g_1d50)(HINSTANCE);
+extern g_1d54: extern void (far pascal *g_1d54)(HINSTANCE);
+
+# --- Old-style (K&R) definitions, written as prototypes.
+# Callers pass the OBJREF packed into one word ((char)idx | type << 8).
+fn fn_08_1cbe: void far pascal fn_08_1cbe(OBJREF r, int v)
+# Callers pass four ints, or two ints and a PAIR (split by the translator).
+fn fn_08_9028: void far fn_08_9028(int i, int a, int kind, int idx)
+# The one caller that declares a char first parameter pushes a literal.
+fn fn_11_2154: void far fn_11_2154(int align, long color, int x, int y, LPSTR s)
+
+# --- Calls that pass fewer arguments than the callee reads.  The callee
+# then read a word of the caller's frame (uninitialised there); 0 is
+# passed instead.  fn_10_7480 only forwards b to the music DLL as pt.y.
+call seg02.c:433 fn_10_7480: -2, 0
+call seg02.c:1008 fn_10_7480: wParam, 0
+
+# --- WinMain passes an uninitialised 26-byte block as the WNDCLASS.
+local seg02.c WinMain: BLOCK26 s; => WNDCLASS s;
+
+# --- Takes two points (callers pass POINTs seen as longs, or MAKELONG of
+# x and y) and hands them to fn_11_a4a6(POINT, POINT, int).
+fn fn_15_80b0: void far fn_15_80b0(POINT a, POINT b)
+
+# --- The record's position is read through a long/POINT union; the
+# callee takes the POINT.  (Arguments in port terms.)
+call seg10.c:1668 fn_08_285a: &i, &j, pt, g_1df8[g_9324][main_ship].f_04
+
+# --- Functions stored in REC_70.f_5e, which is called as
+# f_5e(type, idx, amount): these two ignore the trailing arguments.
+fn fn_07_570a: int far fn_07_570a(int type, int idx, int amount)
+fn fn_16_085e: int far fn_16_085e(int type, int idx, int amount)
