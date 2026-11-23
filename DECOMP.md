@@ -215,7 +215,13 @@ Conventions
   from `if (c) g = a; else g = b;` on a local.
 - To make the second of two identical blocks jump into the first, write it as
   `else if (c) X;` without a break.
-- Open problem: a 16-bit `imul word` into dx:ax (11:6874, 11:9fdc); casts
-  give the 32-bit sequence.
+- 16-bit `imul word` into dx:ax: `(long)a * b` with int operands (e.g.
+  `-70L * p->f / 250`). The 32-bit form appears when CL reuses the widened
+  value across statements; storing results in POINT members stops that.
 - seg11d.c stubs duplicate real seg11.c functions: fine for matching, a
   symbol clash for a full link.
+- Search loops: `for (...) if (x) { ok = 1; break; } } else ok = 1;` gives a
+  shared `ok = 1`.
+- Odd push orders often come from assignments inside call arguments
+  (`fn(type = g_6e54, n = g_6e52)`).
+- String literals are not merged (DS:13be-13c1 are four empty strings).

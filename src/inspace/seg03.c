@@ -6,7 +6,9 @@ typedef struct {
     int  w00;                   /* +0x00 */
     char pad02[0x10];
     int  w12;                   /* +0x12 */
-    char pad14[0x20];
+    char pad14[0x12];
+    int  w26;                   /* +0x26 */
+    char pad28[0x0c];
 } REC34;
 extern REC34 g_3d5a[];
 
@@ -35,7 +37,13 @@ typedef struct {
     POINT f04;                  /* +04: position [inferred] */
     char p08[0x18 - 8];
     int f18;                    /* +18 */
-    char p1a[0x70 - 0x1a];
+    char p1a[0x26 - 0x1a];
+    int f26;                    /* +26 */
+    char p28[0x44 - 0x28];
+    int f44;                    /* +44 */
+    char p46[0x53 - 0x46];
+    char f53;                   /* +53 */
+    char p54[0x70 - 0x54];
 } REC_70;
 extern REC_70 far *g_1df8[16];
 
@@ -72,7 +80,10 @@ void far fn_03_3498(LPSTR s, LPSTR a, LPSTR b);
 typedef struct {
     char p00[0x20];
     int f20;                    /* +20 */
-    char p22[0xad - 0x22];
+    char p22[0x2c - 0x22];
+    char f2c;                   /* +2c: flags [inferred] */
+    char p2d[0x58 - 0x2d];
+    char f58[0xad - 0x58];      /* +58: name [inferred] */
 } REC_AD;
 #pragma pack()
 extern REC_AD g_96ea[];
@@ -96,9 +107,41 @@ extern char g_8768[];               /* run-time buffer (BSS) */
 extern char g_87b8[];               /* run-time buffer (BSS) */
 extern char g_8db0[];               /* run-time buffer (BSS) */
 
+extern char g_960a[];               /* run-time buffer (BSS) */
+extern char g_9628[];               /* run-time buffer (BSS) */
+extern char g_8718[];               /* run-time buffer (BSS) */
+extern char g_57b4[][35];
+extern int g_6038[];
+extern int g_92e8;
+extern HWND g_0a7c;
+void far fn_13_218a(int i, LPSTR buf);
+void far fn_17_8e60(int i, LPSTR buf);
+void far fn_06_0f1a(int v, LPSTR buf);
+void far fn_07_65aa(int type, int n);
+int far fn_03_0000(int type, int n);
+void far fn_03_00f4(int n, int type, int k);
+void far fn_03_1542(int a, int type, int n, LPSTR buf, int mode);
+int far fn_03_1ae6(LPSTR s);
+extern int g_967a;
+extern int g_9214;
+typedef struct {                /* 0x1c-byte records at DS:66e4 */
+    int f00;
+    char p02[0x1c - 2];
+} REC_1C;
+extern REC_1C g_66e4[];
+typedef struct {                /* 0x14-byte records at DS:4da2 */
+    int f00;
+    char p02[0x14 - 2];
+} REC_14;
+extern REC_14 g_4da2[];
+typedef struct {                /* 0x50-byte records at DS:2f4c */
+    char p00[8];
+    int f08;                    /* +08 */
+    char p0a[0x50 - 0x0a];
+} REC_50;
+extern REC_50 g_2f4c[];
+
 /* Not yet decompiled: stubs so calls to them compile as near calls. */
-void far fn_03_00f4(int a, long b) { }
-void far fn_03_1542(int a, int b, int n, LPSTR buf, int c) { }
 void far fn_03_06ec(int n, int kind, int target, int d) { }
 void far fn_03_1d0a(int n, int target, int c) { }
 
@@ -130,6 +173,84 @@ int far fn_03_0000(int type, int n)
     return 1;
 }
 
+/* Sets the target (type, k) of object n; for the player's object also
+ * builds the target description lines [inferred]. */
+/* @addr 3:00f4 */
+void far fn_03_00f4(int n, int type, int k)
+{
+    char tmp[30];
+    char buf[40];
+    char unused[18];
+
+    g_7090[n].f3e = type;
+    g_7090[n].f40 = k;
+    if (n != g_9646)
+        return;
+    g_6e54 = type;
+    g_6e52 = k;
+    if (!fn_03_0000(type, k) && !fn_13_371c(type, k)) {
+        g_9498++;
+        return;
+    }
+    lstrcpy(g_960a, "");
+    lstrcpy(g_9628, "");
+    if (type == -1) {
+        LoadString(g_9212, 0x89d, g_9628, 40);
+        LoadString(g_9212, 0x89e, g_8718, 40);
+        if (g_0a7c)
+            PostMessage(g_0a7c, WM_PAINT, 0, 0L);
+        return;
+    }
+    lstrcpy(g_960a, "");
+    lstrcpy(g_9628, "");
+    if (type == 14) {
+        fn_03_1542(0, type, k, buf, 0);
+        if (g_92e8)
+            LoadString(g_9212, 0x89f, g_960a, 40);
+        else if (g_96ea[g_7090[g_9646].f4e].f20
+                 == g_96ea[g_7090[k].f4e].f20)
+            LoadString(g_9212, 0x142, g_960a, 40);
+        else
+            fn_13_218a(g_96ea[g_7090[k].f4e].f20, g_960a);
+        fn_17_8e60(k, g_9628);
+    } else if (type == 0) {
+        lstrcpy(g_9628, g_57b4[k]);
+        fn_03_1542(0, type, k, buf, 0);
+        if (g_1df8[0][k].f53 == 2) {
+            LoadString(g_9212, 0x8a0, tmp, 40);
+            lstrcat(buf, tmp);
+        } else if (g_1df8[0][k].f53 == 0) {
+            LoadString(g_9212, 0x8a1, tmp, 40);
+            lstrcat(buf, tmp);
+        }
+    } else if (type == 1) {
+        lstrcpy(g_9628, g_57b4[g_6038[k]]);
+        fn_03_1542(0, type, k, buf, 0);
+    } else if (type == 2) {
+        fn_03_1542(0, type, k, buf, 0);
+        LoadString(g_9212, 0x8a2, tmp, 40);
+        lstrcat(buf, tmp);
+        if (g_52fe[k].f06 == 0) {
+            LoadString(g_9212, 0x98, g_960a, 40);
+            g_960a[lstrlen(g_960a) - 2] = 0;
+            fn_06_0f1a(g_52fe[k].f08, tmp);
+            lstrcat(g_960a, tmp);
+        } else
+            lstrcpy(g_960a, g_96ea[g_7090[g_52fe[k].f08].f4e].f58);
+    } else if (type == 7) {
+        fn_03_1542(0, type, k, buf, 0);
+        LoadString(g_9212, 0x8a3, buf, 40);
+        LoadString(g_9212, 0x8a4, g_960a, 40);
+    } else if (type == 9 || type == 11
+               || type == 8 && g_3d5a[k].w12 == 2 && g_3d5a[k].w00 > 0
+               || fn_13_371c(type, k))
+        fn_03_1542(0, type, k, buf, 0);
+    lstrcpy(g_8718, buf);
+    if (g_0a7c)
+        PostMessage(g_0a7c, WM_PAINT, 0, 0L);
+    fn_07_65aa(type, k);
+}
+
 /* @addr 3:062e */
 void far fn_03_062e(int a, int b, int c, int d)
 {
@@ -137,7 +258,7 @@ void far fn_03_062e(int a, int b, int c, int d)
         g_6e90 = c;
         g_6e8e = d;
     } else
-        fn_03_00f4(b, MAKELONG(c, d));
+        fn_03_00f4(b, c, d);
 }
 
 /* @addr 3:065e */
@@ -177,6 +298,170 @@ int far fn_03_065e(int a, int b, int c)
         goto yes;
     }
     return 0;
+}
+
+/* Writes the name of object (type, n) into buf, with an article chosen
+ * by mode; a != 0 adds the pilot name and upper-cases it [inferred]. */
+/* @addr 3:1542 */
+void far fn_03_1542(int a, int type, int n, LPSTR buf, int mode)
+{
+    char num[40];
+    char art[10];
+    int i;
+    int g;
+    int an;
+    int off;
+
+    g = -1;
+    off = an = 0;
+    if (mode == 7) {
+        off = 10000;
+        mode = 5;
+        g = 4;
+    }
+    if (mode == 5 && g_967a != 0)
+        mode = 1;
+    if (type == 14) {
+        lstrcpy(buf, g_96ea[g_7090[n].f4e].f58);
+        if (mode == 5)
+            mode = 1;
+        if (g_96ea[g_7090[n].f4e].f2c & 0x20)
+            g = 0;
+        else
+            g = 2;
+    } else if (type == 0) {
+        if (mode == 2)
+            mode = 5;
+        LoadString(g_9212, 0x98, buf, 40);
+        if (buf[lstrlen(buf) - 1] == 'M')
+            g = 0;
+        else if (buf[lstrlen(buf) - 1] == 'F')
+            g = 2;
+        else if (buf[lstrlen(buf) - 1] == 'N')
+            g = 6;
+        buf[lstrlen(buf) - 2] = 0;
+        fn_06_0f1a(n, num);
+        lstrcat(buf, num);
+        if (a) {
+            lstrcat(buf, " (");
+            lstrcat(buf, g_57b4[n]);
+            lstrcat(buf, ")");
+        }
+    } else if (type == 1)
+        LoadString(g_9212, 0x37c, buf, 40);
+    else if (type == 7)
+        LoadString(g_9212, 0x15b, buf, 40);
+    else if (type == 2) {
+        if (mode == 1 || mode == 5)
+            mode = 2;
+        LoadString(g_9212, 0x9a, buf, 40);
+    } else if (type == 9) {
+        LoadString(g_9212, off + 0xaa, buf, 40);
+        if (off == 0) {
+            g = fn_03_1ae6(buf);
+            if (mode == 1 || mode == 5)
+                mode = 2;
+        }
+    } else if (fn_13_371c(type, n)) {
+        LoadString(g_9212, 0x249, buf, 40);
+        if (mode == 5)
+            mode = 1;
+    } else if (type == 3) {
+        LoadString(g_9212, off + 0x99, buf, 40);
+        if (off == 0) {
+            g = fn_03_1ae6(buf);
+            if (mode == 1 || mode == 5)
+                mode = 2;
+        }
+    } else if (type == 4) {
+        switch (g_9214) {
+        case 0:
+            LoadString(g_9212, 0x9b, buf, 40);
+            break;
+        case 1:
+            LoadString(g_9212, 0xeb, buf, 40);
+            break;
+        case 2:
+            LoadString(g_9212, 0xec, buf, 40);
+            break;
+        case 3:
+            if (g_1df8[type][n].f26 == 0)
+                LoadString(g_9212, 0xed, buf, 40);
+            else
+                LoadString(g_9212, 0xee, buf, 40);
+            break;
+        case 4:
+            if (g_1df8[type][n].f26 == 0)
+                LoadString(g_9212, 0xf1, buf, 40);
+            else
+                LoadString(g_9212, 0xf2, buf, 40);
+            break;
+        }
+        g = fn_03_1ae6(buf);
+    } else if (type == 8 && g_3d5a[n].w12 == 2) {
+        LoadString(g_9212, g_4da2[g_3d5a[n].w26].f00 + off, buf, 40);
+        if (off == 0) {
+            if (mode == 1 || mode == 5)
+                mode = 2;
+        }
+    } else if (type == 8) {
+        if (off == 0) {
+            if (mode == 1 || mode == 5)
+                mode = 2;
+        }
+        if (g_3d5a[n].w12 == 3)
+            LoadString(g_9212, off + 0x16a, buf, 40);
+        else if (g_3d5a[n].w12 == 1)
+            LoadString(g_9212, off + 0x16b, buf, 40);
+    } else if (type == 5) {
+        if (mode == 1 || mode == 5)
+            mode = 2;
+        if (g_1df8[type][n].f44 == 0x78)
+            LoadString(g_9212, 0x1ec, buf, 40);
+        else if (g_1df8[type][n].f44 == 0xc8)
+            LoadString(g_9212, 0x1ed, buf, 40);
+    } else if (type == 6 && g_66e4[n].f00 > 0
+               && g_2f4c[g_66e4[n].f00].f08 != -1) {
+        LoadString(g_9212, g_2f4c[g_66e4[n].f00].f08 + 10000, buf, 40);
+        if (mode == 1 || mode == 5)
+            mode = 2;
+    } else if (type == 11)
+        LoadString(g_9212, 0x39e, buf, 40);
+    else {
+        LoadString(g_9212, 0xa9, buf, 40);
+        fn_06_0f1a(type, num);
+        lstrcat(buf, num);
+    }
+    switch (buf[0]) {
+    case 'A': case 'E': case 'I': case 'O': case 'U':
+    case 'a': case 'e': case 'i': case 'o': case 'u':
+        an = 1;
+    }
+    if (g == -1)
+        g = fn_03_1ae6(buf);
+    if (mode == 1)
+        LoadString(g_9212, an + g + 0xa8c, art, 40);
+    else if (mode == 2)
+        LoadString(g_9212, an + g + 0xaa0, art, 40);
+    else if (mode == 6)
+        LoadString(g_9212, an + g + 0xac8, art, 40);
+    else if (mode == 3)
+        LoadString(g_9212, an + g + 0xab4, art, 40);
+    else
+        art[0] = 0;
+    if (a) {
+        if (buf[lstrlen(buf) - 1] == ' ')
+            buf[lstrlen(buf) - 1] = 0;
+        for (i = 0; i < lstrlen(buf); i++)
+            if (buf[i] < 0x7b && buf[i] > 0x60)
+                buf[i] -= 0x20;
+    }
+    if (mode && art[0]) {
+        for (i = lstrlen(buf); i >= 0; i--)
+            buf[i + lstrlen(art)] = buf[i];
+        for (i = 0; i < lstrlen(art); i++)
+            buf[i] = art[i];
+    }
 }
 
 /* @addr 3:1ae6 */
