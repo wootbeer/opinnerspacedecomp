@@ -532,3 +532,12 @@ Conventions
 - `if (x == -1 || x == 1)` on a temp gives `mov cx,ax; inc ax; je; loop`.
 - In functions that take a local's address, dead stores to locals are kept,
   so never-read-local tricks emit stores there.
+- `for (r = _dos_findfirst(...); ...; r = _dos_findnext(...))` puts an inner
+  if/else at the loop top; `r = findfirst(); while (r == 0) { ...; r =
+  findnext(); }` gives a straight body.
+- `if (c) start = 0; else start = 1;` gives a frame temp; `c ? 0 : 1` folds to
+  sbb.
+- Copying a POINT field by field gives word copies; a whole-struct
+  assignment gives an eax dword copy.
+- `(int)` casts on long fields passed to int parameters silence C4761
+  without changing code.
