@@ -478,3 +478,5 @@ Conventions
 - `x * 5` on a char field gives `mov al,5; imul byte` and folds a following
   `* 2` into `* 10`; a local keeps them separate.
 - fn_05_08c0 is the runtime long shift left (__aFlshl). g_3824 is int[8][8].
+- A dead store of a narrowed value (`a = (unsigned)b;`, a never read) drops
+  register tracking of the low word only; a dead long store drops both.
