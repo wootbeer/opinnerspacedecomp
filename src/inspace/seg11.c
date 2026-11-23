@@ -367,10 +367,39 @@ void far fn_11_1ef6(int force);
 void far fn_11_2dac(HDC dc, int digit, int on, int i);
 void far fn_11_2154(char align, long color, int x, int y, LPSTR s);
 
+/* 0x50-byte records seen from DS:2f4c (the REC_50 above, based lower). */
+typedef struct {
+    int f00;                    /* +00 */
+    int f02;                    /* +02 */
+    int f04;                    /* +04 */
+    int f06;                    /* +06 */
+    int f08;                    /* +08 */
+    int f0a;                    /* +0a */
+    int p0c;
+    int f0e;                    /* +0e */
+    int p10;
+    int f12;                    /* +12 */
+    char p14[0x1c - 0x14];
+    int f1c;                    /* +1c */
+    char p1e[0x2e - 0x1e];
+    int f2e;                    /* +2e */
+    char p30[0x50 - 0x30];
+} REC_50A;
+extern REC_50A g_2f4c[];
+extern HDC g_39e8[];
+extern int g_9156;
+/* 0x7c-byte records at DS:6e24, byte view [inferred]. */
+typedef struct {
+    char p00[0x7a];
+    char f7a;                   /* +7a */
+    char f7b;                   /* +7b */
+} REC_7CB;
+#define g_6e24b (*(REC_7CB far **)&g_6e24)
+HBITMAP far fn_11_2ff6(int a);
+
 /* Not yet decompiled: stubs so calls to them compile as near calls. */
 void far fn_11_05fe(int a) { }
 void far fn_11_33cc(void) { }
-HBITMAP far fn_11_2ff6(int a) { return 0; }
 void far pascal fn_11_4e0a(int a) { }
 void far fn_11_238e(HWND hwnd, HDC dc) { }
 void far fn_11_41bc(HDC dc, int a, int b) { }
@@ -2087,4 +2116,140 @@ void far fn_11_6874(int n)
     }
     g_1df8[g_9324][n].f0c += dx;
     g_1df8[g_9324][n].f0e += dy;
+}
+
+/* Builds a bitmap for 0x50-record a [inferred]. */
+/* @addr 11:2ff6 */
+HBITMAP far fn_11_2ff6(int a)
+{
+    int u4;
+    HDC dc;
+    HDC sdc;
+    HBITMAP bmp;
+    int uc;
+    HBITMAP src;
+    HBITMAP oldsrc;
+    HBITMAP old;
+    int u14;
+    HPALETTE oldpal;
+    HPALETTE oldspal;
+    int kind;
+    int h;
+    int w;
+    int s;
+    int bw;
+    int width;
+    int height;
+    int s2;
+    int bh;
+    int dy;
+    int by;
+    int sy;
+    int sx;
+    BITMAP bm;
+
+    if (a == 0)
+        return 0;
+    if ((g_2f4c[a].f12 == 0 || g_2f4c[a].f06 == -1) && a != 0x18) {
+        bmp = fn_10_6c02(g_2f4c[a].f0a, 0, -1);
+    } else {
+        if (g_2f4c[a].f12) {
+            w = g_2f4c[a].f00;
+            h = g_2f4c[a].f02;
+        } else if (a == 0x18) {
+            w = g_6e24b[g_931c].f7a;
+            h = g_6e24b[g_931c].f7b;
+        }
+        if (g_2f4c[a].f1c) {
+            switch (g_2f4c[a].f1c) {
+            case 1:
+            case 4:
+                src = fn_10_6c02(0xbf, 0, -1);
+                break;
+            case 2:
+                src = fn_10_6c02(0xc4, 0, -1);
+                break;
+            case 3:
+                src = fn_10_6c02(0xc5, 0, -1);
+                break;
+            }
+        } else if (a == 0x18)
+            src = fn_10_6c02(0xbd, 0, -1);
+        else
+            src = 0;
+        if (src) {
+            GetObject(src, sizeof bm, &bm);
+            bw = bm.bmWidth;
+            bh = bm.bmHeight;
+            if (a == 0x18)
+                s = w;
+            else
+                s = w + w;
+            height = max(bh, s);
+            s2 = s;
+            if (height > s2) {
+                dy = (height - s2) / 2;
+                by = 0;
+            } else {
+                by = (height - bh) / 2;
+                dy = 0;
+            }
+            width = bw + s;
+            sdc = CreateCompatibleDC(g_13dc);
+            if (g_920e)
+                oldspal = SelectPalette(sdc, g_920e, 0);
+            oldsrc = SelectObject(sdc, src);
+        } else {
+            kind = g_2f4c[a].f08;
+            s2 = height = s = width =
+                kind == 0xc4 || kind == 0xc6 || kind == 0xc3
+                ? g_2f4c[a].f00 * 4 / 3 : g_2f4c[a].f00 * 2;
+            dy = by = bw = bh = 0;
+        }
+        bmp = CreateCompatibleBitmap(g_13dc, width, height);
+        dc = CreateCompatibleDC(g_13dc);
+        if (g_920e)
+            oldpal = SelectPalette(dc, g_920e, 0);
+        old = SelectObject(dc, bmp);
+        PatBlt(dc, 0, 0, width, height, BLACKNESS);
+        kind = g_2f4c[a].f08;
+        if (w & 1) {
+            w++;
+            h = 4;
+        } else
+            h = 6;
+        h = (h << g_9156) >> 1;
+        w = (w << g_9156) >> 1;
+        if (g_2f4c[a].f0e == 5 || kind == 0xc6 || kind == 0xc3) {
+            sx = sy = h;
+        } else {
+            if (g_2f4c[a].f0e == 4)
+                sx = (g_2f4c[a].f2e - 1) * (w + h) + h;
+            else
+                sx = w * 4 + h * 5;
+            sy = h;
+        }
+        SetStretchBltMode(dc, 3);
+        if (a == 0x18)
+            StretchBlt(dc, 0, dy, s, s2, g_3a38[g_9646], sx, sy, w, w,
+                       SRCCOPY);
+        else
+            StretchBlt(dc, 0, dy, s, s2, g_39e8[g_2f4c[a].f04], sx, sy, w, w,
+                       SRCCOPY);
+        if (src) {
+            BitBlt(dc, s, by, bw, bh, sdc, 0, 0, SRCCOPY);
+            if (g_920e)
+                SelectPalette(sdc, oldspal, 0);
+            SelectObject(sdc, oldsrc);
+            DeleteDC(sdc);
+            DeleteObject(src);
+            src = 0;
+        }
+        if (g_920e)
+            SelectPalette(dc, oldpal, 0);
+        SelectObject(dc, old);
+        DeleteDC(dc);
+        dc = 0;
+    }
+    return bmp;
 }

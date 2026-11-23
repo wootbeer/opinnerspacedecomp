@@ -1218,15 +1218,14 @@ void far pascal fn_12_07c0(int idx)
 }
 
 /* Break object (type, idx) up into debris particles [inferred]. */
-/* near-match 99%: 12:2b20 (the original gives the first fn_08_29ea call its
- * own return temp at bp-0xc and the later ones bp-0x10; here all calls
- * share one temp, so unused[2] only pads the frame) */
+/* An unused block-scope local in the inner loop puts the later fn_08_29ea
+ * return temps at bp-0x10, as in the game. */
+/* @addr 12:2b20 */
 void far fn_12_2b20(int type, int idx)
 {
     int k;
     int j;
     int n;
-    int unused[2];
 
     if (fn_08_7ba8(fn_08_29ea(g_1df8[type][idx].f04)))
         PatBlt(g_13dc, g_1df8[type][idx].f00.x, g_1df8[type][idx].f00.y,
@@ -1264,6 +1263,7 @@ void far fn_12_2b20(int type, int idx)
                 g_1e90[j].f02 = 10;
                 g_1e90[j].f06 = type;
                 g_1e90[j].f08 = idx;
+                { int pad[2];
                 if (k == 0) {
                     g_5224[j] = g_1df8[type][idx].f04;
                     g_5170[j] = fn_08_29ea(g_5224[j]);
@@ -1273,6 +1273,7 @@ void far fn_12_2b20(int type, int idx)
                     g_5224[j].y = (-40 - rand() % ((n + 40) * 2) - n) * 8
                         + g_1df8[type][idx].f20 / 2 + g_1df8[type][idx].f04.y;
                     g_5170[j] = fn_08_29ea(g_5224[j]);
+                }
                 }
                 g_9430++;
                 break;
