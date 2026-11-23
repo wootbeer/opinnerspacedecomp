@@ -934,7 +934,8 @@ void far fn_12_7256(HDC dc, POINT a, POINT b)
  * plays (as in the original). */
 /* near-match 99%: 12:2db6 (the original computes (g_9208 + 2) * 2 into ax
  * before the g_9334 clamp in cx; CL here always evaluates the clamp first
- * and reassociates the * 2) */
+ * and reassociates the * 2; an identical-arm ternary (g_9208 > -32767 ?
+ * (g_9208 + 2) * 2 : same) gives the right order but adds a temp store) */
 void far pascal fn_12_2db6(int type, int idx, int c, int d, int kind)
 {
     int unused[2];
