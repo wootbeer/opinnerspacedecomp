@@ -22,7 +22,9 @@ typedef struct {                /* 0x70 bytes, far array at DS:1df8 / 1e18 */
     int f36;                    /* +36 */
     char p38[0x51 - 0x38];
     char f51;
-    char p52[0x70 - 0x52];
+    char p52;
+    char f53;                   /* +53 */
+    char p54[0x70 - 0x54];
 } REC_70;
 
 #pragma pack(1)
@@ -50,7 +52,9 @@ typedef struct {                /* 0x15a bytes, DGROUP array at DS:7090 */
     int f56;                    /* +56 */
     char p058[0x5e - 0x58];
     char f5e;                   /* +5e */
-    char p05f[0xce - 0x5f];
+    char p05f[0x72 - 0x5f];
+    int f72[8];                 /* +72, indexed by object [inferred] */
+    char p082[0xce - 0x82];
     int fce;                    /* +ce */
     int fd0;                    /* +d0 */
     int fd2;                    /* +d2 */
@@ -202,6 +206,69 @@ void far fn_10_754a(int a, int b, int c, int d);
 void far fn_11_ae94(void);
 void far fn_11_2f8c(void);
 BOOL far pascal fn_09_90fe(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam);
+extern int g_1d48;
+extern long g_8710;
+extern long g_8714;
+extern int g_952e;
+extern int g_8e34[4];
+extern int g_9496;
+extern long g_666c;
+extern int g_93a6;
+extern int subgame_active;          /* DS:9130 */
+extern int g_9666;
+extern int g_913a;
+extern int g_913c;
+extern int g_965e;
+extern int g_951a;
+extern int g_1016;
+extern int g_9146;
+extern int dissolve_active_count;   /* DS:9148 */
+extern int g_9434;
+extern char g_938a[8];
+extern char g_9392[8];
+extern int g_937a[8];
+extern int g_0992;
+extern int g_8680[8];
+extern int g_9680;
+extern int g_9682;
+extern long g_8e00;
+extern long g_8e04;
+extern int g_932e;
+extern int g_932a;
+extern int g_8ff8;
+extern int g_92f0;
+extern int g_92e8;
+extern int g_094e;
+extern int g_0950;
+extern HDC g_93d0;
+extern HGDIOBJ g_93ca;
+extern HBITMAP g_93c8;
+extern HPALETTE g_93d2;
+extern HDC g_93ce;
+extern int g_0a72;
+extern int g_0a74;
+extern char g_9eb9[];
+extern char g_9ebc[];
+extern int g_94a8;
+extern int g_94ca;
+extern int g_933a[];
+extern int g_933c;
+extern int g_933e;
+extern int g_4ee0;
+extern int g_4ee2;
+extern int g_4ee4;
+extern int g_4ee6;
+void far fn_09_9580(UINT id, LPSTR dst);
+void far fn_02_0ba4(void);
+void far fn_02_170e(void);
+void far fn_09_22b4(int a);
+void far fn_10_5b30(void);
+void far fn_09_0b2a(void);
+void far fn_10_506c(void);
+void far fn_07_233c(int a, int b, int c);
+int far fn_10_6308(int a, int b, int c, int d);
+HBITMAP far world_map(int w, int h, int a, int b, int c, int d, int e);
+void far fn_09_91b0(void);
 void far fn_10_6d52(int a, int b, int c, int d, int e, int f);
 void far fn_17_306e(void);
 void far fn_11_1774(int c, int l, int t, int r, int b);
@@ -724,4 +791,128 @@ void far fn_09_6624(void)
     }
     g_9378 = g_9134;
     g_103a = g_92e4 = 0;
+}
+
+/* Builds the generated briefing text in g_4fcc: mission intro, up to three
+ * objectives and the count of hostile racers [inferred]. */
+/* @addr 9:91b0 */
+void far fn_09_91b0(void)
+{
+    char buf[90];
+    int hostile;
+    int best[3];
+    int pick[3];
+    int count;
+    int i;
+    int j;
+    int saved;
+    int v;
+    int kind[3];
+    int arg[3];
+    int ok;
+
+    lstrcpy((LPSTR)g_4fcc, "");
+    switch (g_9320) {
+    case 0:
+        fn_09_9580(0x4a5, (LPSTR)g_4fcc);
+        break;
+    case 2:
+        if (g_1df8[0][0].f53 == 2)
+            fn_09_9580(0x7ce, (LPSTR)g_4fcc);
+        else
+            fn_09_9580(0x4a6, (LPSTR)g_4fcc);
+        break;
+    case 4:
+        fn_09_9580(0x4a7, (LPSTR)g_4fcc);
+        break;
+    case 3:
+        fn_09_9580(0x4a8, (LPSTR)g_4fcc);
+        break;
+    case 5:
+        fn_09_9580(0x4a9, (LPSTR)g_4fcc);
+        break;
+    }
+    if (g_9320 != -1)
+        lstrcat((LPSTR)g_4fcc, " ");
+    saved = g_933a[0];
+    g_933c += saved;
+    for (i = g_933a[0] = 0; i < 3; i++) {
+        best[i] = 0;
+        pick[i] = -1;
+    }
+    for (j = count = 0; j < 3; j++) {
+        for (i = 0; i < 6; i++) {
+            ok = 1;
+            if (j > 0) {
+                if (i == pick[0])
+                    ok = 0;
+                if (j > 1 && i == pick[1])
+                    ok = 0;
+            }
+            switch (i) {
+            case 4:
+                v = g_4ee0;
+                break;
+            default:
+                v = g_933a[i];
+                break;
+            case 5:
+                v = g_4ee2;
+                break;
+            case 1:
+                v = 0;
+                break;
+            }
+            if (ok && best[j] < v) {
+                count = j + 1;
+                pick[j] = i;
+                best[j] = v;
+            }
+        }
+    }
+    if (count < 3) {
+        if (g_933c > 15 || (count == 0 && g_933c > 0)) {
+            count++;
+            pick[count - 1] = 1;
+        }
+    } else if (pick[count - 1] != 3 && best[count - 1] < g_933c && g_933c > 15)
+        pick[count - 1] = 1;
+    for (i = 0; i < 3; i++)
+        kind[i] = 0;
+    for (i = 0; i < count; i++) {
+        switch (pick[i]) {
+        case 1:
+            kind[i] = 3;
+            arg[i] = 0;
+            break;
+        case 2:
+            kind[i] = 8;
+            arg[i] = g_9318 * 2;
+            break;
+        case 3:
+            kind[i] = 9;
+            arg[i] = 0;
+            break;
+        case 4:
+            kind[i] = 8;
+            arg[i] = g_9318 * 2 + g_933e;
+            break;
+        case 5:
+            kind[i] = 8;
+            arg[i] = g_9318 * 2 + g_4ee6 + g_4ee4 + g_4ee0;
+            break;
+        }
+    }
+    if (kind[2] == 0 && kind[1] == 0 && kind[0] == 0)
+        fn_09_9580(0x4a5, (LPSTR)g_4fcc);
+    else
+        fn_10_a332((LPSTR)g_4fcc, 0xbdc, 0, kind[2], kind[2], arg[2], 7, kind[1], kind[1], arg[1], 7,
+                   kind[0], kind[0], arg[0], 7);
+    g_933a[0] = saved;
+    g_933c -= saved;
+    for (i = hostile = 0; i <= g_9316; i++)
+        if (g_7090[i].f72[g_9646] && g_7090[i].fee[g_9646] <= 5)
+            hostile++;
+    if (hostile)
+        fn_10_a332((LPSTR)g_4fcc, 0xbdd, 0, hostile, 0x9ea);
 }

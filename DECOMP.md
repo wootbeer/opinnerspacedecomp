@@ -185,3 +185,9 @@ Conventions
   source shape (`if (c) A; else B; break;`; case group before `default:`).
 - `dy = 16; dx = 16;` in that order gives one dword constant store.
 - g_920e is an HPALETTE; 17:30b0 takes (int id, long v); g_18ac is a POINT.
+- To stop CSE of locals across calls, make them POINT/struct members.
+- A dead local store is removed but its address computation stays.
+- A doubled test in the game may be literally doubled in the source
+  (`fac == 0 || fac == 0`, keep with /* sic */).
+- DWORD (unsigned long) for timers: g_1e50, g_8e28, g_52d8, g_8e44.
+  fn_08_35d0 returns int. The 0x1c-byte array likely starts at DS:66e4.

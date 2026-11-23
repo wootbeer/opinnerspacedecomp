@@ -52,12 +52,16 @@ typedef struct {                /* 0x7c bytes, far array at DS:6e24 */
 typedef struct {                /* 0x15a bytes, DGROUP array at DS:7090 */
     char p000[0x1e];
     int f1e;                    /* +1e */
-    char p020[0x4e - 0x20];
+    char p020[0x44 - 0x20];
+    int f44[5];                 /* +44 */
     int f4e;                    /* +4e */
-    char p050[0xec - 0x50];
+    char p050[0xc2 - 0x50];
+    char fc2[8];                /* +c2, indexed by object [inferred] */
+    char p0ca[0xec - 0xca];
     char fec;                   /* +ec */
     char p0ed;
-    char fee[0x146 - 0xee];     /* +ee, indexed by object [inferred] */
+    char fee[0x13e - 0xee];     /* +ee, indexed by object [inferred] */
+    char f13e[8];               /* +13e, indexed by object [inferred] */
     char p146[0x15a - 0x146];
 } REC_15A;
 
@@ -172,6 +176,75 @@ extern int g_9ea2;
 extern char g_9eb9[];
 extern RECT g_67f8[];
 
+extern int g_9324;
+extern int g_0d24;
+extern int g_9326;
+extern int g_9328;
+extern int g_934a;
+extern int g_6e72;
+extern int g_8e5e;
+extern int g_90f8;
+extern int g_92e2;
+extern int g_937a[8];
+extern int g_940a;
+extern int g_92ea;
+extern int g_92ec[15];
+extern int g_92f0;
+extern int g_932e;
+extern int g_9412;
+extern int g_9414;
+extern int g_941a;
+extern int g_941c;
+extern int g_9420;
+extern int g_92f8;
+extern int g_92fa;
+extern int g_9300;
+extern int g_9302;
+extern int g_9306;
+extern int g_933a;
+extern int g_933c;
+extern int g_940c;
+extern int g_92f2;
+extern int g_933e;
+extern int g_9342;
+extern int g_9416;
+extern int g_92fc;
+extern int g_9340;
+extern int g_9418;
+extern int g_92fe;
+extern int g_941e;
+extern int g_9304;
+extern int session_helper_groups;   /* DS:9336 */
+extern int g_9338;
+extern int g_9000;
+extern int g_9348;
+extern HGLOBAL g_9100[];
+extern int g_3a00;
+extern int g_90f0;
+extern int g_39e8;
+extern int g_103a;
+extern int g_964a;
+extern int g_94e2;
+void far fn_10_94c4(int a, int b, long color, int x, int y, LPSTR s);
+void far fn_10_0522(int a);
+void far fn_10_5c42(void);
+void far fn_10_740c(void);
+void far fn_10_0b94(void);
+void far fn_10_069a(void);
+void far fn_10_5102(void);
+void far fn_10_3a2e(void);
+void far fn_10_5202(void);
+void far fn_10_464a(void);
+void far fn_10_3ea2(void);
+void far fn_10_565a(void);
+void far fn_10_58ce(int a);
+void far fn_10_561a(void);
+void far fn_10_42ee(void);
+void far fn_10_744c(int a);
+void far race_marker_strip(void);
+void far fn_09_27da(int a);
+void far fn_09_2828(void);
+void far fn_09_3202(void);
 POINT far pascal fn_08_29ea(POINT pt);
 long far fn_08_35d0(long a, long b);
 
@@ -455,4 +528,181 @@ void far fn_09_0df6(int n)
             }
         }
     }
+}
+
+/* Not yet decompiled. */
+void far fn_09_2828(void)
+{
+}
+
+/* Not yet decompiled. */
+void far fn_09_3202(void)
+{
+}
+
+/* Sets up a level: display scale from the INI file, object tables and the
+ * per-type builders, with progress steps (fn_09_27da) [inferred]. */
+/* near-match 56%: 9:22b4 (the zero stores after g_9406 = 8 come out grouped
+ * after the constant stores, and g_940a/g_940c are not merged into one dword
+ * store; rest of the body lines up) */
+void far fn_09_22b4(int a)
+{
+    int i;
+    int j;
+    int unused;
+    char buf[40];
+    char buf2[40];
+    int cur;
+    int v;
+
+    g_9324 = 14;
+    g_9326 = g_0d24 = 0;
+    g_9328 = 5;
+    g_934a = 3;
+    g_6e72 = -1;
+    fn_09_27da(1);
+    if (g_92e6 == 0) {
+        LoadString(g_9212, 0x383, buf, 40);
+        lstrcat(buf, "...");
+        fn_10_94c4(2, 6, 0x200ff00L, g_90ea / 2, g_0010 * 3 / 4 + 20, buf);
+        if (g_90f8 && g_8e5e) {
+            cur = g_9156;
+            v = GetPrivateProfileInt(g_96a9, "DScale", 0, g_9690);
+            if (v == 0) {
+                if ((rand() & 1) || g_9156 == 2) {
+                    cur = rand() % 3;
+                    if (cur == g_9156 && cur == 2)
+                        cur = 1;
+                }
+            } else
+                cur = v - 1;
+            if (cur != g_9156) {
+                g_92e2 = 1;
+                g_9156 = cur;
+                fn_06_0f1a(cur, buf2);
+                WritePrivateProfileString(g_96a9, "Size", buf2, g_9690);
+            }
+        }
+        if (g_92e2) {
+            g_9156 = GetPrivateProfileInt(g_96a9, "Size", 1, g_9690);
+            g_9150 = 4 - g_9156;
+            fn_10_0522(1);
+            fn_10_5c42();
+        }
+        g_92e2 = 0;
+    }
+    if (g_91f8 == 0)
+        fn_09_2828();
+    for (i = 0; i < 8; i++) {
+        for (j = 0; j < 5; j++)
+            g_7090[i].f44[j] = 0;
+        for (j = 0; j < 8; j++)
+            g_7090[i].fc2[j] = g_7090[i].f13e[j] = 0;
+    }
+    for (i = 0; i < 8; i++)
+        g_937a[i] = 0;
+    fn_09_3202();
+    if (g_9432 > 250)
+        g_9432 = g_9432 * 7 / 10;
+    else
+        g_9432 = g_9432 * 9 / 10;
+    g_9406 = 8;
+    (&g_9406)[g_9328] = g_940a = g_9408 = 0;
+    g_92ea = 14;
+    g_92ec[0] = 8;
+    g_92ec[1] = 2;
+    g_92f0 = g_932e * 8;
+    g_92ec[g_9328] = g_9420 = g_941c = g_941a = g_9414 = g_9412 = 0;
+    g_92fa = g_92f8 = 1;
+    g_9302 = g_9300 = 3;
+    g_9306 = 0;
+    g_92f2 = g_940c = g_933c + g_933a;
+    g_92fc = g_9416 = g_933e + g_9342;
+    g_92fe = g_9418 = g_9340;
+    g_92ea = g_933a;
+    if (g_940c > 127) {
+        g_940c = 120;
+        g_92f2 = 920;
+        g_933c = g_933a = 60;
+    }
+    g_9416 += g_9318 * 2;
+    g_9304 = g_941e = g_9318 * 2;
+    g_92fc += g_9318 * 2;
+    if (g_92fc > 80)
+        g_92fc = g_9416 = 80;
+    if (g_92e8) {
+        g_9326 = 1;
+        g_9338 = session_helper_groups = g_940c = 0;
+    }
+    if (g_9320 == 6) {
+        g_92f0 = g_940c = g_940a = 0;
+        if (g_9000 == 2 || (g_9000 == 1 && g_9334 > 8))
+            g_9348 = 1;
+        else if ((g_9000 == 0 && g_9334 > 3) || g_9334 < 4)
+            g_9348 = 2;
+        else
+            g_9348 = 3;
+    }
+    for (i = 0; i <= g_9324; i++) {
+        GlobalUnlock(g_9100[i]);
+        g_9100[i] = GlobalReAlloc(g_9100[i], (long)(g_92ec[i] < 1 ? 1 : g_92ec[i]) * 0x70, 0x42);
+        g_1df8[i] = (REC_70 far *)GlobalLock(g_9100[i]);
+    }
+    fn_10_740c();
+    fn_10_0b94();
+    fn_10_069a();
+    fn_09_27da(4);
+    fn_10_740c();
+    if (g_3a00 == 0) {
+        fn_10_39a8(1);
+        fn_09_27da(9);
+        fn_10_740c();
+        if (g_90f0)
+            fn_10_5102();
+        else
+            fn_10_3a2e();
+        fn_09_27da(0x3c);
+        fn_10_740c();
+        fn_10_5202();
+    }
+    fn_10_740c();
+    fn_09_27da(0x41);
+    if (g_932e && g_39e8 == 0)
+        fn_10_464a();
+    fn_10_740c();
+    fn_09_27da(0x46);
+    if (g_90f0 == 0)
+        fn_10_5102();
+    else
+        fn_10_3a2e();
+    fn_09_27da(0x4e);
+    fn_10_740c();
+    fn_10_3ea2();
+    fn_09_27da(0x51);
+    fn_10_740c();
+    fn_10_565a();
+    fn_09_27da(0x53);
+    fn_10_740c();
+    if (g_9418) {
+        fn_10_58ce(1);
+        fn_10_740c();
+    }
+    fn_09_27da(0x58);
+    fn_10_561a();
+    fn_10_740c();
+    fn_09_27da(0x61);
+    fn_10_42ee();
+    fn_10_740c();
+    if (g_9320 == 6)
+        race_marker_strip();
+    fn_10_740c();
+    if (g_103a)
+        g_103a = 0;
+    fn_09_27da(100);
+    g_964a = 0;
+    fn_10_744c(0x6e);
+    if (g_92e6 == 0)
+        PatBlt(g_13dc, g_90ea / 4 - 2, g_0010 * 3 / 4 - 12, g_90ea / 2 + 4, 0x46, BLACKNESS);
+    g_92e6 = 1;
+    g_94e2 = (g_9340 + g_9342) * 2 + g_933c + g_933e + g_933a;
 }
