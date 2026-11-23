@@ -2,6 +2,10 @@
 /* INSPACE.EXE segment 10 (selector 1048): source file 21 of
  * inventory/files.tsv (10:0000..10:39a8), compiled with /G2: the long
  * conditional jumps are jcc+jmp pairs (no 386 jcc rel16) [inferred]. */
+/* Declared before inspace.h (g_05a0) so that CL computes the rect's
+ * right edge in the register of G_05A0_LO / 2 in the SetRect calls of 10:0736,
+ * 10:0864 and 10:0a26 [layout-only: declaration order]. */
+extern int g_90ea;
 #include "inspace.h"
 #include <stdlib.h>
 
@@ -1754,8 +1758,9 @@ int far fn_10_0000(void)
 /* Puts object n of list 0 at a random place in the world, at least 150
  * from the left/top edge [inferred], retrying while it lands inside the
  * view centred on the world. */
-/* near-match 99%: 10:0736 (two register choices differ: ax/si for the
- * record offset at the f02 store, si/bx for the rect right edge) */
+/* near-match 99%: 10:0736 (one register choice differs: CL adds the
+ * record offset from si at the f02 store, the game from ax (the same
+ * value); about 30 forms of the f00/f02 stores tried) */
 void far fn_10_0736(int n)
 {
     int again;
@@ -1781,7 +1786,7 @@ void far fn_10_0736(int n)
 
 /* Like fn_10_0736 for object n of g_1e1c, also with a random speed
  * (-24..25 each way [inferred]) and a random f26 below 900. */
-/* near-match 99%: 10:0a26 (the same two register choices as 10:0736) */
+/* near-match 99%: 10:0a26 (the same f02 register choice as 10:0736) */
 void far fn_10_0a26(int n)
 {
     int again;
@@ -1810,7 +1815,7 @@ void far fn_10_0a26(int n)
 
 /* Like fn_10_0a26 for object n of g_1e04; a speed too slow on both axes
  * gets 20 added to x. */
-/* near-match 99%: 10:0864 (the same two register choices as 10:0736) */
+/* near-match 99%: 10:0864 (the same f02 register choice as 10:0736) */
 void far fn_10_0864(int n)
 {
     int again;
