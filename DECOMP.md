@@ -234,3 +234,11 @@ Conventions
   long division.
 - fn_11_b09c is pascal (n, a); fn_10_754a likely (int, POINT, int); g_4fcc is
   `char far *` (briefing text).
+- Zoom arithmetic: `#define SC(n) ((n) << g_9156 >> 1)`; `SC(v)*2` gives
+  `shl; and al,0xfe`.
+- Dead code the game keeps (address only, dead cwd pairs): reproduce with an
+  unused local assignment (`dead = o.x + o.f22;`, `l = (long)a + (long)b;`).
+- An unused block-scope `int pad[2];` can move later compiler temps (12:2b20).
+- `1 > f() ? 1 : f()` keeps the arm order; `f() < 1 ? 1 : f()` swaps it.
+- `old = m = 0;` merges into one xor only if both have the same type.
+- fn_13_2f30 is pascal. 0x34-byte records start at or below DS:3d50.

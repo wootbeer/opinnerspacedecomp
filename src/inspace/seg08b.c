@@ -16,9 +16,13 @@ typedef struct {
     int f18;                    /* +18 */
     int f1a;                    /* +1a */
     int f1c;                    /* +1c */
-    char p1e[0x44 - 0x1e];
+    char p1e[0x2f - 0x1e];
+    char f2f;                   /* +2f */
+    char p30[0x44 - 0x30];
     int f44;                    /* +44 */
-    char p46[0x50 - 0x46];
+    char p46[0x48 - 0x46];
+    int f48;                    /* +48 */
+    char p4a[0x50 - 0x4a];
     char f50;                   /* +50 */
     char p51[0x54 - 0x51];
     char f54;                   /* +54 */
@@ -379,7 +383,10 @@ int far fn_09_88ba(int x);
  * *p3/*p4 with velocities (*p5 - *p7)... [inferred]; returns 0 when they
  * move apart too fast, else nothing defined (no return, as in the
  * original). */
-/* @addr 8:7d70 */
+/* near-match 44%: 8:7d70 (only the > 15 test differs: the original
+ * computes the dot product into bx:cx before the (long)d2 * d1 divisor;
+ * here it is computed after pushing 100, so everything after shifts by
+ * 4 bytes) */
 int far pascal fn_08_7d70(int far *p8, int far *p7, int far *p6, int far *p5,
                           int far *p4, int far *p3, int far *p2, int far *p1,
                           int b, int a)
@@ -441,4 +448,84 @@ int far pascal fn_08_7d70(int far *p8, int far *p7, int far *p6, int far *p5,
     u14 = *p3;
     *p4 += k * ux / -100;
     *p3 += k * uy / -100;
+}
+
+extern int g_1318;
+extern int g_0b0c;
+extern int g_90f4;
+extern int g_9156;
+extern int g_943a;
+extern int g_943c;
+long far pascal fn_08_1290(long n, long g);
+int far pascal fn_08_285a(int far *p, int far *q, POINT a, POINT b);
+
+/* Blast wave of particle j: push and damage every object near it
+ * [inferred]. */
+/* @addr 8:5ab0 */
+void far pascal fn_08_5ab0(int j)
+{
+    int kind;
+    int st;
+    int si_;
+    int t;
+    int i;
+    int d;
+    int dy;
+    int dx;
+    int f;
+    long vx;
+    long vy;
+    long s;
+    POINT pos;
+
+    st = g_1e90[j].f06;
+    si_ = g_1e90[j].f08;
+    kind = g_1e90[j].f0a;
+    pos.x = g_5224[j].x;
+    pos.y = g_5224[j].y;
+    if (g_1318 > 6)
+        return;
+    for (t = g_9326; t <= g_9324; t++) {
+        for (i = 0; i < g_9406[t]; i++) {
+            if (g_1df8[t][i].f18 == 0 && g_1df8[t][i].f44 != 0
+                && !(t == g_9324 && i == g_952e && g_1df8[t][i].f1a == 0)
+                && !(kind == -250 && t == st && i == si_)) {
+                d = fn_08_285a(&dy, &dx, pos, g_1df8[t][i].f04);
+                d = d * 2 >> g_9156;
+                dy = dy * 2 >> g_9156;
+                dx = dx * 2 >> g_9156;
+                if (subgame_active && g_90f4 == 6) {
+                    d <<= 1;
+                    dy <<= 1;
+                    dx <<= 1;
+                }
+                if (d < 100)
+                    d = 100;
+                if ((min(g_1df8[st][si_].f48, 7) + 8) * 15 > d && d != 0) {
+                    f = g_1df8[st][si_].f48 * 600 / d;
+                    f = f * 15 / (1 > (int)fn_08_1290((long)g_1df8[t][i].f44, 25L) ? 1
+                                  : (int)fn_08_1290((long)g_1df8[t][i].f44, 25L));
+                    if (t == 2)
+                        f *= 3;
+                    g_1df8[t][i].f2f += 2;
+                    if (d < 150)
+                        g_1df8[t][i].f2f += 2;
+                    if (g_1df8[t][i].f2f > 9)
+                        g_1df8[t][i].f2f = 9;
+                    g_943a = st;
+                    g_943c = si_;
+                    g_0b0c = 1;
+                    if (g_1e90[j].f00 != 0)
+                        g_0b0c = 0;
+                    fn_08_5df2(t, i, st, si_, -f);
+                    g_0b0c = 1;
+                    s = g_1df8[st][si_].f48 * 250 / (d / 10) / ((g_1df8[t][i].f44 + 100) / 100);
+                    vx = s * dy / d;
+                    vy = s * dx / d;
+                    g_1df8[t][i].f0c += vx;
+                    g_1df8[t][i].f0e += vy;
+                }
+            }
+        }
+    }
 }
