@@ -39,7 +39,8 @@ typedef struct {
 /* 0x15a-byte records at DS:7090, indexed like the object records
  * [inferred]. */
 typedef struct {
-    char p000[0x06];
+    int f00;                    /* +00: countdown [inferred] */
+    char p002[0x06 - 0x02];
     int f06;                    /* +06 */
     int f08;                    /* +08 */
     char p00a[0x10 - 0x0a];
@@ -72,7 +73,9 @@ typedef struct {
     char f5d;                   /* +5d */
     char f5e;                   /* +5e */
     char f5f;                   /* +5f */
-    char p060[0x94 - 0x60];
+    char p060[0x72 - 0x60];
+    int f72[8];                 /* +72, indexed by object [inferred] */
+    char p082[0x94 - 0x82];
     long f94;                   /* +94 */
     long f98;                   /* +98 */
     char p09c[0xac - 0x9c];
@@ -260,6 +263,39 @@ extern int g_968a;
 void far fn_13_7b40(int n);
 int far fn_04_8626(int type, int idx, int flag);
 int far fn_13_78b8(int n, int m);
+int far fn_04_8346(int n, int x, int y, int v);
+typedef struct { char p00[0x12]; int f12; char p14[0x34 - 0x14]; } REC_34;
+extern REC_34 g_3d5a[];             /* base as in seg07.c */
+extern REC_70 far *g_1e30;
+extern int g_937a[8];
+extern char g_938a[8];
+extern char g_9392[8];
+extern int g_6e52;
+extern int g_6e54;
+int far fn_06_720c(int deg);
+int far fn_08_35d0(long a, long b);
+extern int g_913a;
+extern int g_913c;
+extern DWORD g_8e2c;
+extern DWORD g_1d0a;
+extern DWORD g_1d0e;
+extern DWORD g_1d12;
+extern int g_0992;
+extern int g_932a;
+extern int g_964a;
+extern int g_9648;
+extern int g_3824[8][8];            /* per-class tables, row by kind [inferred] */
+int far fn_13_adbe(int a, int b, int c);    /* summon_with_music [inferred] */
+typedef struct { char p00[0x0a]; char name[0x41 - 0x0a]; } REC_41;
+extern REC_41 far *g_6e20;
+extern int g_934e;
+extern char g_380c[];               /* run-time buffer (BSS) */
+extern char g_8d38[];               /* run-time buffer (BSS) */
+extern char g_09d6[];
+int far fn_14_3eda(void);
+void far fn_14_4074(void);
+void far fn_03_00f4(int n, int type, int k);
+void far fn_10_a332(LPSTR buf, int id, int n, ...);
 
 /* @addr 4:0000 */
 void far pascal fn_04_0000(int n)
@@ -633,6 +669,281 @@ void far fn_04_6e70(int n)
     }
     if (n == g_9646)
         fn_11_2f8c();
+}
+
+/* Decides whether the police or other enforcers are summoned against
+ * the player (two warning stages via g_1d0a / g_1d0e) [inferred]. */
+/* Racer n reacts to a grudge against racer j (f72 / fee): radio
+ * message, then attack orders, ganging up for class 2 [inferred].
+ * Returns 1 when it acted. */
+/* @addr 4:702e */
+int far fn_04_702e(int n)
+{
+    char buf[40];
+    char name[20];
+    int j;
+    int k;
+    int age;
+    int mode;
+    int found;
+    int locked;
+    int alt;
+
+    found = locked = 0;
+    if (g_7090[n].fee[g_9646] == 0)
+        return 0;
+    if (g_7090[n].f72[g_9646] == 0)
+        return 0;
+    if (g_92e8 || g_9320 == 7 || g_9320 == 6)
+        return 0;
+    if (g_7090[n].f00 != 0 && g_7090[n].f00 < 4)
+        g_7090[n].f00--;
+    if ((n == g_9646 && !flow_interactive) || g_1e30[n].f1a == 0)
+        return 0;
+    if (g_7090[n].f00 != 0) {
+        if (g_7090[n].f00 == 4)
+            fn_03_06ec(g_9646, 14, n, 0x88);
+        g_7090[n].f00--;
+        return 0;
+    }
+    if (g_7090[n].f26 < 45 || (g_96f0[g_7090[n].f4e].f1a != 4 && g_934e < 7))
+        return 0;
+    for (j = 0; j < g_9316; j++) {
+        if (g_1e30[j].f1a == 0 || j == n || g_7090[n].f72[j] <= 5
+            || g_96f0[g_7090[n].f4e].f1a == 7)
+            continue;
+        if (g_96f0[g_7090[j].f4e].f1a == g_96f0[g_7090[n].f4e].f1a
+            && g_7090[n].fee[j] <= 8 && g_7090[n].fee[j] != 4) {
+            g_7090[n].fee[j] = 0;
+            return g_7090[n].f72[j] = 0;
+        } else {
+        if (g_7090[n].fee[j] <= 5) {
+            mode = 1;
+            if (rand() % 3 == 0)
+                lstrcpy(buf, g_380c);
+            else if (g_7090[n].f5e == 0)
+                LoadString(g_9212, 0x29c, buf, 40);
+            else if (g_7090[n].f5e < 3)
+                LoadString(g_9212, 0x29d, buf, 40);
+            else if (g_7090[n].f5e == 3)
+                LoadString(g_9212, 0x29e, buf, 40);
+        } else {
+            mode = 0;
+            if (rand() % 3 == 0)
+                lstrcpy(buf, g_380c);
+            else if (g_7090[n].f5d == 0)
+                LoadString(g_9212, 0x29f, buf, 40);
+            else if (g_7090[n].f5d < 2)
+                LoadString(g_9212, 0x2a0, buf, 40);
+            else if (g_7090[n].f5d == 3)
+                LoadString(g_9212, 0x2a1, buf, 40);
+        }
+        if (g_7090[n].fee[j] == 4) {
+            for (k = 0; k < 3; k++) {
+                if (g_4eec[g_96f0[g_7090[n].f4e].f1a][k] == g_7090[j].fd6) {
+                    found = 1;
+                    if (g_6e20 == 0) {
+                        fn_14_3eda();
+                        locked = 1;
+                    }
+                    lstrcpy(name, g_6e20[g_6b10[g_96f0[g_7090[n].f4e].f1a][k]].name);
+                    age = g_91f8 - g_4fd0[g_96f0[g_7090[n].f4e].f1a][k];
+                }
+            }
+        }
+        if (!found && !(rand() & 1))
+            alt = 1;
+        else
+            alt = 0;
+        fn_10_a332(g_8d38, 0xbd9, 1, !(rand() & 1), (LPSTR)buf, alt, !found,
+                   g_7090[n].fee[j] + 0x351, found, (LPSTR)name, age, g_09d6);
+        if (locked && found)
+            fn_14_4074();
+        fn_03_06ec(j, 14, n, mode + 0x4f);
+        if (mode) {
+            if (g_7090[n].f72[j] < 9 || g_96f0[g_7090[n].f4e].f1a == 2) {
+                g_7090[n].f52 = 0;
+                g_7090[n].f06 = g_7090[n].f32 = 14;
+                g_7090[n].f08 = g_7090[n].f34 = j;
+                g_7090[n].f94 = g_1e50 + 8000;
+                g_7090[n].f36 = 1;
+                g_7090[n].f38 = 1;
+                g_7090[n].f3a = 2;
+                g_7090[n].f3c = 2;
+                if (g_96f0[g_7090[n].f4e].f1a == 2) {
+                    for (k = 0; k <= g_9316; k++) {
+                        if (g_96f0[g_7090[k].f4e].f1a == 2 && k != j) {
+                            g_7090[k].f36 = 3;
+                            g_7090[k].f38 = 3;
+                            g_7090[k].f3a = 2;
+                            g_7090[k].f3c = 2;
+                            g_7090[k].f52 = 0;
+                            g_7090[k].f06 = g_7090[k].f32 = 14;
+                            g_7090[k].f08 = g_7090[k].f34 = j;
+                            g_7090[k].f94 = g_1e50 + 15000;
+                        }
+                        if (g_96f0[g_7090[k].f4e].f1a == 0
+                            && (g_7090[n].fee[j] == 3 || g_7090[n].fee[j] == 1)) {
+                            g_7090[k].f52 = 2;
+                            g_7090[k].f98 = g_1e50 + 20000;
+                            g_7090[k].f54 = 14;
+                            g_7090[k].f56 = j;
+                            g_7090[k].f58 = n;
+                            g_7090[k].fed = 1;
+                            fn_03_00f4(n, g_7090[n].f54, g_7090[n].f56);
+                            fn_04_8346(k, 14, j, 8);
+                            g_7090[k].fee[j] = 3;
+                            g_7090[k].f72[j] = 0;
+                        }
+                    }
+                } else
+                    fn_04_8346(n, 14, j, 8);
+            } else {
+                if (g_7090[n].f72[j] < 14)
+                    g_7090[n].f52 = 2;
+                else if (g_7090[n].f72[j] < 18)
+                    g_7090[n].f52 = 3;
+                else
+                    g_7090[n].f52 = 4;
+                fn_04_8346(n, 14, j, 8);
+                g_7090[n].f98 = g_1e50 + 20000;
+                g_7090[n].f54 = 14;
+                g_7090[n].f56 = j;
+                g_7090[n].f58 = n;
+                g_7090[n].fed = 1;
+                fn_03_00f4(n, g_7090[n].f54, g_7090[n].f56);
+            }
+        }
+        if (g_7090[n].fee[j] == 4) {
+            for (k = 0; k < 3; k++)
+                if (g_4eec[g_96f0[g_7090[n].f4e].f1a][k] == g_7090[j].fd6)
+                    g_4eec[g_96f0[g_7090[n].f4e].f1a][k] = -1;
+        }
+        g_7090[n].f72[j] = 0;
+        return 1;
+        }
+    }
+    return 0;
+}
+
+/* near-match 99.6%: 4:7e2a (the game sets i = 0 for the last loop with
+ * xor ax,ax + store; this gives an immediate store). */
+void far fn_04_7e2a(void)
+{
+    int i;
+    int c6;
+    int c8;
+    int v;
+    int chance;
+    int ce;
+    int f;
+
+    if (g_913a || g_913c || g_1e68 - g_8e2c < 400)
+        return;
+    if (g_1e68 < 500) {
+        g_1d0e = g_1d12 = 0;
+        g_1d0a = 0;
+        return;
+    }
+    if (g_92e8 || g_9320 == 6 || g_9320 == 7 || g_0992 + 20 > g_932a)
+        return;
+    if (g_3824[3][g_96f0[g_7090[g_9646].f4e].f1a] < 150
+        && (g_1d0a < g_1e50 || g_1d0a == 0)
+        && g_9208 / 2 + 3 > g_9316 && g_7090[g_9646].fce > 398) {
+        f = 2;
+        for (i = ce = c8 = 0; i <= g_9316; i++) {
+            if (g_96f0[g_7090[i].f4e].f1a == 3) {
+                f--;
+                if (g_7090[i].fcd == g_9646)
+                    f = 0;
+            }
+            if (g_7090[i].f38 == 1 && g_7090[i].f32 == 14 && g_1e30[i].f1a != 0) {
+                ce++;
+                if (g_7090[i].f34 == g_9646)
+                    ce++;
+            }
+        }
+        if (f > 0) {
+            v = (g_7090[g_9646].fce - 220) / 32 + g_3824[3][g_96f0[g_7090[g_9646].f4e].f1a] / -100
+                + g_9334 / 3 - ce - g_9316;
+            if (g_7090[g_9646].f26 < 40)
+                v++;
+            if ((v = f * v / 2) > rand() % 720 && g_9334 > 0) {
+                if (g_1d0a != 0 && g_1d0a < g_1e50) {
+                    fn_13_adbe(g_9646, 3, 0x69);
+                    g_1d0a = 0;
+                    return;
+                }
+                if (g_1d0a == 0) {
+                    fn_03_06ec(g_9646, 7, 0, 0x6b);
+                    g_1d0a = g_1e50 + 7000;
+                    return;
+                }
+            }
+        }
+    }
+    if (g_3824[4][g_96f0[g_7090[g_9646].f4e].f1a] > -50
+        && (g_1d0e < g_1e50 || g_1d0e == 0)
+        && g_9208 / 2 + 3 > g_9316 && g_7090[g_9646].f26 < 60) {
+        f = 2;
+        for (i = c6 = c8 = 0; i <= g_9316; i++) {
+            if (i != g_9646 && g_7090[i].fec) {
+                if (g_96f0[g_7090[g_9646].f4e].f1a == 2) {
+                    if (g_96f0[g_7090[i].f4e].f1a == 0) {
+                        f--;
+                        if (g_7090[i].fcd == g_9646)
+                            f = 0;
+                    }
+                } else if (g_96f0[g_7090[g_9646].f4e].f1a == 3) {
+                    if (g_96f0[g_7090[i].f4e].f1a == 3) {
+                        f--;
+                        if (g_7090[i].fcd == g_9646)
+                            f = 0;
+                    }
+                } else if (g_96f0[g_7090[i].f4e].f1a == 4) {
+                    f--;
+                    if (g_7090[i].fcd == g_9646)
+                        f = 0;
+                }
+                if (g_96f0[g_7090[i].f4e].f1a == g_96f0[g_7090[g_9646].f4e].f1a)
+                    c8++;
+                if (g_7090[i].f38 == 1 && g_7090[i].f32 == 14 && g_7090[i].f34 == g_9646) {
+                    c6++;
+                    if (fn_04_5d9c(g_9646, i) < 40)
+                        c6++;
+                }
+            }
+        }
+        for (i = 0; i < g_940a; i++)
+            if (g_1df8[2][i].f18 == 0 && g_52fe[i].f0a == 14 && g_52fe[i].f0c == g_9646
+                && g_52fe[i].f00 == 10)
+                c6++;
+        if (f > 0) {
+            chance = (g_3824[4][g_96f0[g_7090[g_9646].f4e].f1a] / 120 + (c6 * 2 - c8) * 2
+                      - g_7090[g_9646].f26 / 15 + g_9334 / 2 - g_9316 + 5) * f / 2;
+            if (c6 != 0 && rand() % 300 < chance) {
+                if (g_1d0e != 0 && g_1d0e < g_1e50) {
+                    fn_13_adbe(g_9646, 4, 0x6a);
+                    g_1d0e = 0;
+                    return;
+                }
+                if (g_1d0e == 0) {
+                    fn_03_06ec(g_9646, 7, 0, 0x6c);
+                    g_1d0e = g_1e50 + 7000;
+                    return;
+                }
+            }
+        }
+    }
+    if (g_9208 / 2 + 4 > g_9316 && g_964a > 6 && g_9648 > 4 && g_9208 > 0) {
+        f = 1;
+        for (i = 0; i <= g_9316; i++)
+            if (g_96f0[g_7090[i].f4e].f1a == 7)
+                f = 0;
+        chance = g_964a / 2 + g_3824[7][g_96f0[g_7090[g_9646].f4e].f1a] / -140 + g_9334 / 2;
+        if (f && rand() % 300 < chance)
+            fn_13_adbe(g_9646, 0x16, 0x6d);
+    }
 }
 
 /* @addr 4:8346 */
@@ -1271,10 +1582,121 @@ void far fn_04_79ae(int n)
         fn_03_332e(msg, msg2);
 }
 
-/* Not yet decompiled. */
+/* Scores object (type, idx) as a goal for the player's racer; sets
+ * g_9686 / g_9688 / g_968a as hints for the chosen approach [inferred].
+ * flag is unused. */
+/* @addr 4:8626 */
 int far fn_04_8626(int type, int idx, int flag)
 {
-    return 0;
+    int unused;
+    int v;
+    int k;
+    int dx;
+    int dy;
+    int dist;
+    int heading;
+    int ang;
+    int rel;
+    int c16;
+    int c18;
+    int c1a;
+    int i;
+    long speed;
+    long cosv;
+    long appr;
+    long vx;
+    long vy;
+    long closing;
+    int near_;
+
+    k = 10;
+    g_968a = v = 0;
+    near_ = g_9686 = g_8e28 + 2000 > g_1e50;
+    if (g_7090[g_9646].f38 == 1 && g_8e28 + 3000 > g_1e50
+        && g_7090[g_9646].f32 == type && g_7090[g_9646].f34 == idx)
+        near_ = g_9686 = 1;
+    v = g_9688 = 0;
+    if (type == 14 || g_1df8[type][idx].f53 != 0)
+        v = 30;
+    else if (type == 9 || (type == 8 && g_3d5a[idx].f12 == 2)
+             || (type == 2 && g_52fe[idx].f00 == 15))
+        v = 20;
+    else if (type == 5)
+        v = -200;
+    if (v != 0 && near_ != 0)
+        v += 25;
+    dist = fn_08_285a(&dx, &dy, g_1df8[type][idx].f04, g_1e30[g_9646].f04);
+    heading = g_1e30[g_9646].f28;
+    ang = fn_08_19b0(-dx, -dy);
+    rel = (heading - ang) * 360 / 16;
+    cosv = fn_06_720c(rel);
+    vx = g_1e30[g_9646].f0c;
+    vy = g_1e30[g_9646].f0e;
+    speed = fn_08_35d0(vx, vy);
+    closing = -((dx * vx + dy * vy) / dist);
+    appr = closing * 128 / speed;
+    c16 = c18 = c1a = 0;
+    if (type == 14) {
+        for (i = 0; i < 5; i++) {
+            if (g_7090[idx].f44[i] != 0) {
+                c1a++;
+                if (g_1e68 / 10 - g_7090[idx].f44[i] < 36)
+                    c16++;
+                if (g_1e68 / 10 - g_7090[idx].f44[i] < 300)
+                    c18++;
+            }
+        }
+    } else {
+        for (i = 0; i < 8; i++) {
+            if (g_938a[i] == type && (g_9392[i] == idx || type == 3) && g_937a[i] != 0) {
+                c1a++;
+                if (g_1e68 / 10 - g_937a[i] < 36)
+                    c16++;
+                if (g_1e68 / 10 - g_937a[i] < 300)
+                    c18++;
+            }
+        }
+    }
+    if (near_) {
+        v += ((c18 - 3) * 2 + c1a) * 4 + cosv / 2 + appr / 8 + c16 * 11;
+        if (c1a == 0)
+            v -= 30;
+        if (c1a == 1)
+            v -= 15;
+        if (c18 == 0)
+            v -= 15;
+    } else {
+        v += (int)(appr / 3 + cosv / 5) + c18 * 2 + c16 * 3 + c1a;
+        if (type == 12 && appr > 75 && cosv > 75)
+            v += (int)(appr / 3 + cosv / 5) + 10;
+        if (appr > 105 || cosv > 105 || (appr > 80 && cosv > 80)
+            || (appr > 55 && cosv > 55 && g_1df8[type][idx].f53 == 1)) {
+            if (dist < 360) {
+                g_9688 = 1;
+                if (g_1df8[type][idx].f53 == 1)
+                    v += (int)(appr / 3 + cosv / 5);
+            }
+        }
+    }
+    if (appr < -60 && cosv < -70 && closing < -30 && type == 14
+        && g_7090[idx].f32 == 14 && g_7090[idx].f34 == g_9646
+        && (g_7090[idx].f38 == 1
+            || (g_7090[idx].f52 >= 2 && g_7090[idx].f52 <= 4
+                && g_7090[idx].f54 == 14 && g_7090[idx].f56 == g_9646))) {
+        g_968a = 1;
+        near_ = 0;
+        v += 25 - closing;
+    }
+    v += type == 12 ? dist / -7 + 55 : dist / -10 + 40;
+    if (g_7090[g_9646].f06 == type && g_7090[g_9646].f08 == idx && v > 0)
+        k = 12;
+    if (g_7090[g_9646].f52 >= 2 && g_7090[g_9646].f52 <= 4
+        && g_7090[g_9646].f54 == type && g_7090[g_9646].f56 == idx)
+        v += 15;
+    if (type == g_6e54 && idx == g_6e52)
+        v += 30;
+    v = k * v / 10;
+    return v;
 }
 
 /* Chooses the player's autopilot goal (f06/f08/f36) [inferred]; pt and j

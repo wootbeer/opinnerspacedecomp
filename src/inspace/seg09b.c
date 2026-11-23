@@ -20,21 +20,32 @@ typedef struct {                /* 0x70 bytes, far array at DS:1df8 / 1e18 */
     int f26;                    /* +26 */
     char p28[0x2f - 0x28];
     char f2f;
-    char p30[0x50 - 0x30];
+    char p30[0x44 - 0x30];
+    int f44;                    /* +44 */
+    char p46[0x50 - 0x46];
     char f50;                   /* +50 */
     char f51;
     char f52;                   /* +52 */
-    char p53[0x66 - 0x53];
+    char f53;                   /* +53 */
+    char p54[0x66 - 0x54];
     void (far *f66)(int type, int idx);  /* +66 */
     char p6a[0x70 - 0x6a];
 } REC_70;
 
 #pragma pack(1)
 typedef struct {                /* 0x297 bytes, far array at DS:69f4 */
-    char p000[0x14e];
+    char p000[0xa0];
+    char fa0;                   /* +a0 */
+    char fa1;                   /* +a1 */
+    char pa2;
+    char fa3;                   /* +a3 */
+    char pa4[0xae - 0xa4];
+    int fae[40];                /* +ae */
+    int ffe[40];                /* +fe */
     int f14e;                   /* +14e */
     int f150;                   /* +150 */
-    char p152[0x1c8 - 0x152];
+    char p152[0x1c0 - 0x152];
+    char f1c0[8];               /* +1c0 */
     char f1c8[8];               /* +1c8 */
     char f1d0;                  /* +1d0 */
     char f1d1;                  /* +1d1 */
@@ -43,21 +54,71 @@ typedef struct {                /* 0x297 bytes, far array at DS:69f4 */
 } REC_297;
 
 typedef struct {                /* 0x7c bytes, far array at DS:6e24 */
-    char p00[0x64];
+    int f00;                    /* +00 */
+    int f02;                    /* +02 */
+    int f04;                    /* +04 */
+    int f06;                    /* +06 */
+    char p08[0x1c - 0x08];
+    char f1c;                   /* +1c */
+    char f1d;                   /* +1d */
+    char f1e[10];               /* +1e */
+    char f28[16];               /* +28 */
+    char f38[4];                /* +38 */
+    char f3c[0x28];             /* +3c, indexed by record [inferred] */
     char f64;                   /* +64 */
-    char f65[0x7c - 0x65];      /* +65: name [inferred] */
+    char f65[13];               /* +65: name [inferred] */
+    char f72;                   /* +72 */
+    char f73;                   /* +73 */
+    char f74;                   /* +74 */
+    char f75;                   /* +75 */
+    char f76;                   /* +76 */
+    char p77[0x7c - 0x77];
 } REC_7C;
+
+typedef struct {                /* 0x41 bytes, far array at DS:6e20 */
+    char p00[5];
+    char f05;                   /* +05 */
+    char p06[0x41 - 0x06];
+} REC_41;
 #pragma pack()
 
 typedef struct {                /* 0x15a bytes, DGROUP array at DS:7090 */
-    char p000[0x1e];
+    char p000[0x0a];
+    char f0a;                   /* +0a */
+    char p00b[0x1e - 0x0b];
     int f1e;                    /* +1e */
-    char p020[0x44 - 0x20];
+    char p020[0x24 - 0x20];
+    char f24;                   /* +24 */
+    char p025;
+    int f26[4];                 /* +26 */
+    char p02e[0x44 - 0x2e];
     int f44[5];                 /* +44 */
     int f4e;                    /* +4e */
-    char p050[0xc2 - 0x50];
+    char p050[0x54 - 0x50];
+    int f54;                    /* +54 */
+    int f56;                    /* +56 */
+    char p058[0x5e - 0x58];
+    char f5e;                   /* +5e */
+    char p05f[0x62 - 0x5f];
+    int f62[8];                 /* +62, indexed by racer [inferred] */
+    char p072[0x82 - 0x72];
+    int f82;                    /* +82 */
+    char p084[0xac - 0x84];
+    char fac;                   /* +ac */
+    char fad;                   /* +ad */
+    char fae[10];               /* +ae, indexed by slot [inferred] */
+    char fb8[10];               /* +b8, indexed by slot [inferred] */
     char fc2[8];                /* +c2, indexed by object [inferred] */
-    char p0ca[0xec - 0xca];
+    char p0ca;
+    char fcb;                   /* +cb: slot count [inferred] */
+    char p0cc[0xce - 0xcc];
+    int fce;                    /* +ce */
+    char p0d0[0xd6 - 0xd0];
+    int fd6;                    /* +d6 */
+    int fd8;                    /* +d8 */
+    char p0da[0xdc - 0xda];
+    long fdc;                   /* +dc */
+    char p0e0[0xec - 0xe0];
     char fec;                   /* +ec */
     char p0ed;
     char fee[0x13e - 0xee];     /* +ee, indexed by object [inferred] */
@@ -270,6 +331,37 @@ void far fn_09_0352(HDC hdc, int x, int flags, int w, int h, LPSTR name);
 void far fn_09_09b0(int slot);
 int far fn_09_955c(UINT id, LPSTR buf);
 void far fn_09_95ba(UINT id);
+extern int g_8f70;
+extern int flow_interactive;        /* DS:95bc */
+extern int g_9ea0;
+extern unsigned long g_9e60[];
+extern unsigned long g_9e90[];
+extern REC_70 far *g_1e30;
+extern int g_9332;
+extern int g_932c;
+extern int g_931a;
+extern int g_931c;
+extern int g_9334;
+extern unsigned long g_1e68;
+extern HGLOBAL g_95a6;
+extern REC_41 far *g_6e20;
+extern int g_9516;
+extern int g_0952[];
+extern int g_096c[];
+typedef struct { int f00; char p02[0x24 - 0x02]; int f24; char p26[0x34 - 0x26]; } REC_34;
+extern REC_34 g_3d5a[];
+int far fn_13_2688(int n, int m);
+int far fn_06_8b90(int i);
+int far fn_06_8cb2(int unused, int n, unsigned v, int j, int k);
+int far fn_06_8dfe(int i);
+void far fn_06_8eb4(void);
+void far fn_06_885c(int a, int b);
+void far pascal fn_11_b09c(int n, int a);
+void far fn_14_421c(int n);
+int far fn_14_3eda(void);
+void far fn_14_4074(void);
+int far fn_10_9672(void);
+int far fn_09_88ba(int v);
 
 /* @addr 9:0b2a */
 void far fn_09_0b2a(void)
@@ -531,8 +623,236 @@ void far fn_09_0df6(int n)
 }
 
 /* Not yet decompiled. */
+/* End-of-wave bookkeeping: music cues, racer records (DS:6e24), ratings
+ * and the wave summary in DS:69f4 [inferred].
+ * near-match 58%: 9:2828 (one byte short: the game recomputes
+ * g_7090[n] for the test after the f76 store; this keeps it in cx). */
 void far fn_09_2828(void)
 {
+    int n;
+    int u06;
+    int mode;
+    int u0a;
+    int k;
+    int u0e;
+    int rank;
+    int u12;
+    int d;
+    int any7;
+    int u18;
+    int found;
+    int m;
+    int a;
+    int b;
+
+    any7 = 0;
+    for (n = 0; n <= g_9316; n++) {
+        fn_13_2688(n, g_9646);
+        if (g_96f0[g_7090[n].f4e].f1a == 7)
+            any7 = 1;
+    }
+    if ((g_8f70 != 0 || flow_interactive == 0) && g_9320 == 6 && g_91f8 != 0) {
+        fn_06_8b90(g_9322);
+        switch (g_9ea0) {
+        case 1:
+            b = 0;
+            break;
+        case 5:
+            b = 1;
+            break;
+        case 10:
+            b = 2;
+            break;
+        }
+        for (n = 0; n <= g_9316; n++) {
+            if (n == g_9646 && flow_interactive)
+                a = 0;
+            else
+                a = 1;
+            if (g_1e30[n].f51 != 0) {
+                if (b > 0) {
+                    fn_06_8cb2(g_9322, n, (unsigned)(g_9e60[n] > 64000 ? 64000 : g_9e60[n]), b, 1);
+                    if (a == 0)
+                        fn_06_8cb2(g_9322, n, (unsigned)(g_9e60[n] > 64000 ? 64000 : g_9e60[n]), b, 0);
+                }
+                fn_06_8cb2(g_9322, n, (unsigned)(g_9e90[n] > 64000 ? 64000 : g_9e90[n]), 0, 1);
+                if (a == 0)
+                    fn_06_8cb2(g_9322, n, (unsigned)(g_9e90[n] > 64000 ? 64000 : g_9e90[n]), 0, 0);
+            }
+        }
+        fn_06_8dfe(g_9322);
+        fn_06_8eb4();
+    }
+    for (n = 0; n <= g_9316; n++)
+        if (g_7090[n].fec && g_96f0[g_7090[n].f4e].f1a == 7 && g_7090[n].f5e == 0
+            && g_7090[n].f54 == 14 && g_7090[n].f56 == g_9646)
+            g_9346 = g_7090[g_9646].fd6;
+    if (g_9432 < 50)
+        g_9332 = 3;
+    else if (g_9432 < 180)
+        g_9332 = 2;
+    else if (g_9432 < 400)
+        g_9332 = 1;
+    else
+        g_9332 = 0;
+    g_932c = 0;
+    if (g_964a == 0)
+        mode = 1;
+    else if (g_964a == 0 && g_9332 < 2)
+        mode = 2;
+    else if (g_964a > 0 && g_964a < 5)
+        mode = 2;
+    else if (g_964a > 4 && g_964a < 9)
+        mode = 3;
+    else if (g_964a > 8 && g_964a < 16) {
+        if (g_9332 < 2 || any7)
+            mode = 4;
+        else
+            mode = 3;
+    } else if (g_964a > 15)
+        mode = 4;
+    switch (mode) {
+    case 0:
+        g_932c = 0;
+        break;
+    case 1:
+        if (rand() % 100 < 20)
+            g_932c = 1;
+        break;
+    case 2:
+        if (rand() % 100 < 50)
+            g_932c = 1;
+        break;
+    case 3:
+        if (rand() % 100 < 80)
+            g_932c = 1;
+        break;
+    case 4:
+        g_932c = 1;
+        break;
+    }
+    if (g_91f8 == 0)
+        g_932c = 0;
+    if (g_91f8 > 0) {
+        b = g_9214;
+        fn_10_9672();
+        if (b != g_9214)
+            fn_10_0552(4, 1);
+        fn_10_565a();
+    }
+    if (g_91f8 > 0) {
+        for (n = 0; n <= g_9316; n++) {
+            fn_11_b09c(n, 0);
+            if (g_7090[n].fd6 == -1)
+                continue;
+            for (k = 0; k <= g_9316; k++)
+                g_6e24[g_7090[n].fd6].f3c[g_7090[k].fd6] = g_7090[n].f62[k] / 10;
+            for (k = 0; k < 4; k++)
+                g_6e24[g_7090[n].fd6].f38[k] = g_7090[n].f26[k];
+            if (g_7090[n].fec == 0)
+                g_6e24[g_7090[n].fd6].f38[0] = 0;
+            for (k = 0; k < g_7090[n].fcb; k++) {
+                g_6e24[g_7090[n].fd6].f28[k] = g_7090[n].fb8[k];
+                g_6e24[g_7090[n].fd6].f1e[k] = g_7090[n].fae[k];
+            }
+            g_6e24[g_7090[n].fd6].f1d = g_7090[n].fcb;
+            fn_14_421c(n);
+            g_6e24[g_7090[n].fd6].f06 = g_7090[n].f82;
+            g_6e24[g_7090[n].fd6].f1c = g_7090[n].f1e / 40;
+            g_6e24[g_7090[n].fd6].f74 = g_7090[n].f24;
+            g_6e24[g_7090[n].fd6].f75 = g_7090[n].f0a;
+            g_6e24[g_7090[n].fd6].f72 = g_7090[n].fac;
+            g_6e24[g_7090[n].fd6].f73 = g_7090[n].fad;
+            g_6e24[g_7090[n].fd6].f04 = g_7090[n].fce;
+            g_7090[n].fdc = g_7090[n].fdc > 327670L ? 327670L : g_7090[n].fdc;
+            g_6e24[g_7090[n].fd6].f02 = g_7090[n].fdc / 10;
+            u12 = (g_7090[n].fdc * 3 + g_7090[n].fd8) / 100;
+            for (k = 1; k < 11; k++)
+                if (g_0952[k] <= u12 && g_096c[k] > u12) {
+                    rank = k;
+                    break;
+                }
+            g_6e24[g_7090[n].fd6].f76 = rank;
+            u0e = g_9646;
+            if (g_7090[n].fec == 0 || g_7090[n].f82 < 0 || n == u0e) {
+                for (k = 0; k < 8; k++)
+                    if (g_69f4[g_94a2].f1c0[k] == g_7090[n].fd6)
+                        g_69f4[g_94a2].f1c0[k] = -1;
+            } else {
+                found = 0;
+                for (k = 0; k < 8; k++)
+                    if (g_69f4[g_94a2].f1c0[k] == g_7090[n].fd6)
+                        found = 1;
+                if (!found)
+                    for (k = 0; k < 8; k++)
+                        if (g_69f4[g_94a2].f1c0[k] == -1) {
+                            g_69f4[g_94a2].f1c0[k] = g_7090[n].fd6;
+                            break;
+                        }
+            }
+        }
+        g_931c = g_7090[g_9646].fd6;
+        for (n = 0; n <= g_931a; n++) {
+            if (g_1e68 > 500) {
+                if (g_6e24[n].f76 + 3 < g_9334)
+                    d = g_6e24[n].f06 / -3;
+                else if (g_6e24[n].f76 + 1 < g_9334)
+                    d = -(g_6e24[n].f06 / 8);
+                else
+                    d = g_6e24[n].f06 / -14;
+                b = 0;
+                if (g_95a6 == 0) {
+                    fn_14_3eda();
+                    b = 1;
+                }
+                a = fn_09_88ba(g_6e20[g_6e24[n].f00].f05 - g_9332);
+                d += g_6e24[n].f06 * a / -20;
+                if (b)
+                    fn_14_4074();
+                g_6e24[n].f06 = g_6e24[n].f06 + d < 0 ? 0 : g_6e24[n].f06 + d;
+            }
+        }
+        for (n = m = 0; m < 8; m++, n++) {
+            k = 0;
+            if (g_1df8[0][m].f18 != 0)
+                for (k = m + 1; k < 8; k++)
+                    if (g_1df8[0][k].f18 == 0) {
+                        m = k;
+                        break;
+                    }
+            if (k >= 8)
+                break;
+            if (g_1df8[0][m].f2f < 0)
+                g_69f4[g_94a2].f1c8[n] = 2;
+            if (g_1df8[0][m].f53 == 2)
+                g_69f4[g_94a2].f1c8[n] = 1;
+            g_69f4[g_94a2].f1d2[n] = g_1df8[0][m].f1e;
+        }
+        for (; n < 8; n++) {
+            g_69f4[g_94a2].f1d2[n] = 0;
+            g_69f4[g_94a2].f1c8[n] = 0;
+        }
+        g_69f4[g_94a2].fa3 = 0;
+        g_69f4[g_94a2].fa0 = 0;
+        g_69f4[g_94a2].fa1 = 0;
+        for (n = 0; n < g_9418; n++)
+            if (g_1df8[9][n].f18 == 0)
+                g_69f4[g_94a2].fa3++;
+        for (n = 0; n < g_940c; n++) {
+            if (g_1df8[3][n].f44 == 350 && g_1df8[3][n].f18 == 0)
+                g_69f4[g_94a2].fa0++;
+            if (g_1df8[3][n].f44 == 1400 && g_1df8[3][n].f18 == 0)
+                g_69f4[g_94a2].fa1++;
+        }
+        for (n = 0; n < g_9416; n++) {
+            g_69f4[g_94a2].fae[n] = g_1df8[8][n].f1e;
+            if (g_3d5a[n].f00 == -3)
+                g_69f4[g_94a2].fae[n] = -g_69f4[g_94a2].fae[n];
+            g_69f4[g_94a2].ffe[n] = g_3d5a[n].f24;
+        }
+    }
+    if (g_7090[g_9646].fec && g_91f8 > 0 && (flow_interactive || g_9516 == 0))
+        fn_06_885c(0, 0);
 }
 
 /* Not yet decompiled. */

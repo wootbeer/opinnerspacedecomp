@@ -560,6 +560,110 @@ void far fn_08_190e(void)
     }
 }
 
+extern int g_06ae;
+extern int g_8ff2;
+extern RECT g_1d30;             /* play view */
+extern HBRUSH g_3b4c[];
+
+/* Stars: move them against the ship's motion (deeper stars slower),
+ * wrap them round the play view and draw them twinkling; every second
+ * call only [inferred]. */
+/* @addr 8:158a */
+void far pascal fn_08_158a(int still)
+{
+    int i;
+    int maxsz;
+    int t1;
+    int t2;
+    int c;
+    int sz;
+
+    g_06ae++;
+    if (g_06ae > 1)
+        g_06ae = 0;
+    if (still)
+        g_06ae = 0;
+    if (g_06ae != 0)
+        return;
+    if (g_8ff2) {
+        fn_08_1320(still);
+        return;
+    }
+    if (g_9156 == 0)
+        maxsz = 2;
+    else
+        maxsz = 3;
+    if (g_1df8[g_9324][g_9646].f18 == 1
+        || (g_1df8[g_9324][g_9646].f54 != 0 && g_92e8 != 0)) {
+        g_1df8[g_9324][g_9646].f0c = 0;
+        g_1df8[g_9324][g_9646].f0e = 0;
+    }
+    for (i = 0; i < g_9152; i++) {
+        if (g_91c2[i])
+            PatBlt(g_13dc, g_2398[i].x, g_2398[i].y,
+                   t1 = g_91d4[i] > maxsz ? maxsz : g_91d4[i], t1, BLACKNESS);
+        if (still == 0) {
+            t1 = g_9156 + 1;
+            t2 = 6 - g_91d4[i];
+            if (g_951a) {
+                g_2398[i].x -= g_2394 << t1 >> t2;
+                g_2398[i].y -= g_2396 << t1 >> t2;
+            } else {
+                g_2398[i].x -= g_1df8[g_9324][g_9646].f0c << t1 >> t2;
+                g_2398[i].y -= g_1df8[g_9324][g_9646].f0e << t1 >> t2;
+            }
+            if (g_238c) {
+                g_2398[i].x += g_2390 << t1 >> t2;
+                g_2398[i].y += g_2392 << t1 >> t2;
+            }
+            if (g_2398[i].x < g_1d30.left) {
+                g_2398[i].x = g_1d30.right;
+                g_2398[i].y = rand() % (g_1d30.bottom - g_1d30.top);
+                g_2f04[i] = RGB(255, rand() % 255, rand() % 255);
+                g_91d4[i] = rand() % 3 + 1;
+            } else if (g_2398[i].x > g_1d30.right) {
+                g_2398[i].x = g_1d30.left;
+                g_2398[i].y = rand() % (g_1d30.bottom - g_1d30.top);
+                g_2f04[i] = RGB(255, rand() % 255, rand() % 255);
+                g_91d4[i] = rand() % 3 + 1;
+            }
+            if (g_2398[i].y < g_1d30.top) {
+                g_2398[i].y = g_1d30.bottom;
+                g_2398[i].x = rand() % (g_1d30.right - g_1d30.left);
+                g_2f04[i] = RGB(255, rand() % 255, rand() % 255);
+                g_91d4[i] = rand() % 3 + 1;
+            } else if (g_2398[i].y > g_1d30.bottom) {
+                g_2398[i].y = g_1d30.top;
+                g_2398[i].x = rand() % (g_1d30.right - g_1d30.left);
+                g_2f04[i] = RGB(255, rand() % 255, rand() % 255);
+                g_91d4[i] = rand() % 3 + 1;
+            }
+        }
+        if (g_9154 == g_9152) {
+            if (!PtInRect(&g_1e5c, g_2398[i])) {
+                t1 = g_91e6[i] / 5;
+                if (t1 < 4)
+                    c = t1 + 10;
+                else
+                    c = 18 - t1;
+                sz = g_91d4[i] > maxsz ? maxsz : g_91d4[i];
+                t2 = SelectObject(g_13dc, g_3b4c[c]);
+                PatBlt(g_13dc, g_2398[i].x, g_2398[i].y, sz, sz, PATCOPY);
+                SelectObject(g_13dc, t2);
+                if (g_91e6[i] < 40)
+                    g_91e6[i]++;
+                else
+                    g_91e6[i] = 0;
+                g_91c2[i] = 1;
+            } else {
+                g_91c2[i] = 0;
+            }
+        }
+    }
+    if (g_9154 != g_9152)
+        g_9152 = g_9154;
+}
+
 /* Distance from a to b on the wrapping map (in 8-unit cells), with the
  * offsets stored to *p and *q [inferred]. */
 /* @addr 8:285a */

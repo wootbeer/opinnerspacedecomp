@@ -371,3 +371,74 @@ void far fn_08_4e14(void)
         }
     }
 }
+
+int far fn_08_35d0(long a, long b);
+int far fn_09_88ba(int x);
+
+/* Bounce of two round bodies of sizes a and b at positions *p1/*p2 and
+ * *p3/*p4 with velocities (*p5 - *p7)... [inferred]; returns 0 when they
+ * move apart too fast, else nothing defined (no return, as in the
+ * original). */
+/* @addr 8:7d70 */
+int far pascal fn_08_7d70(int far *p8, int far *p7, int far *p6, int far *p5,
+                          int far *p4, int far *p3, int far *p2, int far *p1,
+                          int b, int a)
+{
+    int dx;
+    int dy;
+    int sum;
+    int vx;
+    int vy;
+    int c;
+    int d1;
+    int d2;
+    int u14;
+    int ux;
+    int uy;
+    int k;
+    int r2;
+    int r1;
+    long l;
+
+    dx = b / 2 - a / 2 - *p2 + *p4;
+    dy = b / 2 - a / 2 - *p1 + *p3;
+    sum = a / 2 + b / 2;
+    vx = *p8 - *p6;
+    vy = *p7 - *p5;
+    d1 = fn_08_35d0(dx, dy);
+    if (d1 == 0)
+        d1 = 1;
+    if (fn_09_88ba(vx) < 10 && fn_09_88ba(vy) < 10) {
+        *p8 = *p6 - dx * 15 / d1;
+        *p7 = *p5 - dy * 15 / d1;
+        vx = *p8 - *p6;
+        vy = *p7 - *p5;
+    }
+    d2 = fn_08_35d0(vx, vy);
+    if (d2 == 0)
+        d2 = 1;
+    l = (long)vx * dx + (long)vy * dy;
+    if ((int)(l * 100 / ((long)d2 * d1)) > 15)
+        return 0;
+    c = sum;
+    ux = vx * 100 / d2;
+    uy = vy * 100 / d2;
+    if (vy > 0)
+        r1 = (b / 2 - a / 2 - *p1 + *p3 + c) * 100
+            / (1 > fn_09_88ba(uy) ? 1 : fn_09_88ba(uy));
+    else
+        r1 = (a / 2 - b / 2 - *p3 + *p1 + c) * 100
+            / (1 > fn_09_88ba(uy) ? 1 : fn_09_88ba(uy));
+    if (vx > 0)
+        r2 = (b / 2 - a / 2 - *p2 + *p4 + c) * 100
+            / (1 > fn_09_88ba(ux) ? 1 : fn_09_88ba(ux));
+    else
+        r2 = (a / 2 - b / 2 - *p4 + *p2 + c) * 100
+            / (1 > fn_09_88ba(ux) ? 1 : fn_09_88ba(ux));
+    k = fn_09_88ba(r1) > fn_09_88ba(r2) ? r2 : r1;
+    /* dead stores: only their loads remain */
+    l = (long)a + (long)b;
+    u14 = *p3;
+    *p4 += k * ux / -100;
+    *p3 += k * uy / -100;
+}

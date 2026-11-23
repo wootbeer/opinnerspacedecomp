@@ -5,13 +5,19 @@
 /* Records reached through far pointers or DGROUP arrays; only the fields
  * this file uses are named (offset in the name). */
 typedef struct {                /* 0x70 bytes, far array at DS:1df8 / 1e18 */
-    char p00[0x12];
+    POINT f00;                  /* +00 */
+    POINT f04;                  /* +04: position [inferred] */
+    char p08[0x0c - 0x08];
+    int f0c;                    /* +0c */
+    int f0e;                    /* +0e */
+    char p10[0x12 - 0x10];
     int f12;                    /* +12 */
     char p14[0x18 - 0x14];
     int f18;
     char p1a[0x1e - 0x1a];
     int f1e;
-    char p20[0x24 - 0x20];
+    int f20;                    /* +20: size [inferred] */
+    char p22[0x24 - 0x22];
     int f24;                    /* +24 */
     char p26[0x2e - 0x26];
     char f2e;                   /* +2e */
@@ -32,7 +38,8 @@ typedef struct {                /* 0x297 bytes, far array at DS:69f4 */
     char p000[0x14e];
     int f14e;                   /* +14e */
     int f150;                   /* +150 */
-    char p152[0x1c8 - 0x152];
+    char p152[0x1c0 - 0x152];
+    char f1c0[8];               /* +1c0 */
     char f1c8[8];               /* +1c8 */
     char f1d0;                  /* +1d0 */
     char f1d1;                  /* +1d1 */
@@ -50,15 +57,25 @@ typedef struct {                /* 0x15a bytes, DGROUP array at DS:7090 */
     int f4e;                    /* +4e */
     char p050[0x56 - 0x50];
     int f56;                    /* +56 */
-    char p058[0x5e - 0x58];
+    char p058[0x5d - 0x58];
+    char f5d;                   /* +5d, with f5e a 2-byte array [inferred] */
     char f5e;                   /* +5e */
     char p05f[0x72 - 0x5f];
     int f72[8];                 /* +72, indexed by object [inferred] */
-    char p082[0xce - 0x82];
+    char p082[0x88 - 0x82];
+    long f88;                   /* +88: time [inferred] */
+    char p08c[0xb8 - 0x8c];
+    char fb8[10];               /* +b8, indexed by slot [inferred] */
+    char p0c2[0xcb - 0xc2];
+    char fcb;                   /* +cb: slot count [inferred] */
+    char p0cc;
+    char fcd;                   /* +cd */
     int fce;                    /* +ce */
     int fd0;                    /* +d0 */
     int fd2;                    /* +d2 */
-    char p0d4[0xec - 0xd4];
+    char p0d4[0xd6 - 0xd4];
+    int fd6;                    /* +d6 */
+    char p0d8[0xec - 0xd8];
     char fec;                   /* +ec */
     char p0ed;
     char fee[0x146 - 0xee];     /* +ee, indexed by object [inferred] */
@@ -113,7 +130,7 @@ extern int g_3a02;
 extern char g_3966[];
 extern HGDIOBJ g_4e94[32];
 extern REC_23 g_57a8[];
-extern void far *g_4fcc;
+extern char far *g_4fcc;           /* briefing text [inferred] */
 extern long g_5078;
 extern LPSTR g_6078;
 extern REC_297 far *g_69f4;
@@ -269,6 +286,51 @@ void far fn_07_233c(int a, int b, int c);
 int far fn_10_6308(int a, int b, int c, int d);
 HBITMAP far world_map(int w, int h, int a, int b, int c, int d, int e);
 void far fn_09_91b0(void);
+void far fn_09_8908(void);
+void far draw_briefing_panel_with_esc_prompt(int a);
+void far fn_09_94ba(void);
+void far fn_09_6624(void);
+void far fn_09_699e(void);
+extern int g_9460;
+extern POINT g_1830;                /* text cursor [inferred] */
+extern POINT g_1834;
+extern int g_1838;                  /* index into g_4fcc */
+extern int g_183a;
+extern DWORD g_183c;
+extern int g_0a5a;
+extern int g_0a5c;
+void far fn_15_84b0(int x, int y);
+extern char g_8630[];               /* run-time buffer (BSS) */
+extern int g_0a76;
+extern char g_a197;
+extern int g_913e;
+extern int g_920c;
+extern int g_93ac;
+extern REC_70 far *g_1e30;
+/* g_05a0 is declared long in inspace.h; read here as two ints (world
+ * width and height [inferred]). */
+#define G_05A0_LO (((int *)&g_05a0)[0])
+#define G_05A0_HI (((int *)&g_05a0)[1])
+extern int g_9648;
+extern int g_668a;
+extern int g_9370;
+extern int g_9372;
+extern int g_934e;
+extern int g_964c;
+extern int g_9374[2];
+extern int g_9350[8];
+extern int g_3824[8][8];
+extern int g_9360[8];
+extern int g_93b6;
+void far fn_08_190e(void);
+void far fn_13_2dcc(void);
+void far fn_08_0000(void);
+void far pascal fn_08_4d94(long far *a, long far *b);
+void far fn_03_045a(int a);
+void far fn_11_3cc2(int n, int a);
+int far fn_13_2688(int n, int m);
+void far fn_13_4eca(LPSTR s);
+void far fn_06_0f1a(int k, LPSTR buf);
 void far fn_10_6d52(int a, int b, int c, int d, int e, int f);
 void far fn_17_306e(void);
 void far fn_11_1774(int c, int l, int t, int r, int b);
@@ -303,6 +365,241 @@ void far fn_09_6cc4(int flag);
 void far fn_09_6db0(void);
 void far fn_09_6dec(int a);
 void far fn_09_8bec(HDC hdc, int x, int y, int size, int width, UINT align, LPSTR s);
+
+/* Starts a wave: resets per-wave state, picks the wave's script
+ * resource and builds the world map bitmap [inferred]. */
+/* @addr 9:5cca */
+void far fn_09_5cca(void)
+{
+    int i;
+    int n;
+
+    fn_09_8908();
+    ShowWindow(g_0016, SW_SHOW);
+    PatBlt(g_13dc, 0, 0, g_90ea, g_0010, BLACKNESS);
+    if (flow_interactive)
+        SetCursorPos(g_1d48, g_0010);
+    fn_02_0ba4();
+    g_90f4 = 3;
+    fn_02_170e();
+    g_93b0 = 0;
+    g_8710 = g_8714 = 0;
+    fn_09_22b4(g_9e5b = 1);
+    g_1df8[7][0].f18 = 1;
+    g_9e49 = 10;
+    g_952e = -1;
+    g_1e88 = 0;
+    fn_10_5b30();
+    fn_09_0b2a();
+    fn_10_506c();
+    for (i = 0; i < 8; i++)
+        fn_07_233c(0, i, 0);
+    for (i = 0; i < 4; i++)
+        g_8e34[i] = -1;
+    fn_10_6308(13, -1, -1, -1);
+    fn_09_94ba();
+    g_9496 = 1;
+    for (i = n = g_9434 = dissolve_active_count = g_9146 = g_1016 = g_951a = g_965e
+             = g_913c = g_913a = g_9666 = subgame_active = g_93a6 = g_666c = 0;
+         i < 8; i++) {
+        g_938a[i] = -1;
+        g_9392[i] = 0;
+        g_937a[i] = 0;
+        if (g_1df8[0][i].f18 == 0)
+            n++;
+    }
+    g_0992 += n * 4;
+    for (i = 0; i < 8; i++)
+        g_8680[i] = -1;
+    g_9680 = g_9682 = 0;
+    g_8e00 = g_8e04 = 0;
+    g_91f8++;
+    fn_09_6624();
+    g_91f8--;
+    if (n != 0) {
+        if (n * g_932e * 4 + g_0992 > g_932a + 10)
+            g_932e = max(0, (g_932a - g_0992 + 20) / (n * 4));
+    } else
+        g_932e = 0;
+    if (g_8ff8 == 0)
+        g_932e = min(g_932e, 1);
+    else if (g_8ff8 == 1)
+        g_932e = min(g_932e, 2);
+    g_0992 += n * g_932e * 4;
+    g_92f0 = g_932e * 8;
+    if (g_92e8) {
+        g_93b4 = LoadResource(g_9212, FindResource(g_9212, MAKEINTRESOURCE(0x66), MAKEINTRESOURCE(5000)));
+        g_4fcc = LockResource(g_93b4);
+    } else if (g_094e) {
+        g_93b4 = LoadResource(g_9212, FindResource(g_9212, MAKEINTRESOURCE(0x67), MAKEINTRESOURCE(5000)));
+        g_4fcc = LockResource(g_93b4);
+    } else if (g_0950) {
+        g_93b4 = LoadResource(g_9212, FindResource(g_9212, MAKEINTRESOURCE(0x68), MAKEINTRESOURCE(5000)));
+        g_4fcc = LockResource(g_93b4);
+    } else if (g_91f8 == 0) {
+        g_93b4 = LoadResource(g_9212, FindResource(g_9212, MAKEINTRESOURCE(0x65), MAKEINTRESOURCE(5000)));
+        g_4fcc = LockResource(g_93b4);
+    } else {
+        g_93a8 = GlobalAlloc(GHND, 2000);
+        g_4fcc = GlobalLock(g_93a8);
+        fn_09_91b0();
+    }
+    if (g_93d0) {
+        SelectObject(g_93d0, g_93ca);
+        if (g_920e)
+            SelectPalette(g_93d0, g_93d2, 0);
+        DeleteDC(g_93d0);
+        DeleteObject(g_93c8);
+        g_93c8 = g_93d0 = 0;
+    }
+    g_91f8++;
+    if (g_9320 == 6) {
+        g_93c8 = world_map(g_0a72, g_0a74, 0, g_9322, -1, -1, 0);
+        g_93d0 = CreateCompatibleDC(g_13dc);
+        g_93ca = SelectObject(g_93d0, g_93c8);
+        if (g_920e)
+            g_93d2 = SelectPalette(g_93d0, (HPALETTE)g_920e, 0);
+        if (g_94a8 == 0)
+            for (i = 0; i < g_9ebc[g_9322]; i++)
+                world_map(g_0a72, g_0a74, 0, g_9322, 8, g_9eb9[g_9322] + g_9318 * 2 + i, 0);
+        BitBlt(g_93ce, 0, 0, g_0a72, g_0a74, g_93d0, 0, 0, SRCCOPY);
+        if (flow_interactive)
+            g_9134 = 0;
+        g_94ca = g_91f8;
+    }
+    if (g_92e8 && flow_interactive)
+        g_9134 = 0;
+    draw_briefing_panel_with_esc_prompt(1);
+}
+
+/* Starts a race wave: start positions (or random free spots) for the
+ * racers, the weapon-pickup chance g_913e and the player's tables
+ * [inferred]. */
+/* @addr 9:60bc */
+void far fn_09_60bc(void)
+{
+    int i;
+    int t;
+    int j;
+    int cls;
+    int music;
+    RECT r1;
+    RECT r2;
+    RECT r3;
+    int hit;
+    char buf[20];
+    int chance;
+    int cnt;
+    int w;
+
+    fn_09_699e();
+    lstrcpy(g_8630, "");
+    ShowWindow(g_0016, SW_SHOW);
+    PatBlt(g_13dc, 0, 0, g_90ea, g_0010, BLACKNESS);
+    g_90f4 = 1;
+    g_0a76 = 2;
+    g_9e49 = 10;
+    g_93a4 = 0;
+    fn_08_190e();
+    fn_13_2dcc();
+    g_a197 = 0;
+    g_913e = 0;
+    if (g_9334 > 4 && g_92e8 == 0 && g_9320 != 6 && g_9320 != 7 && g_920c != 0 && g_920c != 3
+        && (g_0992 + 30 < g_932a || g_91f8 - g_93ac > 15)) {
+        for (i = cnt = 0; i < g_7090[g_9646].fcb; i++) {
+            w = g_7090[g_9646].fb8[i];
+            if (w == 0x18 || w == 0x19 || w == 0x17 || w == 0x16)
+                cnt++;
+            if (w == 0x1a)
+                cnt += 2;
+        }
+        if (g_91f8 - g_93ac > 4 && cnt < 4) {
+            chance = ((g_91f8 - g_93ac - 3) * 2 + g_9334) * 2;
+            for (i = 1; i <= g_7090[g_9646].fcb; i++)
+                if (g_7090[g_9646].fb8[i] >= 0x16 && g_7090[g_9646].fb8[i] <= 0x1a)
+                    chance = chance * 4 / 5;
+            if (rand() % 100 < chance)
+                g_913e = 1;
+        }
+    }
+    for (i = 0; i <= g_9316; i++) {
+        g_1e30[i].f00.y = -100;
+        hit = 0;
+        if (g_94b0 == 0) {
+            for (t = 0; t <= 8; t++)
+                if (i != g_9646 && g_69f4[g_94a2].f1c0[t] == g_7090[i].fd6)
+                    hit = 1;
+        }
+        if (hit != 0 && g_9320 != 6) {
+            do {
+                g_1e30[i].f04.x = rand() % G_05A0_LO * 8;
+                g_1e30[i].f04.y = rand() % G_05A0_HI * 8;
+                SetRect(&r1, g_1e30[i].f04.x, g_1e30[i].f04.y,
+                        g_1e30[i].f04.x + g_1e30[i].f20, g_1e30[i].f04.y + g_1e30[i].f20);
+                for (t = hit = 0; t < 14; t++)
+                    for (j = 0; j < (&g_9406)[t]; j++) {
+                        SetRect(&r2, g_1df8[t][j].f04.x, g_1df8[t][j].f04.y,
+                                g_1df8[t][j].f04.x + g_1df8[t][j].f20,
+                                g_1df8[t][j].f04.y + g_1df8[t][j].f20);
+                        if (IntersectRect(&r3, &r1, &r2))
+                            hit = 1;
+                    }
+            } while (hit);
+            g_1e30[i].f18 = 0;
+            g_1e30[i].f0c = rand() % 60 - 30;
+            g_1e30[i].f0e = rand() % 60 - 30;
+            g_7090[i].f88 = GetCurrentTime();
+        } else {
+            g_1e30[i].f04.x = -1000;
+            g_1e30[i].f04.y = (-10 - i) * 100;
+            if (i == g_9646) {
+                g_1e30[i].f04 = g_1df8[12][0].f04;
+                fn_08_0000();
+            }
+            g_1e30[i].f18 = 100;
+            g_7090[i].f88 = GetCurrentTime() + (long)i * 500000;
+            g_1e30[i].f0c = 0;
+            g_1e30[i].f0e = -30;
+        }
+        if (g_96f0[g_7090[i].f4e].f1a != 7 || g_7090[i].f5e != 0)
+            g_7090[i].fcd = -1;
+    }
+    fn_08_4d94(&g_7090[g_9646].f88, &g_7090[0].f88);
+    fn_03_045a(2);
+    fn_11_3cc2(g_9646, 0);
+    g_0a76 = 2;
+    g_9648 = 0;
+    if (g_91f8 <= 1) {
+        for (i = 0; i < 2; i++)
+            (&g_7090[g_9646].f5d)[i] = 2;
+        g_7090[g_9646].fd0 = g_7090[g_9646].fd2 = 0;
+    }
+    if (g_9320 == 7)
+        g_668a = 0;
+    g_9370 = g_7090[g_9646].fd2;
+    g_9372 = g_7090[g_9646].fd0;
+    for (i = g_964c = g_934e = 0; i < 2; i++)
+        g_9374[i] = (&g_7090[g_9646].f5d)[i];
+    cls = g_96f0[g_7090[g_9646].f4e].f1a;
+    for (i = 0; i < 8; i++)
+        g_9350[i] = g_3824[i][cls];
+    for (i = 0; i < 8; i++)
+        g_9360[i] = fn_13_2688(i, g_9646);
+    g_93b6 = -1;
+    if (g_094e)
+        music = 3;
+    else if (g_92e8)
+        music = 7;
+    else if (g_0950)
+        music = 7;
+    else
+        music = 1;
+    fn_10_7480(music, 1);
+    fn_13_4eca("start wave iMainSmart = ");
+    fn_06_0f1a(g_9646, buf);
+    fn_13_4eca(buf);
+    fn_13_4eca("\n\r");
+}
 
 /* @addr 9:699e */
 void far fn_09_699e(void)
@@ -612,6 +909,121 @@ void far fn_09_8bec(HDC hdc, int x, int y, int size, int width, UINT align, LPST
     SelectObject(hdc, old);
     if (font)
         DeleteObject(font);
+}
+
+/* Types the briefing text g_4fcc one character per call (all of it with
+ * quiet), wrapping words at the panel edge; returns 1 when the text has
+ * ended [inferred]. */
+/* @addr 9:8d18 */
+int far fn_09_8d18(int init, int quiet)
+{
+    HFONT oldfont;
+    HFONT font;
+    DWORD oldtext;
+    DWORD oldbk;
+    char buf[54];
+    int k;
+    int steps;
+    char pad[16];
+    int h;
+    int margin;
+    int p;
+    int n;
+    int w;
+
+    if (g_9460)
+        return 1;
+    steps = 2;
+    if (init) {
+        g_1830.x = g_607c.left + 25;
+        g_1830.y = g_607c.top + 55;
+        if (!quiet)
+            fn_15_84b0(g_1830.x + 10, g_1830.y + 10);
+        g_183c = g_1e50 + 500;
+        g_183a = g_1838 = g_0a5a = 0;
+        return 0;
+    }
+    if (!quiet) {
+        if (g_183c > g_1e50)
+            return g_0a5a;
+        g_183c = g_1e50 + 50;
+    } else {
+        steps = 2000;
+        PatBlt(g_13dc, g_607c.left + 6, g_607c.top + 55, g_607c.right - g_607c.left - 12,
+               g_607c.bottom - g_607c.top - 61, BLACKNESS);
+    }
+    if (g_0a5a) {
+        g_183c = g_1e50 + 400;
+        if (g_0a5c) {
+            h = SelectObject(g_13dc, CreateSolidBrush(RGB(255, 255, 0)));
+            PatBlt(g_13dc, g_1830.x + 4, g_1830.y + 2, 12, 15, PATCOPY);
+            DeleteObject(SelectObject(g_13dc, h));
+        } else
+            PatBlt(g_13dc, g_1830.x + 4, g_1830.y + 2, 12, 15, BLACKNESS);
+        g_0a5c = !g_0a5c;
+        return g_0a5a;
+    }
+    font = CreateFont(17, 11, 0, 0, 520, 0, 0, 0, 0, 0, 0, PROOF_QUALITY,
+                      VARIABLE_PITCH | FF_SWISS, "Arial");
+    oldfont = SelectObject(g_13dc, font);
+    oldbk = SetBkColor(g_13dc, 0);
+    SetBkMode(g_13dc, TRANSPARENT);
+    SetTextAlign(g_13dc, 0);
+    oldtext = SetTextColor(g_13dc, RGB(255, 255, 0));
+    for (k = 0; k < steps; k++) {
+        h = 0;
+        if (g_4fcc[g_1838] == ' ') {
+            n = 0;
+            p = g_1838;
+            do
+                buf[++n] = g_4fcc[++p];
+            while (g_4fcc[p] != 0 && g_4fcc[p] != ' ' && g_4fcc[p] != 13);
+            buf[n + 1] = 0;
+            w = GetTextExtent(g_13dc, buf, n) + g_1830.x;
+            if (n > 5)
+                margin = 9;
+            else
+                margin = 22;
+            if (g_6084.right - margin < w)
+                h = 1;
+        }
+        if (g_4fcc[g_1838] == 13 || h) {
+            g_1830.x = g_607c.left + 25;
+            g_1830.y += 25;
+            if (g_4fcc[g_1838] == 13)
+                g_1838++;
+        } else {
+            if (g_1838 != 0)
+                PatBlt(g_13dc, g_1834.x + 4, g_1834.y + 2, 12, 15, BLACKNESS);
+            TextOut(g_13dc, g_1830.x, g_1830.y, g_4fcc + g_1838, 1);
+            g_1830.x += GetTextExtent(g_13dc, g_4fcc + g_1838, 1);
+            if (!quiet) {
+                w = SelectObject(g_13dc, CreateSolidBrush(RGB(255, 255, 0)));
+                PatBlt(g_13dc, g_1830.x + 4, g_1830.y + 2, 12, 15, PATCOPY);
+                DeleteObject(SelectObject(g_13dc, w));
+            }
+            g_1834 = g_1830;
+        }
+        g_1838++;
+        if (!quiet)
+            ((void (far *)(int, POINT, int))fn_10_754a)(0x2b, g_1834, 4);
+        if (g_4fcc[g_1838] == 13 && g_4fcc[g_1838 - 1] == 10) {
+            g_183c = g_1e50 + 2000;
+            break;
+        }
+        if (g_4fcc[g_1838] == 0) {
+            g_0a5a = 1;
+            break;
+        }
+    }
+    SetBkColor(g_13dc, oldbk);
+    SetTextColor(g_13dc, oldtext);
+    SelectObject(g_13dc, oldfont);
+    if (font) {
+        DeleteObject(font);
+        font = 0;
+    }
+    return g_0a5a;
 }
 
 /* @addr 9:90fe */

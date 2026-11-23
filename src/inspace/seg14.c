@@ -55,7 +55,7 @@ typedef struct {
     char pad_0a6[0x4];
     char f_0aa;    /* DS:713c */
     char f_0ab;    /* DS:713d */
-    char pad_0ac[0xa];
+    char f_0ac[10];    /* DS:713e */
     char f_0b6[16];    /* DS:7148 */
     char pad_0c6[0x3];
     char f_0c9;    /* DS:715b */
@@ -65,16 +65,17 @@ typedef struct {
     char pad_0ce[0x6];
     int f_0d4;    /* DS:7166 */
     char pad_0d6[0x4];
-    int f_0da;    /* DS:716c */
-    char pad_0dc[0x6];
+    long f_0da;    /* DS:716c */
+    char pad_0de[0x4];
     char f_0e2;    /* DS:7174 */
-    char pad_0e3[0x4];
+    char pad_0e3[0x3];
+    char f_0e6;    /* DS:7178 */
     char f_0e7;    /* DS:7179 */
     char pad_0e8[0x1];
     char f_0e9;    /* DS:717b */
     char f_0ea;    /* DS:717c */
     char f_0eb;    /* DS:717d */
-    char pad_0ec[0x8];
+    char f_0ec[8];    /* DS:717e */
     char f_0f4[9][9];    /* DS:7186 */
     char pad_145[0x1];
     char f_146;    /* DS:71d8 */
@@ -91,7 +92,9 @@ typedef struct {
     char pad_008[0x4];
     int f_00c;
     int f_00e;
-    char pad_010[0x8];
+    int f_010;
+    int f_012;
+    char pad_014[0x4];
     int f_018;
     int f_01a;
     char pad_01c[0x2];
@@ -101,9 +104,15 @@ typedef struct {
     int f_024;
     int f_026;
     int f_028;
-    char pad_02a[0x1c];
+    char pad_02a[0x10];
+    int f_03a;
+    int f_03c;
+    char pad_03e[0x6];
+    int f_044;
     int f_046;
-    char pad_048[0x9];
+    char pad_048[0x2];
+    int f_04a;
+    char pad_04c[0x5];
     char f_051;
     char f_052;
     char f_053;

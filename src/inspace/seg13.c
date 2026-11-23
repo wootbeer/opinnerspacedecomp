@@ -58,7 +58,7 @@ typedef struct {
     char pad_0a6[0x4];
     char f_0aa;    /* DS:713c */
     char f_0ab;    /* DS:713d */
-    char pad_0ac[0xa];
+    char f_0ac[10];    /* DS:713e */
     char f_0b6[16];    /* DS:7148 */
     char pad_0c6[0x3];
     char f_0c9;    /* DS:715b */
@@ -68,16 +68,17 @@ typedef struct {
     char pad_0ce[0x6];
     int f_0d4;    /* DS:7166 */
     char pad_0d6[0x4];
-    int f_0da;    /* DS:716c */
-    char pad_0dc[0x6];
+    long f_0da;    /* DS:716c */
+    char pad_0de[0x4];
     char f_0e2;    /* DS:7174 */
-    char pad_0e3[0x4];
+    char pad_0e3[0x3];
+    char f_0e6;    /* DS:7178 */
     char f_0e7;    /* DS:7179 */
     char pad_0e8[0x1];
     char f_0e9;    /* DS:717b */
     char f_0ea;    /* DS:717c */
     char f_0eb;    /* DS:717d */
-    char pad_0ec[0x8];
+    char f_0ec[8];    /* DS:717e */
     char f_0f4[9][9];    /* DS:7186 */
     char pad_145[0x1];
     char f_146;    /* DS:71d8 */
@@ -94,7 +95,9 @@ typedef struct {
     char pad_008[0x4];
     int f_00c;
     int f_00e;
-    char pad_010[0x8];
+    int f_010;
+    int f_012;
+    char pad_014[0x4];
     int f_018;
     int f_01a;
     char pad_01c[0x2];
@@ -104,9 +107,15 @@ typedef struct {
     int f_024;
     int f_026;
     int f_028;
-    char pad_02a[0x1c];
+    char pad_02a[0x10];
+    int f_03a;
+    int f_03c;
+    char pad_03e[0x6];
+    int f_044;
     int f_046;
-    char pad_048[0x9];
+    char pad_048[0x2];
+    int f_04a;
+    char pad_04c[0x5];
     char f_051;
     char f_052;
     char f_053;
@@ -224,12 +233,19 @@ extern int g_9302;
 extern int g_2390;
 extern int g_2392;
 
-/* 0x34-byte records at DS:8564 [inferred base]. */
+/* 0x34-byte records at DS:8560 (REC_34C in seg12.c), one per list-11
+ * entry [inferred]. */
 typedef struct {
-    int f_00;
-    char pad_02[0x34 - 0x02];
+    int f_00;                       /* DS:8560: mode 1/2/3 */
+    int f_02;                       /* amount */
+    int f_04;                       /* DS:8564 */
+    int f_06;
+    int f_08;
+    int f_0a;
+    int f_0c[10];                   /* DS:856c */
+    int f_20[10];                   /* DS:8580 */
 } REC34;
-extern REC34 g_8564[];
+extern REC34 g_8560[];
 extern int g_1ddc;
 extern int g_1dde;
 extern int g_1de0;
@@ -238,12 +254,12 @@ extern int g_0a76;
 extern int g_9316;
 extern int g_92e8;
 extern int g_9324;
-extern int g_6e8e;
 extern int g_6e90;
 extern HINSTANCE g_8e66;
 extern int g_238c;
 extern int g_951a;
 extern int g_9646;
+extern int g_6e8e;
 extern int g_8f68;
 extern int g_0992;
 extern int g_932a;
@@ -311,7 +327,11 @@ extern int g_9208;
 #pragma pack(1)
 typedef struct {
     int f_00;
-    char pad_02[0x23 - 0x02];
+    int f_02;                       /* DS:57aa */
+    char pad_04[0x19 - 0x04];
+    int f_19;                       /* DS:57c1 */
+    char f_1b[4];                   /* DS:57c3 */
+    char pad_1f[0x23 - 0x1f];
 } REC23;
 #pragma pack()
 extern REC23 g_57a8[];
@@ -344,6 +364,29 @@ extern int g_8fea;
 extern char g_8694[];               /* run-time buffer (BSS) */
 extern char g_86d0[];               /* run-time buffer (BSS) */
 extern DWORD g_1c8a;
+void far pascal fn_08_0b76(int r, int b, int dc, int c);
+/* 0x34-byte records at DS:3d5a (REC34 in seg03.c). */
+typedef struct {
+    char pad_00[0x14];
+    int f_14;                       /* DS:3d6e */
+    char pad_16[0x34 - 0x16];
+} REC34D;
+extern REC34D g_3d5a[];
+extern HDC g_39e8[];
+extern HBRUSH g_576c[];
+extern int g_0b6a;
+extern HBITMAP g_4e94[];
+extern int g_6038[];
+extern HBRUSH g_5eaa;
+extern REC70 far *g_1e14;
+extern REC70 far *g_1dfc;
+extern DWORD g_52d8;
+extern char g_507c[];
+extern char g_50e0[];
+extern int g_9146;
+extern int g_943e;
+extern int g_9440;
+extern int g_9406[];
 extern HFONT g_90fe;
 extern int g_90ee;
 extern char g_93e0[];               /* run-time buffer (BSS) */
@@ -417,14 +460,16 @@ void far fn_13_4eca(LPCSTR text)
         OutputDebugString(text);
 }
 
+/* Debug trace of a class-table change (body compiled out) [inferred]. */
 /* @addr 13:2da4 */
-void far fn_13_2da4(void)
+void far fn_13_2da4(int a, int b, int v)
 {
     char buf[110];
 }
 
+/* Debug trace of an object-table change (body compiled out) [inferred]. */
 /* @addr 13:2db8 */
-void far fn_13_2db8(void)
+void far fn_13_2db8(int a, int b, int v, int t)
 {
     char buf[110];
 }
@@ -960,16 +1005,13 @@ void far fn_13_50b0(HDC hdc, int b)
     char old1[60];
     char old2[60];
     RECT rc;
-    HFONT font;
-    DWORD oldtext, oldbk;
-    int v;
 
     if (!g_95fc)
         return;
     k = g_6e8e;
     ok = 0;
     s = g_6e90;
-    if (s == g_9324 && k == g_9646)
+    if (s == g_9324 && g_9646 == k)
         ok = 1;
     else
         ok = fn_03_0000(s, k);
@@ -984,14 +1026,19 @@ void far fn_13_50b0(HDC hdc, int b)
     }
     if (g_920e)
         pal = SelectPalette(hdc, g_920e, 0);
-    fn_13_5a6a(hdc, g_6e8a, g_6e8c, s, k, 2, b, 0);
+    fn_13_5a6a(hdc, g_6e8a, (&g_6e8a)[1], s, k, 2, b, 0);
     changed = 0;
     if (g_1c8a <= g_1e50 || g_8694[0] == 0) {
         lstrcpy(old1, g_8694);
         lstrcpy(old2, g_86d0);
-        if (s == g_9324)
-            fn_03_1d0a(k == g_9646 ? 100 : (char)g_9646, k, 3);
-        else
+        if (s == g_9324) {
+            char c;
+            if (k == g_9646)
+                c = 100;
+            else
+                c = (char)g_9646;
+            fn_03_1d0a(c, k, 3);
+        } else
             describe_defender_order_message(g_9646, k, 3);
         if (lstrcmp(old1, g_8694) != 0 || lstrcmp(old2, g_86d0) != 0)
             changed = 1;
@@ -999,8 +1046,12 @@ void far fn_13_50b0(HDC hdc, int b)
     if (g_1c8a <= g_1e50)
         g_1c8a = g_1e50 + 500;
     if (changed) {
+        HFONT font;
+        DWORD oldtext, oldbk;
+        int v;
+
         GetClientRect(g_95fc, &rc);
-        PatBlt(hdc, 0, 0x30, rc.right, 0x30, BLACKNESS);
+        PatBlt(hdc, 0x30, 0, rc.right, 0x30, BLACKNESS);
         font = SelectObject(hdc, g_90fe);
         SetTextAlign(hdc, 0);
         oldbk = SetBkColor(hdc, 0L);
@@ -1029,13 +1080,13 @@ void far fn_13_50b0(HDC hdc, int b)
             fn_10_a332(buf, 0x9e3, 1, s, k, 0, g_52ec[k].f_18,
                        g_52ec[k].f_1a, 6);
         }
-        TextOut(hdc, 0, 0x30, buf, lstrlen(buf));
+        TextOut(hdc, 0x30, 0, buf, lstrlen(buf));
         if (g_90ee == 1)
-            SetTextColor(hdc, RGB(0xff, 0, 0));
+            SetTextColor(hdc, RGB(0xff, 0xff, 0xff));
         else
-            SetTextColor(hdc, RGB(0, 0, 0xff));
-        TextOut(hdc, 0x10, 0x30, g_8694, lstrlen(g_8694));
-        TextOut(hdc, 0x1e, 0x30, g_86d0, lstrlen(g_86d0));
+            SetTextColor(hdc, RGB(0xff, 0xff, 0));
+        TextOut(hdc, 0x30, 0x10, g_8694, lstrlen(g_8694));
+        TextOut(hdc, 0x30, 0x1e, g_86d0, lstrlen(g_86d0));
         SetBkColor(hdc, oldbk);
         SetTextColor(hdc, oldtext);
         SelectObject(hdc, font);
@@ -1046,6 +1097,53 @@ void far fn_13_50b0(HDC hdc, int b)
         ReleaseDC(g_95fc, hdc);
         hdc = 0;
     }
+}
+
+/* Draw one object cell of a child window [inferred]. */
+/* @addr 13:5a6a */
+void far fn_13_5a6a(HDC hdc, int x, int y, int s, int k, int w, int b, int c)
+{
+    int draw, stars;
+
+    if (b)
+        g_6e38[w].f_14 = 0;
+    else {
+        g_6e38[w].f_14++;
+        if (g_6e38[w].f_14 > 2)
+            g_6e38[w].f_14 = 0;
+    }
+    if (g_6e38[w].f_14 == 0)
+        stars = 1;
+    else
+        stars = 0;
+    if (b == 1)
+        PatBlt(hdc, x >> c, y >> c, 45 >> c, 45 >> c, BLACKNESS);
+    if (g_1df8[s][k].f_018 != 0 || s == 2 || b != 0 || g_9208 < 2)
+        stars = 0;
+    if (s == g_9324 && !g_131c)
+        stars = 0;
+    if (stars)
+        fn_13_5460(hdc, 0, w, s, k, c);
+    draw = 1;
+    if (b == 0) {
+        if (s == 7 && g_1df8[s][k].f_018 != 0)
+            draw = 0;
+        if (s == 1)
+            draw = 0;
+        if (fn_13_371c(s, k))
+            draw = 0;
+        if (s == 0 && g_57a8[k].f_00 == 0 && g_1df8[0][k].f_051 == 0)
+            draw = 0;
+        if ((s == 0 || s == 11) && g_1df8[s][k].f_018 != 0
+            && g_1df8[s][k].f_051 == 0)
+            draw = 0;
+        if (s == g_9324)
+            draw = 0;
+    }
+    if (draw)
+        fn_13_5c22(hdc, x, y, s, k, w, c);
+    if (stars)
+        fn_13_54da(hdc, 0, w, s, k, c);
 }
 
 /* Redraw the map child window [inferred: g_0a7c, modes 2/3 in g_0a76]. */
@@ -1251,8 +1349,8 @@ void far fn_13_498e(int a, int b)
     if (!found) {
         best = 0;
         for (i = 0; i < g_9302; i++) {
-            if (g_8564[i].f_00 > best) {
-                best = g_8564[i].f_00;
+            if (g_8560[i].f_04 > best) {
+                best = g_8560[i].f_04;
                 bi = i;
             }
         }
@@ -1275,9 +1373,61 @@ void far fn_13_498e(int a, int b)
     }
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Launch REC70 entry i of list 11 for object a (b: full transfer)
+ * [inferred]. */
+/* @addr 13:4ba0 */
 void far fn_13_4ba0(int a, int i, int b)
 {
+    int j, u1, u2, u3;
+
+    g_8560[i].f_04 = 0;
+    g_8560[i].f_06 = 500;
+    if (!g_92e8 || a == g_9646) {
+        if (b) {
+            for (j = 1; j < 10; j++) {
+                if (g_7092[a].f_0c9 > j) {
+                    g_8560[i].f_0c[j] = g_7092[a].f_0b6[j];
+                    g_8560[i].f_20[j] = g_7092[a].f_0ac[j];
+                } else
+                    g_8560[i].f_20[j] = g_8560[i].f_0c[j] = -1;
+                g_7092[a].f_0ac[j] = g_7092[a].f_0b6[j] = 0;
+            }
+            g_8560[i].f_00 = 1;
+            g_8560[i].f_02 = g_7092[a].f_0cc;
+            g_7092[a].f_0c9 = 1;
+        } else {
+            g_8560[i].f_00 = 3;
+            g_8560[i].f_02 = min(g_7092[a].f_0cc, 400);
+        }
+        g_7092[a].f_0cc -= g_8560[i].f_02;
+        g_1e24[i].f_04a = 0x1d;
+    } else {
+        g_1e24[i].f_04a = 0x1d;
+        g_8560[i].f_00 = 2;
+    }
+    g_8560[i].f_08 = g_9324;
+    g_8560[i].f_0a = a;
+    g_1e24[i].f_022 = (24 << g_9156) >> 1;
+    g_1e24[i].f_024 = (4 << g_9156) >> 1;
+    g_1e24[i].f_020 = 0xb8;
+    g_1e24[i].f_018 = 0;
+    g_1e24[i].f_004.x = g_1df8[g_9324][a].f_020 / 2
+        + g_1df8[g_9324][a].f_004.x - g_1e24[i].f_020 / 2;
+    g_1e24[i].f_004.x += g_1050[(g_1df8[g_9324][a].f_028 + 8) & 0xf].x
+        * g_1df8[g_9324][a].f_020 / 16;
+    g_1e24[i].f_004.x %= G_05A0_INT * 8;
+    g_1e24[i].f_004.y = g_1df8[g_9324][a].f_020 / 2
+        + g_1df8[g_9324][a].f_004.y - g_1e24[i].f_020 / 2;
+    g_1e24[i].f_004.y += g_1050[(g_1df8[g_9324][a].f_028 + 8) & 0xf].y
+        * g_1df8[g_9324][a].f_020 / 16 % (g_05a2 * 8);
+    g_1e24[i].f_004.y %= g_05a2 * 8;
+    *(long far *)&g_1e24[i].f_00c = *(long far *)&g_1df8[g_9324][a].f_00c;
+    g_1e24[i].f_00c += g_1050[(g_1e30[a].f_028 + 8) & 0xf].x * 5;
+    g_1e24[i].f_00e += g_1050[(g_1e30[a].f_028 + 8) & 0xf].y * 5;
+    g_1e24[i].f_044 = 0x65;
+    g_1e24[i].f_053 = 0;
+    g_1e24[i].f_051 = 0;
+    fn_07_2080(11, -1);
 }
 
 /* @addr 13:4ac4 */
@@ -1402,10 +1552,148 @@ void far fn_13_54da(HDC hdc, int a, int k, int j, int i, int shift)
     }
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Draw object (s, k) scaled by c/d into its sprite DC; when it overlaps
+ * object (a, b) (a == 15: the point at DS:88c8) mask it into that one's
+ * DC too, then mark both for redraw [inferred]. */
+/* @addr 13:3d40 */
 void far pascal draw_scaled_object(int s, int k, int a, int b, int c,
                                    int d)
 {
+    POINT dd, p1, p2, q1, q2, q3, sz;
+    int h1, sc, h2, o1, o2, off;
+    HBITMAP bmp, bmp2;
+    HGDIOBJ old2, old1;
+    HDC memdc, memdc2;
+    HPALETTE oldpal;
+
+    if (d == 0)
+        d = 1;
+    p1 = fn_08_29ea(g_1df8[s][k].f_004);
+    if (a != 15)
+        p2 = fn_08_29ea(g_1df8[a][b].f_004);
+    else
+        p2 = fn_08_29ea(g_88c8);
+    dd.x = p2.x - p1.x;
+    dd.y = p2.y - p1.y;
+    h1 = g_1df8[s][k].f_022;
+    o1 = g_1df8[s][k].f_024;
+    sc = h1 * c / d;
+    off = o1 + (h1 - sc) / 2;
+    if (a != 15) {
+        h2 = g_1df8[a][b].f_022;
+        o2 = g_1df8[a][b].f_024;
+    } else {
+        h2 = -10;
+        o2 = 0;
+    }
+    if (dd.x < -2 - h2 || dd.y < -2 - h2 || dd.x > h1 + 2 || dd.y > h1 + 2
+        || a == 15) {
+        if (a != 15) {
+            PatBlt(g_1df8[a][b].f_03c, 0, 0, o2 * 2 + h2, o2 * 2 + h2,
+                   BLACKNESS);
+            BitBlt(g_1df8[a][b].f_03c, o2, o2, h2, h2, g_1df8[a][b].f_03a,
+                   g_1df8[a][b].f_028 * (o2 + h2) + o2, o2, SRCCOPY);
+        }
+        if (sc == h1) {
+            BitBlt(g_1df8[s][k].f_03c, o1, o1, h1, h1, g_1df8[s][k].f_03a,
+                   g_1df8[s][k].f_028 * (o1 + h1) + o1, o1, SRCCOPY);
+        } else {
+            SetStretchBltMode(g_1df8[s][k].f_03c, 3);
+            PatBlt(g_1df8[s][k].f_03c, 0, 0, o1 * 2 + h1, o1 * 2 + h1,
+                   BLACKNESS);
+            StretchBlt(g_1df8[s][k].f_03c, off, off, sc, sc,
+                       g_1df8[s][k].f_03a,
+                       g_1df8[s][k].f_028 * (o1 + h1) + o1, o1, h1, h1,
+                       SRCCOPY);
+        }
+    } else {
+        if (dd.x < 0) {
+            q2.x = -dd.x;
+            q3.x = 0;
+            sz.x = min(o2 * 2 + h2 + dd.x, h1);
+        } else {
+            q2.x = 0;
+            q3.x = dd.x;
+            sz.x = min(h1 - dd.x, o2 * 2 + h2);
+        }
+        if (dd.y < 0) {
+            q2.y = -dd.y;
+            q3.y = 0;
+            sz.y = min(o2 * 2 + h2 + dd.y, h1);
+        } else {
+            q2.y = 0;
+            q3.y = dd.y;
+            sz.y = min(h1 - dd.y, o2 * 2 + h2);
+        }
+        PatBlt(g_1df8[s][k].f_03c, 0, 0, o1 * 2 + h1, o1 * 2 + h1,
+               BLACKNESS);
+        BitBlt(g_1df8[s][k].f_03c, o1 + q3.x, o1 + q3.y, sz.x, sz.y,
+               g_1df8[a][b].f_03a,
+               g_1df8[a][b].f_028 * (o2 + h2) + o2 + q2.x, o2 + q2.y,
+               SRCCOPY);
+        memdc = CreateCompatibleDC(g_13dc);
+        bmp = CreateCompatibleBitmap(g_13dc, o1 * 2 + h1, o1 * 2 + h1);
+        if (g_920e)
+            oldpal = SelectPalette(memdc, g_920e, 0);
+        old1 = SelectObject(memdc, bmp);
+        PatBlt(memdc, 0, 0, o1 * 2 + h1, o1 * 2 + h1, BLACKNESS);
+        if (sc != h1) {
+            SetStretchBltMode(memdc, 3);
+            StretchBlt(memdc, off, off, sc, sc, g_1df8[s][k].f_03a,
+                       g_1df8[s][k].f_028 * (o1 + h1) + o1, o1, h1, h1,
+                       SRCCOPY);
+        } else
+            BitBlt(memdc, o1, o1, h1, h1, g_1df8[s][k].f_03a,
+                   g_1df8[s][k].f_028 * (o1 + h1) + o1, o1, SRCCOPY);
+        SelectObject(memdc, old1);
+        bmp2 = fn_10_6ec6(bmp);
+        SelectObject(memdc, bmp);
+        memdc2 = CreateCompatibleDC(g_13dc);
+        old2 = SelectObject(memdc2, bmp2);
+        BitBlt(g_1df8[s][k].f_03c, o1, o1, h1, h1, memdc2, o1, o1, SRCAND);
+        BitBlt(g_1df8[s][k].f_03c, o1, o1, h1, h1, memdc, o1, o1, SRCPAINT);
+        if (dd.x > 0) {
+            q1.x = dd.x;
+            q3.x = 0;
+            sz.x = min(o2 * 2 + h2, h1 - dd.x);
+        } else {
+            q1.x = 0;
+            q3.x = -dd.x;
+            sz.x = min(o2 * 2 + h2 + dd.x, h1);
+        }
+        if (dd.y > 0) {
+            q1.y = dd.y;
+            q3.y = 0;
+            sz.y = min(o2 * 2 + h2, h1 - dd.y);
+        } else {
+            q1.y = 0;
+            q3.y = -dd.y;
+            sz.y = min(o2 * 2 + h2 + dd.y, h1);
+        }
+        PatBlt(g_1df8[a][b].f_03c, 0, 0, o2 * 2 + h2, o2 * 2 + h2, BLACKNESS);
+        BitBlt(g_1df8[a][b].f_03c, o2, o2, h2, h2, g_1df8[a][b].f_03a,
+               g_1df8[a][b].f_028 * (o2 + h2) + o2, o2, SRCCOPY);
+        BitBlt(g_1df8[a][b].f_03c, o2 + q3.x, o2 + q3.y, sz.x, sz.y, memdc2,
+               o1 + q1.x, o1 + q1.y, SRCAND);
+        BitBlt(g_1df8[a][b].f_03c, o2 + q3.x, o2 + q3.y, sz.x, sz.y, memdc,
+               o1 + q1.x, o1 + q1.y, SRCPAINT);
+        if (g_920e)
+            SelectPalette(memdc, oldpal, -1);
+        SelectObject(memdc, old1);
+        DeleteDC(memdc);
+        DeleteObject(bmp);
+        SelectObject(memdc2, old2);
+        DeleteDC(memdc2);
+        DeleteObject(bmp2);
+    }
+    g_1df8[s][k].f_01a = 1;
+    g_1df8[s][k].f_010 = g_1df8[s][k].f_028 * (o1 + h1) + o1;
+    fn_08_0b76((char)k | (s << 8), 1, g_1df8[s][k].f_03a, 0);
+    g_1df8[s][k].f_01a = 0;
+    if (a != 15) {
+        g_1df8[a][b].f_010 = g_1df8[a][b].f_028 * (o2 + h2) + o2;
+        fn_08_0b76((char)b | (a << 8), 1, g_1df8[a][b].f_03a, 0);
+    }
 }
 
 /* Steer the player's ship toward the point at DS:88c8 [inferred]. */
@@ -1446,9 +1734,150 @@ void far fn_13_3b88(void)
     fn_08_1b54((char)g_9646 | (g_9324 << 8), 1);
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Draw object k of type s into a 45x45 cell at (x, y) >> c [inferred]. */
+/* @addr 13:5c22 */
 void far fn_13_5c22(HDC hdc, int x, int y, int s, int k, int w, int c)
 {
+    int bmi, h, w8, off, sw;
+    HGDIOBJ oldbr;
+    long rop;
+    int flag;
+    POINT src;
+    POINT pt;
+    int e, i;
+    HGDIOBJ oldbmp;
+    HDC memdc;
+    int u, t;
+
+    w8 = g_1df8[s][k].f_020 >> 3;
+    h = g_1df8[s][k].f_022;
+    sw = g_1df8[s][k].f_024;
+    src.y = g_1df8[s][k].f_012;
+    if (s == g_9324 && !g_131c)
+        src.x = sw;
+    else
+        src.x = g_1df8[s][k].f_028 * (sw + h) + sw;
+    SetStretchBltMode(hdc, 3);
+    flag = 0;
+    rop = 0xcc0020L;
+    switch (s) {
+    case 2:
+        bmi = 0;
+        oldbr = SelectObject(hdc, g_576c[g_52ec[k].f_12 + g_0b6a]);
+        rop = 0xc000caL;
+        break;
+    case 14:
+        bmi = g_7092[k].f_04e + 0x28;
+        if (g_7092[k].f_0e6)
+            flag = 1;
+        break;
+    case 9:
+        bmi = 0x16;
+        break;
+    case 7:
+        if (g_1df8[s][k].f_018) {
+            src.x = sw * 6 + h * 5;
+            src.y = sw;
+        } else
+            src.x = g_1e14->f_010;
+        bmi = 5;
+        w8 /= 2;
+        break;
+    case 8:
+        bmi = g_3d5a[k].f_14;
+        break;
+    case 0:
+        if (g_57a8[k].f_02 == 0) {
+            bmi = 13;
+            src.x = (sw + h) * k + sw;
+        } else {
+            bmi = k + 14;
+            src.x = (g_57a8[k].f_02 / 2 - 1) * (sw + h) + sw;
+        }
+        break;
+    case 11:
+        bmi = 0x1d;
+        break;
+    }
+    if (fn_13_371c(s, k)) {
+        off = 1;
+        pt.x = (x + 1) >> c;
+        pt.y = (y + 1) >> c;
+        i = fn_10_6c02(500, sw = 0, -1);
+        e = CreateCompatibleDC(hdc);
+        oldbmp = SelectObject(e, i);
+        memdc = SelectPalette(e, g_920e, 0);
+        StretchBlt(hdc, pt.x, pt.y, 0x29 >> c, 0x29 >> c, e, 0, 0,
+                   h = w8 = 0x29, h, SRCCOPY);
+        SelectPalette(e, memdc, 0);
+        SelectObject(e, oldbmp);
+        DeleteDC(e);
+        DeleteObject(i);
+        return;
+    }
+    if (s == 1) {
+        off = (0x2b - w8) / 2;
+        pt.x = (off + x) >> c;
+        pt.y = (off + y) >> c;
+        memdc = CreateCompatibleDC(hdc);
+        oldbmp = SelectObject(memdc, g_4e94[k]);
+        StretchBlt(hdc, pt.x, pt.y, w8 >> c, w8 >> c, memdc, sw, sw, h, h,
+                   SRCCOPY);
+        SelectObject(memdc, oldbmp);
+        DeleteDC(memdc);
+        return;
+    }
+    if (g_1df8[s][k].f_018) {
+        if (s == 0 && g_57a8[k].f_19) {
+            sw = g_1dfc->f_024;
+            h = g_1dfc->f_022;
+            for (i = off = 0; i < 4; i++) {
+                switch (i) {
+                case 0:
+                    u = t = 0;
+                    break;
+                case 1:
+                    t = 0x16;
+                    u = 0;
+                    break;
+                case 2:
+                    t = 0;
+                    u = 0x16;
+                    break;
+                case 3:
+                    u = t = 0x16;
+                    break;
+                }
+                pt.x = (t + off + x) >> c;
+                pt.y = (u + off + y) >> c;
+                e = g_57a8[k].f_1b[i];
+                if (g_1dfc[e].f_018 == 0 && g_6038[e] == k) {
+                    memdc = CreateCompatibleDC(g_13dc);
+                    oldbmp = SelectObject(memdc, g_4e94[e]);
+                    StretchBlt(hdc, pt.x, pt.y, 0x14 >> c, 0x14 >> c, memdc, sw, sw,
+                               h, h, SRCCOPY);
+                    SelectObject(memdc, oldbmp);
+                    DeleteDC(memdc);
+                } else
+                    PatBlt(hdc, pt.x, pt.y, 0x14 >> c, 0x14 >> c, BLACKNESS);
+            }
+            return;
+        }
+    }
+    if (s == 0 && g_1df8[s][k].f_018 && g_1df8[s][k].f_051 == 0)
+        return;
+    off = (0x2b - w8) / 2;
+    w8 >>= c;
+    pt.x = (off + x) >> c;
+    pt.y = (off + y) >> c;
+    StretchBlt(hdc, pt.x, pt.y, w8, w8, g_39e8[bmi], src.x, src.y, h, h, rop);
+    if (s == 2)
+        SelectObject(hdc, oldbr);
+    if (flag) {
+        t = SelectObject(hdc, g_5eaa);
+        PatBlt(hdc, pt.x, pt.y, w8, w8, 0xa000c9L);
+        SelectObject(hdc, t);
+    }
 }
 
 /* @addr 13:1fc2 */
@@ -1500,11 +1929,92 @@ void far pascal spawn_gun_shot(int s, int k)
     }
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
-/* Returns (type << 8) | index of the nearest object [inferred]. */
+/* Returns (type << 8) | index of the nearest object [inferred]: first among
+ * those ahead of the player's ship (within 3 directions), preferring the
+ * one at DS:943e/9440 for 5 s after DS:52d8, else of all types up to
+ * g_9324. */
+/* Returns (type << 8) | index of the nearest object [inferred]: first among
+ * those ahead of the player's ship (within 3 directions), preferring the
+ * one at DS:943e/9440 for 5 s after DS:52d8, else of all types up to
+ * g_9324. */
+/* @addr 13:2206 */
 int far fn_13_2206(void)
 {
-    return 0;
+    int u1, i, j, bs, bk, bd, d, y, x;
+    int u2[9];
+    int dir2, dir, n;
+    int ss[20];
+    int kk[20];
+    POINT p;
+    POINT dp;
+    DWORD dt;
+
+    dt = g_1e50 - g_52d8;
+    bs = -1;
+    bd = 20000;
+    dir = g_1df8[g_9324][g_9646].f_028;
+    for (i = n = 0; i < g_9146; i++) {
+        if (g_507c[i] == g_9324 && g_507c[i] == g_9646)
+            continue;
+        p = g_1df8[g_507c[i]][g_50e0[i]].f_000;
+        dp.x = p.x - g_1df8[g_9324][g_9646].f_000.x;
+        dp.y = p.y - g_1df8[g_9324][g_9646].f_000.y;
+        dir2 = fn_08_19b0(dp.x, dp.y);
+        if (dir < 14) {
+            if (dir > 2) {
+                if (fn_09_88ba(dir - dir2) < 3) {
+                ss[n] = g_507c[i];
+                kk[n] = g_50e0[i];
+                n++;
+            }
+            } else if (dir2 - dir < 3 || dir2 == 15) {
+                ss[n] = g_507c[i];
+                kk[n] = g_50e0[i];
+                n++;
+            }
+        } else if (dir - dir2 < 3 || dir2 == 0) {
+                ss[n] = g_507c[i];
+                kk[n] = g_50e0[i];
+                n++;
+            }
+    }
+    if (n) {
+        if (dt < 5000) {
+            for (i = 0; i < n; i++)
+                if (ss[i] == g_943e && kk[i] == g_9440
+                    && fn_03_0000(g_943e, g_9440))
+                    return (g_943e << 8) | (char)g_9440;
+        }
+        for (i = 0; i < n; i++) {
+            if (fn_03_0000(ss[i], kk[i])) {
+                d = fn_08_285a(&y, &x, g_1df8[g_9324][g_9646].f_004,
+                               g_1df8[ss[i]][kk[i]].f_004);
+                if (d < bd) {
+                    bs = ss[i];
+                    bk = kk[i];
+                    bd = d;
+                }
+            }
+        }
+    }
+    if (bs > -1)
+        return (bs << 8) | (char)bk;
+    for (i = 0; i <= g_9324; i++) {
+        for (j = 0; j < g_9406[i]; j++) {
+            if (i == g_9324 && j == g_9646)
+                continue;
+            if (fn_03_0000(i, j)) {
+                d = fn_08_285a(&y, &x, g_1df8[g_9324][g_9646].f_004,
+                               g_1df8[i][j].f_004);
+                if (d < bd) {
+                    bs = i;
+                    bk = j;
+                    bd = d;
+                }
+            }
+        }
+    }
+    return (bs << 8) | (char)bk;
 }
 
 /* Aim child window w's compass at its target and colour it by distance
@@ -1735,7 +2245,137 @@ void far ship_collected_aftermath(OBJREF r, int n)
     }
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Change the relations after object a did something (c to the class
+ * table, d to the per-object table) to object b; e: let bystanders react
+ * [inferred]. */
+/* @addr 13:2714 */
 void far fn_13_2714(int a, int b, int c, int d, int e, int f)
 {
+    int j, ca, cb, cj, i, div;
+
+    if (g_9320 == 7)
+        return;
+    if (f == 2)
+        e = 0;
+    ca = g_96ea[g_7092[a].f_04c].f_020;
+    cb = g_96ea[g_7092[b].f_04c].f_020;
+    if (fn_09_88ba(c) > 1
+        && (g_3824[ca][cb] < -300 || g_3824[ca][cb] > 300
+            || g_3824[cb][ca] < -300 || g_3824[cb][ca] > 300))
+        c /= 2;
+    if (fn_09_88ba(c) > 1
+        && (g_3824[ca][cb] < -450 || g_3824[ca][cb] > 450
+            || g_3824[cb][ca] < -450 || g_3824[cb][ca] > 450))
+        c /= 3;
+    if (g_3824[ca][cb] < -800 || g_3824[ca][cb] > 800
+        || g_3824[cb][ca] < -800 || g_3824[cb][ca] > 800)
+        c = 0;
+    if (a == g_9646 || b == g_9646)
+        i = 1;
+    if (b == a)
+        return;
+    if (d < 0) {
+        if (g_7092[a].f_036 == 4 && g_7092[a].f_032 == b) {
+            d <<= 1;
+            c <<= 1;
+        }
+        d += (3 - g_7092[a].f_05c) * d * 10 / 100;
+    } else
+        d += (3 - g_7092[b].f_05b) * d * 10 / 100;
+    if (cb != ca) {
+        if (c < 0 && g_7092[b].f_052 == g_9324 && g_7092[b].f_054 == a
+            && g_7092[b].f_050 >= 2 && g_7092[b].f_050 <= 4) {
+            g_3824[ca][cb] += c / 2;
+            g_3824[cb][ca] += c / 6;
+            fn_13_2da4(ca, cb, c / 2);
+            fn_13_2da4(cb, ca, c / 6);
+        } else if (g_3824[ca][cb] * c > 0) {
+            g_3824[ca][cb] += c / 2;
+            g_3824[cb][ca] += c / 6;
+            fn_13_2da4(ca, cb, c / 2);
+            fn_13_2da4(cb, ca, c / 6);
+        } else {
+            g_3824[ca][cb] += c;
+            g_3824[cb][ca] += c / 3;
+            fn_13_2da4(ca, cb, c);
+            fn_13_2da4(cb, ca, c / 3);
+        }
+    }
+    if (d < 0 && g_7092[b].f_052 == g_9324 && g_7092[b].f_054 == a
+        && g_7092[b].f_050 >= 2 && g_7092[b].f_050 <= 4) {
+        g_7092[a].f_060[b] += d / 2;
+        fn_13_2e60(a, b, f);
+        g_7092[b].f_060[a] += d / 8;
+        fn_13_2db8(a, b, d / 2, f);
+        fn_13_2db8(b, a, d / 8, f);
+    } else if (fn_13_2688(a, b) * d > 0) {
+        g_7092[a].f_060[b] += d * 2 / 3;
+        fn_13_2e60(a, b, f);
+        g_7092[b].f_060[a] += d / 4;
+        fn_13_2db8(a, b, d / 3, f);
+        fn_13_2db8(b, a, d / 12, f);
+    } else {
+        g_7092[a].f_060[b] += d;
+        fn_13_2e60(a, b, f);
+        g_7092[b].f_060[a] += d / 3;
+        fn_13_2db8(a, b, d, f);
+        fn_13_2db8(b, a, d / 4, f);
+    }
+    if (e) {
+        for (i = 0; i <= g_9316; i++) {
+            if (i != a && i != b && !g_1df8[g_9324][i].f_018
+                && g_7092[i].f_0ea) {
+                j = i;
+                cj = g_96ea[g_7092[i].f_04c].f_020;
+                if (fn_09_88ba(g_3824[cj][cb]) < 350) {
+                    if (fn_13_2688(i, a) < -100) {
+                        if (g_7092[a].f_030 == g_9324 && g_7092[a].f_032 == i
+                            && g_7092[a].f_036 == 1 && g_7092[b].f_036 == 1
+                            && g_7092[b].f_030 == g_9324
+                            && g_7092[b].f_032 == a) {
+                            div = 3;
+                            fn_03_06ec(b, g_9324, i, 0x51);
+                        } else
+                            div = 11;
+                        if (cj != cb) {
+                            g_3824[cj][cb] -= c * 3 / div;
+                            fn_13_2da4(ca, cb, -(c * 3 / div));
+                        }
+                        g_7092[j].f_060[b] -= d * 3 / div;
+                        fn_13_2db8(j, b, -(d * 3 / div), 20);
+                        if (((g_7092[a].f_030 == g_9324 && g_7092[a].f_032 == j
+                              && g_7092[a].f_036 == 1)
+                             || (g_7092[j].f_030 == g_9324
+                                 && g_7092[j].f_032 == a
+                                 && g_7092[j].f_036 == 1))
+                            && d < 0)
+                            fn_13_2e60(j, b, 6);
+                    } else if (fn_13_2688(j, a) > 100) {
+                        if (cj != cb) {
+                            g_3824[cj][cb] += c / 4;
+                            fn_13_2da4(ca, cb, c / 4);
+                        }
+                        g_7092[j].f_060[b] += d / 4;
+                        fn_13_2db8(j, b, d / 4, 20);
+                        if ((cj == ca || fn_13_2688(j, a) > 180) && d < 0)
+                            fn_13_2e60(j, b, 3);
+                    }
+                    if (g_7092[j].f_060[b] > 200)
+                        g_7092[j].f_060[b] = 200;
+                    if (g_7092[j].f_060[b] < -200)
+                        g_7092[j].f_060[b] = -200;
+                }
+            }
+        }
+    }
+    if (g_7092[a].f_060[b] > 200)
+        g_7092[a].f_060[b] = 200;
+    if (g_7092[a].f_060[b] < -200)
+        g_7092[a].f_060[b] = -200;
+    if (g_7092[b].f_060[a] > 200)
+        g_7092[b].f_060[a] = 200;
+    if (g_7092[b].f_060[a] < -200)
+        g_7092[b].f_060[a] = -200;
+    if (b == g_9646 && g_7092[g_9646].f_03e == a && g_0a76 == 2)
+        PostMessage(g_0a7c, WM_PAINT, 0, 0L);
 }

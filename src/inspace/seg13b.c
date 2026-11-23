@@ -55,7 +55,7 @@ typedef struct {
     char pad_0a6[0x4];
     char f_0aa;    /* DS:713c */
     char f_0ab;    /* DS:713d */
-    char pad_0ac[0xa];
+    char f_0ac[10];    /* DS:713e */
     char f_0b6[16];    /* DS:7148 */
     char pad_0c6[0x3];
     char f_0c9;    /* DS:715b */
@@ -65,16 +65,17 @@ typedef struct {
     char pad_0ce[0x6];
     int f_0d4;    /* DS:7166 */
     char pad_0d6[0x4];
-    int f_0da;    /* DS:716c */
-    char pad_0dc[0x6];
+    long f_0da;    /* DS:716c */
+    char pad_0de[0x4];
     char f_0e2;    /* DS:7174 */
-    char pad_0e3[0x4];
+    char pad_0e3[0x3];
+    char f_0e6;    /* DS:7178 */
     char f_0e7;    /* DS:7179 */
     char pad_0e8[0x1];
     char f_0e9;    /* DS:717b */
     char f_0ea;    /* DS:717c */
     char f_0eb;    /* DS:717d */
-    char pad_0ec[0x8];
+    char f_0ec[8];    /* DS:717e */
     char f_0f4[9][9];    /* DS:7186 */
     char pad_145[0x1];
     char f_146;    /* DS:71d8 */
@@ -91,7 +92,9 @@ typedef struct {
     char pad_008[0x4];
     int f_00c;
     int f_00e;
-    char pad_010[0x8];
+    int f_010;
+    int f_012;
+    char pad_014[0x4];
     int f_018;
     int f_01a;
     char pad_01c[0x2];
@@ -101,9 +104,15 @@ typedef struct {
     int f_024;
     int f_026;
     int f_028;
-    char pad_02a[0x1c];
+    char pad_02a[0x10];
+    int f_03a;
+    int f_03c;
+    char pad_03e[0x6];
+    int f_044;
     int f_046;
-    char pad_048[0x9];
+    char pad_048[0x2];
+    int f_04a;
+    char pad_04c[0x5];
     char f_051;
     char f_052;
     char f_053;
@@ -234,6 +243,12 @@ extern int g_9220;
 extern unsigned long g_1e68;
 extern int g_941c;
 extern REC70 far *g_1e24;
+extern unsigned long g_8710;
+extern unsigned long g_8714;
+extern int g_934e;
+extern int g_9432;
+void far fn_13_4eec(int i, int d);
+#define CLS(i) g_96ea[g_7092[i].f_04c].f_020   /* class of object i */
 
 /* @addr 13:910a */
 int far fn_13_910a(int n)
@@ -249,10 +264,202 @@ int far fn_13_910a(int n)
     return 1;
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
-int far fn_13_8570(int i)
+/* Object n asks the others for help against its target (f_03c, f_03e):
+ * picks the first object that agrees, else reports the best refusal
+ * message [inferred]. Returns 1 if someone agreed, 0 if not, -1 when n
+ * asked too recently. */
+/* @addr 13:8570 */
+int far fn_13_8570(int n)
 {
-    return i;
+    int j, u1, s, k, pw, rel, u2, msg, best, bestj, rel2;
+
+    if ((n != g_9646 || g_9134 != 0) && g_7092[n].f_09a > g_1e50)
+        return -1;
+    g_7092[n].f_09a = g_1e50 + 10000;
+    if (g_934e < 5 && (n != g_9646 || !flow_interactive))
+        return 0;
+    s = g_7092[n].f_03c;
+    k = g_7092[n].f_03e;
+    if ((n != g_9646 || !flow_interactive)
+        && g_7092[g_9646].f_030 == s
+        && (s == 0x16 || g_7092[g_9646].f_032 == k))
+        return 0;
+    if (n != g_9646 && s == 9) {
+        if (g_8710 && g_8710 + 1500 > g_1e68)
+            return 0;
+        if (g_8714 && g_8714 + 600 > g_1e68)
+            return 0;
+        for (j = 0; j < g_9316; j++) {
+            if (j == g_9646)
+                continue;
+            if (g_7092[j].f_0ea && g_7092[j].f_030 == 14
+                && g_7092[j].f_032 == g_9646 && g_7092[j].f_036 == 1)
+                return 0;
+        }
+        if (g_7092[g_9646].f_024 < 40)
+            return 0;
+    }
+    fn_13_4eec(n, 4);
+    best = 1000;
+    for (j = 0; j <= g_9316; j++) {
+        msg = 1000;
+        pw = fn_04_5d9c(j, k) + 20;
+        rel = fn_13_2688(j, n);
+        if (s == 14)
+            rel2 = fn_13_2688(j, k);
+        else
+            rel2 = -400;
+        if (j == n || g_1e30[j].f_018)
+            msg = 0xa3;
+        else if (s == 14 && k == j)
+            msg = 0x9e;
+        else if (CLS(j) == 2 && s == 14)
+            msg = 0x93;
+        else if (CLS(j) == 7)
+            msg = 0x96;
+        else if (CLS(j) == 6)
+            msg = 0x95;
+        else if (CLS(j) == 4 && CLS(n) != 4 && s == 14)
+            msg = 0x94;
+        else if (rel < -100 && CLS(j) != CLS(n)) {
+            if (s == 14)
+                msg = 0x9d;
+            else
+                msg = 0xa2;
+        } else if (rel2 + 70 > rel || rel2 > 150)
+            msg = 0x91;
+        else if (CLS(k) != CLS(j)
+                 && (g_7092[j].f_05b >= 3
+                     || (rel < 100 && g_7092[j].f_05c >= 3)))
+            msg = 0x9a;
+        else if (k == 14 && CLS(k) == CLS(j))
+            msg = 0x98;
+        else if (k == 14 && CLS(k) == CLS(n)
+                 && !(g_7092[k].f_036 == 1 && g_7092[k].f_030 == 14
+                      && g_7092[k].f_032 == n)
+                 && CLS(j) != 3) {
+            if (CLS(j) == CLS(n))
+                msg = 0x9b;
+            else
+                msg = 0x92;
+        } else if (s == 0 && g_1df8[0][k].f_053 == 1
+                   && g_1df8[0][k].f_01e == 0 && CLS(j) != 3)
+            msg = 0x97;
+        else if (g_7092[j].f_0ec[k] == 8)
+            msg = 0x99;
+        else if (k == 14 && g_7092[j].f_0b6[k + 10] == -1)
+            msg = 0x90;
+        else if (g_7092[j].f_05b * 62 - rel * 3 / 4 + 60 > pw)
+            msg = 0x8f;
+        else if (g_96ea[g_7092[j].f_04c].f_006 / 10 > g_7092[j].f_01c)
+            msg = 0x8b;
+        else if (g_7092[j].f_0cc + g_7092[j].f_0da
+                     < (g_7092[j].f_05c - 2) * 50
+                 && rel < 200 && g_7092[j].f_024 < 50 && pw < 80)
+            msg = 0x9c;
+        else if (g_7092[j].f_036 == 1 && g_7092[j].f_030 == 14
+                 && g_7092[j].f_0f4[8][g_7092[j].f_032] > 0
+                 && (g_7092[j].f_030 != n || g_7092[j].f_050 < 2
+                     || g_7092[j].f_050 > 4)
+                 && (s != 14 || g_7092[j].f_032 != k))
+            msg = 0x8e;
+        else if (g_7092[j].f_050 != 0 && g_7092[j].f_050 != 7
+                 && g_7092[j].f_050 != 13 && g_7092[j].f_096 > g_1e50
+                 && g_7092[j].f_056 != n) {
+            if (g_7092[j].f_052 != 14 || g_7092[j].f_054 != n)
+                msg = 0x8d;
+            else if (g_7092[j].f_050 == 1 || g_7092[j].f_050 == 5)
+                msg = 0x9f;
+            else if (g_7092[j].f_050 >= 2 || g_7092[j].f_050 <= 4) {
+                if (g_7092[j].f_056 == j)
+                    msg = 0xa1;
+                else
+                    msg = 0xa0;
+            }
+        } else if (msg != 1000 && s == 14 && g_7092[k].f_0e6)
+            msg = 0x8c;
+        if (msg < best || (best > 0x90 && msg < 0x9e && (rand() & 1))) {
+            best = msg;
+            bestj = j;
+        } else if (msg == 1000) {
+            fn_13_4eec(j, 15);
+            if (n == g_9646)
+                fn_13_4eec(j, 25);
+            fn_13_4eec(n, 20);
+            if (s == 9) {
+                fn_13_4eec(j, -10);
+                fn_13_4eec(n, -13);
+                if (n != g_9646)
+                    g_8710 = g_1e68;
+            }
+            if (j == g_9646 && g_9134 && flow_interactive) {
+                if (g_1e50 - 15000 > g_8858) {
+                    g_964e = 4;
+                    g_9650 = s;
+                    g_9652 = k;
+                    g_8858 = g_1e50;
+                    g_9654 = n;
+                    fn_03_06ec(g_9646, 14, n, 0x34);
+                }
+                continue;
+            }
+            if (g_7092[j].f_050)
+                fn_03_06ec(g_7092[j].f_056, 14, n, 0x13);
+            if (n == g_9646) {
+                if (s == 14)
+                    g_9432 += 120;
+                else
+                    g_9432 += 30;
+            }
+            if (g_7092[j].f_05b >= 2)
+                g_7092[j].f_050 = 2;
+            else if (g_7092[j].f_05b <= 1)
+                g_7092[j].f_050 = 3;
+            else if (g_7092[j].f_05b == 0)
+                g_7092[j].f_050 = 4;
+            fn_04_8346(j, s, k, 9);
+            if (j == g_9646)
+                g_7092[j].f_050 = 2;
+            if (n == g_9646 && g_9134 == 1)
+                fn_03_33b4(2);
+            g_7092[j].f_092 = g_1e50 + 400;
+            g_7092[j].f_052 = s;
+            g_7092[j].f_054 = k;
+            g_7092[j].f_056 = n;
+            g_7092[j].f_096 = g_1e50 + 10000;
+            g_7092[n].f_09a = g_1e50 + 15000;
+            g_7092[j].f_0eb = 1;
+            g_7092[j].f_0a2 = g_1e50 - g_7092[j].f_05c * 2000 + 8000;
+            fn_03_06ec(j, 14, n, 2);
+            if (j != g_9646)
+                fn_03_00f4(j, g_7092[j].f_052, g_7092[j].f_054);
+            if (s == 14)
+                fn_13_2714(g_7092[n].f_03e, n, -(g_7092[j].f_050 * 10),
+                           g_7092[j].f_050 * -40, 0, 5);
+            return 1;
+        }
+    }
+    if (n != g_9646
+        && (g_7092[g_9646].f_050 == 0 || g_7092[g_9646].f_050 == 7)
+        && !g_9134 && !(s == 14 && k == g_9646) && n != g_9646
+        && fn_13_2688(n, g_9646) > -100
+        && !(g_7092[g_9646].f_030 == 14 && g_7092[g_9646].f_032 == n)) {
+        g_7092[g_9646].f_050 = 2;
+        g_7092[g_9646].f_056 = n;
+        g_7092[n].f_09a = g_7092[g_9646].f_096 = g_1e50 + 15000;
+        g_7092[g_9646].f_052 = s;
+        g_7092[g_9646].f_054 = k;
+        fn_04_8346(g_9646, s, k, 9);
+        fn_03_06ec(g_9646, 14, n, 2);
+        if (s == 9)
+            g_8710 = g_1e68;
+        return 1;
+    }
+    if (best == 0xa3)
+        fn_03_06ec(n, 7, 0, best);
+    else
+        fn_03_06ec(n, 14, bestj, best);
+    return 0;
 }
 
 /* @addr 13:9970 */
