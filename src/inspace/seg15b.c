@@ -157,15 +157,23 @@ void far fn_11_a9ea(int a);
 
 /* 0x7c-byte records, far array at DS:6e24 [inferred]. */
 typedef struct {
-    char p00[0x7a];
+    int f00;
+    char p02[0x72 - 0x02];
+    char f72;
+    char f73;
+    char p74[0x7a - 0x74];
     char f7a;
     char f7b;
 } REC_7C;
 extern REC_7C far *g_6e24;
 typedef struct {                /* 0x15a bytes, DGROUP array at DS:7090 */
-    char p00[0xd6];
+    char p00[0x4e];
+    int f4e;                    /* +4e */
+    char p50[0xd6 - 0x50];
     int fd6;                    /* +d6 */
-    char pd8[0x15a - 0xd8];
+    char pd8[0xe4 - 0xd8];
+    char fe4;                   /* +e4 */
+    char pe5[0x15a - 0xe5];
 } REC_15A;
 extern REC_15A g_7090[];
 extern int g_9646;
@@ -1180,22 +1188,520 @@ int far fn_15_0000(int a)
     return a;
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+#pragma pack(1)
+typedef struct {                /* 0x41-byte records, far array at DS:6e20 */
+    char p00[7];
+    char f07;
+    char f08;
+    char f09;
+    char f0a[23];               /* name */
+    int f21;                    /* index into g_6e1c */
+    char p23[0x41 - 0x23];
+} REC_41;
+typedef struct {                /* 0x2c-byte records, far array at DS:6e1c */
+    char p00[0x19];
+    char f19;
+    char f1a;
+    char p1b[0x20 - 0x1b];
+    char f20;                   /* flags */
+    int f21;
+    char f23[0x2c - 0x23];
+} REC_2C;
+typedef struct {                /* 0xad bytes, DGROUP array at DS:96f0 */
+    char p00[0x0a];
+    int f0a;
+    char p0c[0x26 - 0x0c];
+    int f26;
+    char p28[0x2a - 0x28];
+    int f2a;
+    char p2c[0xad - 0x2c];
+} REC_AD;
+#pragma pack()
+extern REC_41 far *g_6e20;
+extern REC_2C far *g_6e1c;
+extern REC_AD g_96f0[];
+extern int g_95aa;
+extern char g_953f;
+extern int g_90f0;
+extern int g_931c;
+extern HBITMAP g_92b4;
+extern int g_9156;
+void far fn_14_3eda(void);
+void far fn_14_4074(void);
+int far fn_10_73a6(int id, LPSTR name, int a, int b, int c, int d, int e, char f, char g);
+int far fn_10_7032(int a, int b, int c);
+
+/* Loads the main ship's bitmap (g_92b0[0]) and its cockpit overlay and
+ * returns its size [inferred]. */
+/* @addr 15:2a08 */
 int far fn_15_2a08(void)
 {
-    return g_92a2;
+    int i;
+    int sz;
+    int off;
+    int sc;
+    int id;
+    int c8;
+    int c7;
+    int v19;
+    int off14;
+    int v1a;
+    int save;
+    HDC dcs2[2];
+    HDC dcs1[2];
+    HDC mdc;
+    HGDIOBJ old2[2];
+    HGDIOBJ old1[2];
+    HBITMAP bmp;
+    HGDIOBJ oldm;
+    HPALETTE pal2[2];
+    HPALETTE pal1[2];
+    POINT pt;
+    int c4;
+    int c2;
+    int c0;
+    int be;
+    char buf[20];
+    char name[16];
+    BITMAP bm;
+
+    if (g_90ee < 8)
+        sc = 4;
+    else
+        sc = 2;
+    fn_14_3eda();
+    if (g_92b0[0] == 0) {
+        GetPrivateProfileString(g_9690, "MainShip", "EAGLE", buf, 20, g_96a9);
+        for (i = 0; i < g_95aa; i++)
+            if (lstrcmp(g_6e20[i].f0a, buf) == 0)
+                break;
+        if (g_6e1c[g_6e20[i].f21].f20 & 4)
+            be = 1;
+        else
+            be = 0;
+        v19 = g_6e1c[g_6e20[i].f21].f19;
+        if (g_6e1c[g_6e20[i].f21].f20 & 1)
+            c2 = 0;
+        else
+            c2 = 1;
+        if (g_6e20[i].f09 & 1)
+            c4 = 0;
+        else
+            c4 = 1;
+        lstrcpy(name, g_6e1c[g_6e20[i].f21].f23);
+        id = g_6e1c[g_6e20[i].f21].f21;
+        c7 = g_6e20[i].f07;
+        c8 = g_6e20[i].f08;
+        if (g_6e1c[g_6e20[i].f21].f20 & 8)
+            c0 = 1;
+        else
+            c0 = 0;
+        v1a = g_6e1c[g_6e20[i].f21].f1a;
+        g_92b0[0] = fn_10_73a6(id, name, -2, -2, 2, 0, 1, (char)c7, (char)c8);
+        GetObject(g_92b0[0], sizeof(BITMAP), &bm);
+        sz = bm.bmHeight / sc;
+        off = (sz - v1a) / 2;
+        g_92b2 = CreateCompatibleBitmap(g_13dc, sc * sz, sc * sz);
+        save = g_9156;
+        g_9156 = 1;
+        g_3cc8[0] = fn_10_7032(1, 1, c4);
+        g_3cc8[1] = fn_10_6ec6(g_3cc8[0]);
+        g_9156 = save;
+    } else {
+        if (g_96f0[g_7090[g_9646].f4e].f0a == 3)
+            be = 1;
+        else
+            be = 0;
+        c4 = g_96f0[g_7090[g_9646].f4e].f26;
+        GetObject(g_92b0[0], sizeof(BITMAP), &bm);
+        sz = bm.bmHeight / sc;
+        c0 = g_96f0[g_7090[g_9646].f4e].f2a;
+        c2 = g_7090[g_9646].fe4;
+        v19 = g_6e1c[g_6e20[g_6e24[g_7090[g_9646].fd6].f00].f21].f19;
+    }
+    fn_14_4074();
+    if (g_92b4) {
+        DeleteObject(g_92b4);
+        g_92b4 = 0;
+    }
+    if (g_90f4 && !g_953f && !g_9563)
+        return sz;
+    bmp = fn_10_6ec6(g_92b0[0]);
+    mdc = CreateCompatibleDC(g_13dc);
+    oldm = SelectObject(mdc, bmp);
+    for (i = 0; i < 2; i++)
+        if (g_92b0[i]) {
+            dcs1[i] = CreateCompatibleDC(g_13dc);
+            old1[i] = SelectObject(dcs1[i], g_92b0[i]);
+            pal1[i] = SelectPalette(dcs1[i], g_920e, 0);
+        }
+    for (i = 0; i < 2; i++) {
+        dcs2[i] = CreateCompatibleDC(g_13dc);
+        old2[i] = SelectObject(dcs2[i], g_3cc8[i]);
+        pal2[i] = SelectPalette(dcs2[i], g_920e, 0);
+    }
+    BitBlt(dcs1[1], 0, 0, sc * sz, sc * sz, dcs1[0], 0, 0, SRCCOPY);
+    if (c2) {
+        pt.x = (sz - 9) / 2;
+        pt.y = v19;
+        if (sc == 4 && c4)
+            off14 = 18;
+        else
+            off14 = 0;
+        if (c0)
+            PatBlt(dcs1[1], 0, 0, sc * sz, sc * sz, BLACKNESS);
+        if (g_90f0 == 0) {
+            BitBlt(dcs1[1], pt.x * sc, pt.y * sc, 36, 36, dcs2[1], 0, off14 * 2, SRCAND);
+            BitBlt(dcs1[1], pt.x * sc, pt.y * sc, 36, 36, dcs2[0], 0, off14 * 2, SRCPAINT);
+        } else {
+            fn_10_9962(0, dcs1[1], pt.x * sc, pt.y * sc, sc * 9, sc * 9, dcs2[1], 0, off14,
+                       18, 18, SRCAND);
+            fn_10_9962(0, dcs1[1], pt.x * sc, pt.y * sc, sc * 9, sc * 9, dcs2[0], 0, off14,
+                       18, 18, SRCPAINT);
+        }
+    }
+    if (c0) {
+        BitBlt(dcs1[1], 0, 0, sc * sz, sc * sz, mdc, 0, 0, SRCAND);
+        BitBlt(dcs1[1], 0, 0, sc * sz, sc * sz, dcs1[0], 0, 0, SRCPAINT);
+    }
+    if (g_92e4) {
+        if (!g_6e24[g_931c].f72 && be) {
+            PatBlt(dcs1[1], 0, 0, sc * off, sc * sz, BLACKNESS);
+            PatBlt(dcs1[0], 0, 0, sc * off, sc * sz, BLACKNESS);
+        }
+        if (!g_6e24[g_931c].f73 && be) {
+            PatBlt(dcs1[1], (sz - off) * sc, 0, sc * off, sc * sz, BLACKNESS);
+            PatBlt(dcs1[0], (sz - off) * sc, 0, sc * off, sc * sz, BLACKNESS);
+        }
+    }
+    SelectObject(mdc, oldm);
+    DeleteDC(mdc);
+    DeleteObject(bmp);
+    for (i = 0; i < 2; i++) {
+        SelectObject(dcs2[i], old2[i]);
+        SelectPalette(dcs2[i], pal2[i], 0);
+        DeleteDC(dcs2[i]);
+    }
+    for (i = 0; i < 2; i++) {
+        SelectObject(dcs1[i], old1[i]);
+        if (pal1[i])
+            SelectPalette(dcs1[i], pal1[i], 0);
+        DeleteDC(dcs1[i]);
+    }
+    return sz;
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+extern HBITMAP g_181e;
+extern HGDIOBJ g_1820;
+
+/* Raises (a = 1) or lowers the ship panel below the view and draws the
+ * ship in it [inferred]. */
+/* @addr 15:4c76 */
 void far fn_15_4c76(int a, int b)
 {
-    g_92a2 = a + b;
+    int i;
+    int sz4;
+    int hgt;
+    int sc;
+    HDC dc[3];
+    HDC mdc2;
+    HPALETTE pal[3];
+    HPALETTE pal2;
+    HGDIOBJ old[3];
+    HBITMAP bmp;
+    HGDIOBJ oldbrush;
+    struct { int x, y, w, h; } v;
+    BITMAP bm;
+    RECT ri;
+    RECT ra;
+    RECT rb;
+    DWORD t0;
+    extern int g_181c;          /* declared here: operand order */
+
+    if (g_90f4 && a && !b && g_9563) {
+        t0 = GetCurrentTime();
+        for (i = 0; i < 3; i++)
+            if (g_92b0[i]) {
+                DeleteObject(g_92b0[i]);
+                g_92b0[i] = 0;
+            }
+        fn_15_2a08();
+        do
+            ;
+        while (GetCurrentTime() - t0 < 2000);
+    }
+    GetObject(g_92b0[0], sizeof(BITMAP), &bm);
+    if (g_90ee < 8)
+        sc = 4;
+    else
+        sc = 2;
+    hgt = bm.bmHeight;
+    sz4 = hgt / sc * 4;
+    if (a && !g_90f4 && !g_953c)
+        g_953c = CreateCompatibleBitmap(g_13dc, g_3ce6, sz4 + 0x43);
+    dc[0] = CreateCompatibleDC(g_13dc);
+    old[0] = SelectObject(dc[0], g_953c);
+    if (g_920e)
+        pal[0] = SelectPalette(dc[0], g_920e, 0);
+    SetStretchBltMode(dc[0], COLORONCOLOR);
+    v.x = g_90ea / 2 - g_3ce6 / 2;
+    v.y = g_0010 - sz4 - 0x43;
+    v.w = g_3ce6;
+    v.h = sz4 + 0x3e;
+    if (a) {
+        fn_10_744c(5);
+        if (b)
+            g_181c = 0;
+        else {
+            if (!g_90f4)
+                g_181c = v.h;
+            PatBlt(dc[0], 0, 0, v.w, v.h, BLACKNESS);
+            BitBlt(dc[0], 0, v.h - g_3c9a - 0x34, g_3ce6, g_3c9a + 0x34, g_92b6, 0, 0, SRCCOPY);
+            bmp = fn_10_6ec6(g_92b0[0]);
+            for (i = 1; i < 3; i++) {
+                dc[i] = CreateCompatibleDC(g_13dc);
+                if (g_920e)
+                    pal[i] = SelectPalette(dc[i], g_920e, 0);
+                if (i == 1)
+                    old[i] = SelectObject(dc[i], g_92b0[0]);
+                else
+                    old[i] = SelectObject(dc[i], bmp);
+            }
+            if (g_90ee < 8)
+                oldbrush = SelectObject(dc[0], g_5ea8);
+            else
+                oldbrush = SelectObject(dc[0], g_5eaa);
+            if (g_90ee <= 8)
+                fn_10_9962(0, dc[0], v.w / 2 - sz4 / 2, 9, sz4, sz4, dc[2], 0, 0, hgt, hgt,
+                           0x00a803a9L);
+            SelectObject(dc[0], oldbrush);
+            fn_10_9962(0, dc[0], v.w / 2 - sz4 / 2, 5, sz4, sz4, dc[2], 0, 0, hgt, hgt, SRCAND);
+            fn_10_9962(0, dc[0], v.w / 2 - sz4 / 2, 5, sz4, sz4, dc[1], 0, 0, hgt, hgt, SRCPAINT);
+            for (i = 1; i < 3; i++) {
+                SelectObject(dc[i], old[i]);
+                if (pal[i])
+                    SelectPalette(dc[i], pal[i], 0);
+                DeleteDC(dc[i]);
+            }
+            DeleteObject(bmp);
+        }
+        if (g_95b8 == 6 && g_0010 - sz4 - 0x3e < g_92de && !g_92ac) {
+            fn_15_3bfa(v.w, v.h);
+            SelectObject(dc[0], old[0]);
+            g_181e = fn_10_6ec6(g_953c);
+            SelectObject(dc[0], g_953c);
+        }
+    }
+    if (g_95b8 == 6 && g_92ac) {
+        ra.left = g_3d48;
+        ra.right = g_3d48 - g_3ca8.left + g_3ca8.right;
+        ra.top = g_3d4a;
+        ra.bottom = g_92de;
+        rb.left = v.x;
+        rb.right = rb.left + v.w;
+        rb.top = g_181c + v.y;
+        rb.bottom = rb.top + v.h;
+        if (IntersectRect(&ri, &ra, &rb)) {
+            mdc2 = CreateCompatibleDC(g_13dc);
+            g_1820 = SelectObject(mdc2, g_181e);
+            if (g_920e)
+                pal2 = SelectPalette(mdc2, g_920e, 0);
+            BitBlt(g_92b8, ri.left - rb.left, ri.bottom - rb.top, v.w, ri.top - ri.bottom + v.h,
+                   dc[0], 0, ri.bottom - ri.top, SRCCOPY);
+            BitBlt(g_92b8, ri.left - rb.left, ri.top - rb.top, v.w, v.h, dc[0], 0, 0, SRCCOPY);
+            BitBlt(g_92b8, ri.left - rb.left, ri.top - rb.top, ri.right - ri.left,
+                   ri.bottom - ri.top, g_929a, ri.left - ra.left + g_3ca4,
+                   ri.top - ra.top + g_3ca6, SRCCOPY);
+            BitBlt(g_92b8, ri.left - rb.left, ri.top - rb.top, ri.right - ri.left,
+                   ri.bottom - ri.top, mdc2, 0, 0, SRCAND);
+            BitBlt(g_92b8, ri.left - rb.left, ri.top - rb.top, ri.right - ri.left,
+                   ri.bottom - ri.top, dc[0], 0, 0, SRCPAINT);
+            BitBlt(g_13dc, v.x, g_181c + v.y, v.w, v.h, g_92b8, 0, 0, SRCCOPY);
+            SelectObject(mdc2, g_1820);
+            if (pal2)
+                SelectPalette(mdc2, pal2, 0);
+            DeleteDC(mdc2);
+        } else
+            BitBlt(g_13dc, v.x, g_181c + v.y, v.w, v.h, dc[0], 0, 0, SRCCOPY);
+    } else
+        BitBlt(g_13dc, v.x, g_181c + v.y, v.w, v.h, dc[0], 0, 0, SRCCOPY);
+    SelectObject(dc[0], old[0]);
+    if (pal[0])
+        SelectPalette(dc[0], pal[0], 0);
+    DeleteDC(dc[0]);
+    if (b) {
+        if (g_181c < v.h) {
+            g_181c += 2;
+            if (g_181c > v.h)
+                g_181c = v.h;
+            return;
+        }
+    } else if (g_181c > 5) {
+        g_181c -= 2;
+        if (g_181c < 5)
+            g_181c = 5;
+        return;
+    } else if (!g_90f4) {
+        g_92d4++;
+        if (g_92ac) {
+            SelectObject(g_92b8, g_92ae);
+            if (g_92c2)
+                SelectPalette(g_92b8, g_92c2, 0);
+            DeleteDC(g_92b8);
+            DeleteObject(g_92ac);
+            g_92ac = g_92b8 = 0;
+            if (g_181e)
+                DeleteObject(g_181e);
+        }
+        return;
+    }
+    g_914a++;
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+extern int g_092a;
+extern POINT g_17e2;
+extern POINT g_17e6;
+extern int g_17ea;
+extern int g_17ec;
+extern DWORD g_17ee;
+extern RECT g_6084;
+void far fn_15_84b0(int x, int y);
+
+/* Types the briefing text g_4fcc onto the screen a few characters per
+ * call, with a cursor block and scrolling [inferred]. */
+/* near-match 99%: 15:1584. Only the cursor y differs: the game adds
+ * g_17e8/g_17e4 before h (h * 10 / -13 + y + h); CL 8 always adds h first. */
 void far fn_15_1584(int a)
 {
-    g_92a2 = a;
+    HGDIOBJ oldfont;
+    HFONT font;
+    DWORD oldtc;
+    DWORD oldbk;
+    DWORD sz;
+    int k;
+    int cnt;
+    int h;
+    int w;
+    RECT rc;
+    RECT rc2;
+    char word[50];
+    int wrap;
+    int m;
+    int j;
+    int n;
+
+    h = (g_3ca8.right - g_3ca8.left - 63) / 15;
+    w = h * 8 / 21;
+    if (a && g_92d4 == 0) {
+        fn_15_84b0(g_90ea / 2, g_92d2 / 2 + g_3ca6);
+        g_17ec = g_17ea = g_092a = 0;
+        cnt = 2;
+        g_17e2.x = g_3d48 + 29;
+        g_17e2.y = g_3d4a + 29;
+        g_17ee = g_1e50 + 500;
+        return;
+    }
+    if (a && g_92d4 < 2) {
+        g_92d4 = 2;
+        for (k = g_17ea; lstrlen(g_4fcc) > k; k++)
+            if (g_4fcc[k] == 13 && g_4fcc[k + 2] == ' ') {
+                g_17ea = k;
+                return;
+            }
+        return;
+    }
+    if (g_17ee > g_1e50)
+        return;
+    g_17ee = g_1e50 + 40;
+    cnt = 2;
+    if (g_092a)
+        return;
+    font = CreateFont(h, w, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, "Arial");
+    oldfont = SelectObject(g_13dc, font);
+    oldbk = SetBkColor(g_13dc, 0L);
+    SetBkMode(g_13dc, OPAQUE);
+    SetTextAlign(g_13dc, 0);
+    oldtc = SetTextColor(g_13dc, RGB(0, 255, 0));
+    for (k = 0; k < cnt; k++) {
+        if (g_4fcc[g_17ea] < 13 && g_4fcc[g_17ea] != 0 && g_4fcc[g_17ea] != 10)
+            g_4fcc[g_17ea] = 13;
+        wrap = 0;
+        if (g_4fcc[g_17ea] == ' ') {
+            int x;
+
+            n = 0;
+            j = g_17ea;
+            do
+                word[++n] = g_4fcc[++j];
+            while (g_4fcc[j] != 0 && g_4fcc[j] != ' ' && g_4fcc[j] != 13);
+            word[n + 1] = 0;
+            x = GetTextExtent(g_13dc, word, n) + g_17e2.x;
+            m = 9;
+            if (g_6084.right - m < x)
+                wrap = 1;
+        }
+        if (g_4fcc[g_17ea] == 13 || wrap) {
+            g_17ec++;
+            g_17e2.x = g_3d48 + 29;
+            if (g_4fcc[g_17ea] == 13)
+                g_17ea++;
+            if ((g_92d2 - 58) / (h + 1) <= g_17ec) {
+                int s;
+
+                SetRect(&rc, g_6084.left, g_6084.top, g_6084.right, g_6084.bottom);
+                for (s = 0; s < h + 1; s++)
+                    ScrollDC(g_13dc, 0, -1, &rc, &rc, 0, &rc2);
+                g_17e6.y -= h + 1;
+            } else
+                g_17e2.y += h + 1;
+        } else {
+            HGDIOBJ old;
+
+            if (g_17ea)
+                PatBlt(g_13dc, g_17e6.x + 2, h * 10 / -13 + g_17e6.y + h, h * 6 / 13, h * 10 / 13,
+                       BLACKNESS);
+            TextOut(g_13dc, g_17e2.x, g_17e2.y, g_4fcc + g_17ea, 1);
+            sz = GetTextExtent(g_13dc, g_4fcc + g_17ea, 1);
+            g_17e2.x += LOWORD(sz);
+            old = SelectObject(g_13dc, CreateSolidBrush(RGB(0x80, 0xff, 0)));
+            PatBlt(g_13dc, g_17e2.x + 2, h * 10 / -13 + g_17e2.y + h, h * 6 / 13, h * 10 / 13,
+                   PATCOPY);
+            DeleteObject(SelectObject(g_13dc, old));
+            g_17e6 = g_17e2;
+        }
+        g_17ea++;
+        fn_10_754a(0x2b, 0, 0, 0);
+        if (!a && g_4fcc[g_17ea] == 13 && g_4fcc[g_17ea - 1] == 10) {
+            g_17ee = g_1e50 + 1900;
+            break;
+        }
+        if (g_4fcc[g_17ea] == 13 && g_4fcc[g_17ea + 2] == ' ') {
+            if (g_90f4 == 8)
+                g_929c++;
+            else if (g_90f4 == 9)
+                g_92be++;
+            else
+                g_92d4++;
+            break;
+        }
+        if (g_4fcc[g_17ea] == 0) {
+            if (g_90f4 == 8)
+                g_929c++;
+            else if (g_90f4 == 9)
+                g_92be++;
+            else
+                g_92d4++;
+            g_092a = 1;
+            break;
+        }
+    }
+    SetBkColor(g_13dc, oldbk);
+    SetTextColor(g_13dc, oldtc);
+    SelectObject(g_13dc, oldfont);
+    if (font) {
+        DeleteObject(font);
+        font = 0;
+    }
 }
 
 /* Builds the briefing text in g_4fcc: header, restored-game summary or

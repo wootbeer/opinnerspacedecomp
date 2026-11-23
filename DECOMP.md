@@ -342,3 +342,14 @@ Conventions
 - Locals placed after the hidden POINT-return temporary are block-scope
   locals.
 - object_sizes[2] / object_masses[2] cover DS:9442-9448.
+- A global added to a local is loaded after it; an extern declared inside
+  the function loads it first.
+- Clamp without an intermediate store: the whole clamp in each branch
+  (`if (c) g = g-3 < 50 ? 50 : g-3; else g = g-5 < 50 ? 50 : g-5;`).
+- `if (c) x += A; else x += B;` gives a shared `add [mem],ax`.
+- Early `if (x > y) return; if (g) return;` lets the first test jump to the
+  second's `jmp exit`.
+- Frame slots below the declared locals are often compiler CSE temps
+  spilled across calls, not locals.
+- fn_10_73a6's last two parameters are char; fn_18_5350 takes (x, y) pushed
+  as one POINT; fn_08_124a is pascal.
