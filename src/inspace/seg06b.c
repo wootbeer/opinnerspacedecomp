@@ -49,7 +49,12 @@ extern REC_42 far *g_6afc;
 extern HGLOBAL g_94de;
 extern void far *g_6af8;
 extern HGLOBAL g_94d8;
-extern void far *g_6b04;
+typedef struct {                /* 0x2e-byte champion entries [inferred] */
+    char name[0x28];
+    long f28;                   /* score [inferred] */
+    int f2c;
+} REC_2E;
+extern REC_2E far *g_6b04;
 extern char g_9078[];
 extern char g_96b8[];
 extern HGLOBAL g_94da;
@@ -93,6 +98,16 @@ extern DWORD g_1e7c;
 extern long g_1e58;
 extern int g_93a2;
 extern DWORD fireworks_end_ms;      /* DS:6b00 */
+extern DWORD fireworks_next_launch_ms;  /* DS:1c38 */
+extern int g_1c3c;
+extern int g_920c;
+extern char g_380c[];
+void far fn_16_68d6(HWND hwnd, int id, int id2);
+int far fn_06_8776(LPSTR path);
+void far fn_06_7042(void);
+void far fn_10_94c4(int a, int b, long color, int x, int y, LPSTR s);
+void far fn_06_0f1a(int v, char far *buf);
+void far fn_06_0eb8(long v, char far *buf);
 extern unsigned char g_0f00[];
 extern int g_9646;
 extern int flow_interactive;        /* DS:95bc */
@@ -546,13 +561,241 @@ void far fn_06_6576(void)
 }
 
 /* Not yet decompiled: stub so calls to it compile as near calls. */
-void far fn_06_885c(int a, int b)
+void far fn_06_8eea(void far *p)
 {
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
-void far fn_06_5f7a(int a)
+/* Saves the game (mode 0: .sav, 1: .ded, 2: .don) [inferred]. */
+/* @addr 6:885c */
+int far fn_06_885c(int ask, int mode)
 {
+    int i;
+    int unused1;
+    HFILE hf;
+    int unused2;
+    int unused3;
+    DWORD size;
+    char path[110];
+    char name[20];
+    char tmp[100];
+    OFSTRUCT of;
+    HGLOBAL h;
+    void far *p;
+    int done;
+    int n;
+
+    if (mode && g_1e58 < 1000)
+        return 0;
+    if (!g_920c && flow_interactive) {
+        if (ask && !mode)
+            fn_16_68d6(g_0016, 0x914, -1);
+        return 0;
+    }
+    fn_06_7042();
+    lstrcpy(path, g_9078);
+    if (mode)
+        lstrcat(path, g_96c5);
+    else
+        lstrcat(path, g_96b8);
+    if (ask) {
+        GetPrivateProfileString(g_9690, "Restore", "", name, 9, g_96a9);
+        if (mode && name[3] == ' ') {
+            lstrcpy(tmp, g_380c);
+            tmp[7] = 0;
+            lstrcpy(name, tmp);
+            for (i = 0; i < lstrlen(name); i++)
+                if (name[i] == ' ')
+                    name[i] = 0;
+        }
+        lstrcat(path, name);
+    } else if (flow_interactive)
+        lstrcat(path, "lastgame");
+    else
+        lstrcat(path, "demogame");
+    if (mode == 2)
+        lstrcat(path, ".don");
+    else if (mode)
+        lstrcat(path, ".ded");
+    else
+        lstrcat(path, ".sav");
+    if (mode) {
+        n = done = 0;
+        do {
+            done = fn_06_8776(path);
+            if (!done) {
+                lstrcpy(path, g_8f7a);
+                lstrcat(path, g_96c5);
+                name[5] = 0;
+                lstrcat(path, name);
+                fn_06_0f1a(++n, tmp);
+                lstrcat(path, tmp);
+                if (mode == 2)
+                    lstrcat(path, ".don");
+                else
+                    lstrcat(path, ".ded");
+            }
+        } while (!done);
+    }
+    hf = OpenFile(path, &of, OF_CREATE | OF_READWRITE);
+    if (hf == -1)
+        return 0;
+    h = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, 0x1a9L);
+    p = GlobalLock(h);
+    if (!p) {
+        GlobalFree(h);
+        _lclose(hf);
+        return 0;
+    }
+    fn_06_8eea(p);
+    if (!h || !g_94ae || !g_95a4) {
+        _lclose(hf);
+        return 0;
+    }
+    if (!fn_06_9e66(hf, (char huge *)p, size = GlobalSize(h))
+        || !fn_06_9e66(hf, (char huge *)g_6e24, size = GlobalSize(g_95a4))
+        || !mode && !fn_06_9e66(hf, (char huge *)g_69f4, size = GlobalSize(g_94ae))) {
+        GlobalUnlock(h);
+        GlobalFree(h);
+        _lclose(hf);
+        return 0;
+    }
+    _lclose(hf);
+    GlobalUnlock(h);
+    GlobalFree(h);
+    h = 0;
+    p = 0;
+    return 1;
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+int far fn_06_73f6(void)
+{
+    return 0;
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+int far fn_06_7c14(void)
+{
+    return 0;
+}
+
+/* Draws the champions table [inferred]. */
+/* @addr 6:62b6 */
+void far fn_06_62b6(void)
+{
+    int i;
+    int unused;
+    int y;
+    int w;
+    int maxlen;
+    int off;
+    int n;
+    char buf[40];
+    char line[60];
+    int g;
+    int b;
+
+    w = min(g_90ea / 2 - 20, 360);
+    maxlen = min((w - 33) * 2 / 18, 39);
+    n = 10;
+    off = 0;
+    if (g_0010 < 480) {
+        off = 15;
+        n = g_0010 / 47;
+    }
+    LoadString(g_9212, 0x39d, buf, 40);
+    fn_10_94c4(0, 6, RGB(255, 0, 0), g_90ea / 2, g_90ec / 2 + off - 175, buf);
+    for (i = 0; i < n; i++) {
+        y = i * 30 + g_90ec / 2 + off - 130;
+        fn_06_0f1a(g_6b04[i].f2c, buf);
+        if (!g_6b04[i].name[0])
+            break;
+        if (g_6b04[i].f28 == g_1e58)
+            g = b = 255;
+        else {
+            if (i < 3 && g_93a2 > 7)
+                g = 255;
+            else
+                g = i * -255 / 10 + 230;
+            b = 0;
+        }
+        fn_10_94c4(0, 2, PALETTERGB(255, g, b), g_90ea / 2 - w + 7, y, buf);
+        lstrcpy(buf, g_6b04[i].name);
+        buf[maxlen] = 0;
+        fn_10_94c4(0, 0, PALETTERGB(255, g, b), g_90ea / 2 - w + 0x2e, y, g_6b04[i].name);
+        fn_06_0eb8(g_6b04[i].f28, buf);
+        fn_10_94c4(0, 2, PALETTERGB(255, g, b), g_90ea / 2 + w - 0x1e, y, buf);
+    }
+    LoadString(g_9212, 0x134, buf, 40);
+    lstrcpy(line, buf);
+    LoadString(g_9212, 0x80f, buf, 40);
+    lstrcat(line, buf);
+    lstrcat(line, ": ");
+    fn_06_0eb8(g_1e58, buf);
+    lstrcat(line, buf);
+    fn_10_94c4(0, 6, PALETTERGB(255, 255, 255), g_90ea / 2, y - off / 2 + 50, line);
+}
+
+/* Fireworks: launches new rockets until fireworks_end_ms, then shows the
+ * champions table [inferred]. */
+/* @addr 6:5f7a */
+void far fn_06_5f7a(int first)
+{
+    int a;
+    int v;
+    int sw;
+    int ok;
+    int r1;
+    int r2;
+
+    if (first)
+        g_1c3c = 0;
+    if (g_1e50 < fireworks_end_ms) {
+        if (first) {
+            v = rand() % 200 + 100;
+            fn_06_84fc((rand() % 2 + 1) * 10, g_90ea / 2 - 200, g_90ec, v, -2500,
+                       32, 32, 25, 0x8c, -1);
+            fn_06_84fc((rand() % 2 + 1) * 10, g_90ea / 2 + 200, g_90ec, v = -v, -2500,
+                       32, 32, 25, 0xc3, -1);
+            fireworks_next_launch_ms = g_1e50 + 1700;
+        }
+        if (fireworks_next_launch_ms < g_1e50) {
+            ok = 0;
+            switch (sw = rand() % 3) {
+            case 0:
+                ok = fn_06_84fc((rand() % 2 + 1) * 10, rand() % 400 + g_90ea / 2 - 200,
+                                g_90ec, 0, -2500, 32, 32, 25, rand() % 30 + 80, -1);
+                break;
+            case 1:
+                ok = fn_06_84fc((rand() % 2 + 1) * 10, g_90ea / 2, g_90ec, 300, -2500,
+                                32, 32, 25, rand() % 25 + 40, rand() % 3);
+                if (ok)
+                    ok = fn_06_84fc((rand() % 2 + 1) * 10, g_90ea / 2, g_90ec, 300, -2500,
+                                    32, 32, 25, rand() % 25 + 40, rand() % 3);
+                break;
+            case 2:
+                a = rand() % 2;
+                v = rand() % g_90ea + g_90ea;
+                if (a)
+                    v = -v;
+                ok = fn_06_84fc((rand() % 2 + 1) * 10, a * g_90ea, g_90ec, v, -2500,
+                                32, 32, 25, rand() % 58 + 30, 2);
+                break;
+            }
+            if (ok) {
+                if (rand() % 6 < 2 && sw != 1)
+                    fireworks_next_launch_ms = g_1e50 + rand() % 700;
+                else
+                    fireworks_next_launch_ms = g_1e50 + rand() % 600 + 600;
+            }
+        }
+    }
+    r1 = fn_06_73f6();
+    r2 = fn_06_7c14();
+    if (fireworks_end_ms < g_1e50 && r2 && r1 && !g_1c3c) {
+        g_1c3c = g_94c4 = 1;
+        fn_06_62b6();
+    }
 }
 
 /* Starts the champions/fireworks screen (state 5) [inferred]. */
@@ -575,7 +818,7 @@ void far fn_06_5d58(void)
     g_90f4 = 5;
     PatBlt(g_13dc, 0, 0, g_90ea, g_0010, BLACKNESS);
     g_94d8 = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, 0x1ccL);
-    g_6b04 = GlobalLock(g_94d8);
+    g_6b04 = (REC_2E far *)GlobalLock(g_94d8);
     fn_06_6576();
     if (!g_94cc && (g_1e58 < 200000L || g_93a2 > 3))
         fn_10_7480(5, 1);

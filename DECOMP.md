@@ -147,3 +147,12 @@ Conventions
 - `volatile` keeps two zero stores as immediates (2:1c08) [inferred].
 - 0x50-byte records start at DS:2f4c (not 2f50). DS:9646 is traced as
   "iMainSmart" in a debug string.
+- Struct fields are never constant-propagated, scalar locals are: a POINT
+  field reproduces "store 0, reload later".
+- Block-scope locals get slots after the compiler temporaries.
+- Two adjacent zero stores merge (`xor ax` + stores) unless the globals
+  differ in type (unsigned vs int keeps immediate stores).
+- `if (c) x = f(A); else x = f(B);` gives the tail-merged push/jmp/call form;
+  a `?:` argument gives `sbb` arithmetic.
+- ExtractIcon needs <shellapi.h> (else it compiles as cdecl).
+- 18:1934 is pascal (retf 6); fn_06_84fc and fn_06_7c14 return int.

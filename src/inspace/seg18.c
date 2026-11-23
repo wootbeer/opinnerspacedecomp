@@ -36,7 +36,9 @@ typedef struct {                /* 0x15a bytes, DGROUP array at DS:70ae */
     char p32[0x8e - 0x32];
     char f8e;
     char f8f;
-    char p90[0xb8 - 0x90];
+    char p90[0xad - 0x90];
+    signed char fad;
+    char pae[0xb8 - 0xae];
     int fb8;
     char pba[0xc2 - 0xba];
     char fc2;
@@ -133,10 +135,15 @@ typedef struct {                /* 0x70-byte records */
     char p08[0x0c - 0x08];
     int f0c;
     int f0e;
-    char p10[0x20 - 0x10];
+    char p10[0x18 - 0x10];
+    int f18;
+    int f1a;
+    char p1c[0x20 - 0x1c];
     int f20;
     int f22;
-    char p24[0x70 - 0x24];
+    char p24[0x54 - 0x24];
+    char f54;
+    char p55[0x70 - 0x55];
 } REC_70;
 extern REC_70 far *g_1df8[21];      /* 0-14: 0x460-byte blocks, 15-20: 0x70 */
 extern int g_9324;
@@ -238,7 +245,7 @@ extern int g_073e;
 extern int g_9664;
 extern int g_9674;
 extern char g_a197;
-extern void far *g_88d4;
+extern long g_88d4;
 extern int g_9326;
 extern int g_9328;
 extern int g_934a;
@@ -251,6 +258,22 @@ extern int g_13a0;
 void far fn_06_7266(void);
 void far fn_06_72d8(int n, int m);
 void far fn_10_58ce(int a);
+extern int g_9320;
+extern DWORD g_1e68;
+extern DWORD g_8e2c;
+extern int g_9318;
+extern int g_0992;
+extern int g_932a;
+extern int g_91f8;
+extern int g_93ac;
+extern int g_92e8;
+extern int g_913e;
+extern int g_9406[];
+extern POINT g_88c8;
+extern unsigned g_9666;
+extern int g_913a;
+extern DWORD g_2384;
+extern int flow_interactive;        /* DS:95bc */
 int far fn_09_955c(UINT id, LPSTR buf);
 void far fn_09_9580(UINT id, LPSTR dst);
 
@@ -895,7 +918,7 @@ void far fn_18_3474(void)
 }
 
 /* Starts the Demon sub-game [inferred]. */
-/* near-match 41.4%: 18:08bc (helper stopped mid-work) */
+/* near-match 41%: 18:08bc (two adjacent long zero stores become sub eax,eax; the game stores immediates) */
 void far fn_18_08bc(int big)
 {
     int i;
@@ -970,4 +993,80 @@ void far fn_18_08bc(int big)
     if (g_90f4 == 1)
         fn_10_744c(0x30);
     g_9660 = 1;
+}
+
+/* Decides whether the Demon appears now and picks its position
+ * [inferred]. */
+/* @addr 18:5cec */
+int far fn_18_5cec(void)
+{
+    int i;
+    int j;
+    int tries;
+    int unused;
+    int b;
+    int a;
+    int ok;
+    POINT pt;
+    POINT unused2;
+    POINT unused3;
+
+    ok = 1;
+    if (!flow_interactive)
+        return 0;
+    if (g_9320 == 6)
+        return 0;
+    if (g_1e68 - g_8e2c < 400)
+        return 0;
+    for (i = 0; i < g_9318; i++)
+        if (g_1df8[8][i].f1a || g_1df8[8][i + 1].f1a)
+            ok = 0;
+    if (g_70ae[g_9646].fad > 9)
+        ok = 0;
+    if (!g_1df8[7]->f18)
+        ok = 0;
+    if (g_0992 + 60 > g_932a && g_91f8 - g_93ac < 15)
+        ok = 0;
+    if (g_92e8 || g_913e > 1)
+        ok = 1;
+    if (ok) {
+        if (rand() % 200 < ((int)g_1e68 - 300) / 8 || g_92e8) {
+            tries = 0;
+            do {
+                tries++;
+                ok = 1;
+                pt.x = rand() % (g_90ea * 2) - g_90ea / 2;
+                pt.y = rand() % (g_90ec * 2) - g_90ec / 2;
+                for (i = 8; i <= 14; i++) {
+                    if (i == 8 || i == 14)
+                    for (j = 0; j < g_9406[i]; j++) {
+                        if (!g_1df8[i][j].f18
+                            && (g_1df8[i][j].f54 || i == 14 && j == g_9646)
+                            && (g_90ea * 4 / 5 >> g_9156)
+                               > fn_08_285a(&b, &a, *(POINT far *)&g_1df8[i][j].f04,
+                                            fn_08_2bbe(pt)))
+                            ok = 0;
+                    }
+                }
+                if (tries > 10)
+                    ok = 2;
+            } while (!ok);
+            if (ok == 2)
+                return 0;
+            g_88c8 = fn_08_2bbe(pt);
+            fn_18_0b1e();
+            g_9666 = 0;
+            g_9664 = 0;
+            g_913a = 1;
+            fn_10_754a(0x27, g_88c8.x, g_88c8.y, 4);
+            g_913e = 0;
+            g_93ac = g_91f8;
+            g_965e = 1;
+            fn_10_7480(-2, 1);
+            fn_10_7480(10, 1);
+            g_2384 = g_1e50 + 70000;
+            g_0992 += 50;
+            return 1;
+        }
+    }
 }
