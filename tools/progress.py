@@ -12,6 +12,7 @@ functions (C runtime, found in MLIBCEW.LIB) are counted apart: they come
 from the original library, not from our source.
 """
 import glob
+import re
 import os
 import sys
 
@@ -27,7 +28,15 @@ def main():
     lib = [r for r in rows if r[3] == 'lib']
     own = [r for r in rows if r[3] != 'lib']
     own_bytes = sum(int(r[2]) for r in own)
-    results = run(sorted(glob.glob('src/inspace/*.c')))
+    srcs = sorted(f for f in glob.glob('src/inspace/*.c')
+                  if re.fullmatch(r'seg\d\d[a-z]?\.c', os.path.basename(f)))
+    results = run(srcs)
+    seen = {}
+    for r in results:                      # one result per address
+        key = (r['seg'], r['off'])
+        if key not in seen or r['bad'] == 0:
+            seen[key] = r
+    results = list(seen.values())
     matched = [r for r in results if r['bad'] == 0]
     mbytes = 0
     notes = []
