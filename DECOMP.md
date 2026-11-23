@@ -484,3 +484,13 @@ Conventions
   register, write the parameter (`g_2f4c[k]`), not the array element.
 - `if (t != 5 && t != 12 && t != 2) for (...)` gives the inner loop's
   `j = 0; jmp test` at the bottom of the outer loop; `continue` does not.
+- Locals as POINT/RECT members make CL recompute expressions instead of
+  reusing them, while it keeps the record address in es:bx.
+- `obj = g;` with obj never read keeps the load in cx and CL reuses it for
+  later reads of g (the store is dropped, the slot stays).
+- A plain argument expression is evaluated during the pushes (not CSE'd); an
+  assignment `ty = expr` is evaluated before the pushes and is CSE'd.
+- A second extern name for the same address stops CL cross-jumping otherwise
+  identical tails [layout-only; mark it].
+- `duel = race = 0;` vs `race = duel = 0;` picks immediate dword store vs
+  `xor ax` + two stores.

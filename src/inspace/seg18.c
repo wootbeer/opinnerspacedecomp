@@ -2207,6 +2207,7 @@ extern int g_944e;
 extern int g_9450;
 extern int object_sizes[2];         /* DS:9442 */
 extern int object_masses[2];        /* DS:9446 */
+extern int g_9448;                  /* object_masses[1] */
 extern POINT g_52dc;
 extern POINT g_52e0;
 extern POINT g_52e4;
@@ -2221,8 +2222,10 @@ void far pascal fn_08_6a44(int a);
 
 /* Checks an object against the Demon arena's wall rectangles and bounces
  * it [inferred]. unused8 stands for a temporary the original drops. */
-/* near-match 63%: 18:2c1e (CL stores the unused8 temporary; the game keeps
- * g_88c0 - g_9678 in ax only, and its frame is 2 bytes larger) */
+/* near-match 71%: 18:2c1e (CL stores the unused8 temporary; the game keeps
+ * g_88c0 - g_9678 in ax only, and its frame is 2 bytes larger, the extra
+ * slot below the POINT return temporary; block-scope temps, casts and
+ * extern order tried) */
 int far fn_18_2c1e(int type, int idx)
 {
     int i;
@@ -2263,7 +2266,9 @@ int far fn_18_2c1e(int type, int idx)
                     object_masses[1] *= 2;
                     object_masses[1] = g_96d6[g_70ae[g_6098[idx].f7c].f30].f2e * object_masses[1] / 250;
                     if (g_90f4 == 1)
-                        object_masses[1] = (24 - 5 * g_a198) * object_masses[1] * 3 / 20;
+                        /* g_9448 = object_masses[1]: a second name stops CL
+                         * merging this product with the else arm's [layout] */
+                        object_masses[1] = (24 - 5 * g_a198) * g_9448 * 3 / 20;
                     else
                         object_masses[1] = (9 - g_a198) * object_masses[1] * 3 / 20;
                     k = n;
