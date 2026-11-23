@@ -467,6 +467,7 @@ extern int g_931c;
 extern long g_05a8;
 extern DWORD g_1e68;
 extern int g_1d48;
+extern char g_111a[];              /* "..." */
 void far sprite_dc_release(void);
 void far sprite_dc_restore(void);
 void far fn_15_4c76(int a, int b);
@@ -2052,16 +2053,15 @@ void far fn_16_0cfe(int a)
         HBITMAP old;
         int w;
         HPALETTE pal;
-        int y;
-        int x;
+        POINT p;
 
         BitBlt(g_13dc,
-               x = g_90ea / 2
+               p.x = g_90ea / 2
                    - (w = (g_6e24[g_7092[g_9646].f_0d4].f7a
                            + (g_6e24[g_7092[g_9646].f_0d4].f7b - 6) / 2) * 4) / 2,
-               y = g_92d6 + 2, w, w,
+               p.y = g_92d6 + 2, w, w,
                g_3cdc[1], 0, g_3cea, SRCAND);
-        BitBlt(g_13dc, x, y, w, w, g_3cdc[0], 0, g_3cea, SRCPAINT);
+        BitBlt(g_13dc, p.x, p.y, w, w, g_3cdc[0], 0, g_3cea, SRCPAINT);
         w = g_1e30[g_9646].f22 << 3 >> g_959e;
         if (!g_953c)
             g_953c = CreateCompatibleBitmap(g_13dc, g_3ce6, w + 0x43);
@@ -2182,12 +2182,9 @@ void far fn_16_0cfe(int a)
         fn_10_a332(g_6db8, (char *)0x486, 1, (LPSTR)buf);
         g_914a++;
         break;
-    case 15:
+    case 15: {
+        DWORD t; HDC dc; HBITMAP old;
         if (!g_9532) {
-            HBITMAP old;
-            HDC dc;
-            DWORD t;
-
             t = GetCurrentTime();
             while (GetCurrentTime() - t < 1300)
                 ;
@@ -2239,6 +2236,7 @@ void far fn_16_0cfe(int a)
         }
         g_914a = 0x16;
         break;
+    }
     case 5: case 9: case 16: case 23: case 34: case 39: case 42: case 55:
     case 57: case 62:
         fn_16_2e3c(0, 1);
@@ -2343,6 +2341,7 @@ void far fn_16_0cfe(int a)
             g_914a = 0x21;
         break;
     case 3: case 7: case 12: case 14: case 32: case 37:
+    zero:
         fn_16_2e3c(0, 0);
         break;
     case 33:
@@ -2352,10 +2351,10 @@ void far fn_16_0cfe(int a)
         } else
             g_914a = 0x26;
         break;
-    case 35:
-        if (g_1c48 < g_1e50) {
-            long l;
+    case 35: {
+        long l;
 
+        if (g_1c48 < g_1e50) {
             g_1c48 = g_1e50 + 50;
             flag = 1;
             i = 4;
@@ -2373,6 +2372,7 @@ void far fn_16_0cfe(int a)
                 g_914a++;
         }
         break;
+    }
     case 19:
         g_914a++;
         break;
@@ -2384,7 +2384,7 @@ void far fn_16_0cfe(int a)
         g_1c50 = g_1c4c = 1;
         if (g_9541) {
             fn_10_a332(g_6db8, (char *)0x4a1, 1, 1);
-            lstrcat(g_6db8, "...");
+            lstrcat(g_6db8, g_111a);
             g_1c50 = 0;
             g_914a++;
         } else
@@ -2392,14 +2392,15 @@ void far fn_16_0cfe(int a)
         break;
     case 40:
         t0 = GetCurrentTime();
-        while (GetCurrentTime() - t0 < 800)
+        do
             ;
+        while (GetCurrentTime() - t0 < 800);
         g_914a++;
         break;
     case 41:
         if (g_957f) {
             fn_09_95f4(0x7b3);
-            lstrcat(g_6db8, "...");
+            lstrcat(g_6db8, g_111a);
             g_1c50 = 0;
             g_914a++;
         } else
@@ -2463,10 +2464,10 @@ void far fn_16_0cfe(int a)
             g_1c4c = 1;
         }
         break;
-    case 51:
-        if (g_9542[g_1c4c]) {
-            int found;
+    case 51: {
+        int found;
 
+        if (g_9542[g_1c4c]) {
             found = 0;
             for (j = 0; j < 10; j++)
                 if (g_7092[g_9646].f_0b6[j] == g_1c4c) {
@@ -2481,6 +2482,7 @@ void far fn_16_0cfe(int a)
         } else
             g_914a = 0x35;
         break;
+    }
     case 49: case 52:
         fn_16_2e3c(0, g_1c50);
         g_1c50 = 0;
@@ -2520,7 +2522,7 @@ void far fn_16_0cfe(int a)
             g_1c48 = 0;
             g_914a = 0x3c;
         } else {
-            g_7092[g_952e].f_0da -= (long)g_9e55 - (long)g_9e5d;
+            g_7092[g_952e].f_0da -= (long)g_9e55 - g_9e5d;
             g_9e55 = 0;
             fn_06_0f54(g_7092[g_952e].f_0da, 100, 2, buf);
             fn_10_a332(g_6db8, (char *)0x486, 1, (LPSTR)buf);
@@ -2545,7 +2547,7 @@ void far fn_16_0cfe(int a)
             fn_09_95f4(0x7e6);
         else
             fn_09_95f4(0x49c);
-        lstrcat(g_6db8, "...");
+        lstrcat(g_6db8, g_111a);
         fn_15_0cb0();
         g_914a++;
         break;
