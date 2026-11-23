@@ -43,7 +43,11 @@ typedef struct {
     POINT p;        /* +0 */
     POINT q;        /* +4 */
     POINT r;        /* +8 */
-    char pad[0xc];  /* +c */
+    int f0c;        /* +c */
+    int f0e;        /* +e */
+    int f10;        /* +10 */
+    int f12;        /* +12 */
+    char pad[4];
     POINT s;        /* +18 */
 } REC_1C;
 extern REC_1C g_2414[][5][5];
@@ -464,6 +468,69 @@ void far fn_08_9b4e(void)
                 fn_08_9028(i, 10, g_70ae[g_52ec[i].f18.b].f14);
             else
                 g_52ec[i].f12 = 5;
+        }
+    }
+}
+
+/* Set up the 5x5 grid of group a around object (type, idx), with a random
+ * motion formula per cell [inferred]. */
+/* @addr 8:9694 */
+void far fn_08_9694(int a, int type, int idx)
+{
+    int i;
+    int j;
+    POINT p;
+
+    if (type == 0x1e) {
+        p.x = g_6098[idx].f70;
+        p.y = g_6098[idx].f72;
+    } else {
+        p.x = g_1df8[type][idx].f0c;
+        p.y = g_1df8[type][idx].f0e;
+    }
+    for (i = 0; i < 5; i++) {
+        for (j = 0; j < 5; j++) {
+            g_2414[a][i][j].s.x = (j << 4) + g_5224[a].x + 8;
+            g_2414[a][i][j].s.y = (i << 4) + g_5224[a].y + 8;
+            g_2414[a][i][j].f0c = (j - 2) * 8 + p.x;
+            g_2414[a][i][j].f0e = (2 - i) * 7 + p.y;
+            g_2414[a][i][j].f10 = (i + 5) * 2 - j * 7;
+            g_2414[a][i][j].f12 = (-1 - j) * 4 + i * 6;
+            type = rand() % 32;
+            switch (type % 8) {
+            case 0:
+                g_2414[a][i][j].f10 = (i + 5) * 2 - j * 7;
+                g_2414[a][i][j].f12 = (-1 - j) * 4 + i * 6;
+                break;
+            case 1:
+                g_2414[a][i][j].f10 = (2 - j) * 7 + (2 - i) * (i - 2) * 2;
+                g_2414[a][i][j].f12 = (2 - j) * (j - 2) * 4 + (i - 2) * 6;
+                break;
+            case 2:
+                g_2414[a][i][j].f10 = (2 - j) * 7 + (2 - i) * (i - 2) * 2;
+                g_2414[a][i][j].f12 = (j - 2) * (j - 2) * 4 + (2 - i) * 6;
+                break;
+            case 3:
+                g_2414[a][i][j].f10 = -(2 - i) * 2 + (2 - j) * (5 - i) * 7;
+                g_2414[a][i][j].f12 = -(2 - i) * (j - 5) * 6 + (j - 2) * 4;
+                break;
+            case 4:
+                g_2414[a][i][j].f10 = (2 - j) * (i - 2);
+                g_2414[a][i][j].f12 = (j - 2) * (i - 2) * 7 + (2 - j) * (2 - i) * 2;
+                break;
+            case 5:
+                g_2414[a][i][j].f10 = ((2 - i) * (2 - i) * (i - 2) + j - 2) * 6;
+                g_2414[a][i][j].f12 = (2 - j) * (j - 2) * 2 + (i - 2) * 5;
+                break;
+            case 6:
+                g_2414[a][i][j].f10 = ((i - 2) * (i - 2) * (2 - i) + (j - 2) * (j - 2) * (j - 2)) * 6;
+                g_2414[a][i][j].f12 = (2 - j) * (j - 2) * 2 + (i - 2) * (i - 2) * i * 7;
+                break;
+            case 7:
+                g_2414[a][i][j].f10 = j * 7 - i * 3 - 8;
+                g_2414[a][i][j].f12 = (i - 2) * (i - 2) * (i - 2) * 6;
+                break;
+            }
         }
     }
 }
