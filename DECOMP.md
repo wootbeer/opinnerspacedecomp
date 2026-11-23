@@ -324,3 +324,12 @@ Conventions
   lower base (the reference check works on the 16-bit sum).
 - A frame one slot too big: a block-scoped local shares its slot with a
   compiler temp.
+- Extern declaration order also decides how CL reassociates sums (and so
+  what it CSEs).
+- A global declared only at block scope counts as later than the locals:
+  loaded first in commutative ops.
+- The `je L; ...; L: jmp end` trampoline comes from a plain `if (a && b)
+  {...}` as the last statement of a case or branch.
+- More types: g_6e14/g_6e18 (demon host window size, position) are POINTs;
+  g_190a/g_190e, g_1c54/g_1c58 POINT cursors; g_1876, g_05ac, g_1916,
+  g_191a, g_1c60, g_187a, g_18b6 DWORD timers; g_94c8 compared signed.

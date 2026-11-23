@@ -89,7 +89,9 @@ extern REC_7C far *g_6e24;
 typedef struct {                /* 0x14-byte records, DGROUP array at DS:4d92 */
     char f00;
     char f01;
-    char p02[0x08 - 0x02];
+    char p02[0x06 - 0x02];
+    char f06;
+    char p07;
     int f08;
     char p0a[0x10 - 0x0a];
     int f10;
@@ -214,7 +216,8 @@ extern int g_6e54;
 extern int g_094e;
 typedef struct {                /* 0x34-byte records, DGROUP array at DS:3d6c */
     int f00;
-    char p02[0x14 - 0x02];
+    int f02;
+    char p04[0x14 - 0x04];
     int f14;
     char p16[0x34 - 0x16];
 } REC_34;
@@ -309,6 +312,53 @@ extern DWORD g_1916;            /* next character time */
 extern DWORD g_191a;
 extern int g_0ba2;              /* text finished */
 void far fn_15_84b0(int x, int y);
+typedef struct {                /* 0x42-byte race record [inferred] */
+    char name[0x14];
+    char f14[3][10];
+    unsigned f32[4][2];
+} REC_42;
+extern REC_42 far *g_6afc;
+extern int g_94c8;              /* unsigned in seg06b.c; compared signed here */
+extern int g_9ea0;
+extern char g_9ebc[];
+int far fn_06_8b90(int i);
+int far fn_06_8cb2(int unused, int n, unsigned v, int j, int k);
+int far fn_06_8dfe(int i);
+void far fn_06_8eb4(void);
+void far fn_11_4928(int mode, DWORD t, LPSTR out);
+extern REC_70 far *g_1df8[16];
+extern DWORD g_18b6;
+extern int g_18ba;
+extern int g_18bc;
+extern int g_18be;
+extern int g_18c0;
+void far fn_10_565a(void);
+extern int g_9156;              /* zoom shift */
+extern int g_91fc;
+extern int g_91fe;
+extern DWORD g_187a;
+extern int g_1882;
+extern int g_1884;
+void far fn_10_754a(int a, int b, int c, int d);
+#define SC(n) ((n) << g_9156 >> 1)     /* zoom scaling */
+#pragma pack(1)
+typedef struct {                /* 0x1a9-byte saved game header [inferred] */
+    char p00[0x04];
+    char name[0x18 - 0x04];
+    signed char f18;
+    signed char f19;
+    signed char f1a;
+    signed char f1b;
+    signed char f1c;
+    signed char f1d;
+    long f1e;
+    int f22;
+    char p24[0x16f - 0x24];
+    signed char f16f;
+} REC_SAVE;
+#pragma pack()
+void far fn_06_0eb8(long v, char far *buf);
+void far fn_15_6558(int n, char far *buf);
 
 /* @addr 17:306e */
 void far fn_17_306e(void)
@@ -1528,9 +1578,116 @@ void far fn_17_33ee(void)
     lstrcat(g_6078, buff2);
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* @addr 17:4988 */
 void far fn_17_4988(void)
 {
+    HFONT hfont;
+    HFONT oldfont;
+    DWORD oldbk;
+    DWORD oldtext;
+    char line[80];
+    char buf[70];
+    int i;
+    POINT pt;
+
+    hfont = CreateFont(15, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, g_06b0);
+    oldfont = SelectObject(g_13dc, hfont);
+    oldbk = SetBkColor(g_13dc, RGB(0, 0, 0));
+    SetBkMode(g_13dc, TRANSPARENT);
+    SetTextAlign(g_13dc, 0);
+    fn_15_84b0(30, g_6086 + 20);
+    fn_09_955c(g_9468 + 0x492, buf);
+    oldtext = SetTextColor(g_13dc, PALETTERGB(0, 0xd6, 0xff));
+    TextOut(g_13dc, 30, g_6086 + 20, buf, lstrlen(buf));
+    SetBkColor(g_13dc, oldbk);
+    SetTextColor(g_13dc, oldtext);
+    SelectObject(g_13dc, oldfont);
+    if (hfont) {
+        DeleteObject(hfont);
+        hfont = 0;
+    }
+    hfont = CreateFont(13, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, g_06b0);
+    oldfont = SelectObject(g_13dc, hfont);
+    oldbk = SetBkColor(g_13dc, RGB(0, 0, 0));
+    SetBkMode(g_13dc, TRANSPARENT);
+    SetTextAlign(g_13dc, 0);
+    oldtext = SetTextColor(g_13dc, RGB(0, 255, 255));
+    pt.y = g_6086 + 60;
+    pt.x = 30;
+    switch (g_9468) {
+    case 0:
+        fn_09_955c(0x310, line);
+        TextOut(g_13dc, pt.x, pt.y, line, lstrlen(line));
+        fn_09_955c(0x311, line);
+        TextOut(g_13dc, pt.x + 195, pt.y, line, lstrlen(line));
+        pt.y += 28;
+        for (i = 0; i < 9; i++) {
+            fn_09_955c(i + 0x4c7, buf);
+            TextOut(g_13dc, pt.x, pt.y, buf, lstrlen(buf));
+            fn_09_955c(i + 0x52b, buf);
+            TextOut(g_13dc, pt.x + 195, pt.y, buf, lstrlen(buf));
+            pt.y += 18;
+        }
+        break;
+    case 1:
+        fn_09_955c(0x493, line);
+        TextOut(g_13dc, pt.x, pt.y, line, lstrlen(line));
+        fn_09_955c(0x312, line);
+        TextOut(g_13dc, pt.x + 110, pt.y, line, lstrlen(line));
+        fn_09_955c(0x313, line);
+        TextOut(g_13dc, pt.x + 220, pt.y, line, lstrlen(line));
+        fn_09_955c(0x311, line);
+        TextOut(g_13dc, pt.x + 380, pt.y, line, lstrlen(line));
+        pt.y += 28;
+        for (i = 0; i < 9; i++) {
+            fn_09_955c(i + 0x4d0, line);
+            TextOut(g_13dc, pt.x, pt.y, line, lstrlen(line));
+            fn_09_955c(i + 0x4d9, line);
+            TextOut(g_13dc, pt.x + 110, pt.y, line, lstrlen(line));
+            fn_09_955c(i + 0x4e2, line);
+            TextOut(g_13dc, pt.x + 220, pt.y, line, lstrlen(line));
+            fn_09_955c(i + 0x534, line);
+            TextOut(g_13dc, pt.x + 380, pt.y, line, lstrlen(line));
+            pt.y += 18;
+        }
+        break;
+    case 2:
+        pt.y -= 10;
+        fn_09_955c(0x310, line);
+        TextOut(g_13dc, pt.x, pt.y, line, lstrlen(line));
+        fn_09_955c(0x311, line);
+        TextOut(g_13dc, pt.x + 80, pt.y, line, lstrlen(line));
+        pt.y += 28;
+        for (i = 0; i < 11; i++) {
+            fn_09_955c(i + 0x4b0, buf);
+            TextOut(g_13dc, pt.x, pt.y, buf, lstrlen(buf));
+            fn_09_955c(i + 0x514, buf);
+            TextOut(g_13dc, pt.x + 80, pt.y, buf, lstrlen(buf));
+            pt.y += 18;
+        }
+        pt.y = g_6086 + 60;
+        pt.x = (g_6088 - g_6084) / 2 + g_6084;
+        fn_09_955c(0x310, line);
+        TextOut(g_13dc, pt.x, pt.y, line, lstrlen(line));
+        fn_09_955c(0x311, line);
+        TextOut(g_13dc, pt.x + 100, pt.y, line, lstrlen(line));
+        pt.y += 28;
+        for (i = 0; i < 11; i++) {
+            fn_09_955c(i + 0x4bc, buf);
+            TextOut(g_13dc, pt.x, pt.y, buf, lstrlen(buf));
+            fn_09_955c(i + 0x520, buf);
+            TextOut(g_13dc, pt.x + 100, pt.y, buf, lstrlen(buf));
+            pt.y += 18;
+        }
+        break;
+    }
+    SetBkColor(g_13dc, oldbk);
+    SetTextColor(g_13dc, oldtext);
+    SelectObject(g_13dc, oldfont);
+    if (hfont) {
+        DeleteObject(hfont);
+        hfont = 0;
+    }
 }
 
 /* @addr 17:0000 */
@@ -2069,9 +2226,143 @@ void far fn_17_5008(void)
     }
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Shows the details of the selected saved game [inferred]. */
+/* @addr 17:7c2a */
 void far fn_17_7c2a(void)
 {
+    HFONT hfont;
+    HFONT oldfont;
+    DWORD oldbk;
+    DWORD oldtext;
+    char line[80];
+    char buf[110];
+    char unused[10];
+    HFILE fh;
+    POINT pt;
+    DWORD size;
+    long unused4;
+    HGLOBAL h;
+    REC_SAVE far *p;
+    OFSTRUCT of;
+    int r;
+
+    hfont = CreateFont(13, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, g_06b0);
+    oldfont = SelectObject(g_13dc, hfont);
+    oldbk = SetBkColor(g_13dc, RGB(0, 0, 0));
+    SetBkMode(g_13dc, TRANSPARENT);
+    SetTextAlign(g_13dc, 0);
+    SetTextColor(g_13dc, RGB(0, 255, 255));
+    pt.y = g_6086 + 60;
+    pt.x = g_6084 + 30;
+    fn_14_3eda();
+    if (g_9468 != g_93a2) {
+        lstrcpy(buf, g_9078);
+        if (g_6af8[g_9468 - 1].f30 == 0)
+            lstrcat(buf, g_96b8);
+        else
+            lstrcat(buf, g_96c5);
+        lstrcat(buf, g_6af8[g_9468 - 1].f26);
+        switch (g_6af8[g_9468 - 1].f30) {
+        case 0:
+            lstrcat(buf, ".sav");
+            break;
+        case 1:
+            lstrcat(buf, ".ded");
+            break;
+        case 2:
+            lstrcat(buf, ".don");
+            break;
+        }
+        if ((fh = OpenFile(buf, &of, 0)) == -1)
+            return;
+    }
+    h = GlobalAlloc(GHND, 0x1a9L);
+    GlobalLock(h);
+    size = GlobalSize(h);
+    GlobalUnlock(h);
+    h = GlobalReAlloc(h, size, GHND);
+    p = (REC_SAVE far *)GlobalLock(h);
+    if (g_9468 != g_93a2) {
+        r = fn_14_4006(fh, (char huge *)p, size);
+        _lclose(fh);
+    } else {
+        fn_06_8eea((LPSTR)p);
+    }
+    LoadString(g_9212, 0x833, line, 40);
+    lstrcat(line, p->name);
+    TextOut(g_13dc, pt.x, pt.y, line, lstrlen(line));
+    pt.y += 18;
+    LoadString(g_9212, 0x834, line, 40);
+    lstrcat(line, g_6e20[p->f22].name);
+    TextOut(g_13dc, pt.x, pt.y, line, lstrlen(line));
+    pt.y += 18;
+    LoadString(g_9212, 0x835, line, 40);
+    fn_13_218a(g_96f0[g_7092[g_9464].f_04c].f1a, buf);
+    lstrcat(line, buf);
+    TextOut(g_13dc, pt.x, pt.y, line, lstrlen(line));
+    pt.y += 36;
+    LoadString(g_9212, 0x836, line, 40);
+    fn_06_0eb8(p->f1e, buf);
+    lstrcat(line, buf);
+    TextOut(g_13dc, pt.x, pt.y, line, lstrlen(line));
+    pt.y += 18;
+    LoadString(g_9212, 0x837, line, 40);
+    fn_06_0f1a(g_9468, buf);
+    lstrcat(line, buf);
+    TextOut(g_13dc, pt.x, pt.y, line, lstrlen(line));
+    pt.y += 18;
+    LoadString(g_9212, 0x838, line, 40);
+    switch (g_6af8[g_9468 - 1].f30) {
+    case 0:
+        LoadString(g_9212, 0x839, buf, 40);
+        lstrcat(line, buf);
+        break;
+    case 1:
+        LoadString(g_9212, 0x83a, buf, 40);
+        lstrcat(line, buf);
+        break;
+    case 2:
+        LoadString(g_9212, 0x83b, buf, 40);
+        lstrcat(line, buf);
+        break;
+    }
+    TextOut(g_13dc, pt.x, pt.y, line, lstrlen(line));
+    pt.y += 18;
+    LoadString(g_9212, 0x83c, line, 40);
+    fn_06_0f1a(p->f18 + 1, buf);
+    lstrcat(line, buf);
+    lstrcat(line, "/");
+    fn_06_0f1a(p->f19, buf);
+    lstrcat(line, buf);
+    lstrcat(line, "/");
+    fn_06_0f1a(p->f1a, buf);
+    lstrcat(line, buf);
+    lstrcat(line, " - ");
+    fn_06_0f1a(p->f1b + 1, buf);
+    lstrcat(line, buf);
+    lstrcat(line, "/");
+    fn_06_0f1a(p->f1c, buf);
+    lstrcat(line, buf);
+    lstrcat(line, "/");
+    fn_06_0f1a(p->f1d, buf);
+    lstrcat(line, buf);
+    TextOut(g_13dc, pt.x, pt.y, line, lstrlen(line));
+    pt.y += 18;
+    LoadString(g_9212, 0x83d, line, 40);
+    fn_15_6558(p->f16f, buf);
+    lstrcat(line, buf);
+    TextOut(g_13dc, pt.x, pt.y, line, lstrlen(line));
+    pt.y += 18;
+    GlobalUnlock(h);
+    GlobalFree(h);
+    fn_14_4074();
+    SetBkColor(g_13dc, oldbk);
+    SetTextColor(g_13dc, oldtext);
+    SelectObject(g_13dc, oldfont);
+    if (hfont) {
+        DeleteObject(hfont);
+        hfont = 0;
+    }
 }
 
 /* @addr 17:8270 */
@@ -2458,9 +2749,100 @@ void far fn_17_30b0(int id, long v)
     fn_17_2c5a(1, 0);
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Builds the race / track description text in g_6078 [inferred]. */
+/* @addr 17:76e4 */
 void far fn_17_76e4(void)
 {
+    int i;
+    int j;
+    int k;
+    int n;
+    char buf[200];
+    char names[3][10];
+    unsigned best[3][2];
+
+    n = g_9460 ? (g_9468 - 1) / 2 : g_9322;
+    lstrcpy(g_6078, "");
+    if (g_9460 && ((g_9468 + 1) & 1)) {
+        fn_06_8b90((g_9468 - 1) / 2);
+        fn_06_8cb2((g_9468 - 1) / 2, g_9646, 0, 0, 1);
+        for (i = 0; i < 3; i++)
+            for (j = 0; j < 2; j++)
+                best[i][j] = 0;
+        for (i = 0; i < g_94c8; i++)
+            for (j = 0; j < 3; j++)
+                for (k = 0; k < 2; k++)
+                    if (g_6afc[i].f32[j][k]
+                        && (g_6afc[i].f32[j][k] < best[j][k] || best[j][k] == 0)) {
+                        best[j][k] = g_6afc[i].f32[j][k];
+                        if (k == 0)
+                            lstrcpy(names[j], g_6afc[i].f14[j]);
+                    }
+        fn_09_95ba(0x823);
+        lstrcat(g_6078, "\t185");
+        fn_11_4928(2, best[0][1], buf);
+        lstrcat(g_6078, buf);
+        lstrcat(g_6078, "\t250");
+        fn_11_4928(2, best[0][0], buf);
+        lstrcat(g_6078, buf);
+        lstrcat(g_6078, "\t310");
+        fn_11_4928(0, best[1][1], buf);
+        lstrcat(g_6078, buf);
+        lstrcat(g_6078, "\t370");
+        fn_11_4928(0, best[1][0], buf);
+        lstrcat(g_6078, buf);
+        lstrcat(g_6078, "\t450");
+        fn_11_4928(0, best[2][1], buf);
+        lstrcat(g_6078, buf);
+        lstrcat(g_6078, "\t510");
+        fn_11_4928(0, best[2][0], buf);
+        lstrcat(g_6078, buf);
+        fn_17_42ea(1);
+        lstrcat(g_6078, "\t250");
+        if (best[0][0])
+            lstrcat(g_6078, names[0]);
+        lstrcat(g_6078, "\t370");
+        if (best[1][0])
+            lstrcat(g_6078, names[1]);
+        lstrcat(g_6078, "\t510");
+        if (best[2][0])
+            lstrcat(g_6078, names[2]);
+        fn_06_8dfe((g_9468 - 1) / 2);
+        fn_06_8eb4();
+    } else {
+        fn_09_95ba((n + 800) * 2);
+        lstrcat(g_6078, g_09ee);
+        fn_09_95ba(n * 2 + 0x641);
+        lstrcat(g_6078, g_09ee);
+        if (g_094e && (g_094e - 1) / 4 == n) {
+            fn_17_42ea(1);
+            fn_17_42ea(1);
+            fn_09_95ba(0x824);
+            fn_06_0f1a(g_9ea0, buf);
+            lstrcat(g_6078, buf);
+            fn_09_95ba(0x825);
+            lstrcat(g_6078, g_09ee);
+            switch (g_9ea0) {
+            case 1:
+                fn_09_95ba(0x826);
+                break;
+            case 5:
+                fn_09_95ba(0x827);
+                break;
+            case 10:
+                fn_09_95ba(0x828);
+                break;
+            }
+            lstrcat(g_6078, g_09ee);
+            if (g_4ee0[0]) {
+                if (!g_4ee0[1])
+                    g_4ed4[1] = 0;
+                fn_10_a332(g_6078, "button", 0, g_9ebc[n], 0x9db,
+                           g_4d92[g_4ed4[j]].f10 + 10000, g_4ee0[1],
+                           g_4d92[g_4ed4[1]].f10 + 10000);
+            }
+        }
+    }
 }
 
 /* @addr 17:7088 */
@@ -2808,9 +3190,170 @@ void far fn_17_03b2(void)
     }
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Shows the crew portraits one by one, growing in and then shrinking
+ * away (briefing step 1) [inferred]. */
+/* @addr 17:0600 */
 int far fn_17_0600(int reset)
 {
+    HFONT oldfont;
+    HFONT hfont;
+    char buf[80];
+    DWORD oldtext;
+    DWORD oldbk;
+    int unused;
+    int total;
+    int left;
+    int r;
+    int org;
+    int sz;
+    int step;
+    int y;
+    int x;
+    extern int g_187e;
+    extern int g_1880;
+
+    org = SC(6);
+    sz = SC(32);
+    if (g_91fc < 7)
+        step = 80;
+    else
+        step = 70;
+    if (reset) {
+        if (!g_91fc && !g_9460) {
+            g_91f8++;
+            fn_09_6624();
+            g_91f8--;
+            g_187a = g_1e50 - 1;
+            return 1;
+        }
+        g_187a = 0;
+        g_187e = g_1880 = g_1882 = 0;
+        if (g_91fc && g_1df8[0][0].f18)
+            do
+                g_1880++;
+            while (g_1df8[0][g_1880].f18 && g_1880 < g_91fe);
+    }
+    if (g_187a) {
+        if (g_187a < g_1e50)
+            return 1;
+        return 0;
+    }
+    switch (g_9462) {
+    case 0:
+        if (!g_91fc) {
+            g_1882 += 3;
+            y = (g_6086 - g_608a) / 2 + g_608a + 20;
+            hfont = CreateFont(0x26, 0x16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, g_06b0);
+            oldfont = SelectObject(g_13dc, hfont);
+            oldbk = SetBkColor(g_13dc, RGB(0, 0, 0));
+            SetBkMode(g_13dc, TRANSPARENT);
+            SetTextAlign(g_13dc, TA_CENTER);
+            oldtext = SetTextColor(g_13dc, RGB(0, 255, 255));
+            fn_09_955c(0x143, buf);
+            TextOut(g_13dc, (g_6088 - g_6084) / 2 + g_6084, (g_6086 - g_608a) / 2 + g_608a + 52,
+                    buf, lstrlen(buf));
+            SetBkColor(g_13dc, oldbk);
+            SetTextColor(g_13dc, oldtext);
+            SelectObject(g_13dc, oldfont);
+            if (hfont) {
+                DeleteObject(hfont);
+                hfont = 0;
+            }
+        } else {
+            total = step * g_91fc;
+            left = (g_6088 - total - g_6084) / 2;
+            x = left - (g_1882 + 4) / 2 + g_187e * step + g_6084 + 32;
+            y = (g_6086 - g_608a) / 2 - (g_1882 + 4) / 2 + g_608a + 52;
+            fn_10_9962(0, g_13dc, x, y, g_1882 + 4, g_1882 + 4, g_39e8[13],
+                       (sz + org) * g_1880 + org, org, sz, sz, SRCCOPY);
+            g_1882 += 3;
+            if (g_1882 == 12)
+                fn_10_754a(0x13, x, y, 4);
+            if (g_1882 > 60) {
+                fn_17_0c2e(g_1880, x, y);
+                do
+                    g_1880++;
+                while (g_1880 < g_91fe && g_1df8[0][g_1880].f18);
+                g_187e++;
+                g_1882 = 0;
+            }
+        }
+        if (!g_91fc && g_1882 > 10 || g_1880 >= g_91fe) {
+            g_1882 = 0;
+            g_9462++;
+            g_5000 = (g_6088 - g_6084) / 2 + g_6084 - 265;
+            g_5002 = y - 106;
+            if (!g_91f8)
+                fn_17_30b0(g_93aa, 5000L);
+            else
+                fn_17_30b0(g_93aa, 3000L);
+        }
+        break;
+    case 1:
+        if (g_9460 && g_9474) {
+            g_9474 = 0;
+            y = (g_6086 - g_608a) / 2 + g_608a + 20;
+            g_5000 = (g_6088 - g_6084) / 2 + g_6084 - 265;
+            g_5002 = y - 106;
+            fn_17_2c5a(1, 1);
+            SetStretchBltMode(g_13dc, 3);
+            g_1880 = g_187e = 0;
+            if (g_91fc && g_1df8[0][0].f18)
+                do
+                    g_1880++;
+                while (g_1880 < g_91fe && g_1df8[0][g_1880].f18);
+            while (g_1880 < g_91fe) {
+                total = step * g_91fc;
+                left = (g_6088 - total - g_6084) / 2;
+                x = left + g_187e * step + g_6084;
+                fn_10_9962(0, g_13dc, x, y, 64, 64, g_39e8[13],
+                           (sz + org) * g_1880 + org, org, sz, sz, SRCCOPY);
+                fn_17_0c2e(g_1880, x, y);
+                do
+                    g_1880++;
+                while (g_1df8[0][g_1880].f18 && g_1880 < g_91fe);
+                g_187e++;
+            }
+            break;
+        }
+        if ((r = fn_17_2c5a(0, 0)) == 1) {
+            g_91f8++;
+            fn_09_6624();
+            g_91f8--;
+        } else if (r == 2 && !g_9460) {
+            g_1880 = 0;
+            g_9462++;
+            g_1882 = g_1884 = 60;
+            fn_10_754a(0x15, x, y, 4);
+        }
+        break;
+    case 2:
+        total = step * g_91fe;
+        left = (g_6088 - total - g_6084) / 2;
+        x = left - (g_1884 + 4) / 2 + g_1880 * step + g_6084 + 32;
+        y = (g_6086 - g_608a) / 2 - (g_1882 + 4) / 2 + g_608a + 52;
+        fn_10_9962(0, g_13dc, x, y, g_1884 + 4, g_1884 + 4, g_39e8[13],
+                   (sz + org) * g_1880 + org - 2, org - 2, sz + 4, sz + 4, SRCCOPY);
+        g_1884 = g_1882;
+        g_1882 -= 4;
+        if (g_1882 == 48) {
+            fn_10_744c(0x6e);
+            if (!g_1880)
+                fn_10_744c(0x15);
+            else
+                fn_10_754a(0x15, x, y, 4);
+        }
+        if (g_1882 <= 0) {
+            x = g_1880 * step + left + g_6084;
+            y = (g_6086 - g_608a) / 2 + g_608a + 20;
+            PatBlt(g_13dc, x - 6, y, 76, step, BLACKNESS);
+            g_1884 = g_1882 = 60;
+            if (++g_1880 >= g_91fe)
+                g_187a = g_1e50 + 1000;
+        }
+        break;
+    }
+    g_9474 = 0;
     return 0;
 }
 
@@ -2903,9 +3446,148 @@ int far fn_17_0d22(int reset)
     return 0;
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Grows a sprite on screen while its text types out, then shrinks it
+ * again (kind 3, 7, 8 or 9) [inferred]. */
+/* @addr 17:1b3e */
 int far fn_17_1b3e(int reset, int kind)
 {
+    int y;
+    int x;
+    int size;
+    int sz;
+    int org;
+    int r;
+    int limit;
+    int frames;
+    int spr;
+    int idx;
+    int base;
+
+    idx = 0;
+    switch (kind) {
+    case 3:
+        spr = 7;
+        limit = 150;
+        frames = 18;
+        base = 44;
+        break;
+    case 7:
+        spr = 5;
+        limit = 190;
+        frames = 10;
+        base = 40;
+        break;
+    case 9:
+        spr = 22;
+        limit = 102;
+        frames = 9;
+        base = 38;
+        break;
+    case 8:
+        idx = g_946e;
+        spr = g_3d6c[idx].f02;
+        limit = 112;
+        frames = 16;
+        base = g_4d92[g_3d6c[idx].f14].f06;
+        break;
+    }
+    if (reset) {
+        fn_10_744c(0x6e);
+        fn_10_744c(0x13);
+        g_18b6 = 0;
+        g_18c0 = g_18ba = 1;
+    }
+    if (g_18b6) {
+        if (g_18b6 < g_1e50)
+            return 1;
+        return 0;
+    }
+    switch (g_9462) {
+    case 0:
+        sz = g_1df8[kind][idx].f22;
+        size = min(base * g_18ba / 55, base * 2);
+        org = g_1df8[kind][idx].f24;
+        if (size < base * 2)
+            g_18be = g_18ba;
+        x = g_608c / 2 - size / 2 - g_18be - 30;
+        y = (g_6086 - g_608a) / 2 - size / 2 + g_608a;
+        SetStretchBltMode(g_13dc, 3);
+        fn_10_9962(0, g_13dc, x, y, size, size, g_39e8[spr], (org + sz) * (g_18c0 / 2) + org,
+                   org, sz, sz, SRCCOPY);
+        PatBlt(g_13dc, size + x, y, 2, size, BLACKNESS);
+        g_18ba++;
+        if (++g_18c0 >= frames * 2)
+            g_18c0 = 0;
+        if (g_18ba > limit) {
+            g_9462++;
+            g_5000 = size + x + 90;
+            g_5002 = y - 10;
+            fn_17_30b0(g_93aa, 5000L);
+        }
+        break;
+    case 1:
+        if (g_9460 && g_9474) {
+            g_9474 = 0;
+            sz = g_1df8[kind][idx].f22;
+            org = g_1df8[kind][idx].f24;
+            size = base * 2;
+            x = g_608c / 2 - size / 2 - 140;
+            y = (g_6086 - g_608a) / 2 - size / 2 + g_608a;
+            g_5000 = x + size + 90;
+            g_5002 = y - 10;
+            fn_17_2c5a(1, 1);
+            SetStretchBltMode(g_13dc, 3);
+            fn_10_9962(0, g_13dc, x, y, size, size, g_39e8[spr], (org + sz) * (frames / 2) + org,
+                       org, sz, sz, SRCCOPY);
+            break;
+        }
+        if (kind != 3 && kind != 7) {
+            sz = g_1df8[kind][idx].f22;
+            size = min(base * g_18ba / 55, base * 2);
+            org = g_1df8[kind][idx].f24;
+            if (size < base * 2)
+                g_18be = g_18ba;
+            x = g_608c / 2 - size / 2 - g_18be - 30;
+            y = (g_6086 - g_608a) / 2 - size / 2 + g_608a;
+            SetStretchBltMode(g_13dc, 3);
+            fn_10_9962(0, g_13dc, x, y, size, size, g_39e8[spr], (org + sz) * (g_18c0 / 2) + org,
+                       org, sz, sz, SRCCOPY);
+            PatBlt(g_13dc, size + x, y, 2, size, BLACKNESS);
+            if (++g_18c0 >= frames * 2)
+                g_18c0 = 0;
+        }
+        if ((r = fn_17_2c5a(0, 0)) == 1)
+            fn_10_565a();
+        else if (r == 2 && !g_9460) {
+            fn_10_744c(0x15);
+            g_18bc = g_18ba = 110;
+            g_9462++;
+        }
+        break;
+    case 2:
+        sz = g_1df8[kind][idx].f22;
+        size = min(base * g_18bc / 55, base * 2);
+        org = g_1df8[kind][idx].f24;
+        if (size < base * 2)
+            g_18be = g_18ba;
+        x = g_608c / 2 - size / 2 - g_18be - 30;
+        y = (g_6086 - g_608a) / 2 - size / 2 + g_608a;
+        SetStretchBltMode(g_13dc, 3);
+        fn_10_9962(0, g_13dc, x, y, size, size, g_39e8[spr], (org + sz) * (g_18c0 / 2) + org - 2,
+                   org - 2, sz + 4, sz + 4, SRCCOPY);
+        PatBlt(g_13dc, x - 4, y, 4, size, BLACKNESS);
+        PatBlt(g_13dc, x - 10, y - 10, size + 10, 10, BLACKNESS);
+        g_18bc = g_18ba;
+        g_18ba -= 2;
+        if (--g_18c0 < 0)
+            g_18c0 = frames * 2 - 1;
+        if (g_18ba <= 8) {
+            PatBlt(g_13dc, x - 4, y - 4, size + 8, size + 8, BLACKNESS);
+            g_18b6 = g_1e50 + 1000;
+        }
+        break;
+    }
+    g_9474 = 0;
     return 0;
 }
 

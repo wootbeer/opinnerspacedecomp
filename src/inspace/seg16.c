@@ -136,7 +136,6 @@ extern int g_9210;
 extern int g_93a6;
 extern HRGN g_9536;
 extern int g_965e;
-extern POINT g_6e14;
 extern int g_9e55;
 extern long g_9e57;
 extern int g_9e5d;
@@ -376,6 +375,7 @@ void far fn_10_754a(int a, int b, int c, int d);
 int far fn_11_aece(void);
 void far fn_13_498e(int a, int b);
 extern char g_06b0[];
+extern POINT g_6e14;           /* declared after g_3d48: operand order in 16:2e3c */
 extern POINT g_6e18;
 extern POINT g_1c54;            /* ambulance text cursor [inferred] */
 extern POINT g_1c58;            /* previous cursor [inferred] */
@@ -386,12 +386,16 @@ extern HRGN g_9534;
 void far fn_15_84b0(int x, int y);
 
 /* Parses a number from a short digit string [inferred]. */
-/* near-match 48%: 16:0000 (CL refactors the digit sums: (a-48)*10+(b-48)*100 -> ((b*10+a)-528)*10) */
+/* near-match 82%: 16:0000 (game: sub 0x30; mov cx,1000; imul cx for the
+ * thousands digit and r kept in si until one store; here CL folds (d-48)*1000
+ * into imul+add 0x4480 and stores r early. Never-read locals u1/u2 stop the
+ * Horner refactoring of the other terms.) */
 int far fn_16_0000(LPSTR s)
 {
-    int unused1;
+    int u0;
     int r;
     int k;
+    int u1, u2;
 
     k = 0;
     if (s[0] == ' ' || s[0] == 'a') {
@@ -400,12 +404,10 @@ int far fn_16_0000(LPSTR s)
             k = 2;
     }
     if (s[k + 1] == '.') {
-        r = (s[k + 2] - '0') * 10;
-        r += (s[k] - '0') * 100;
+        r = (u1 = (s[k + 2] - 48) * 10) + (u2 = (s[k] - 48) * 100);
     } else {
-        r = (s[k] - '0') * 1000;
-        r += (s[k + 3] - '0') * 10;
-        r += (s[k + 1] - '0') * 100;
+        r = (s[k] - 48) * 1000;
+lab:    r += (u1 = (s[k + 3] - 48) * 10) + (u2 = (s[k + 1] - 48) * 100);
     }
     return r;
 }
