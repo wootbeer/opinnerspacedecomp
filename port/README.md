@@ -1,0 +1,43 @@
+# Native port
+
+Playable, native version of Operation: Inner Space, built from the decomp in
+`../src/inspace` (which stays the byte-exact archival source and is not
+changed for the port).
+
+Goals: the same gameplay as the original; native code (no emulator, no
+general Windows layer); Windows first, Android later; plain C that a person
+can work on.
+
+## Layout
+
+- `src/main.c` – entry point and main loop.
+- `src/video.c` – 256-colour framebuffer shown through SDL3; frames can be
+  saved (`--dump`) to compare with the original.
+- `src/platform/` – everything machine-specific the game needs (time, date,
+  folders and files to explore, data location). One implementation per
+  platform; game code never calls the OS directly.
+
+Planned:
+- `src/game/` – the game logic, translated from the decomp (16-bit types
+  made explicit, memory-layout tricks resolved into proper structs).
+- Native versions of the Windows calls the game makes (about 135 GDI/USER
+  functions), each doing only what this game needs, on the framebuffer
+  and the game's own UI.
+
+## Building
+
+Needs CMake and SDL3.
+
+    cmake -S port -B build -DCMAKE_PREFIX_PATH=<SDL3 install>
+    cmake --build build
+
+Run headless (tests): `SDL_VIDEO_DRIVER=offscreen build/inspace --frames 3 --dump out.ppm`.
+
+Game data (INSPACE.EXE and the other original files) is read from `data/`
+or the folder in `INSPACE_DATA`; it is not part of the repository.
+
+## Quirks
+
+Original behaviour is the default. Crashes and memory-safety bugs are fixed;
+bugs whose fix would change gameplay noticeably stay as in the original,
+with the fix available as a setting. Each is listed in `QUIRKS.md` (to come).
