@@ -243,7 +243,10 @@ extern HGLOBAL g_94ae;
 
 /* Reads the race/duel settings for the chosen track and adds the track to
  * the track list [inferred]. */
-/* @addr 6:301a */
+/* near-match 84%: 6:301a (only difference: the three identical
+ * "g_9ea0 = 10" blocks are cross-jumped into the rand() switch's copy; the
+ * game keeps the RaceLaps dialog switch's copy. Case orders, if/else forms
+ * and default placement tried without effect) */
 int far fn_06_301a(void)
 {
     int i;
@@ -1404,6 +1407,7 @@ void far fn_06_23d4(void)
     SendMessage(hwnd, WM_SETFONT, g_90fe, 0L);
     fn_02_1a7a(hwnd);
     LoadString(g_9212, 0x863, buf, 40);
+    /* the game stores the 0 into the hdc slot here [sic] */
     SendMessage(hwnd, CB_ADDSTRING, hdc = 0, (LPARAM)(LPSTR)buf);
     LoadString(g_9212, 0x864, buf, 40);
     SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);

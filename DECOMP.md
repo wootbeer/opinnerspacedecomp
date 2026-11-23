@@ -429,3 +429,12 @@ Conventions
 - Several `if (x == K) return 0;` in a row each redo the address imul; one
   `if (x == 3 || x == 13 || ...) return 0;` gives the trampoline layout.
 - fn_08_7d70 is pascal (8 far int pointers, 2 ints); fn_02_170e(void).
+- Immediate dword zero store to two int-sized words:
+  `((int *)&g)[0] = ((int *)&g)[1] = 0;` (`*(long *)&g = 0` shares a zeroed
+  eax with neighbouring stores).
+- An else-arm ending in `if (A || B) return 0;` makes CL put the join after
+  the then-arm; two separate `if (...) return 0;` fix it.
+- `if (!a && !b) X; else {Y}` puts Y out of line; `if (a || b) {Y} else X`
+  does not.
+- 6:12b6 (init) takes a WNDCLASS by value, used as its local; WinMain
+  passes it uninitialised. fn_05_0364/0352 are _dos_findfirst/_dos_findnext.

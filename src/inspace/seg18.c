@@ -1632,7 +1632,7 @@ void far fn_18_3474(void)
 }
 
 /* Starts the Demon sub-game [inferred]. */
-/* near-match 41%: 18:08bc (two adjacent long zero stores become sub eax,eax; the game stores immediates) */
+/* @addr 18:08bc */
 void far fn_18_08bc(int big)
 {
     int i;
@@ -1657,7 +1657,9 @@ void far fn_18_08bc(int big)
         fn_10_0552(0xc, 1);
         fn_10_0552(0xa, 1);
     }
-    *(long *)&g_a1d1 = 0;
+    /* two int stores through one view: CL merges them into one immediate
+     * dword store instead of sharing a zeroed eax with g_88d4 */
+    ((int *)&g_a1d1)[0] = ((int *)&g_a1d1)[1] = 0;
     g_88d4 = 0;
     g_9324 = 0x14;
     g_9326 = 0xf;
