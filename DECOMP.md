@@ -207,3 +207,15 @@ Conventions
   (12:07c0: g_2f5e[k].f02 vs g_2f5a[k].f06).
 - fn_08_35d0 and fn_08_285a return int. Segment 8 from 8256 is its own
   source file (seg08c.c).
+- Switch layout: default first, then the first case in source order, then
+  the code after the switch, then the remaining cases.
+- Clamp copied into each branch (`v = expr; f = v < 0 ? 0 : v;`) gives one
+  shared store; a single ternary after the join does not.
+- A ternary in a GDI colour argument folds to sbb/and; the game's form comes
+  from `if (c) g = a; else g = b;` on a local.
+- To make the second of two identical blocks jump into the first, write it as
+  `else if (c) X;` without a break.
+- Open problem: a 16-bit `imul word` into dx:ax (11:6874, 11:9fdc); casts
+  give the 32-bit sequence.
+- seg11d.c stubs duplicate real seg11.c functions: fine for matching, a
+  symbol clash for a full link.
