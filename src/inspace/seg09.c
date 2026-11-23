@@ -806,6 +806,7 @@ void far fn_09_6dec(int force)
 /* @addr 9:6fee */
 void far fn_09_6fee(void)
 {
+    /* pad_* are unused slots in the original frame. */
     int i;
     int j;
     int k;
@@ -914,30 +915,30 @@ void far fn_09_6fee(void)
                 if (times[order[j]] > times[order[j + 1]])
                     fn_08_4d60(&order[j], &order[j + 1]);
         for (i = 0; i <= n4; i++) {
-            if (g_96f0[g_7090[i].f4e].f1a == 7)
-                continue;
-            if (g_1e30[order[i]].f51 == 2) {
-                fn_11_4928(0, g_9e60[order[i]], buf);
+            if (g_96f0[g_7090[i].f4e].f1a != 7) {
+                if (g_1e30[order[i]].f51 == 2) {
+                    fn_11_4928(0, g_9e60[order[i]], buf);
+                    lstrcat(g_6078, buf);
+                    lstrcat(g_6078, "- ");
+                    fn_17_7ba6(i + 1, buf);
+                    lstrcat(g_6078, buf);
+                    fn_09_95ba(0x8c9);
+                } else {
+                    fn_11_4928(0, g_1e68 - g_9e60[order[i]], buf);
+                    lstrcat(g_6078, buf);
+                    lstrcat(g_6078, "- ");
+                    fn_09_95ba(0x8ca);
+                }
+                fn_03_1542(0, 14, order[i], buf, 0);
                 lstrcat(g_6078, buf);
-                lstrcat(g_6078, "- ");
-                fn_17_7ba6(i + 1, buf);
+                if (order[i] == g_9646)
+                    fn_09_95ba(0x8a6);
+                lstrcat(g_6078, "\t350");
+                fn_09_95ba(0x896);
+                fn_11_4928(1, g_9e90[order[i]], buf);
                 lstrcat(g_6078, buf);
-                fn_09_95ba(0x8c9);
-            } else {
-                fn_11_4928(0, g_1e68 - g_9e60[order[i]], buf);
-                lstrcat(g_6078, buf);
-                lstrcat(g_6078, "- ");
-                fn_09_95ba(0x8ca);
+                fn_17_42ea(0);
             }
-            fn_03_1542(0, 14, order[i], buf, 0);
-            lstrcat(g_6078, buf);
-            if (order[i] == g_9646)
-                fn_09_95ba(0x8a6);
-            lstrcat(g_6078, "\t350");
-            fn_09_95ba(0x896);
-            fn_11_4928(1, g_9e90[order[i]], buf);
-            lstrcat(g_6078, buf);
-            fn_17_42ea(0);
         }
         fn_17_42ea(1);
         i = mins[3][0] = mins[3][1] = mins[2][0] = mins[2][1] = mins[1][0] = mins[1][1] =
@@ -1111,11 +1112,7 @@ void far fn_09_6fee(void)
         fn_06_8dfe(g_9322);
         fn_06_8eb4();
     } else {
-        DWORD ldiff;
-        DWORD times[4];
-        int flag5;
-        char buf3[60];
-        int sum;
+
 
         fn_10_a332(g_6078, 0xbc2, 0, g_9320 == 7, 0x366, 0x7cd, g_934e >= 60, g_934e / 60,
                    0x9ce, g_934e - g_934e / 60 * 60, 0x9cf);
@@ -1174,39 +1171,55 @@ void far fn_09_6fee(void)
         }
         for (i = count2 = 0; i <= g_9316; i++) {
             if (g_96f0[g_7090[i].f4e].f1a != 7 && g_7090[i].fec == 0) {
-            fn_03_1542(0, 14, i, buf, 1);
-            fn_10_a332(g_6078, 0xbc6, 0, g_96f0[g_7090[i].f4e].f1a == cls, (LPSTR)buf,
-                       g_96f0[g_7090[i].f4e].f1a == cls);
-            if (g_7090[i].f06 != 14 || g_7090[i].f08 != i) {
-                LoadString(g_9212, 0x36f, buf, 40);
-                if (g_7090[i].f06 == 14) {
-                    if (g_7090[i].f08 == g_9646)
-                        LoadString(g_9212, 0x375, buf3, 40);
-                    else
+                fn_03_1542(0, 14, i, buf, 1);
+                fn_10_a332(g_6078, 0xbc6, 0, g_96f0[g_7090[i].f4e].f1a == cls, (LPSTR)buf,
+                           g_96f0[g_7090[i].f4e].f1a == cls);
+                /* The three copies of the lstrcat tail are merged by the
+                 * compiler; one shared tail (join or goto) gives other code. */
+                if (g_7090[i].f06 != 14 || g_7090[i].f08 != i) {
+                    char buf3[60];
+
+                    LoadString(g_9212, 0x36f, buf, 40);
+                    if (g_7090[i].f06 == 14) {
+                        if (g_7090[i].f08 == g_9646) {
+                            LoadString(g_9212, 0x375, buf3, 40);
+                            lstrcat(buf, buf3);
+                            lstrcat(buf, g_09ee);
+                            lstrcat(g_6078, buf);
+                            continue;
+                        }
                         fn_03_1542(1, g_7090[i].f06, g_7090[i].f08, buf3, 1);
-                } else
+                        lstrcat(buf, buf3);
+                        lstrcat(buf, g_09ee);
+                        lstrcat(g_6078, buf);
+                        continue;
+                    }
                     fn_03_1542(1, g_7090[i].f06, g_7090[i].f08, buf3, 2);
-                lstrcat(buf, buf3);
-                lstrcat(buf, g_09ee);
-                lstrcat(g_6078, buf);
-                continue;
+                    lstrcat(buf, buf3);
+                    lstrcat(buf, g_09ee);
+                    lstrcat(g_6078, buf);
+                    continue;
+                }
+                fn_09_95ba(rand() % 3 + 0x907);
+                lstrcat(g_6078, g_09ee);
             }
-            fn_09_95ba(rand() % 3 + 0x907);
-            lstrcat(g_6078, g_09ee);
-        }}
+        }
         idx[0] = idx[1] = idx[2] = -1;
         for (k = nfound = 0; k < 3; k++)
             for (i = score[k] = 0; i <= g_9316; i++) {
+                int sum;
+                int ok;
+
                 if (i != g_9646 && g_96f0[g_7090[i].f4e].f1a != 7) {
                     for (j = sum = 0; j < 8; j++)
                         sum += g_7090[i].ff6[g_9646][j];
                     if (score[k] < sum && i != idx[0] && i != idx[1] &&
                         g_7090[i].fee[g_9646] != 3 && g_7090[i].fee[g_9646] != 0) {
-                        flag5 = 1;
+                        ok = 1;
                         for (j = 0; j < 8; j++)
                             if (used[j] == i)
-                                flag5 = 0;
-                        if (flag5) {
+                                ok = 0;
+                        if (ok) {
                             score[k] = sum;
                             idx[k] = i;
                             nfound = k + 1;
@@ -1216,39 +1229,42 @@ void far fn_09_6fee(void)
             }
         if (nfound) {
             for (i = 0; i < nfound; i++) {
+                char buf3[60];
+                int strid;
+
                 switch (g_7090[idx[i]].fee[g_9646]) {
                 case 8:
-                    flag5 = 0x385;
+                    strid = 0x385;
                     break;
                 case 7:
-                    flag5 = 0x38b;
+                    strid = 0x38b;
                     break;
                 case 5:
-                    flag5 = 0x386;
+                    strid = 0x386;
                     break;
                 case 1:
                     if (g_7090[idx[i]].fec == 0 && g_7090[idx[i]].f06 == 14 &&
                         g_7090[idx[i]].f08 == g_9646)
-                        flag5 = 0x37d;
+                        strid = 0x37d;
                     else
-                        flag5 = 0x384;
+                        strid = 0x384;
                     break;
                 case 2:
-                    flag5 = 0x38a;
+                    strid = 0x38a;
                     break;
                 case 3:
-                    flag5 = 0x387;
+                    strid = 0x387;
                     break;
                 case 4:
-                    flag5 = 0x388;
+                    strid = 0x388;
                     break;
                 case 6:
-                    flag5 = 0x389;
+                    strid = 0x389;
                     break;
                 }
                 fn_03_1542(0, 14, idx[i], buf, 1);
                 fn_13_218a(g_96f0[g_7090[idx[i]].f4e].f1a, buf3);
-                fn_10_a332(g_6078, 0xbc9, 0, flag5, g_96f0[g_7090[idx[i]].f4e].f1a == cls,
+                fn_10_a332(g_6078, 0xbc9, 0, strid, g_96f0[g_7090[idx[i]].f4e].f1a == cls,
                            (LPSTR)buf, g_96f0[g_7090[idx[i]].f4e].f1a != cls, (LPSTR)buf3);
                 if (g_7090[idx[i]].f72[g_9646] > 5)
                     fn_09_8838(idx[i]);
@@ -1261,33 +1277,33 @@ void far fn_09_6fee(void)
             best[i] = -1;
         }
         for (i = 0; i < 8; i++)
-            for (has[i] = j = 0; j <= g_9316; j++)
+            for (j = has[i] = 0; j <= g_9316; j++)
                 if (g_96f0[g_7090[j].f4e].f1a == i)
                     has[i] = 1;
         cls = g_96f0[g_7090[g_9646].f4e].f1a;
-        for (count = j = 0; j < 2; j++)
+        for (j = count = 0; j < 2; j++)
             for (i = 0; i < 8; i++) {
-                if (i == cls || !has[i] || (j != 0 && best[0] == i))
-                    continue;
-                diff = g_3824[i][cls] - g_9350[i];
-                if (g_3824[i][cls] < -250)
-                    rank[j] = 4;
-                else if (g_3824[i][cls] < -80)
-                    rank[j] = 3;
-                else if (g_3824[i][cls] < 80)
-                    rank[j] = 2;
-                else if (g_3824[i][cls] < 250)
-                    rank[j] = 1;
-                else
-                    rank[j] = 0;
-                for (cnt[j] = k = 0; k < 3; k++)
-                    if (g_4eec[i][k] == g_931c && g_4fd0[i][k] == g_91f8)
-                        cnt[j]++;
-                if (fn_09_88ba(diff - cnt[j] * 50) > fn_09_88ba(val[j]) || cnt[j] != 0) {
-                    best2[j] = cnt[j];
-                    val[j] = diff;
-                    best[j] = i;
-                    count++;
+                if (i != cls && has[i] && (j == 0 || best[0] != i)) {
+                    diff = g_3824[i][cls] - g_9350[i];
+                    if (g_3824[i][cls] < -250)
+                        rank[j] = 4;
+                    else if (g_3824[i][cls] < -80)
+                        rank[j] = 3;
+                    else if (g_3824[i][cls] < 80)
+                        rank[j] = 2;
+                    else if (g_3824[i][cls] < 250)
+                        rank[j] = 1;
+                    else
+                        rank[j] = 0;
+                    for (k = cnt[j] = 0; k < 3; k++)
+                        if (g_4eec[i][k] == g_931c && g_4fd0[i][k] == g_91f8)
+                            cnt[j]++;
+                    if (fn_09_88ba(diff - cnt[j] * 50) > fn_09_88ba(val[j]) || cnt[j] != 0) {
+                        best2[j] = cnt[j];
+                        val[j] = diff;
+                        best[j] = i;
+                        count++;
+                    }
                 }
             }
         if (count) {

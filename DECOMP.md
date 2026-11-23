@@ -461,3 +461,14 @@ Conventions
 - `switch (x) { case 0: A; break; default: B; }` gives `or ax,ax; je`; an `if`
   gives `cmp [x],0`.
 - g_1906/g_1908 are one POINT; g_1dc4..g_1dca a RECT.
+- After a join point CL uses `lea cx`/`lea dx` for stack-array arguments;
+  straight-line code after a pascal call uses `lea ax`. Repeating the tail in
+  each branch (each ending in `continue`) lets cross-jumping merge them.
+- `if (!skip) { ... }` instead of `if (skip) continue;` gives "body tail at
+  loop top".
+- A big array in an else-block shares the then-block's array slot only if
+  declared in the innermost block where it is used.
+- `i = m[3][0] = m[3][1] = ... = m[0][1] = 0` gives dword stores in ascending
+  address order.
+- An instruction-sequence diff that ignores address shifts
+  (scratchpad/s0409r7/sd.py) is the most useful tool for large functions.
