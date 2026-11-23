@@ -558,3 +558,9 @@ Conventions
   leave a store there.
 - `!(BYTE arr[i] & char mask)` gives `mov cl,[arr]; and cl,al; sub ch,ch;
   cmp cx,1`.
+- CL 8.00c can crash with C1001 (msc3.cpp line 429) on labels in large
+  functions (4:2f98). Out-of-line blocks without labels: `do { ...; if (c)
+  break; ...; return; } while (0); X;`, or an `if (0) { d1: ... goto d0; }`
+  block (placed at the end of its enclosing block; labels inside `if (0)` did
+  not crash) [layout-only; the original may have used plain gotos].
+- A dead `imul bx` before a statement: an empty `if (rec[n].f) ;`.

@@ -1046,9 +1046,563 @@ void far fn_04_144c(int n, int flag)
     g_7090[n].f94 = g_1e50 + 60;
 }
 
-/* Not yet decompiled: 4:2f98 */
+/* 0x34-byte records at DS:8560 [inferred] */
+typedef struct { int f00; char p02[0x0a - 0x02]; int f0a; char p0c[0x34 - 0x0c]; } REC_34B;
+extern REC_34B g_8560[];
+void far fn_04_474c(int n, int kind, int m, int ev);
+void far fn_04_6700(int n);
+int far fn_04_5d9c(int a, int b);
+void far fn_13_9ae8(int n);
+int far fn_13_9ce0(int n);
+
+/* Chooses racer n's next target: another racer, a pickup or object, or
+ * the checkpoint route (f06/f08 = target type/index, f36 = mode)
+ * [inferred]. k is unused. */
+/* @addr 4:2f98 */
 void far pascal fn_04_2f98(int n, int k)
 {
+    int t;
+    int i;
+    int j;
+    int a;
+    int b;
+    int ratio;
+    int rel;
+    int cls;
+    int arr[8];
+    long best1;
+    long best2;
+    long best4;
+    long best3;
+    long sc;
+    long c[4];
+    long best5;
+    int sel1;
+    int sel2;
+    int sel4t;
+    int sel4i;
+    int sel3t;
+    int sel3i;
+    int sel5;
+    int sel6;
+    int unused;                 /* frame filler [inferred] */
+    int first;
+    int ok;
+
+    if (g_7090[n].f52 == -1) {
+        first = 1;
+        g_7090[n].f52 = 0;
+    } else
+        first = 0;
+    g_7090[n].f94 = g_1e50 + 3000;
+    cls = g_96f0[g_7090[n].f4e].f1a;
+    if (g_1df8[7][0].f18 == 0 && n == g_952e) {
+        g_7090[n].f52 = 7;
+        g_7090[n].f98 = g_1e50 + 10000;
+        g_7090[n].f58 = n;
+        g_7090[n].f9c = g_1e50 + 5000;
+        g_7090[n].fed = 0;
+        return;
+    }
+    if (cls == 7) {
+        do {                    /* break = the out-of-line block after it */
+            if (g_7090[n].f5e < 2) {
+                if (g_7090[n].f54 == 14 && g_913c == 0 && g_913a == 0)
+                    break;
+                if (g_7090[n].f5e == 1)
+                    g_7090[n].f52 = 0x16;
+                else
+                    g_7090[n].f52 = 0x17;
+                g_7090[n].f54 = 14;
+                if (g_7090[n].fcd >= 0)
+                    g_7090[n].f56 = g_7090[n].fcd;
+                else if (g_7090[n].f56 < 0 || g_7090[n].f56 > g_9316) {
+                    g_7090[n].f56 = g_9646;
+                    g_7090[n].f52 = 0x14;
+                }
+                g_7090[n].fed = 1;
+                return;
+            }
+            if (g_7090[n].f32 != 11 || g_1df8[11][g_7090[n].f34].f18) {
+                g_7090[n].f52 = 0x14;
+                return;
+            }
+            g_7090[n].f06 = 11;
+            g_7090[n].f08 = 0;
+            g_7090[n].f36 = 2;
+            g_7090[n].f3a = 2;
+            fn_04_6700(n);
+            return;
+        } while (0);
+        fn_03_06ec(g_9646, 14, n, 0xb7);
+        g_7090[n].f06 = 12;
+        g_7090[n].f08 = 0;
+        g_7090[n].f36 = 2;
+        g_7090[n].f3a = 2;
+        return;
+    }
+    best2 = best1 = 80000;
+    sel1 = -1;
+    sel2 = -1;
+    for (i = 0; i <= g_9316; i++) {
+        arr[i] = rand() % 2 + 1;
+        arr[i] -= g_7090[n].f5e;
+        if (first && g_7090[n].f32 == 14 && g_7090[n].f34 == i)
+            ok = 0;
+        else
+            ok = 1;
+        if (g_1e30[i].f18 == 0 && g_7090[i].fec && i != n && ok) {
+            sc = fn_08_285a(&a, &b, g_1e30[i].f04, g_1e30[n].f04) + 300;
+            if (sc < 250)
+                arr[i]++;
+            ratio = fn_04_5d9c(n, i);
+            rel = fn_13_2688(n, i);
+            if (i == g_9646)
+                sc -= sc >> 2;
+            if (fn_09_88ba(rel) > 160)
+                sc -= sc >> 2;
+            arr[i] -= rel / 100;
+            if (g_7090[n].f72[i] > 3) {
+                sc -= sc >> 2;
+                arr[i]++;
+            }
+            if (n == g_9646)
+                arr[i]++;
+            if (g_7090[n].f32 == 14 && g_7090[n].f34 == i) {
+                if (g_7090[n].f38 == 1) {
+                    sc >>= 1;
+                    arr[i] += 2;
+                    if (g_7090[n].f146 == 8) {
+                        arr[i] += 2;
+                        sc = min(sc >> 3, 70);
+                    }
+                } else {
+                    arr[i]++;
+                    sc -= sc >> 2;
+                }
+            }
+            if (g_7090[i].f32 == 14 && g_7090[i].f34 == n) {
+                if (g_7090[i].f38 == 1) {
+                    if (g_7090[n].f13e[i] < -2)
+                        sc *= -(g_7090[n].f13e[i] / 2);
+                    else {
+                        sc >>= 1;
+                        arr[i] += 2;
+                        rel -= 300;
+                    }
+                } else {
+                    arr[i]++;
+                    sc >>= 1;
+                }
+            }
+            if (g_7090[n].fc2[i] == -1)
+                sc = (sc + 1000) * 5;
+            else if (g_7090[n].fc2[i] > 0 && g_7090[n].fc2[i] < 9) {
+                sc = sc * (9 - g_7090[n].fc2[i]) / 10;
+                arr[i] += g_7090[n].fc2[i] / 2;
+            }
+            if ((g_7090[n].f5d - 1) * 50 < rel || cls == 4 && rel > -100
+                || g_96f0[g_7090[i].f4e].f1a == cls) {
+                if (g_7090[i].f38 == 1) {
+                    sc >>= 1;
+                    if (g_7090[i].f32 == g_7090[n].f32 && g_7090[i].f34 == g_7090[n].f34)
+                        sc = sc * 2 / 3;
+                }
+                sc = sc * (g_7090[n].f5d * 3 + 4) / 6;
+                if (cls == 4)
+                    sc -= sc >> 2;
+                if (sc < best1) {
+                    best1 = sc;
+                    sel1 = i;
+                }
+            } else {
+                sc = sc * ((g_7090[n].f5e + 2) * 2) / 6;
+                arr[i] -= g_7090[n].f5e;
+                if (ratio > 300 || ratio < 50) {
+                    sc = (sc + 100) * 2;
+                    arr[i]--;
+                }
+                if (g_8680[i] == n)
+                    sc += 100000;
+                if (ratio < 25 || g_7090[n].f26 < 40) {
+                    sc = (sc + 150) * 2;
+                    arr[i] -= 2;
+                }
+                if (cls == 2 || cls == 4 || cls == 5) {
+                    sc = (sc + 500) * 2;
+                    arr[i] -= 2;
+                }
+                if (cls == 3 || cls == 6) {
+                    sc -= sc >> 2;
+                    arr[i]++;
+                    if (cls == 3) {
+                        if (g_7090[i].fce > 250)
+                            sc -= sc >> 2;
+                        if (g_7090[n].fcd == i)
+                            sc += sc / -3;
+                    }
+                }
+                if (cls == 1 && g_96f0[g_7090[i].f4e].f1a == 2) {
+                    sc /= 2;
+                    arr[i] += 2;
+                }
+                if (g_7090[n].fee[i] > 5)
+                    sc += 80000;
+                if (g_7090[i].fe8)
+                    sc <<= 2;
+                if (g_7090[n].f32 == 14 && g_7090[n].f34 == i)
+                    sc = sc * 2 / 3;
+                if (sc < best2) {
+                    best2 = sc;
+                    sel2 = i;
+                }
+            }
+        }
+    }
+    best4 = best3 = 80000;
+    sel4t = sel4i = sel3t = sel3i = -1;
+    for (t = 0; t < 14; t++)
+        if (t == 0 || t == 3 || t == 4 || t == 9 || t == 11 || t == 8)
+            for (i = 0; i < g_9406[t]; i++) {
+                if (first && g_7090[n].f32 == t && g_7090[n].f34 == i)
+                    ok = 0;
+                else
+                    ok = 1;
+                if (g_1df8[t][i].f18 == 0 && ok) {
+                    sc = fn_08_285a(&a, &b, g_1df8[t][i].f04, g_1e30[n].f04) + 300;
+                    if (g_7090[n].f32 == t && g_7090[n].f34 == i)
+                        sc = max(1, sc - 100) * 2 / 3;
+                    switch (t) {
+                    case 3:
+                        sc = (sc + 450) << 2;
+                        break;
+                    case 8:
+                        if (g_9318 * 2 > i)
+                            sc = (sc + 1500) << 3;
+                        else if (g_3d5a[t].f12 != 2)
+                            sc = (sc + 350) * 2;
+                        else if (g_3d5a[t].f00 == -3)
+                            sc = (sc + 2500) << 3;
+                        break;
+                    case 0:
+                    case 4:
+                    case 11:
+                        if (t == 0) {
+                            if (g_1df8[0][i].f54 && g_7090[n].f26 < 50)
+                                sc = (sc + 200) * 2;
+                            if (g_9000 > 1)
+                                sc -= sc / 4;
+                        } else if (t == 11) {
+                            if (g_8560[i].f00 == 3 || g_9320 == 7) {
+                                if (g_8680[g_8560[i].f0a] == n)
+                                    sc /= 5;
+                                if (cls == 3)
+                                    sc = sc / 3;
+                            } else if (cls == 3)
+                                sc = sc / 3;
+                            else
+                                sc = sc * 3;
+                        } else if (g_7090[n].f1e > 200) {
+                            sc <<= 2;
+                            if (g_96f0[g_7090[n].f4e].f00 - 100 < g_7090[n].f1e)
+                                sc += 80000;
+                        } else if (g_7090[n].f1e < 150)
+                            sc >>= 3;
+                        if (g_1df8[t][i].f53 == 1) {
+                            if (cls == 2 || cls == 5)
+                                sc >>= 2;
+                            if (cls == 6)
+                                sc -= sc >> 2;
+                            if (g_9000 < 2 && n != g_9646) {
+                                if (t == 0)
+                                    sc = (sc - g_967e * 5 + 300) * 100 / max(10, g_967e);
+                                else
+                                    sc = sc * max(10, g_967e) / 100;
+                            }
+                            for (j = 0; j <= g_9316; j++)
+                                if (j != n && g_7090[j].f148 == t && g_7090[j].f149 == i
+                                    && g_7090[j].fec && g_1e30[j].f18 == 0 && cls != 6
+                                    && (g_96f0[g_7090[j].f4e].f1a == cls || fn_13_2688(n, j) > -200)) {
+                                    sc = (800 > fn_13_2688(n, j) + sc + 300 ? 800 : fn_13_2688(n, j) + sc + 300)
+                                         * ((6 - g_7090[n].f5d) * 2);
+                                    if (fn_13_2688(n, j) > 100)
+                                        sc += 80000;
+                                }
+                            if (sc < best4) {
+                                best4 = sc;
+                                sel4t = t;
+                                sel4i = i;
+                            }
+                        }
+                        break;
+                    }
+                    if (g_1df8[t][i].f53 != 1) {
+                        sc += 100;
+                        if (n != g_9646)
+                            sc = sc * max(10, g_967e) / 100;
+                        else
+                            sc = (sc + 400) * 2;
+                        sc = sc * ((g_7090[n].f5e + 2) * 2) / 6;
+                        if (cls == 6)
+                            sc -= sc >> 2;
+                        else if (cls == 2)
+                            sc += sc >> 1;
+                        if ((g_7090[n].f5e + 6) * 5 > g_7090[n].f26
+                            || (long)g_7090[n].fce + g_7090[n].fdc <= 200) {
+                            if (t == 0)
+                                sc *= 3;
+                            else if ((9 - g_9334) * 20 < g_967e * 2)
+                                sc += 80000;
+                            else
+                                sc <<= 2;
+                        }
+                        if (sc < best3) {
+                            best3 = sc;
+                            sel3t = t;
+                            sel3i = i;
+                        }
+                    }
+                }
+            }
+    best1 += best1 >> 2;
+    sel5 = -1;
+    for (t = 0; t <= g_9316; t++)
+        if (g_1e30[t].f18 == 0 && g_7090[t].fec && t != n && t != sel1 && g_7090[t].f38 == 1
+            && g_7090[t].f32 == 14 && g_7090[t].f34 == sel1 && g_8680[t] != n) {
+            sel5 = t;
+            if (fn_04_5d9c(sel1, t) < 60)
+                best1 >>= 2;
+            else
+                best1 -= best1 >> 2;
+            if (g_96f0[g_7090[sel5].f4e].f1a == cls)
+                best1 += 80000;
+            if (g_96f0[g_7090[sel5].f4e].f1a == cls || fn_13_2688(n, sel5) + 100 > fn_13_2688(n, sel1))
+                best1 += 80000;
+            if ((g_7090[n].f5d + 3) * 10 > g_7090[n].f26)
+                best1 += 80000;
+            if ((long)g_7090[n].fce + g_7090[n].fdc < -50 && g_7090[n].f5e > 0 && g_7090[n].f26 < 65)
+                best1 += 80000;
+            if (cls == 4)
+                best1 -= best1 >> 2;
+        }
+    c[0] = best1;
+    c[1] = best2;
+    c[2] = best4;
+    c[3] = best3;
+    if (c[0] > 20000 && c[1] > 20000 && c[2] > 20000) {
+        c[0] = c[1] = c[2] = c[3] = 90000;
+        for (t = 0; t < g_9406[0]; t++)
+            if (g_1df8[0][t].f18 == 0) {
+                if (g_1df8[0][t].f53 == 1)
+                    c[2] = 100;
+                else
+                    c[3] = 100;
+                break;
+            }
+    }
+    best5 = 80000;
+    sel6 = -1;
+    for (t = 0; t < 4; t++)
+        if (c[t] < best5) {
+            best5 = c[t];
+            sel6 = t;
+        }
+    if (sel6 == 0 && sel1 != -1) {
+        if (sel5 != -1 && fn_04_5d9c(n, sel5) > g_7090[n].f5d * 32
+            && g_7090[n].fc2[sel5] != -1
+            && !(first && g_7090[n].f32 == 14 && g_7090[n].f34 == sel5)) {
+            g_7090[n].f06 = 14;
+            g_7090[n].f08 = sel5;
+            g_7090[n].f36 = 1;
+            g_7090[n].f3a = 2;
+            if (sel1 == g_9646)
+                fn_04_474c(n, 14, sel5, 5);
+            fn_04_8346(n, 14, sel5, 1);
+            return;
+        }
+        if (g_7090[sel1].f38 == 1
+            && (g_7090[sel1].f32 != 14
+                || g_96f0[g_7090[g_7090[sel1].f34].f4e].f1a != cls
+                   && fn_13_2688(n, g_7090[sel1].f34) + 100 < fn_13_2688(n, sel1))
+            && g_7090[n].f26 > 35
+            && g_1df8[g_7090[sel1].f32][g_7090[sel1].f34].f18 == 0
+            && !(first && g_7090[sel1].f32 == g_7090[n].f32 && g_7090[sel1].f34 == g_7090[n].f34)
+            && (n != g_9646 || g_7090[sel1].f32 != 3 && g_7090[sel1].f32 != 8
+                || g_7090[sel1].f32 == g_7090[n].f32 && g_7090[sel1].f34 == g_7090[n].f34
+                || rand() % 30 == 2)) {
+            g_7090[n].f06 = g_7090[sel1].f32;
+            g_7090[n].f08 = g_7090[sel1].f34;
+            g_7090[n].f36 = 1;
+            g_7090[n].f3a = 2;
+            if (sel1 == g_9646)
+                fn_04_474c(n, g_7090[sel1].f32, g_7090[sel1].f34, 2);
+            if (fn_04_8346(n, g_7090[n].f06, g_7090[n].f08, 2))
+                return;
+        }
+        if (c[2] < 80000
+            && (rand() % 30 + g_967e * 2 > 190 - g_9334 * 20 || n == g_9646 || g_9000 == 2
+                || g_7090[n].f32 == 0 && g_7090[n].f38 == 2))
+            sel6 = 2;
+        else
+            goto d1;
+    }
+d0:
+    if (sel6 == 1 && sel2 != -1) {
+        if (rand() % 3 + 1 < arr[sel2] && (g_7090[n].f5e + 2) * 10 < g_7090[n].f26
+            && (long)g_7090[n].fce + g_7090[n].fdc > -50) {
+            g_7090[n].f06 = 14;
+            g_7090[n].f08 = sel2;
+            g_7090[n].f36 = 1;
+            g_7090[n].f3a = 2;
+            fn_03_00f4(n, 14, sel2);
+            if (cls == 3 && g_7090[sel2].fce > 400) {
+                g_7090[n].f54 = 14;
+                g_7090[n].f56 = sel2;
+                g_7090[n].fcd = sel2;
+                fn_04_8346(n, 14, sel2, 13);
+                g_7090[n].f52 = 4;
+                g_7090[n].f98 = g_1e50 + 30000;
+                g_7090[n].f58 = n;
+                g_8e00 = g_8e04 = g_9680 = g_9682 = g_7090[n].fed = 0;
+                fn_03_06ec(sel2, 14, n, 0x67);
+                g_7090[n].f94 = g_1e50 + 500;
+                return;
+            /* Reached only by `goto d1`; CL places it after the block
+             * above [layout-only, inferred: the original may have used
+             * plain gotos, which make CL 8.00c crash here (C1001)]. */
+            if (0) {
+d1:
+                if (c[2] < 80000
+                    && ((g_7090[n].f5e + 6) * 5 > g_7090[n].f26
+                        || (long)g_7090[n].fce + g_7090[n].fdc <= 200))
+                    sel6 = 2;
+                else if (c[3] < 80000)
+                    sel6 = 3;
+                else if (c[1] < 80000)
+                    sel6 = 1;
+                else if (c[2] < 80000)
+                    sel6 = 2;
+                else {
+                    best5 = 30000;
+                    for (t = 0; t < g_9318 * 2; t += 2) {
+                        sc = fn_08_285a(&a, &b, g_1e30[n].f04, g_1df8[12][t].f04);
+                        if (sc < best5) {
+                            fn_13_9ae8(n);
+                            best5 = sc;
+                            fn_03_06ec(g_9646, 14, n, 0xb7);
+                            g_7090[n].f06 = 12;
+                            g_7090[n].f08 = t;
+                            g_7090[n].f36 = 2;
+                            g_7090[n].f3a = 2;
+                        }
+                    }
+                    return;
+                }
+                goto d0;
+            }
+            }
+            fn_04_8346(n, 14, sel2, 3);
+            return;
+        }
+        if (c[2] < 80000
+            && ((9 - g_9334) * 20 < g_967e * 2 || n == g_9646 || g_9000 == 2 || c[3] >= 80000))
+            sel6 = 2;
+        else if (c[3] < 80000)
+            sel6 = 3;
+    }
+    if (sel6 == 2) {
+        if (sel4t != -1 && sel4i != -1) {
+            if ((cls == 6 || g_7090[n].f5e < 1) && cls == 4
+                && (g_7090[n].f5e + 2) * 150 + rand() % 600 < (long)g_7090[n].fce + g_7090[n].fdc
+                && g_7090[n].f26 > 50) {
+                g_7090[n].f06 = sel4t;
+                g_7090[n].f08 = sel4i;
+                g_7090[n].f36 = 1;
+                g_7090[n].f3a = 2;
+                fn_04_8346(n, sel4t, sel4i, 4);
+                return;
+            }
+            fn_13_9ae8(n);
+            if (g_7090[n].f26 < 40 && sel4t == 0 && g_1df8[0][sel4i].f54) {
+                fn_03_00f4(n, sel4t, sel4i);
+                fn_13_9ce0(n);
+                if (c[1] < 20000) {
+                    g_7090[n].f06 = 14;
+                    g_7090[n].f08 = sel2;
+                    g_7090[n].f36 = 3;
+                    g_7090[n].f3a = 2;
+                    return;
+                }
+                if (c[0] < 20000) {
+                    g_7090[n].f06 = 14;
+                    g_7090[n].f08 = sel1;
+                    g_7090[n].f36 = 3;
+                    g_7090[n].f3a = 2;
+                    return;
+                }
+            }
+            g_7090[n].f06 = sel4t;
+            g_7090[n].f08 = sel4i;
+            g_7090[n].f36 = 2;
+            if ((9 - g_9334) * 20 > g_967e * 2 && n != g_9646 && g_9000 < 2)
+                g_7090[n].f36 = 3;
+            g_7090[n].f3a = 2;
+            if (sel4t == 0 && g_1df8[0][sel4i].f2f < 0) {
+                g_7090[n].f36 = 1;
+                fn_04_6e70(n);
+            }
+            fn_04_6700(n);
+            return;
+        }
+    }
+    if (sel6 == 3) {
+        if (n != g_9646 || !flow_interactive || best3 < 600 && g_7090[n].f26 > 45
+            || best4 < 80000 || sel3t == 0 || sel3t == 9 || sel3t == 2) {
+            if (sel3t != -1 && sel3i != -1 && sel3t <= 14) {
+                if ((cls == 6 || rand() % (g_7090[n].f5e + 2) < 2 || g_7090[n].f36 == 1
+                     || sel3t != 3 && sel3t != 8)
+                    && (g_7090[n].f5e + 2) * 10 < g_7090[n].f26) {
+                    g_7090[n].f06 = sel3t;
+                    g_7090[n].f08 = sel3i;
+                    g_7090[n].f36 = 1;
+                    g_7090[n].f3a = 2;
+                    fn_04_8346(n, sel3t, sel3i, 5);
+                    return;
+                }
+                if (g_1e68 < 1200 && best4 < 40000 && (best1 < 10000 || best2 < 10000)) {
+                    fn_13_9ae8(n);
+                    g_7090[n].f06 = sel3t;
+                    g_7090[n].f08 = sel3i;
+                    g_7090[n].f36 = 3;
+                    g_7090[n].f3a = 2;
+                    return;
+                }
+            }
+        }
+    }
+    best5 = 20000;
+    if (g_1e68 > 800 || g_7090[n].f06 == 8 && g_7090[n].f08 == 0 && g_7090[n].f36 == 3) {
+        for (t = 0; t < g_9318 * 2; t += 2) {
+            sc = fn_08_285a(&a, &b, g_1e30[n].f04, g_1df8[12][t].f04);
+            if (sc < best5) {
+                best5 = sc;
+                fn_03_06ec(g_9646, 14, n, 0xb7);
+                g_7090[n].f06 = 12;
+                g_7090[n].f08 = t;
+                g_7090[n].f36 = 2;
+                g_7090[n].f3a = 2;
+            }
+        }
+    } else {
+        if (g_7090[n].f36)      /* empty: leaves the dead imul [layout-only] */
+            ;
+        g_7090[n].f98 = g_1e50 + 3000;
+        g_7090[n].f58 = n;
+        g_7090[n].f06 = 8;
+        g_7090[n].f08 = 0;
+        g_7090[n].f36 = 3;
+        g_7090[n].f3a = 2;
+    }
 }
 
 /* Per-frame steering of racer n toward its current target [inferred]. */
