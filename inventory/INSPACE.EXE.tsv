@@ -1,5 +1,5 @@
 # addr	selector	size	kind	name	name_source	flags
-2:0000	1008:0000	547	far			
+2:0000	1008:0000	547	far	WinMain	names	
 2:0224	1008:0224	1575	far			
 2:084c	1008:084c	65	far			
 2:088e	1008:088e	189	far			
@@ -701,7 +701,7 @@
 13:a5c2	1060:a5c2	152	far			
 13:a65a	1060:a65a	97	far			
 13:a6bc	1060:a6bc	1793	far			
-13:adbe	1060:adbe	170	far			
+13:adbe	1060:adbe	170	far	summon_with_music	names	
 13:ae68	1060:ae68	2184	far			gap2
 13:b6f2	1060:b6f2	584	far			
 13:b93a	1060:b93a	202	far			

@@ -3,6 +3,7 @@
 # [inferred] are not certain. Format: SEL:OFF name
 #
 # Functions
+1008:0000 WinMain  # confirmed: the C runtime startup (5:2072) passes hInstance, hPrevInstance, lpCmdLine, nCmdShow to it
 1040:8934 draw_briefing_panel_with_esc_prompt
 1060:1fc2 spawn_gun_shot
 1078:08e4 self_destruct_ship

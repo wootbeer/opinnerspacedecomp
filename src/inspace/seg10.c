@@ -187,6 +187,15 @@ extern int g_9290;
 extern POINT g_3b98;
 extern int g_9226;
 extern int g_920a;
+extern HBRUSH g_3b4c[20];
+extern HBRUSH g_3b74[10];
+extern HBRUSH g_576c[20];
+extern HBRUSH g_3b88[6];
+extern HPEN g_3b44[4];
+void far fn_10_4dfe(void);
+extern int g_8ff2;
+extern int g_90f0;
+void far fn_10_740c(void);
 extern REC_70 far *g_1e18;
 extern REC_70 far *g_1e1c;
 extern HDC g_9656;
@@ -372,6 +381,7 @@ void far fn_10_6e76(long a)
 }
 
 void far fn_10_4672(int a, int b);
+void far fn_10_740c(void);
 
 /* @addr 10:464a */
 void far fn_10_464a(void)
@@ -380,10 +390,80 @@ void far fn_10_464a(void)
     fn_10_4672(0, 3);
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Builds surface a from the strip g_928a (5 cells across, square cells):
+ * per row, 16 directions made of the first n/4 + 1 cells and their mirror
+ * images, b pixels apart; frees g_928a [inferred]. */
+/* @addr 10:4672 */
 void far fn_10_4672(int a, int b)
 {
-    g_928a = a + b;
+    int j;
+    int i;
+    int bits;
+    int rows;
+    int cell;
+    int n;
+    int ys;
+    int yd;
+    HDC dc;
+    int u16;
+    HBITMAP ob;
+    int u1a;
+    int u1c;
+    HPALETTE pal;
+    BITMAP bmp;
+
+    GetObject(g_928a, sizeof(BITMAP), &bmp);
+    cell = bmp.bmWidth / 5;
+    rows = bmp.bmHeight / cell;
+    n = 16;
+    bits = bmp.bmPlanes * bmp.bmBitsPixel;
+    dc = CreateCompatibleDC(g_13dc);
+    ob = SelectObject(dc, g_928a);
+    if (g_920e)
+        pal = SelectPalette(dc, g_920e, 0);
+    if (!g_39e8[a]) {
+        g_39e8[a] = CreateCompatibleDC(g_13dc);
+        g_3ad0[a] = CreateCompatibleBitmap(g_13dc, (cell + b) * n + b,
+                                           (cell + b) * rows + b);
+        g_3974[a] = SelectObject(g_39e8[a], g_3ad0[a]);
+        if (g_920e)
+            g_3a5c[a] = SelectPalette(g_39e8[a], g_920e, 0);
+    }
+    PatBlt(g_39e8[a], 0, 0, (cell + b) * n + b, (cell + b) * rows + b,
+           BLACKNESS);
+    yd = ys = 0;
+    for (i = 0; i < rows; i++, ys += cell, yd += cell + b) {
+        for (j = 0; j < n / 4 + 1; j++) {
+            BitBlt(g_39e8[a], (cell + b) * j + b, yd + b, cell, cell, dc,
+                   cell * j, ys, SRCCOPY);
+            if (j == 0) {
+                fn_10_9962(0, g_39e8[a], n / 2 * (cell + b) + b,
+                           yd + cell + b - 1, cell, -cell, dc, cell * j, ys,
+                           cell, cell, SRCCOPY);
+            } else if (n / 4 == j) {
+                fn_10_9962(0, g_39e8[a], n * 3 / 4 * (cell + b) + cell + b - 1,
+                           yd + b, -cell, cell, dc, cell * j, ys, cell, cell,
+                           SRCCOPY);
+            } else {
+                fn_10_9962(0, g_39e8[a], (n / 2 - j) * (cell + b) + b,
+                           yd + cell + b - 1, cell, -cell, dc, cell * j, ys,
+                           cell, cell, SRCCOPY);
+                fn_10_9962(0, g_39e8[a], (n / 2 + j) * (cell + b) + cell + b - 1,
+                           yd + cell + b - 1, -cell, -cell, dc, cell * j, ys,
+                           cell, cell, SRCCOPY);
+                fn_10_9962(0, g_39e8[a], (n - j) * (cell + b) + cell + b - 1,
+                           yd + b, -cell, cell, dc, cell * j, ys, cell, cell,
+                           SRCCOPY);
+            }
+        }
+        fn_10_740c();
+    }
+    SelectObject(dc, ob);
+    if (pal)
+        SelectPalette(dc, pal, 0);
+    DeleteDC(dc);
+    DeleteObject(g_928a);
+    fn_10_6308(a, -1, -1, -1);
 }
 
 /* @addr 10:5c1a */
@@ -2086,10 +2166,107 @@ void far fn_10_5202(void)
     fn_10_6308(12, -1, -1, -1);
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Builds surfaces 6..9: eighteen rock frames from the monochrome ROCKS
+ * bitmap (6, and 8 at size 21) and coloured ones (7, 9) from bitmap 0x32
+ * when g_90f0 or g_8fe8 is set, else grey through a MERGECOPY brush. */
+/* @addr 10:3a2e */
 void far fn_10_3a2e(void)
 {
-    g_90f4 = 5;
+    HBRUSH br1;
+    HBRUSH br2;
+    HBITMAP ob2;
+    HBITMAP ob1;
+    int u0c;
+    HBITMAP bm2;
+    HBITMAP bm1;
+    int u12;
+    HDC dc2;
+    HDC dc1;
+    int u18;
+    HPALETTE pal1;
+    int u1c;
+    BITMAP bmp;
+    int i;
+    int u2e;
+    int a;
+    int m;
+    int b;
+    int u36;
+
+    if (g_39e8[6])
+        return;
+    a = 0x2b;
+    b = 0x15;
+    m = 5;
+    if (g_90f0 || g_8fe8) {
+        bm1 = fn_10_6c02(0x32, 3, -1);
+        dc1 = CreateCompatibleDC(g_13dc);
+        ob1 = SelectObject(dc1, bm1);
+        if (g_920e)
+            pal1 = SelectPalette(dc1, g_920e, 0);
+    }
+    g_0740 = 0;
+    bm2 = fn_10_6d38("ROCKS");
+    dc2 = CreateCompatibleDC(g_13dc);
+    ob2 = SelectObject(dc2, bm2);
+    g_3ad0[6] = CreateBitmap(m * 19 + a * 18, m * 2 + a, 1, 1, NULL);
+    g_3ad0[7] = CreateCompatibleBitmap(g_13dc, m * 19 + a * 18, m * 2 + a);
+    g_3ad0[8] = CreateBitmap(b * 18 + m * 19, m * 2 + b, 1, 1, NULL);
+    g_3ad0[9] = CreateCompatibleBitmap(g_13dc, b * 18 + m * 19, m * 2 + b);
+    for (i = 0; i < 2; i++) {
+        g_39e8[i + 6] = CreateCompatibleDC(g_13dc);
+        g_3974[i + 6] = SelectObject(g_39e8[i + 6], g_3ad0[i + 6]);
+        if (g_920e && i)
+            g_3a5c[7] = SelectPalette(g_39e8[7], g_920e, 0);
+        PatBlt(g_39e8[i + 6], 0, 0, m * 19 + a * 18, m * 2 + a, BLACKNESS);
+    }
+    for (i = 0; i < 2; i++) {
+        g_39e8[i + 8] = CreateCompatibleDC(g_13dc);
+        g_3974[i + 8] = SelectObject(g_39e8[i + 8], g_3ad0[i + 8]);
+        if (g_920e && i)
+            g_3a5c[9] = SelectPalette(g_39e8[9], g_920e, 0);
+        PatBlt(g_39e8[i + 8], 0, 0, b * 18 + m * 19, m * 2 + b, BLACKNESS);
+    }
+    for (i = 0; i < 18; i++) {
+        BitBlt(g_39e8[6], (m + a) * i + m, m, a, a, dc2, a * i, 0, SRCCOPY);
+        SetStretchBltMode(g_39e8[8], 2);
+        fn_10_9962(0, g_39e8[8], (b + m) * i + m, m, b, b, dc2, a * i, 0, a, a,
+                   SRCCOPY);
+    }
+    fn_10_740c();
+    if (g_90f0 || g_8fe8) {
+        for (i = 0; i < 18; i++) {
+            BitBlt(g_39e8[7], (m + a) * i + m, m, a, a, dc1, a * i, 0, SRCCOPY);
+            SetStretchBltMode(g_39e8[9], 3);
+            fn_10_9962(0, g_39e8[9], (b + m) * i + m, m, b, b, dc1, a * i, 0,
+                       a, a, SRCCOPY);
+        }
+    } else {
+        br1 = SelectObject(g_39e8[7], CreateSolidBrush(RGB(128, 128, 128)));
+        br2 = SelectObject(g_39e8[9], CreateSolidBrush(RGB(128, 128, 128)));
+        BitBlt(g_39e8[7], 0, 0, m * 19 + a * 18, m * 2 + a, g_39e8[6], 0, 0,
+               MERGECOPY);
+        BitBlt(g_39e8[9], 0, 0, b * 18 + m * 19, m * 2 + b, g_39e8[8], 0, 0,
+               MERGECOPY);
+        DeleteObject(SelectObject(g_39e8[7], br1));
+        DeleteObject(SelectObject(g_39e8[9], br2));
+    }
+    if (g_90f0 || g_8fe8) {
+        if (pal1)
+            SelectPalette(dc1, pal1, 0);
+        SelectObject(dc1, ob1);
+        DeleteDC(dc1);
+        if (bm1)
+            DeleteObject(bm1);
+    }
+    SelectObject(dc2, ob2);
+    DeleteDC(dc2);
+    if (bm2)
+        DeleteObject(bm2);
+    fn_10_6308(7, -1, -1, -1);
+    fn_10_6308(6, -1, -1, -1);
+    fn_10_6308(9, -1, -1, -1);
+    fn_10_6308(8, -1, -1, -1);
 }
 
 /* Builds surface 29 (89 x 33) from bitmaps 0x2b2..0x2b4. Selects the
@@ -2522,6 +2699,136 @@ void far fn_10_97ce(char far *s)
     lstrcat(s, "/");
     fn_06_0f1a(tm->tm_year, buf);
     lstrcat(s, buf);
+}
+
+/* (Re)creates the game's brush and pen tables g_3b74 (1..9), g_576c,
+ * g_3b88 (1..5) and g_3b44, and the g_3b4c ramps. */
+/* @addr 10:4b2e */
+void far fn_10_4b2e(void)
+{
+    int i;
+
+    for (i = 0; i < 10; i++) {
+        if (g_3b74[i]) {
+            DeleteObject(g_3b74[i]);
+            g_3b74[i] = 0;
+        }
+    }
+    g_3b74[9] = CreateSolidBrush(RGB(255, 114, 0));
+    g_3b74[8] = CreateSolidBrush(RGB(255, 96, 0));
+    g_3b74[7] = CreateSolidBrush(RGB(234, 64, 0));
+    g_3b74[6] = CreateSolidBrush(RGB(224, 48, 0));
+    g_3b74[5] = CreateSolidBrush(RGB(208, 32, 0));
+    g_3b74[4] = CreateSolidBrush(RGB(192, 32, 16));
+    g_3b74[3] = CreateSolidBrush(RGB(176, 32, 32));
+    g_3b74[2] = CreateSolidBrush(RGB(127, 48, 48));
+    g_3b74[1] = CreateSolidBrush(RGB(127, 64, 64));
+    fn_10_4dfe();
+    for (i = 0; i < 20; i++) {
+        if (g_576c[i]) {
+            DeleteObject(g_576c[i]);
+            g_576c[i] = 0;
+        }
+    }
+    g_576c[0] = CreateSolidBrush(RGB(128, 128, 128));
+    g_576c[1] = CreateSolidBrush(RGB(160, 160, 160));
+    g_576c[2] = CreateSolidBrush(RGB(192, 192, 192));
+    g_576c[3] = CreateSolidBrush(RGB(224, 224, 224));
+    g_576c[4] = CreateSolidBrush(RGB(255, 255, 255));
+    g_576c[5] = CreateSolidBrush(RGB(192, 192, 192));
+    g_576c[6] = CreateSolidBrush(RGB(160, 223, 160));
+    g_576c[7] = CreateSolidBrush(RGB(96, 224, 96));
+    g_576c[8] = CreateSolidBrush(RGB(64, 255, 64));
+    g_576c[9] = CreateSolidBrush(RGB(0, 255, 0));
+    g_576c[10] = CreateSolidBrush(RGB(0, 0, 128));
+    g_576c[11] = CreateSolidBrush(RGB(0, 40, 138));
+    g_576c[12] = CreateSolidBrush(RGB(0, 80, 160));
+    g_576c[13] = CreateSolidBrush(RGB(0, 160, 196));
+    g_576c[14] = CreateSolidBrush(RGB(0, 196, 255));
+    g_576c[15] = CreateSolidBrush(RGB(160, 0, 0));
+    g_576c[16] = CreateSolidBrush(RGB(196, 0, 0));
+    g_576c[17] = CreateSolidBrush(RGB(223, 32, 0));
+    g_576c[18] = CreateSolidBrush(RGB(255, 96, 0));
+    g_576c[19] = CreateSolidBrush(RGB(255, 128, 0));
+    for (i = 0; i < 6; i++) {
+        if (g_3b88[i]) {
+            DeleteObject(g_3b88[i]);
+            g_3b88[i] = 0;
+        }
+    }
+    g_3b88[1] = CreateSolidBrush(RGB(0, 0, 127));
+    g_3b88[2] = CreateSolidBrush(RGB(0, 127, 196));
+    g_3b88[3] = CreateSolidBrush(RGB(0, 196, 255));
+    g_3b88[4] = CreateSolidBrush(RGB(0, 255, 255));
+    g_3b88[5] = CreateSolidBrush(RGB(255, 255, 255));
+    for (i = 0; i < 4; i++) {
+        if (g_3b44[i]) {
+            DeleteObject(g_3b44[i]);
+            g_3b44[i] = 0;
+        }
+    }
+    g_3b44[0] = CreatePen(PS_SOLID, 1, RGB(255, 0, 0));
+    g_3b44[1] = CreatePen(PS_SOLID, 1, RGB(127, 0, 127));
+    g_3b44[2] = CreatePen(PS_SOLID, 1, RGB(255, 0, 127));
+    g_3b44[3] = CreatePen(PS_SOLID, 1, RGB(255, 0, 255));
+}
+
+/* (Re)creates the 20 brushes g_3b4c: yellow-to-red and cyan-to-blue
+ * ramps, finer when g_8ff2 is set [inferred]. */
+/* @addr 10:4dfe */
+void far fn_10_4dfe(void)
+{
+    int i;
+
+    for (i = 0; i < 20; i++) {
+        if (g_3b4c[i]) {
+            DeleteObject(g_3b4c[i]);
+            g_3b4c[i] = 0;
+        }
+    }
+    if (g_8ff2) {
+        g_3b4c[0] = CreateSolidBrush(PALETTERGB(255, 255, 0));
+        g_3b4c[1] = CreateSolidBrush(PALETTERGB(235, 235, 0));
+        g_3b4c[2] = CreateSolidBrush(PALETTERGB(220, 215, 0));
+        g_3b4c[3] = CreateSolidBrush(PALETTERGB(210, 180, 0));
+        g_3b4c[4] = CreateSolidBrush(PALETTERGB(200, 140, 0));
+        g_3b4c[5] = CreateSolidBrush(PALETTERGB(185, 120, 0));
+        g_3b4c[6] = CreateSolidBrush(PALETTERGB(175, 100, 0));
+        g_3b4c[7] = CreateSolidBrush(PALETTERGB(135, 65, 0));
+        g_3b4c[8] = CreateSolidBrush(PALETTERGB(135, 65, 0));
+        g_3b4c[9] = CreateSolidBrush(PALETTERGB(105, 25, 0));
+        g_3b4c[10] = CreateSolidBrush(PALETTERGB(0, 255, 255));
+        g_3b4c[11] = CreateSolidBrush(PALETTERGB(0, 235, 240));
+        g_3b4c[12] = CreateSolidBrush(PALETTERGB(0, 215, 230));
+        g_3b4c[13] = CreateSolidBrush(PALETTERGB(0, 205, 215));
+        g_3b4c[14] = CreateSolidBrush(PALETTERGB(0, 175, 205));
+        g_3b4c[15] = CreateSolidBrush(PALETTERGB(0, 165, 198));
+        g_3b4c[16] = CreateSolidBrush(PALETTERGB(0, 155, 190));
+        g_3b4c[17] = CreateSolidBrush(PALETTERGB(0, 130, 160));
+        g_3b4c[18] = CreateSolidBrush(PALETTERGB(0, 100, 130));
+        g_3b4c[19] = CreateSolidBrush(PALETTERGB(0, 100, 130));
+    } else {
+        g_3b4c[0] = CreateSolidBrush(PALETTERGB(255, 255, 0));
+        g_3b4c[1] = CreateSolidBrush(PALETTERGB(220, 215, 0));
+        g_3b4c[2] = CreateSolidBrush(PALETTERGB(200, 140, 0));
+        g_3b4c[3] = CreateSolidBrush(PALETTERGB(175, 100, 0));
+        g_3b4c[4] = CreateSolidBrush(PALETTERGB(135, 65, 0));
+        g_3b4c[5] = CreateSolidBrush(PALETTERGB(105, 25, 0));
+        g_3b4c[6] = CreateSolidBrush(PALETTERGB(80, 5, 0));
+        g_3b4c[7] = CreateSolidBrush(PALETTERGB(50, 0, 0));
+        g_3b4c[8] = CreateSolidBrush(PALETTERGB(25, 0, 0));
+        g_3b4c[9] = CreateSolidBrush(PALETTERGB(10, 0, 0));
+        g_3b4c[10] = CreateSolidBrush(PALETTERGB(0, 255, 255));
+        g_3b4c[11] = CreateSolidBrush(PALETTERGB(0, 215, 230));
+        g_3b4c[12] = CreateSolidBrush(PALETTERGB(0, 175, 205));
+        g_3b4c[13] = CreateSolidBrush(PALETTERGB(0, 130, 160));
+        g_3b4c[14] = CreateSolidBrush(PALETTERGB(0, 100, 130));
+        g_3b4c[15] = CreateSolidBrush(PALETTERGB(0, 60, 110));
+        g_3b4c[16] = CreateSolidBrush(PALETTERGB(0, 30, 90));
+        g_3b4c[17] = CreateSolidBrush(PALETTERGB(0, 0, 60));
+        g_3b4c[18] = CreateSolidBrush(PALETTERGB(0, 0, 26));
+        g_3b4c[19] = CreateSolidBrush(PALETTERGB(0, 0, 10));
+    }
 }
 
 /* Not yet decompiled: stub so calls to it compile as near calls. */

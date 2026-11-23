@@ -156,3 +156,15 @@ Conventions
   a `?:` argument gives `sbb` arithmetic.
 - ExtractIcon needs <shellapi.h> (else it compiles as cdecl).
 - 18:1934 is pascal (retf 6); fn_06_84fc and fn_06_7c14 return int.
+- A global the compare always loads wrongly may be a static local inside the
+  function (DS:17c0 in 10:565a). match.py cannot check static references.
+- In global-vs-global compares the earlier-declared extern goes into ax.
+- Block-scoped locals share stack slots.
+- Two ints pushed as one dword argument: a union with a long; a struct is
+  split into register pushes.
+- A loop step at the end of the body may belong in the for-increment with
+  the comma operator.
+- A call that should be near but comes out far: the callee is in another
+  source file (inventory/files.tsv).
+- More type notes: g_1d48 is a POINT (GetCursorPos); fn_06_1c0c takes one
+  argument; fn_06_12b6 is pascal with a 26-byte struct by value.

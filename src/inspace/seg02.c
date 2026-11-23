@@ -1,4 +1,5 @@
-/* INSPACE.EXE segment 2 (selector 1008). */
+/* INSPACE.EXE segment 2 (selector 1008), 2:0000-1ac8 (one source file;
+ * 2:1ac8-end is seg02b.c). */
 #include "inspace.h"
 #include <stdlib.h>
 
@@ -100,6 +101,88 @@ extern char *g_0080;
 extern FARPROC g_1d4c;
 extern FARPROC g_1d50;
 extern FARPROC g_1d54;
+typedef struct { char b[26]; } BLOCK26;
+int far pascal fn_06_12b6(HINSTANCE a, HINSTANCE b, BLOCK26 s);
+int far fn_06_1c0c(int a);
+void far fn_10_6b70(int a);
+void far fn_11_3fd4(LPSTR s, int a);
+extern int g_0018;
+extern char g_1d60[];
+void far fn_02_1994(void);
+void far fn_02_1a9e(void);
+void far fn_02_1c08(void);
+
+/* The program's entry point (called by the C runtime start-up): sets up,
+ * then runs the message loop; while the game runs (g_8f68, an inactive
+ * modeless dialog g_0d1e, or g_9460) it polls with PeekMessage and calls
+ * fn_02_1c08 when idle. Centres the cursor horizontally only, at the
+ * bottom edge [sic]; passes an uninitialised 26-byte block to
+ * fn_06_12b6 [sic]. */
+/* @addr 2:0000 */
+int pascal WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR cmd, int show)
+{
+    BLOCK26 s;
+    MSG msg;
+    int handled;
+    HACCEL acc;
+    char buf[20];
+
+    lstrcpy(g_9690, "Inner Space");
+    lstrcpy(g_1d60, cmd);
+    fn_11_3fd4(g_1d60, 1);
+    SetCursorPos(GetSystemMetrics(SM_CXSCREEN) / 2, GetSystemMetrics(SM_CYSCREEN));
+    GetCursorPos(&g_1d48);
+    if (!fn_06_12b6(hInst, hPrev, s)) {
+        fn_10_6b70(0);
+        return 0;
+    }
+    fn_02_1994();
+    if (g_0024) {
+        g_1d4c(g_8e66);
+        g_1d50(g_8e66);
+    }
+    fn_06_1c0c(1);
+    g_1d3c = GetCurrentTime();
+    acc = LoadAccelerators(g_9212, "MainAccel");
+    handled = 0;
+    while (g_0018) {
+        if (g_8f68 || (g_0d1e && !flow_interactive) || g_9460) {
+            g_0018 = 1;
+            if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {
+                if (msg.message != WM_QUIT)
+                    goto dispatch;
+                break;
+            }
+            if (g_90f4 == 1) {
+                fn_13_4eca("GMAIN iMainSmart = ");
+                fn_06_0f1a(g_9646, buf);
+                fn_13_4eca(buf);
+                fn_13_4eca("\n\r");
+            }
+            if (g_8f66 && (g_8f68 || (g_0d1e && !flow_interactive) || g_9460))
+                fn_02_1c08();
+            continue;
+        } else {
+            g_0018 = GetMessage(&msg, 0, 0, 0);
+        }
+dispatch:
+        handled = 0;
+        if (GetActiveWindow() == g_0016)
+            handled = TranslateAccelerator(g_0016, acc, &msg);
+        if (!handled) {
+            if (g_9460 && IsDialogMessage(g_9460, &msg))
+                continue;
+            if (g_0d1e && IsDialogMessage(g_0d1e, &msg))
+                continue;
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
+    }
+    if (g_0024)
+        g_1d54(g_8e66);
+    fn_02_1a9e();
+    return msg.wParam;
+}
 
 /* @addr 2:094c */
 int far fn_02_094c(UINT id)
@@ -303,76 +386,6 @@ void far fn_02_0a06(void)
     g_8f68 = 1;
 }
 
-/* @addr 2:1d58 */
-void far fn_02_1d58(void)
-{
-    int u1;
-    int u2;
-
-    g_13dc = GetDC(g_0016);
-    SelectClipRgn(g_13dc, g_0012);
-    fn_10_01fe();
-    ReleaseDC(g_0016, g_13dc);
-    g_13dc = 0;
-    if (g_0012) {
-        DeleteObject(g_0012);
-        g_0012 = 0;
-    }
-    if (g_13de) {
-        g_13de = 0;
-        g_90f4 = g_968e;
-        if (fn_02_1ac8())
-            fn_02_1b96();
-    }
-}
-
-/* Measures the main window's client area (clipped to the screen) into
- * g_90ea x g_0010, sets the clip region g_0012, seeds rand and runs
- * fn_10_0000 with the window DC in g_13dc. */
-/* @addr 2:1ac8 */
-int far fn_02_1ac8(void)
-{
-    int r;
-    RECT rc;
-
-    g_13dc = GetDC(g_0016);
-    GetClientRect(g_0016, &rc);
-    g_90ea = rc.right < GetSystemMetrics(SM_CXSCREEN) ? rc.right : GetSystemMetrics(SM_CXSCREEN);
-    g_0010 = rc.bottom < GetSystemMetrics(SM_CYSCREEN) ? rc.bottom : GetSystemMetrics(SM_CYSCREEN);
-    g_90ec = g_0010 - g_0a70;
-    g_8e58 = 0;
-    g_8e5a = g_0010 - 0x55;
-    if (g_0012) {
-        DeleteObject(g_0012);
-        g_0012 = 0;
-    }
-    g_0012 = CreateRectRgn(0, 0, g_90ea, g_90ec);
-    srand(GetCurrentTime());
-    r = fn_10_0000();
-    ReleaseDC(g_0016, g_13dc);
-    g_13dc = 0;
-    return r;
-}
-
-/* @addr 2:1b96 */
-void far fn_02_1b96(void)
-{
-    int u;
-    HPALETTE old;
-
-    g_13dc = GetDC(g_0016);
-    if (g_920e) {
-        old = SelectPalette(g_13dc, g_920e, 0);
-        RealizePalette(g_13dc);
-    }
-    if (g_90f4 == 1)
-        fn_09_0c06();
-    if (old)
-        SelectPalette(g_13dc, old, 0);
-    ReleaseDC(g_0016, g_13dc);
-    g_13dc = 0;
-}
-
 /* @addr 2:0fc4 */
 void far fn_02_0fc4(void)
 {
@@ -508,54 +521,6 @@ void far fn_02_0ba4(void)
     else
         PatBlt(g_13dc, 0, 0, g_90ea, g_90ec, BLACKNESS);
     PostMessage(g_0016, WM_PAINT, 0, 0L);
-}
-
-/* Draws one game frame [inferred] into the window DC (the pop-up g_9460
- * when open), with debug traces of g_9646 ("iMainSmart") in mode 1. */
-/* @addr 2:1c08 */
-void far fn_02_1c08(void)
-{
-    char pad[18];
-    HPALETTE pal;
-    char buf[20];
-    HWND hwnd;
-
-    if (g_90f4 == 1) {
-        fn_13_4eca("GameFrame 2 iMainSmart = ");
-        fn_06_0f1a(g_9646, buf);
-        fn_13_4eca(buf);
-        fn_13_4eca("\n\r");
-    }
-    hwnd = g_9460 ? g_9460 : g_0016;
-    if (g_13de) {
-        fn_02_1d58();
-        return;
-    }
-    g_968c = 1;
-    g_13dc = GetDC(hwnd);
-    if (g_920e)
-        pal = SelectPalette(g_13dc, g_920e, 0);
-    if (g_90f4 == 1) {
-        fn_13_4eca("GameFrame 3 iMainSmart = ");
-        fn_06_0f1a(g_9646, buf);
-        fn_13_4eca(buf);
-        fn_13_4eca("\n\r");
-    }
-    if (g_9460)
-        fn_17_60d8();
-    else
-        fn_07_0000();
-    if (g_90f4 == 1) {
-        fn_13_4eca("GameFrame 1 iMainSmart = ");
-        fn_06_0f1a(g_9646, buf);
-        fn_13_4eca(buf);
-        fn_13_4eca("\n\r");
-    }
-    if (pal)
-        SelectPalette(g_13dc, pal, 0);
-    ReleaseDC(hwnd, g_13dc);
-    g_13dc = 0;
-    g_968c = 0;
 }
 
 /* Timer tick [inferred]: handles a pending g_001c request, wiggles the
