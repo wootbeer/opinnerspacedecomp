@@ -242,3 +242,12 @@ Conventions
 - `1 > f() ? 1 : f()` keeps the arm order; `f() < 1 ? 1 : f()` swaps it.
 - `old = m = 0;` merges into one xor only if both have the same type.
 - fn_13_2f30 is pascal. 0x34-byte records start at or below DS:3d50.
+- `x /= 2;` compiles to `mov cx,2; idiv cx`; `x / 2` gives cwd/sub/sar.
+- A loop body that falls straight into the function exit had a `break` or
+  `return` after the work.
+- `u = load; r = u + other;` forces a load order (temp keeps its slot).
+- Block-scoped locals in sibling blocks share a slot.
+- If a near call to a defined function comes out far, check the callee's
+  definition was not deleted by accident.
+- 0x34-byte records start at DS:8560. fn_13_2206 returns int
+  ((type << 8) | index). fn_08_0b76 is pascal.

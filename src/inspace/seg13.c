@@ -676,17 +676,18 @@ int far fn_13_59e8(int k, int i)
 }
 
 /* Attitude of object i towards object j [inferred]: relation table plus
- * class-vs-class table, adjusted by i's temperament bytes.
- * near-match 44%: 13:2688 (the game loads f_060[j] before indexing
- * g_3824; CL keeps evaluating g_3824 first) */
+ * class-vs-class table, adjusted by i's temperament bytes. */
+/* @addr 13:2688 */
 int far fn_13_2688(int i, int j)
 {
-    int a, b, u;
+    int a, b;
     int r;
+    int u;
 
     a = g_96ea[g_7092[i].f_04c].f_020;
     b = g_96ea[g_7092[j].f_04c].f_020;
-    r = g_7092[i].f_060[j] + g_3824[a][b];
+    u = g_7092[i].f_060[j];
+    r = u + g_3824[a][b];
     if (r > 0)
         r += (3 - g_7092[i].f_05b) * 20;
     else
@@ -1331,8 +1332,9 @@ void far pascal fn_13_2f30(int i)
     }
 }
 
-/* near-match 78%: 13:498e (the game lays out the last loop with its test
- * at the top; CL puts it at the bottom here) */
+/* Send the list-11 entry: reuse a free one or the fullest; with b, the
+ * first suitable object follows it (only one) [inferred]. */
+/* @addr 13:498e */
 void far fn_13_498e(int a, int b)
 {
     int i, best, bi, sel, found;
@@ -1368,6 +1370,7 @@ void far fn_13_498e(int a, int b)
                 g_7092[i].f_004 = g_7092[i].f_030 = 11;
                 g_7092[i].f_032 = g_7092[i].f_006 = sel;
                 g_7092[i].f_03a = g_7092[i].f_036 = 2;
+                break;
             }
         }
     }

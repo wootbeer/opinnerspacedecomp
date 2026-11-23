@@ -816,8 +816,8 @@ int far fn_13_9bb8(int i, int b)
     return 0;
 }
 
-/* near-match 88%: 13:a01c (only the tail merge differs: the game keeps the
- * shared `push i; jmp call` in the 0x35 branch, CL in the 0x36 one) */
+/* Object i asks its target t to escort it [inferred]. */
+/* @addr 13:a01c */
 void far fn_13_a01c(int i)
 {
     int u1, u2, u3, t, cls, m, z;
@@ -834,6 +834,7 @@ void far fn_13_a01c(int i)
     } else if (g_7092[t].f_050 != 0 && g_7092[t].f_050 != 7
                && g_7092[t].f_09a > g_1e50 && g_7092[t].f_05b > 0) {
         fn_03_06ec(i, 14, t, 0x35);
+        return;
     } else {
         if (g_7092[t].f_050 != 0)
             fn_03_06ec(g_7092[t].f_056, 14, t, 0x13);
