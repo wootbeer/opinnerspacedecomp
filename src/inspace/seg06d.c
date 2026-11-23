@@ -53,7 +53,8 @@ int far fn_16_5f0e(char far *a, char far *b);
 #pragma pack(1)
 typedef struct {                /* 0x297 bytes, far array at DS:69f4 */
     char p000[0x152];
-    char f152[0x1d0 - 0x152];
+    char f152[0x1c0 - 0x152];
+    char f1c0[0x10];
     char f1d0;
     char p1d1[0x297 - 0x1d1];
 } REC_297;
@@ -218,10 +219,239 @@ void far fn_06_2ebc(void)
     }
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+int far fn_06_3f4c(char far *path);
+extern int g_92e8;
+extern int g_094e;
+extern int g_0950;
+extern int g_0e32;
+extern int g_90f8;
+extern int g_95ba;
+extern int g_8e5e;
+extern int g_94a8;
+extern int g_94aa;
+extern int g_9ea0;
+extern char g_38c8[];
+extern int g_91f8;
+extern int g_92e4;
+extern int g_13de;
+extern int g_968e;
+extern long g_1e74;
+extern long g_1e70;
+extern int g_94b0;
+extern int g_94a2;
+extern HGLOBAL g_94ae;
+
+/* Reads the race/duel settings for the chosen track and adds the track to
+ * the track list [inferred]. */
+/* @addr 6:301a */
 int far fn_06_301a(void)
 {
-    return g_0d26;
+    int i;
+    int r;
+    int sel;
+    char path[200];
+    char str[40];
+    char path2[120];
+
+    if (!g_0d20)
+        return 0;
+    if (g_90f4 == 1)
+        return 0;
+    lstrcpy(g_38c8, g_6990);
+    g_92e8 = 0;
+    lstrcpy(path, g_6990);
+    path[lstrlen(path) - 1] = 0;
+    lstrcpy(path2, path);
+    LoadString(g_9212, 0x2f8, str, 40);
+    if (fn_16_5f0e(path, str)) {
+        if (!flow_interactive)
+            return 0;
+        lstrcpy(path, g_6990);
+        path[1] = ' ';
+        if ((r = fn_06_3f4c(path)) == 3)
+            return g_92e8 = 0;
+        g_92e8 = 1;
+        lstrcpy(g_38c8, str);
+        lstrcpy(g_6990, str);
+    } else {
+        g_92e8 = 0;
+        if (!g_094e) {
+            LoadString(g_9212, 0x2e3, str, 40);
+            if (fn_16_5f0e(path, str)) {
+                if (!g_0e32 || (g_90f8 && g_95ba == 0x209)) {
+                    g_094e = 2;
+                    if (!flow_interactive)
+                        g_0e32 = 1;
+                }
+            }
+        }
+        if (!g_0950) {
+            LoadString(g_9212, 0x2e0, str, 40);
+            if (fn_16_5f0e(path, str)) {
+                if (!g_0e32 || (g_90f8 && g_95ba == 0x20a)) {
+                    g_0950 = 2;
+                    if (!flow_interactive)
+                        g_0e32 = 1;
+                }
+            }
+        }
+        if (!g_094e && !g_0950)
+            g_0e32 = 0;
+        else {
+            lstrcpy(path, g_6990);
+            path[1] = ' ';
+            if ((r = fn_06_3f4c(path)) == 3) {
+                g_094e = g_0950 = 0;
+                return 0;
+            }
+        }
+        if (g_094e) {
+            if (g_90f8 && g_8e5e) {
+                int k;
+
+                if ((sel = GetPrivateProfileInt(g_9690, "DRacers", 0, g_96a9)) == 0)
+                    g_094e = 1;
+                else
+                    g_094e = sel + 1;
+                g_94a8 = GetPrivateProfileInt(g_9690, "DDiff", 0, g_96a9);
+                g_94aa = 2;
+                if ((k = GetPrivateProfileInt(g_9690, "DLaps", 0, g_96a9)) == 0) {
+                    switch (k = rand() % 7) {
+                    case 4:
+                        g_9ea0 = 1;
+                        break;
+                    case 5:
+                        g_9ea0 = 10;
+                        break;
+                    default:
+                        g_9ea0 = 5;
+                        break;
+                    }
+                } else
+                    switch (k) {
+                    case 1:
+                        g_9ea0 = 1;
+                        break;
+                    case 2:
+                        g_9ea0 = 5;
+                        break;
+                    case 3:
+                        g_9ea0 = 10;
+                        break;
+                    }
+            } else {
+                sel = SendMessage(GetDlgItem(g_0d1e, 0x8d), CB_GETCURSEL, 0, 0L);
+                fn_06_0f1a(sel, str);
+                WritePrivateProfileString(g_9690, "Racers", str, g_96a9);
+                if (sel == 0)
+                    g_094e = 1;
+                else
+                    g_094e = sel + 1;
+                sel = SendMessage(GetDlgItem(g_0d1e, 0x8e), CB_GETCURSEL, 0, 0L);
+                fn_06_0f1a(sel, str);
+                WritePrivateProfileString(g_9690, "RaceDiff", str, g_96a9);
+                g_94a8 = sel;
+                sel = SendMessage(GetDlgItem(g_0d1e, 0x90), CB_GETCURSEL, 0, 0L);
+                fn_06_0f1a(sel, str);
+                WritePrivateProfileString(g_9690, "RaceOpp", str, g_96a9);
+                g_94aa = sel;
+                sel = SendMessage(GetDlgItem(g_0d1e, 0x8f), CB_GETCURSEL, 0, 0L);
+                fn_06_0f1a(sel, str);
+                WritePrivateProfileString(g_9690, "RaceLaps", str, g_96a9);
+                switch (sel) {
+                case 2:
+                    g_9ea0 = 10;
+                    break;
+                case 1:
+                    g_9ea0 = 5;
+                    break;
+                case 0:
+                    g_9ea0 = 1;
+                    break;
+                }
+            }
+            LoadString(g_9212, 0x2e3, str, 40);
+            path2[lstrlen(path2) - lstrlen(str)] = 0;
+            for (i = 0; i < 3; i++) {
+                LoadString(g_9212, 0x2e4 + i, str, 40);
+                if (fn_16_5f0e(path2, str)) {
+                    g_094e += i << 2;
+                    lstrcpy(g_38c8, str);
+                    lstrcpy(g_6990, str);
+                }
+            }
+        } else if (g_0950) {
+            if (g_90f8) {
+                g_94a8 = GetPrivateProfileInt(g_9690, "DuelDiff", 0, g_96a9);
+                g_0950 = g_94aa = 2;
+            } else {
+                sel = SendMessage(GetDlgItem(g_0d1e, 0x91), CB_GETCURSEL, 0, 0L);
+                fn_06_0f1a(sel, str);
+                WritePrivateProfileString(g_9690, "Duelers", str, g_96a9);
+                g_0950 = sel + 2;
+                sel = SendMessage(GetDlgItem(g_0d1e, 0x92), CB_GETCURSEL, 0, 0L);
+                fn_06_0f1a(sel, str);
+                WritePrivateProfileString(g_9690, "DuelDiff", str, g_96a9);
+                g_94a8 = sel;
+                sel = SendMessage(GetDlgItem(g_0d1e, 0x94), CB_GETCURSEL, 0, 0L);
+                fn_06_0f1a(sel, str);
+                WritePrivateProfileString(g_9690, "DuelOpp", str, g_96a9);
+                g_94aa = sel;
+            }
+            LoadString(g_9212, 0x2e0, str, 40);
+            path2[lstrlen(path2) - lstrlen(str)] = 0;
+            for (i = 0; i < 1; i++) {
+                LoadString(g_9212, 0x2ee + i, str, 40);
+                if (fn_16_5f0e(path2, str)) {
+                    g_0950 += i << 2;
+                    lstrcpy(g_38c8, str);
+                    lstrcpy(g_6990, str);
+                }
+            }
+        } else {
+            if (!fn_06_4190(g_38c8))
+                return 0;
+            if ((r = fn_06_3f4c(g_6990)) >= 2)
+                return 0;
+        }
+    }
+    g_0d1c = g_94b4;
+    if (!g_91f8 || g_92e4)
+        g_968e = g_13de = 1;
+    else {
+        g_1e74 = 0;
+        g_1e70 = g_1e50;
+    }
+    g_94b0 = 1;
+    for (i = 0; i < g_94a4; i++) {
+        if (!lstrcmp(g_69f4[i].f152, g_6990)) {
+            g_94b0 = 0;
+            g_94a2 = i;
+            break;
+        }
+    }
+    if (g_94b0) {
+        if (!g_94a4) {
+            if (!(g_94ae = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, 0x297L)))
+                return 0;
+            if (!(g_69f4 = (REC_297 far *)GlobalLock(g_94ae))) {
+                GlobalFree(g_94ae);
+                return 0;
+            }
+            g_94a4 = 1;
+        } else {
+            g_94a4++;
+            GlobalUnlock(g_94ae);
+            g_94ae = GlobalReAlloc(g_94ae, (long)g_94a4 * 0x297, GMEM_MOVEABLE | GMEM_ZEROINIT);
+            g_69f4 = (REC_297 far *)GlobalLock(g_94ae);
+        }
+        lstrcpy(g_69f4[g_94a4 - 1].f152, g_6990);
+        g_94a2 = g_94a4 - 1;
+        for (i = 0; i < 8; i++)
+            g_69f4[g_94a2].f1c0[i] = -1;
+    }
+    fn_06_2ebc();
+    return 1;
 }
 
 /* @addr 6:4118 */

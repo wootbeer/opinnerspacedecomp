@@ -77,12 +77,15 @@ typedef struct {
     char pad_0ca[0x1];
     char f_0cb;    /* DS:715d */
     int f_0cc;    /* DS:715e */
-    char pad_0ce[0x6];
+    char pad_0ce[0x2];
+    int f_0d0;    /* DS:7162 */
+    char pad_0d2[0x2];
     int f_0d4;    /* DS:7166 */
     int f_0d6;    /* DS:7168 */
     char pad_0d8[0x2];
     long f_0da;    /* DS:716c */
-    char pad_0de[0x3];
+    char pad_0de[0x2];
+    char f_0e0;    /* DS:7172 */
     char f_0e1;    /* DS:7173 */
     char f_0e2;    /* DS:7174 */
     char f_0e3;    /* DS:7175 */
@@ -126,7 +129,8 @@ typedef struct {
     char pad_02a[0x2];
     int f_02c;
     char f_02e;
-    char pad_02f[0x3];
+    char f_02f;
+    char pad_030[0x2];
     int f_032;
     int f_034;
     int f_036;
