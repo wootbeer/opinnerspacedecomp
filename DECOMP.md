@@ -383,3 +383,9 @@ Conventions
 - `if ((c = f(k)) != 3 && c != 6 && c != 1)` gives a cmp/cmp/dec chain that
   looks like a switch.
 - fn_13_a6bc is pascal (int); g_4eec is int[][3]; g_8e08 is long[].
+- A dead `imul bx, n, size` before an assignment: `if (rec[n].f) x = 1;
+  else x = 1;` (CL drops the test, keeps the address) [inferred: the field
+  tested is arbitrary].
+- `switch (st) { default: break; case 0: ... }` (default first) gives
+  `mov ax,st; or ax,ax; jne` and out-of-line placement.
+- A value in di used twice can be an expression written twice, not a local.

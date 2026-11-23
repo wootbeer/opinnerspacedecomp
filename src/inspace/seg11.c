@@ -14,7 +14,8 @@ typedef struct {
     int f0e;                    /* +0e */
     int f10;                    /* +10 */
     int f12;                    /* +12 */
-    char p014[0x18 - 0x14];
+    int f14;                    /* +14 */
+    char p016[0x18 - 0x16];
     int f18;                    /* +18 */
     char p01a[0x1c - 0x1a];
     int f1c;                    /* +1c */
@@ -39,23 +40,29 @@ typedef struct {
     int f56;                    /* +56 */
     char p058[0x60 - 0x58];
     char f60;                   /* +60 */
-    char p061[0x84 - 0x61];
+    char f61;                   /* +61 */
+    char p062[0x84 - 0x62];
     unsigned long f84;          /* +84 */
     char p088[0x8c - 0x88];
     long f8c;                   /* +8c */
     DWORD f90;                  /* +90 */
     DWORD f94;                  /* +94 */
-    char p098[0xae - 0x98];
+    char p098[0xa0 - 0x98];
+    DWORD fa0;                  /* +a0 */
+    char p0a4[0xae - 0xa4];
     char fae[0xb8 - 0xae];      /* +ae */
     char fb8[0x13];             /* +b8 */
     char fcb;                   /* +cb */
-    char p0cc[0xce - 0xcc];
+    char fcc;                   /* +cc */
+    char p0cd;
     int fce;                    /* +ce */
     char p0d0[0xd6 - 0xd0];
     int fd6;                    /* +d6 */
     char p0d8[0xda - 0xd8];
     int fda;                    /* +da */
-    char p0dc[0xe2 - 0xdc];
+    char p0dc[0xe0 - 0xdc];
+    char fe0;                   /* +e0 */
+    char fe1;                   /* +e1 */
     char fe2;                   /* +e2 */
     char p0e3[0xe4 - 0xe3];
     char fe4;                   /* +e4 */
@@ -105,7 +112,7 @@ typedef struct {
     char f51;                   /* +51 */
     char p52[0x54 - 0x52];
     char f54;                   /* +54 */
-    char p55[0x62 - 0x55];
+    char f55[0x62 - 0x55];      /* +55: per shot slot flags [inferred] */
     void (far pascal *f62)(int type, int n, HDC dc);   /* +62: draw [inferred] */
     void (far *f66)(int type, int idx);  /* +66 */
     char p6a[0x70 - 0x6a];
@@ -283,6 +290,21 @@ void far fn_10_744c(int a);
 extern int g_93c2;
 extern int g_1868;
 extern int g_934e;
+extern int g_95f6;
+extern int g_94e2;
+extern int g_9344;
+extern int g_8ff6;
+typedef struct { int f00; char p02[4]; POINT f06; char p0a[6]; } REC_4F30;
+extern REC_4F30 g_4f30[];    /* 16-byte records [inferred] */
+int far fn_06_720c(int deg);
+int far fn_06_71b2(int deg);
+extern int g_0594;
+extern int g_9000;
+extern int g_9334;
+extern int g_9006;
+extern POINT g_7be0[][4][16];
+void far pascal fn_08_0764(int a, int b);
+void far fn_18_49d8(int i, int v);
 extern int g_0aa2[4];              /* last drawn state per light [inferred] */
 extern int g_93fe;
 extern HBITMAP g_5034;
@@ -511,10 +533,22 @@ typedef struct {
     int y0[2][6];               /* +18 */
     int x1[2][6];               /* +30 */
     int y1[2][6];               /* +48 */
-    char p60[0x70 - 0x60];
+    char p60[0x68 - 0x60];
+    int f68;                    /* +68 */
+    int f6a;                    /* +6a */
+    int f6c;                    /* +6c */
+    int f6e;                    /* +6e */
     int f70;                    /* +70 */
     int f72;                    /* +72 */
-    char p74[0x88 - 0x74];
+    int f74;                    /* +74 */
+    int f76;                    /* +76: -1 = free */
+    int f78;                    /* +78 */
+    int f7a;                    /* +7a: owner type */
+    int f7c;                    /* +7c: owner index */
+    int f7e;                    /* +7e */
+    int f80;                    /* +80 */
+    int f82;                    /* +82 */
+    int f84[2];                 /* +84 */
     int f88;                    /* +88 */
     int f8a;                    /* +8a */
     char p8c[0x90 - 0x8c];
@@ -564,8 +598,13 @@ void far race_position(void);
 void far fn_11_4928(int mode, DWORD t, LPSTR out);
 void far race_radar_background(int a);
 
-/* Not yet decompiled: stubs so calls to them compile as near calls. */
-void far pascal fn_11_4e0a(int a) { }
+/* Prototypes, and stubs ({ }) for functions not yet decompiled, so calls
+ * to them compile as near calls. */
+void far pascal fn_11_4e0a(int n);
+void far pascal fn_11_5ab6(int n, int k);
+void far fn_11_6874(int n);
+void far pascal fn_11_63b4(int n, int a);
+void far fn_11_5626(int i);
 void far fn_11_41bc(HDC dc, int a, int b);
 void far pascal fn_11_6b64(int msg, int wparam, long lparam) { }
 void far pascal fn_11_7c12(int k, int type, int n) { }
@@ -673,6 +712,362 @@ void far fn_11_05fe(int a)
                 if (oldpal)
                     SelectPalette(dc, oldpal, 0);
                 DeleteDC(dc);
+            }
+        }
+    }
+}
+
+/* Fire the ship's weapon n: checks the reload time and aim, then fills a
+ * free 0x94-byte shot record [inferred]. */
+/* @addr 11:4e0a */
+void far pascal fn_11_4e0a(int n)
+{
+    int i;
+    int k;
+    int j;
+    int t;
+    int facing;
+    int ang;
+    int cnt;
+    long ldx;
+    long ldy;
+    long len;
+    int ok;
+    int flag;
+    int found;
+    POINT from;
+    POINT to;
+
+    g_0594 = 7;
+    if (n == g_952e && g_9e49 >= 3 && g_9e49 <= 6 && g_9130 == 0)
+        return;
+    if (g_7090[n].f26[1] == 0)
+        return;
+    if (g_7090[n].f8c != 0 && g_7090[n].f8c + g_7090[n].fa0 > g_1e68
+        || g_7090[n].fa0 + 5 > g_1e68)
+        return;
+    if (g_1df8[g_9324][n].f1a == 0 && g_7090[n].f32 != 0
+        && g_7090[n].f32 != 9 && g_7090[n].f32 != g_9324)
+        return;
+    if (n != g_9646 || g_9134 != 0) {
+        if (g_1df8[g_9324][n].f1a == 0)
+            from = fn_08_29ea(g_1df8[g_9324][n].f04);
+        else
+            from = *(POINT far *)&g_1df8[g_9324][n].f00;
+        if (g_1df8[g_7090[n].f32][g_7090[n].f34].f1a == 0)
+            to = fn_08_29ea(g_1df8[g_7090[n].f32][g_7090[n].f34].f04);
+        else
+            to = *(POINT far *)&g_1df8[g_7090[n].f32][g_7090[n].f34].f00;
+        ang = fn_08_19b0(to.x - from.x, to.y - from.y);
+        facing = g_1df8[g_9324][n].f28;
+        if (g_7090[n].f32 == g_9324 && g_7090[g_7090[n].f34].fe8 != 0)
+            ang = facing;
+        if (ang != facing)
+            return;
+        fn_11_5ab6(n, 5);
+    }
+    if (n == g_9646)
+        g_8e28 = g_1e50;
+    ok = 1;
+    found = flag = 0;
+    cnt = 0;
+    for (i = 0; i < g_0594; i++) {
+        if (g_6098[i].f76 == -1)
+            cnt++;
+        else if (g_6098[i].f7a == g_9324 && g_6098[i].f7c == n) {
+            flag = 1;
+            if (g_90ea / ((g_0594 - 2) * 10) >= g_6098[i].f76) {
+                ok = 0;
+                break;
+            }
+        }
+        if (g_6098[i].f7a == g_9324 && g_6098[i].f7c == g_9646)
+            found = 1;
+    }
+    if (cnt < 2 && found == 0 && n != g_9646)
+        return;
+    if (ok == 0)
+        return;
+    g_7090[n].fcc = max(7 - g_9000 * 2 - g_9334, 1);
+    g_7090[n].fa0 = g_1e68;
+    g_7090[n].f14a = g_1df8[g_9324][n].f04;
+    g_7090[n].f14e = g_1e50;
+    if (n == g_9646 && g_9134 != 0)
+        fn_07_1208();
+    for (i = 0; i < g_0594; i++) {
+        if (g_6098[i].f76 == -1) {
+            k = g_6098[i].f80 = g_6098[i].f7e = g_6098[i].f76 = 0;
+            for (; k < g_0594; k++)
+                for (j = 0; j < g_7090[n].f24; j++) {
+                    g_6098[i].x1[j][k] = -100;
+                    g_6098[i].y1[j][k] = -100;
+                    fn_08_0764(i, k);
+                }
+            g_6098[i].x1[0][0] = g_6098[i].x1[1][0] = g_1df8[g_9324][n].f04.x;
+            g_6098[i].y1[0][0] = g_6098[i].y1[1][0] = g_1df8[g_9324][n].f04.y;
+            g_6098[i].f7a = g_9324;
+            g_6098[i].f7c = n;
+            g_6098[i].f78 = g_7090[n].f24;
+            g_6098[i].f84[0] = g_7090[n].fe0;
+            g_6098[i].f84[1] = g_7090[n].fe1;
+            g_6098[i].f70 = g_1050[g_1df8[g_9324][n].f28].x * 3;
+            g_6098[i].f72 = g_1050[g_1df8[g_9324][n].f28].y * 3;
+            g_6098[i].f70 += g_1df8[g_9324][n].f0c / 10 * 10 / g_9006;
+            g_6098[i].f72 += g_1df8[g_9324][n].f0e / 10 * 10 / g_9006;
+            g_6098[i].f90 = 0;
+            if (g_9130 == 0) {
+                if (n == g_9646) {
+                    g_6098[i].x1[0][0] -= g_1df8[g_9324][n].f0c;
+                    g_6098[i].y1[0][0] -= g_1df8[g_9324][n].f0e;
+                    g_6098[i].x1[1][0] -= g_1df8[g_9324][n].f0c;
+                    g_6098[i].y1[1][0] -= g_1df8[g_9324][n].f0e;
+                } else {
+                    g_6098[i].x1[0][0] += g_1df8[g_9324][n].f0c;
+                    g_6098[i].y1[0][0] += g_1df8[g_9324][n].f0e;
+                    g_6098[i].x1[1][0] += g_1df8[g_9324][n].f0c;
+                    g_6098[i].y1[1][0] += g_1df8[g_9324][n].f0e;
+                }
+            }
+            g_6098[i].f74 = g_90ea / 10;
+            if (n == g_9646 && g_7090[g_9646].f32 != 9)
+                g_9432++;
+            fn_13_4eec(n, 1);
+            g_6098[i].f82 = 0;
+            for (t = g_9326; t <= g_9324; t++)
+                for (k = 0; k < g_9406[t]; k++)
+                    g_1df8[t][k].f55[i] = 0;
+            if (g_7090[n].f24 == 1) {
+                g_6098[i].x1[0][0] += g_7b60[g_7090[n].f4e][g_1df8[g_9324][n].f28].x << 3;
+                g_6098[i].y1[0][0] += g_7b60[g_7090[n].f4e][g_1df8[g_9324][n].f28].y << 3;
+                g_6098[i].x1[0][0] = ((long)g_6098[i].x1[0][0] + ((long)g_05a0_lo << 3))
+                                     % (g_05a0_lo << 3);
+                g_6098[i].y1[0][0] = ((long)g_6098[i].y1[0][0] + ((long)g_05a2 << 3))
+                                     % (g_05a2 << 3);
+                if (n == g_9646)
+                    fn_10_744c(0x69);
+                fn_10_754a(3, 0x1e, i, 2);
+                if (flag)
+                    g_6098[i].f76 = 15;
+                if (g_9130 != 0)
+                    fn_18_49d8(i, g_6098[i].f74 - g_6098[i].f76);
+                else if (g_9320 == 6 && g_9eb5 == 0)
+                    fn_11_5626(i);
+            } else {
+                for (j = 0; j < 2; j++) {
+                    g_6098[i].x1[j][0] += g_7be0[g_7090[n].f4e][j][g_1df8[g_9324][n].f28].x << 3;
+                    g_6098[i].y1[j][0] += g_7be0[g_7090[n].f4e][j][g_1df8[g_9324][n].f28].y << 3;
+                    g_6098[i].x1[j][0] = ((long)g_6098[i].x1[j][0] + ((long)g_05a0_lo << 3))
+                                         % (g_05a0_lo << 3);
+                    g_6098[i].y1[j][0] = ((long)g_6098[i].y1[j][0] + ((long)g_05a2 << 3))
+                                         % (g_05a2 << 3);
+                }
+                ldx = g_6098[i].x1[1][0] - g_6098[i].x1[0][0];
+                ldy = g_6098[i].y1[1][0] - g_6098[i].y1[0][0];
+                g_6098[i].f68 = (int)ldx << 4;
+                g_6098[i].f6a = (int)ldy << 4;
+                len = (int)fn_08_1290(ldx * ldx + ldy * ldy, abs32(ldx) + abs32(ldy));
+                if (len <= 1)
+                    len = 1;
+                g_6098[i].f68 = g_6098[i].f68 / len;
+                g_6098[i].f6a = g_6098[i].f6a / len;
+                g_6098[i].f6c = 0x1c;
+                g_6098[i].f6e = 0x3e;
+                if (n == g_9646)
+                    fn_10_744c(0x69);
+                if (g_7090[n].fe0 && g_7090[n].fe1)
+                    fn_10_754a(4, 0x1e, i, 2);
+                else
+                    fn_10_754a(3, 0x1e, i, 2);
+                if (flag)
+                    g_6098[i].f76 = 15;
+                if (g_9130 != 0)
+                    fn_18_49d8(i, g_6098[i].f74 - g_6098[i].f76);
+                else if (g_9320 == 6 && g_9eb5 == 0)
+                    fn_11_5626(i);
+            }
+            return;
+        }
+    }
+}
+
+/* Steering/thrust of ship n for command k: autopilot speed limit, then fire
+ * (6874), turn (63b4) or brake [inferred]. */
+/* @addr 11:5ab6 */
+void far pascal fn_11_5ab6(int n, int k)
+{
+    int j;
+    int u6;
+    int u8;
+    int lim;
+    int ang;
+    int pa;
+    int pb;
+    int dist;
+    POINT dv;
+    int canfire;
+    int strong;
+    int pl;
+    int autoon;
+    int u20;
+    long speed;
+    int facing;
+    int tf;
+    int ang2;
+    int a1;
+    int a2;
+    int accel;
+
+    pl = 0;
+    if (g_9320 == 6 && g_9eb4 == 0)
+        return;
+    if ((n != g_9646 || g_9134 != 0) && g_9e49 == 0 && n == g_952e)
+        pl = 1;
+    if (g_951a != 0 && n == g_9646)
+        pl = 1;
+    if (n == g_952e && g_9e49 >= 3 && g_9e49 <= 6 && g_9130 == 0)
+        return;
+    if (g_7090[n].f26[2] == 0)
+        canfire = 0;
+    else
+        canfire = 1;
+    if (g_7090[n].f26[2] < 50 && (g_9320 != 6 && g_9320 != 7 || g_7090[n].f1e > 50)
+        && g_95f6 < 4)
+        canfire = 0;
+    if (g_7090[n].f1e < 50) {
+        canfire = 0;
+        /* Both arms equal (sic): the test is dropped, its imul stays. */
+        if ((g_7090[n].f1e / 12 < 2 ? 2 : g_7090[n].f1e / 12) >= g_95f6 / 2 || k == 1) {
+            if (g_7090[n].f1e)
+                canfire = 1;
+            else
+                canfire = 1;
+        }
+        if ((n != g_9646 || g_9134 != 0) && g_7090[n].f32 == 4 && g_7090[n].f38 == 2)
+            canfire = 1;
+    }
+    if (g_7090[n].f84 > g_1e50 || g_9320 == 6 && g_7090[n].f84 + 400 > g_1e50)
+        canfire = 0;
+    g_7090[n].f1c = g_7090[n].f1c - 1 < 1 ? 1 : g_7090[n].f1c - 1;
+    if (k == 2)
+        k = g_952a = 1;
+    else
+        g_952a = 0;
+    strong = 0;
+    autoon = 1;
+    if (g_7090[n].f61 && g_7090[n].f26[2] > 75)
+        autoon = 0;
+    if (g_7090[n].f32 == 12)
+        autoon = 1;
+    if (g_9320 == 6) {
+        if (g_1df8[14][n].f51)
+            autoon = 1;
+        else
+            autoon = 0;
+    }
+    if (n == g_9646 && g_9134 == 0 || autoon == 0) {
+        if (g_9320 != 6)
+            g_7090[n].fda = g_7090[n].f0c * 19 / g_7090[n].f0e;
+    } else {
+        if (g_96ea[g_7090[n].f4e].f20 == 5)
+            g_7090[n].fda = 120;
+        else
+            g_7090[n].fda = 90;
+        if (g_9208 > 1) {
+            for (j = 0; j < g_9344; j++) {
+                dist = fn_08_285a(&pa, &pb, g_1df8[g_9324][n].f04, g_4f30[j].f06);
+                if ((g_4f30[j].f00 >> 3) + 100 > dist) {
+                    if ((g_4f30[j].f00 >> 3) - 40 < dist && (g_4f30[j].f00 >> 3) + 40 > dist)
+                        g_7090[n].fda = g_7090[n].fda * 7 / 3;
+                    else
+                        g_7090[n].fda = g_7090[n].fda * 2 / 3;
+                    break;
+                }
+            }
+        }
+        if (n != g_9646 || g_9134 != 0) {
+            if (fn_09_88ba(g_1df8[g_9324][n].f0c) + fn_09_88ba(g_1df8[g_9324][n].f0e)
+                > g_7090[n].fda) {
+                if (g_94e2 < 30)
+                    g_7090[n].fda = g_7090[n].fda * 5 / 4;
+                else if (g_94e2 > 70 && g_94e2 < 100)
+                    g_7090[n].fda = g_7090[n].fda * 4 / 5;
+                else if (g_94e2 >= 100)
+                    g_7090[n].fda = g_7090[n].fda * 3 / 4;
+                g_7090[n].fda = g_7090[n].fda * 3 / 4;
+                if (g_9156 == 2)
+                    g_7090[n].fda = g_7090[n].fda * 4 / 5;
+                else if (g_9156 == 0)
+                    g_7090[n].fda = g_7090[n].fda * 5 / 4;
+                if (g_7090[n].f14 > 30)
+                    g_7090[n].fda = g_7090[n].fda * 35 / (g_7090[n].f14 + 10);
+                lim = fn_08_35d0((long)g_1df8[g_9324][n].f0c, (long)g_1df8[g_9324][n].f0e);
+                if (g_7090[n].fda < lim) {
+                    ang = fn_08_19b0(g_1df8[g_9324][n].f0c, g_1df8[g_9324][n].f0e);
+                    if (g_1df8[g_9324][n].f28 == ang && g_7090[n].fda > lim * 3 / 2)
+                        strong = 1;
+                    else
+                        k = 5;
+                }
+            }
+        }
+    }
+    if (pl) {
+        g_7090[n].fda = g_7090[n].fda / 2 > 40 ? 40 : g_7090[n].fda / 2;
+        strong = 1;
+        if (fn_09_88ba(g_1df8[g_9324][n].f0c) > 30 || fn_09_88ba(g_1df8[g_9324][n].f0e) > 30)
+            k = 1;
+    }
+    if ((GetAsyncKeyState(VK_DOWN) & 0x8001) && g_9134 == 0 && n == g_9646 && canfire
+        || k == 5 && canfire) {
+        fn_11_6874(n);
+    } else if ((GetAsyncKeyState(VK_UP) & 0x8001 || g_1040) && g_9134 == 0 && k == 4
+               && canfire && !strong) {
+        fn_11_63b4(n, k);
+    } else if ((g_7090[n].f02 && k == 3 || k == 1) && canfire && !strong) {
+        fn_11_63b4(n, k);
+    } else {
+        if (g_7090[n].fe2 && g_9130 == 0)
+            goto done;
+        if (g_7090[n].f02) {
+            fn_11_b09c(n, g_7090[n].f02 = 0);
+            fn_13_6716(n);
+        }
+        accel = g_7090[n].f0e;
+        if (g_9130 != 0) {
+            dv.x = -(accel * g_1df8[g_9324][n].f0c / (g_1df8[g_9324][n].f44 << 2));
+            dv.y = -(g_1df8[g_9324][n].f0e * accel / (g_1df8[g_9324][n].f44 << 2));
+        } else if (g_8ff6 && n == g_9646 && g_9134 == 0) {
+            dv.x = (g_1df8[g_9324][n].f44 / -60 - g_7090[n].f02 / 8 - g_7090[n].f0e - 30)
+                   * g_1df8[g_9324][n].f0c / g_1df8[g_9324][n].f44;
+            dv.y = (g_1df8[g_9324][n].f44 / -60 - g_7090[n].f02 / 8 - g_7090[n].f0e - 30)
+                   * g_1df8[g_9324][n].f0e / g_1df8[g_9324][n].f44;
+        } else if (g_9208 > 2) {
+            speed = fn_08_35d0((long)g_1df8[g_9324][n].f0c, (long)g_1df8[g_9324][n].f0e);
+            ang2 = fn_08_19b0(g_1df8[g_9324][n].f0c, g_1df8[g_9324][n].f0e);
+            facing = g_1df8[g_9324][n].f28;
+            tf = (ang2 - facing) * 23 + 360;
+            a1 = (long)fn_06_720c(tf) * accel * speed / ((long)g_1df8[g_9324][n].f44 << 9);
+            a2 = (long)fn_06_71b2(tf) * accel * speed / (178L * g_1df8[g_9324][n].f44);
+            if (strong) {
+                a1 = a1 * 4 / 3;
+                a2 = a2 * 4 / 3;
+            }
+            dv.x = (g_1050[facing].x * a1 + g_1050[(facing + 4) % 16].x * a2) / -20;
+            dv.y = (g_1050[facing].y * a1 + g_1050[(facing + 4) % 16].y * a2) / -20;
+        } else {
+            dv.x = -(g_1df8[g_9324][n].f0c * accel / (g_1df8[g_9324][n].f44 << 3));
+            dv.y = -(g_1df8[g_9324][n].f0e * accel / (g_1df8[g_9324][n].f44 << 3));
+        }
+        g_1df8[g_9324][n].f0c += dv.x;
+        g_1df8[g_9324][n].f0e += dv.y;
+    }
+done:
+    if ((n != g_9646 || g_9134 != 0) && g_7090[n].f3a == 2 && g_7090[n].f38 == 3) {
+        if (g_7090[n].f52 == 0 || g_7090[n].f52 == 2) {
+            if (fn_08_285a(&pa, &pb, g_1df8[g_7090[n].f32][g_7090[n].f34].f04,
+                           g_1df8[g_9324][n].f04) < 400) {
+                g_1df8[g_9324][n].f0c = g_1df8[g_9324][n].f0c * 3 / 4;
+                g_1df8[g_9324][n].f0e = g_1df8[g_9324][n].f0e * 3 / 4;
             }
         }
     }
