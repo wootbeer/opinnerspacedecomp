@@ -450,6 +450,7 @@ void far fn_04_2da2(void)
     g_1df8[14][g_9646].f51 = 2;
 }
 
+/* Per-frame order and target update for racer n [inferred]. */
 /* @addr 4:0078 */
 void far pascal fn_04_0078(int n)
 {
@@ -461,12 +462,12 @@ void far pascal fn_04_0078(int n)
     int a;
     int b;
     int dist;
-    char pad14[16];
+    char pad14[14];             /* frame filler [inferred] */
     POINT pos;
     char pad26[0x18];
     int type;
     int idx;
-    char pad42[6];
+    char pad42[8];
     int flag;
 
     if (g_9320 == 6 && g_9eb5 == 0)

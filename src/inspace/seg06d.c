@@ -1109,7 +1109,173 @@ LRESULT far pascal fn_06_1f22(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     return 0;
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+int far fn_10_6d38(LPCSTR s);
+int far fn_02_1a7a(int a);
+void far fn_10_744c(int a);
+void far fn_06_37ca(void);
+
+/* Creates the child controls of the load/save dialog window [inferred]. */
+/* @addr 6:23d4 */
 void far fn_06_23d4(void)
+{
+    int u4;
+    int h;
+    int sel;
+    int ua;
+    RECT rc;
+    HWND hwnd;
+    HDC hdc;
+    char test[] = "Test";
+    char buf[40];
+    HGDIOBJ oldfont;
+
+    EnableWindow(g_0016, FALSE);
+    if (!g_6aec[0])
+        g_6aec[0] = fn_10_6d38("FLDR");
+    if (!g_6aee)
+        g_6aee = fn_10_6d38("FILES");
+    GetClientRect(g_0d1e, &rc);
+
+    LoadString(g_9212, 0x85f, buf, 40);
+    hwnd = CreateWindow("button", buf, 0x50030000L, rc.right - 90, 15, 90, 26,
+                        g_0d1e, (HMENU)1, g_8e66, NULL);
+    fn_02_1a7a(hwnd);
+    LoadString(g_9212, 0x860, buf, 40);
+    hwnd = CreateWindow("button", buf, 0x50010000L, rc.right - 90, 51, 90, 26,
+                        g_0d1e, (HMENU)0x70, g_8e66, NULL);
+    fn_02_1a7a(hwnd);
+    hwnd = CreateWindow("listbox", "", 0x50b30153L, 0, 0, 160, rc.bottom - 26,
+                        g_0d1e, (HMENU)0x65, g_8e66, NULL);
+    SendMessage(GetDlgItem(g_0d1e, 0x65), 0x415, 200, 0L);
+    fn_02_1a7a(hwnd);
+    hwnd = CreateWindow("listbox", "", 0x50a30b53L, 164, 0, rc.right - 264, rc.bottom - 26,
+                        g_0d1e, (HMENU)0x6b, g_8e66, NULL);
+    SendMessage(GetDlgItem(g_0d1e, 0x6b), 0x416, 95, 0L);
+    fn_02_1a7a(hwnd);
+    LoadString(g_9212, 0x861, buf, 40);
+    hwnd = CreateWindow("button", buf, 0x50000007L, rc.right - 90, 120, 90, 40,
+                        g_0d1e, (HMENU)0x8c, g_8e66, NULL);
+    SendMessage(hwnd, WM_SETFONT, g_90fe, 1L);
+    fn_02_1a7a(hwnd);
+    LoadString(g_9212, 0x862, buf, 40);
+    hwnd = CreateWindow("button", buf, 0x50000007L, rc.right - 90, 120, 90, 40,
+                        g_0d1e, (HMENU)0x93, g_8e66, NULL);
+    SendMessage(hwnd, WM_SETFONT, g_90fe, 1L);
+    fn_02_1a7a(hwnd);
+
+    hdc = GetDC(g_0d1e);
+    oldfont = SelectObject(hdc, g_90fe);
+    h = HIWORD(GetTextExtent(hdc, test, 4));
+    SelectObject(hdc, oldfont);
+    ReleaseDC(g_0016, hdc);
+
+    hwnd = CreateWindow("combobox", "", 0x50210003L, rc.right - 60, 120, 60,
+                        ((g_94b8 = h) + 10) * 3, g_0d1e, (HMENU)0x8d, g_8e66, NULL);
+    SendMessage(hwnd, WM_SETFONT, g_90fe, 0L);
+    fn_02_1a7a(hwnd);
+    LoadString(g_9212, 0x863, buf, 40);
+    SendMessage(hwnd, CB_ADDSTRING, hdc = 0, (LPARAM)(LPSTR)buf);
+    LoadString(g_9212, 0x864, buf, 40);
+    SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
+    LoadString(g_9212, 0x865, buf, 40);
+    SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
+    LoadString(g_9212, 0x866, buf, 40);
+    SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
+    SendMessage(hwnd, CB_SETCURSEL, sel = GetPrivateProfileInt(g_9690, "Racers", 1, g_96a9), 0L);
+
+    hwnd = CreateWindow("combobox", "", 0x50210003L, rc.right - 60, 120, 60,
+                        (g_94b8 + 10) * 3, g_0d1e, (HMENU)0x91, g_8e66, NULL);
+    SendMessage(hwnd, WM_SETFONT, g_90fe, 0L);
+    fn_02_1a7a(hwnd);
+    LoadString(g_9212, 0x867, buf, 40);
+    SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
+    LoadString(g_9212, 0x868, buf, 40);
+    SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
+    LoadString(g_9212, 0x869, buf, 40);
+    SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
+    SendMessage(hwnd, CB_SETCURSEL, sel = GetPrivateProfileInt(g_9690, "Duelers", 0, g_96a9), 0L);
+
+    hwnd = CreateWindow("combobox", "", 0x50210003L, rc.right - 60, 150, 60,
+                        (g_94b8 + 10) * 3, g_0d1e, (HMENU)0x8e, g_8e66, NULL);
+    SendMessage(hwnd, WM_SETFONT, g_90fe, 0L);
+    fn_02_1a7a(hwnd);
+    LoadString(g_9212, 0x86a, buf, 40);
+    SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
+    LoadString(g_9212, 0x86b, buf, 40);
+    SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
+    LoadString(g_9212, 0x86c, buf, 40);
+    SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
+    SendMessage(hwnd, CB_SETCURSEL, sel = GetPrivateProfileInt(g_9690, "RaceDiff", 0, g_96a9), 0L);
+
+    hwnd = CreateWindow("combobox", "", 0x50210003L, rc.right - 60, 150, 60,
+                        (g_94b8 + 10) * 3, g_0d1e, (HMENU)0x92, g_8e66, NULL);
+    SendMessage(hwnd, WM_SETFONT, g_90fe, 0L);
+    fn_02_1a7a(hwnd);
+    LoadString(g_9212, 0x86a, buf, 40);
+    SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
+    LoadString(g_9212, 0x86b, buf, 40);
+    SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
+    LoadString(g_9212, 0x86c, buf, 40);
+    SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
+    SendMessage(hwnd, CB_SETCURSEL, sel = GetPrivateProfileInt(g_9690, "DuelDiff", 0, g_96a9), 0L);
+
+    hwnd = CreateWindow("combobox", "", 0x50210003L, rc.right - 60, 180, 60,
+                        (g_94b8 + 10) * 3, g_0d1e, (HMENU)0x8f, g_8e66, NULL);
+    SendMessage(hwnd, WM_SETFONT, g_90fe, 0L);
+    fn_02_1a7a(hwnd);
+    LoadString(g_9212, 0x86d, buf, 40);
+    SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
+    LoadString(g_9212, 0x86e, buf, 40);
+    SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
+    LoadString(g_9212, 0x86f, buf, 40);
+    SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
+    SendMessage(hwnd, CB_SETCURSEL, sel = GetPrivateProfileInt(g_9690, "RaceLaps", 1, g_96a9), 0L);
+
+    hwnd = CreateWindow("combobox", "", 0x50210003L, rc.right - 60, 180, 60,
+                        (g_94b8 + 5) * 6, g_0d1e, (HMENU)0x90, g_8e66, NULL);
+    SendMessage(hwnd, WM_SETFONT, g_90fe, 0L);
+    fn_02_1a7a(hwnd);
+    LoadString(g_9212, 0x870, buf, 40);
+    SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
+    LoadString(g_9212, 0x871, buf, 40);
+    SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
+    LoadString(g_9212, 0x872, buf, 40);
+    SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
+    LoadString(g_9212, 0x873, buf, 40);
+    SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
+    LoadString(g_9212, 0x874, buf, 40);
+    SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
+    LoadString(g_9212, 0x875, buf, 40);
+    SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
+    SendMessage(hwnd, CB_SETCURSEL, sel = GetPrivateProfileInt(g_9690, "RaceOpp", 2, g_96a9), 0L);
+
+    hwnd = CreateWindow("combobox", "", 0x50210003L, rc.right - 60, 180, 60,
+                        (g_94b8 + 5) * 6, g_0d1e, (HMENU)0x94, g_8e66, NULL);
+    SendMessage(hwnd, WM_SETFONT, g_90fe, 0L);
+    fn_02_1a7a(hwnd);
+    LoadString(g_9212, 0x876, buf, 40);
+    SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
+    LoadString(g_9212, 0x877, buf, 40);
+    SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
+    LoadString(g_9212, 0x872, buf, 40);
+    SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
+    LoadString(g_9212, 0x873, buf, 40);
+    SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
+    LoadString(g_9212, 0x878, buf, 40);
+    SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
+    LoadString(g_9212, 0x879, buf, 40);
+    SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
+    SendMessage(hwnd, CB_SETCURSEL, sel = GetPrivateProfileInt(g_9690, "DuelOpp", 2, g_96a9), 0L);
+
+    fn_06_37ca();
+    fn_06_5318();
+    if (g_0d20) {
+        fn_10_744c(0x6e);
+        fn_10_744c(0x4d);
+    }
+}
+
+/* Not yet decompiled: stub so calls to it compile as near calls. */
+void far fn_06_37ca(void)
 {
 }
