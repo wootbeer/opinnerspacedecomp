@@ -74,6 +74,27 @@ typedef struct {
 } REC_70;
 extern REC_70 far *g_1e00;
 extern int g_92f0;
+/* Race track tables, one entry per track (g_9322) [inferred]. */
+extern POINT g_9ea8[3];
+extern char g_9eb6[3];
+extern char g_9eb9[3];      /* marker count [inferred] */
+extern char g_9ebc[3];
+extern char g_9ebf[3];
+extern char g_9ec2[3][40];  /* marker order [inferred] */
+extern char g_9f3a[3][2];
+extern POINT g_9f40[3][40];
+extern POINT g_a120[3];
+extern char g_a12c[3][9];   /* track names */
+int far fn_10_6c02(int a, int b, int c);
+int far fn_10_86ca(void);
+HBITMAP far fn_10_6ec6(int a);
+int far fn_10_6308(int a, int b, int c, int d);
+void far fn_10_6ee6(int a, int b, char far *s, int c, int d, int e, int f,
+                    int g, int h, char i, char j, int k, int l);
+extern long g_1e68;
+#define G_1E68_LO (((int *)&g_1e68)[0])
+#define G_1E68_HI (((int *)&g_1e68)[1])
+extern int g_931e;
 void far fn_15_5932(void);
 void far fn_10_022e(int a);
 void far fn_10_0552(int i, int a);
@@ -103,7 +124,8 @@ typedef struct {
     int f0e;            /* +0x0e */
     char p10[0x18 - 0x10];
     int f18;            /* +0x18 */
-    char p1a[0x26 - 0x1a];
+    char p1a[0x24 - 0x1a];
+    int f24;            /* +0x24 */
     int f26;            /* +0x26 */
     char p28[0x2e - 0x28];
     char f2e;           /* +0x2e */
@@ -119,6 +141,7 @@ typedef struct {
 extern REC_70S far *g_1df8[];
 extern REC_70S far *g_1e1c;
 extern REC_70S far *g_1e04;
+extern REC_70S far *g_1e18;
 int far fn_09_88ba(int a);
 void far fn_11_01e0(void);
 void far fn_10_061a(void);
@@ -195,7 +218,8 @@ typedef struct {
     char f05;
     char f06;
     char f07;
-    int f08;
+    char f08;
+    char f09;
     int f0a;
     int f0c;
     int f0e;            /* +0x0e */
@@ -991,4 +1015,497 @@ void far fn_10_16ba(int i)
                                  (b >> (2 - g_9156));
         }
     }
+}
+
+/* Fills the three race tracks' tables (LAZYLOOP, SDISPEED, GRANDPRI):
+ * the same kind of constant table initialiser as fn_10_2ffa. */
+/* @addr 10:320a */
+void far fn_10_320a(void)
+{
+    lstrcpy(g_a12c[0], "LAZYLOOP");
+    g_9eb9[0] = 0x16;
+    g_9eb6[0] = 8;
+    g_9ec2[0][0] = 8;
+    g_9ec2[0][1] = 0xd;
+    g_9f3a[0][1] = 0xa;
+    g_9ec2[0][3] = 0xa;
+    g_9f40[0][4].y = 0x4074;
+    g_9ec2[0][4] = 0x12;
+    g_9f40[0][6].y = 0x2328;
+    g_9f40[0][7].x = 0x2328;
+    g_9ec2[0][7] = 0;
+    g_9f40[0][1].y = 0x2af8;
+    g_9f40[0][4].x = 0x2af8;
+    g_9f40[0][8].y = 0x2af8;
+    g_9ec2[0][8] = 9;
+    g_9f40[0][8].x = 0x3e80;
+    g_9f40[0][9].x = 0x3e80;
+    g_9ec2[0][10] = 5;
+    g_9ec2[0][11] = 0xc;
+    g_9f40[0][3].x = 0x36b0;
+    g_9f40[0][13].y = 0x36b0;
+    g_9ec2[0][13] = 0xe;
+    g_9f40[0][14].y = 0x4268;
+    g_9ec2[0][14] = 0xf;
+    g_9ec2[0][15] = 0x10;
+    g_9ec2[0][16] = 0x11;
+    g_9f40[0][11].x = 0x55f0;
+    g_9f40[0][12].x = 0x55f0;
+    g_9f40[0][14].x = 0x55f0;
+    g_9f40[0][15].x = 0x55f0;
+    g_9f40[0][16].y = 0x55f0;
+    g_9f40[0][17].y = 0x55f0;
+    g_9f40[0][18].x = 0x1388;
+    g_9f40[0][18].y = 0x4650;
+    g_9ec2[0][18] = 0x13;
+    g_9ec2[0][19] = 0x14;
+    g_9ec2[0][20] = 0x15;
+    g_9f3a[0][0] = 0xb;
+    g_9ec2[0][21] = 0xb;
+    g_9f40[0][13].x = 0x5208;
+    g_9f40[0][22].x = 0x5208;
+    g_9f40[0][12].y = 0x1f40;
+    g_9f40[0][22].y = 0x1f40;
+    g_9f40[0][23].x = 0x38a4;
+    g_9f40[0][0].x = 0x4c2c;
+    g_9f40[0][2].x = 0x4c2c;
+    g_9f40[0][23].y = 0x4c2c;
+    g_9ec2[0][9] = 2;
+    g_9ec2[0][23] = 2;
+    g_9f40[0][1].x = 0x4a38;
+    g_9f40[0][2].y = 0x4a38;
+    g_9f40[0][3].y = 0x4a38;
+    g_9f40[0][15].y = 0x4a38;
+    g_9f40[0][16].x = 0x4a38;
+    g_9f40[0][24].x = 0x4a38;
+    g_9f40[0][24].y = 0x53fc;
+    g_9ebf[0] = 3;
+    g_9ec2[0][2] = 3;
+    g_9ec2[0][24] = 3;
+    g_9f40[0][25].x = 0x157c;
+    g_9ec2[0][5] = 6;
+    g_9ec2[0][25] = 6;
+    g_9f40[0][26].x = 0x4844;
+    g_9f40[0][26].y = 0x2710;
+    g_9ec2[0][12] = 1;
+    g_9ec2[0][22] = 1;
+    g_9ec2[0][26] = 1;
+    g_9f40[0][17].x = 0x2ee0;
+    g_9f40[0][25].y = 0x2ee0;
+    g_9f40[0][27].x = 0x2ee0;
+    g_9f40[0][5].y = 0x3a98;
+    g_9f40[0][9].y = 0x3a98;
+    g_9f40[0][19].y = 0x3a98;
+    g_9f40[0][27].y = 0x3a98;
+    g_9ebc[0] = 4;
+    g_9ec2[0][17] = 4;
+    g_9ec2[0][27] = 4;
+    g_9ec2[0][6] = 7;
+    g_9ec2[0][28] = 7;
+    g_9f40[0][10].x = 0x32c8;
+    g_9f40[0][10].y = 0x32c8;
+    g_a120[0].x = 0x32c8;
+    g_9f40[0][20].y = 0x1b58;
+    g_9f40[0][21].x = 0x1b58;
+    g_9f40[0][28].x = 0x1b58;
+    g_9f40[0][28].y = 0x1b58;
+    g_a120[0].y = 0x1b58;
+    g_9f40[0][11].y = 0xbb8;
+    g_9f40[0][19].x = 0xbb8;
+    g_9f40[0][20].x = 0xbb8;
+    g_9f40[0][21].y = 0xbb8;
+    g_9ea8[0].x = 0xbb8;
+    g_9f40[0][0].y = 0x1770;
+    g_9f40[0][5].x = 0x1770;
+    g_9f40[0][6].x = 0x1770;
+    g_9f40[0][7].y = 0x1770;
+    g_9ea8[0].y = 0x1770;
+    lstrcpy(g_a12c[1], "SDISPEED");
+    g_9eb9[1] = 0x19;
+    g_9eb6[1] = 0xa;
+    g_9ec2[1][0] = 0xa;
+    g_9f40[1][2].x = 0x53fc;
+    g_9f40[1][3].y = 0x55f0;
+    g_9ec2[1][6] = 7;
+    g_9ec2[1][7] = 0xe;
+    g_9ec2[1][8] = 0x17;
+    g_9f40[1][7].x = 0xdac;
+    g_9f40[1][9].x = 0xdac;
+    g_9ec2[1][9] = 0;
+    g_9ec2[1][3] = 0xb;
+    g_9ec2[1][10] = 0xb;
+    g_9f40[1][2].y = 0x4a38;
+    g_9f40[1][11].y = 0x4a38;
+    g_9ec2[1][2] = 2;
+    g_9ec2[1][11] = 2;
+    g_9f40[1][3].x = 0x4650;
+    g_9f40[1][10].x = 0x4650;
+    g_9f40[1][11].x = 0x4650;
+    g_9f40[1][12].x = 0x4650;
+    g_9ec2[1][12] = 0xd;
+    g_9ec2[1][13] = 6;
+    g_9f40[1][14].x = 0x1d4c;
+    g_9f40[1][5].x = 0x2ee0;
+    g_9f40[1][8].y = 0x2ee0;
+    g_9f40[1][10].y = 0x2ee0;
+    g_9f40[1][12].y = 0x2ee0;
+    g_9f40[1][13].y = 0x2ee0;
+    g_9f40[1][14].y = 0x2ee0;
+    g_9ec2[1][14] = 9;
+    g_9ec2[1][1] = 0x10;
+    g_9ec2[1][15] = 0x10;
+    g_9ec2[1][16] = 0x11;
+    g_9ec2[1][17] = 0x12;
+    g_9ec2[1][18] = 0x15;
+    g_9ec2[1][5] = 0x14;
+    g_9ec2[1][19] = 0x14;
+    g_9f40[1][0].x = 0x5208;
+    g_9f40[1][6].y = 0x5208;
+    g_9f40[1][7].y = 0x5208;
+    g_9f40[1][17].y = 0x5208;
+    g_9f40[1][18].x = 0x5208;
+    g_9f40[1][20].y = 0x5208;
+    g_9ebc[1] = 4;
+    g_9ec2[1][20] = 4;
+    g_9f40[1][15].x = 0x5dc0;
+    g_9f40[1][16].x = 0x5dc0;
+    g_9f40[1][17].x = 0x5dc0;
+    g_9f40[1][18].y = 0x5dc0;
+    g_9f40[1][19].y = 0x5dc0;
+    g_9f40[1][21].y = 0x5dc0;
+    g_9ec2[1][21] = 0x16;
+    g_9f40[1][1].y = 0x3e80;
+    g_9f40[1][16].y = 0x3e80;
+    g_9f40[1][22].y = 0x3e80;
+    g_9f40[1][13].x = 0x1f40;
+    g_9f40[1][23].y = 0x1f40;
+    g_9ec2[1][23] = 0x18;
+    g_9f40[1][15].y = 0x3e8;
+    g_9f40[1][21].x = 0x3e8;
+    g_9f40[1][22].x = 0x3e8;
+    g_9f40[1][23].x = 0x3e8;
+    g_9f40[1][24].x = 0x3e8;
+    g_9f40[1][24].y = 0x3e8;
+    g_9ec2[1][24] = 0xf;
+    g_9f40[1][25].x = 0x4844;
+    g_9f40[1][25].y = 0x30d4;
+    g_9ec2[1][25] = 1;
+    g_9f40[1][26].x = 0x34bc;
+    g_9f40[1][26].y = 0x396c;
+    g_9f40[1][27].x = 0xbb8;
+    g_9f40[1][4].x = 0x3a98;
+    g_9f40[1][4].y = 0x3a98;
+    g_9f40[1][5].y = 0x3a98;
+    g_9f40[1][19].x = 0x3a98;
+    g_9f40[1][20].x = 0x3a98;
+    g_9f40[1][27].y = 0x3a98;
+    g_9f40[1][0].y = 0xfa0;
+    g_9f40[1][8].x = 0xfa0;
+    g_9f40[1][9].y = 0xfa0;
+    g_9f40[1][28].x = 0xfa0;
+    g_9f40[1][28].y = 0x3520;
+    g_9f3a[1][1] = 8;
+    g_9ec2[1][22] = 8;
+    g_9ec2[1][27] = 8;
+    g_9ec2[1][28] = 8;
+    g_9f40[1][29].x = 0x3afc;
+    g_9f40[1][29].y = 0x3840;
+    g_9f3a[1][0] = 5;
+    g_9ec2[1][4] = 5;
+    g_9ec2[1][26] = 5;
+    g_9ec2[1][29] = 5;
+    g_9f40[1][30].x = 0x5460;
+    g_9f40[1][1].x = 0x5014;
+    g_9f40[1][30].y = 0x5014;
+    g_9ebf[1] = 3;
+    g_9ec2[1][30] = 3;
+    g_9f40[1][31].x = 0x125c;
+    g_9f40[1][6].x = 0x2af8;
+    g_9f40[1][31].y = 0x2af8;
+    g_9ec2[1][31] = 9;
+    g_a120[1].x = 0x2ee0;
+    g_a120[1].y = 0x1388;
+    g_9ea8[1].x = 0x3e8;
+    g_9ea8[1].y = 0xfa0;
+    lstrcpy(g_a12c[2], "GRANDPRI");
+    g_9eb9[2] = 0x1f;
+    g_9ebc[2] = 5;
+    g_9f3a[2][1] = 0xc;
+    g_9ec2[2][0] = 1;
+    g_9f40[2][1].y = 0x251c;
+    g_9ec2[2][2] = 3;
+    g_9ebf[2] = 4;
+    g_9ec2[2][3] = 4;
+    g_9f40[2][5].y = 0x1770;
+    g_9ec2[2][6] = 7;
+    g_9f3a[2][0] = 0xa;
+    g_9ec2[2][9] = 0xa;
+    g_9ec2[2][12] = 0x1e;
+    g_9f40[2][2].x = 0x1388;
+    g_9f40[2][3].x = 0x1388;
+    g_9f40[2][3].y = 0x1388;
+    g_9f40[2][4].y = 0x1388;
+    g_9f40[2][6].y = 0x1388;
+    g_9f40[2][13].x = 0x1388;
+    g_9f40[2][14].x = 0x1c52;
+    g_9ec2[2][14] = 0;
+    g_9f40[2][0].y = 0x2af8;
+    g_9f40[2][14].y = 0x2af8;
+    g_9f40[2][15].y = 0x2af8;
+    g_9eb6[2] = 0xe;
+    g_9ec2[2][1] = 0xe;
+    g_9ec2[2][15] = 0xe;
+    g_9ec2[2][16] = 0x12;
+    g_9ec2[2][5] = 0x11;
+    g_9ec2[2][17] = 0x11;
+    g_9ec2[2][18] = 0x14;
+    g_9f40[2][0].x = 0x4268;
+    g_9f40[2][5].x = 0x4268;
+    g_9f40[2][8].y = 0x4268;
+    g_9f40[2][17].x = 0x4268;
+    g_9f40[2][19].y = 0x4268;
+    g_9ec2[2][8] = 0x13;
+    g_9ec2[2][19] = 0x13;
+    g_9ec2[2][20] = 0x16;
+    g_9f40[2][1].x = 0x2710;
+    g_9f40[2][11].x = 0x2710;
+    g_9f40[2][21].x = 0x2710;
+    g_9ec2[2][11] = 0x15;
+    g_9ec2[2][21] = 0x15;
+    g_9f40[2][22].x = 0xfa0;
+    g_9f40[2][18].x = 0x59d8;
+    g_9f40[2][19].x = 0x59d8;
+    g_9f40[2][20].x = 0x59d8;
+    g_9f40[2][20].y = 0x59d8;
+    g_9f40[2][21].y = 0x59d8;
+    g_9f40[2][22].y = 0x59d8;
+    g_9ec2[2][22] = 0x17;
+    g_9f40[2][15].x = 0x7d0;
+    g_9f40[2][16].x = 0x7d0;
+    g_9f40[2][16].y = 0x7d0;
+    g_9f40[2][17].y = 0x7d0;
+    g_9f40[2][18].y = 0x7d0;
+    g_9f40[2][23].x = 0x7d0;
+    g_9f40[2][11].y = 0x4a38;
+    g_9f40[2][23].y = 0x4a38;
+    g_9ec2[2][23] = 0x10;
+    g_9f40[2][6].x = 0x4e20;
+    g_9f40[2][7].x = 0x4e20;
+    g_9f40[2][9].x = 0x4e20;
+    g_9f40[2][9].y = 0x4e20;
+    g_9f40[2][10].y = 0x4e20;
+    g_9f40[2][12].y = 0x4e20;
+    g_9f40[2][24].x = 0x4e20;
+    g_9f40[2][2].y = 0x2328;
+    g_9f40[2][24].y = 0x2328;
+    g_9ec2[2][4] = 0x19;
+    g_9ec2[2][24] = 0x19;
+    g_9ec2[2][25] = 0x1a;
+    g_9f40[2][25].y = 0x1f40;
+    g_9f40[2][26].x = 0x1f40;
+    g_9ec2[2][26] = 2;
+    g_9ec2[2][27] = 0x1d;
+    g_9f40[2][10].x = 0x32c8;
+    g_9f40[2][27].x = 0x32c8;
+    g_9f40[2][28].x = 0x32c8;
+    g_9f40[2][4].x = 0x36b0;
+    g_9f40[2][7].y = 0x36b0;
+    g_9f40[2][13].y = 0x36b0;
+    g_9f40[2][25].x = 0x36b0;
+    g_9f40[2][28].y = 0x36b0;
+    g_9ec2[2][7] = 0x1c;
+    g_9ec2[2][10] = 0x1c;
+    g_9ec2[2][13] = 0x1c;
+    g_9ec2[2][28] = 0x1c;
+    g_9f40[2][12].x = 0x1b58;
+    g_9f40[2][26].y = 0x1b58;
+    g_9f40[2][29].x = 0x1b58;
+    g_9f40[2][8].x = 0x3e80;
+    g_9f40[2][27].y = 0x3e80;
+    g_9f40[2][29].y = 0x3e80;
+    g_9ec2[2][29] = 0xc;
+    g_9ec2[2][31] = 1;
+    g_9f40[2][32].x = 0xfa0;
+    g_9ec2[2][32] = 3;
+    g_9f40[2][33].y = 0x38a4;
+    g_9ec2[2][33] = 8;
+    g_9f40[2][33].x = 0x4268;
+    g_9f40[2][34].x = 0x4268;
+    g_9f40[2][34].y = 0x4c2c;
+    g_9ec2[2][34] = 9;
+    g_9f40[2][35].x = 0x1194;
+    g_9f40[2][35].y = 0x4a38;
+    g_9f40[2][30].x = 0x1388;
+    g_9f40[2][36].y = 0x1388;
+    g_9ec2[2][36] = 5;
+    g_9f40[2][37].x = 0x55f0;
+    g_9f40[2][30].y = 0x3e80;
+    g_9f40[2][36].x = 0x3e80;
+    g_9f40[2][37].y = 0x3e80;
+    g_9ec2[2][37] = 7;
+    g_9f40[2][38].y = 0x445c;
+    g_9ec2[2][38] = 0xb;
+    g_9f40[2][32].y = 0xbb8;
+    g_9f40[2][39].x = 0xbb8;
+    g_9ec2[2][30] = 0xd;
+    g_9ec2[2][35] = 0xd;
+    g_9ec2[2][39] = 0xd;
+    g_9f40[2][31].y = 0x2710;
+    g_9f40[2][38].x = 0x2710;
+    g_a120[2].x = 0x2710;
+    g_a120[2].y = 0x3a98;
+    g_9ea8[2].x = 0x2af8;
+    g_9f40[2][31].x = 0x36b0;
+    g_9f40[2][39].y = 0x36b0;
+    g_9ea8[2].y = 0x36b0;
+}
+
+/* Finds or builds the sprite surface (23..27) for the key (k1, k2, type)
+ * kept in g_38a4: returns its index (1 when none is free). Draws 16 cells
+ * of bitmap k1 as background and bitmap k2 rotated round a circle (or,
+ * with flag, 16 straight frames) on top, then stores the cell size and
+ * border in g_4d90[rec] [inferred]. pal0 is read uninitialised when
+ * g_920e is 0 (as in the original). */
+/* @addr 10:18b0 */
+int far fn_10_18b0(int k1, int k2, int type, int flag, int rec)
+{
+    int sz0;
+    int sz;
+    int m;
+    int half;
+    int cell;
+    int i;
+    int free;
+    int k;
+    int u14;
+    char col;
+    HDC dc0;
+    HDC dc1;
+    HBITMAP bm0;
+    HBITMAP old0;
+    HBITMAP bm1;
+    HBITMAP old1;
+    HBITMAP bm2;
+    HPALETTE pal0;
+    int r;
+    int ang;
+    POINT d;
+    BITMAP bmp;
+    int mode;
+
+    free = 0;
+    for (i = 23; i < 28; i++) {
+        if (!g_39e8[i])
+            free = i;
+        if (g_38a4[i - 23].b == k1 && g_38a4[i - 23].a == k2 && g_38a4[i - 23].c == type)
+            return i;
+    }
+    if (free == 0)
+        return 1;
+    if (free >= 28)
+        return 1;
+    k = free - 23;
+    g_38a4[k].b = k1;
+    g_38a4[k].a = k2;
+    g_38a4[k].c = type;
+    if (k1 != -1) {
+        bm0 = fn_10_6c02(k1, 3, -1);
+        GetObject(bm0, 14, &bmp);
+        dc0 = CreateCompatibleDC(g_13dc);
+        old0 = SelectObject(dc0, bm0);
+        sz0 = fn_10_86ca();
+    } else {
+        sz0 = 0;
+        dc0 = 0;
+    }
+    cell = g_1e18->f24;
+    if (g_90f4 == 1 && (G_1E68_HI || G_1E68_LO)) {
+        if (g_931e == 1 || g_931e == 2)
+            mode = 1;
+        else
+            mode = 0;
+    } else if (g_931e == 2)
+        mode = 1;
+    else
+        mode = 0;
+    if (type == 1)
+        col = 9;
+    else if (type == 4)
+        col = 15;
+    else
+        col = 12;
+    fn_10_6ee6(28, k2, "", 1, 100, type, type, 1, -1, col, col, 0, mode);
+    SelectObject(g_39e8[28], g_3974[28]);
+    bm1 = fn_10_6ec6(g_3ad0[28]);
+    SelectObject(g_39e8[28], g_3ad0[28]);
+    dc1 = CreateCompatibleDC(g_13dc);
+    old1 = SelectObject(dc1, bm1);
+    bm2 = fn_10_6c02(k2, 0, -1);
+    GetObject(bm2, 14, &bmp);
+    sz = fn_10_86ca();
+    DeleteObject(bm2);
+    if (sz * 2 > sz0 && !flag)
+        m = sz * 2 - 1;
+    else if (sz > sz0 && flag)
+        m = sz;
+    else
+        m = sz0;
+    for (i = 23; i < 28; i++)
+        if (!g_39e8[i])
+            free = i;
+    u14 = m;
+    if (m & 1)
+        cell = 5;
+    else
+        cell = 6;
+    g_39e8[free] = CreateCompatibleDC(g_13dc);
+    g_3ad0[free] = CreateCompatibleBitmap(g_13dc, m * 16 + cell * 17, cell * 2 + m);
+    g_3974[free] = SelectObject(g_39e8[free], g_3ad0[free]);
+    if (g_920e) {
+        if (dc0)
+            pal0 = SelectPalette(dc0, g_920e, 0);
+        g_3a5c[free] = SelectPalette(g_39e8[free], g_920e, 0);
+    }
+    PatBlt(g_39e8[free], 0, 0, m * 16 + cell * 17, cell * 2 + m, BLACKNESS);
+    if (k1 != -1) {
+        for (i = 0; i < 16; i++)
+            BitBlt(g_39e8[free], (m - sz0) / 2 + (cell + m) * i + cell, (m - sz0) / 2 + cell,
+                   sz0, sz0, dc0, 0, 0, SRCCOPY);
+        SelectObject(dc0, old0);
+        if (pal0)
+            SelectPalette(dc0, pal0, 0);
+        DeleteDC(dc0);
+        if (bm0) {
+            DeleteObject(bm0);
+            bm0 = 0;
+        }
+    }
+    r = half = sz / 2;
+    if (!flag) {
+        for (i = 0, ang = 270; i < 16; i++, ang -= i % 2 + 22) {
+            d.x = fn_06_720c(ang) * r / 128 + half;
+            d.y = half - fn_06_71b2(ang) * r / 128;
+            BitBlt(g_39e8[free], (cell + m) * i + m / 2 - d.x + cell, m / 2 - d.y + cell,
+                   sz, sz, dc1, i * sz, 0, SRCAND);
+            BitBlt(g_39e8[free], (cell + m) * i + m / 2 - d.x + cell, m / 2 - d.y + cell,
+                   sz, sz, g_39e8[28], i * sz, 0, SRCPAINT);
+        }
+    } else {
+        for (i = 0; i < 16; i++)
+            BitBlt(g_39e8[free], (cell + m) * i + (m - sz) / 2 + cell, (m - sz) / 2 + cell,
+                   sz, sz, g_39e8[28], i * sz, 0, SRCCOPY);
+    }
+    fn_10_0552(28, 0);
+    SelectObject(dc1, old1);
+    DeleteDC(dc1);
+    DeleteObject(bm1);
+    fn_10_6308(free, 1, 1, 1);
+    if (m & 1) {
+        cell = 4;
+        m++;
+    } else
+        cell = 6;
+    g_4d90[rec].f08 = m;
+    g_4d90[rec].f09 = cell;
+    return free;
 }
