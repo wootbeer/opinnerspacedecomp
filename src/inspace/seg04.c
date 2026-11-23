@@ -18,7 +18,9 @@ typedef struct {
     char p10[0x18 - 0x10];
     int f18;                    /* +18 */
     int f1a;                    /* +1a */
-    char p1c[0x26 - 0x1c];
+    char p1c[0x22 - 0x1c];
+    int f22;                    /* +22: size [inferred] */
+    char p24[0x26 - 0x24];
     int f26;                    /* +26 */
     int f28;                    /* +28 */
     char p2a[0x2e - 0x2a];
@@ -27,7 +29,8 @@ typedef struct {
     char p30[0x32 - 0x30];
     int f32;                    /* +32 */
     int f34;                    /* +34 */
-    char p36[0x44 - 0x36];
+    int f36;                    /* +36 */
+    char p38[0x44 - 0x38];
     int f44;                    /* +44 */
     char p46[0x51 - 0x46];
     char f51;                   /* +51 */
@@ -75,7 +78,9 @@ typedef struct {
     char f5f;                   /* +5f */
     char p060[0x72 - 0x60];
     int f72[8];                 /* +72, indexed by object [inferred] */
-    char p082[0x94 - 0x82];
+    char p082[0x88 - 0x82];
+    DWORD f88;                  /* +88: time stamp [inferred] */
+    char p08c[0x94 - 0x8c];
     long f94;                   /* +94 */
     long f98;                   /* +98 */
     char p09c[0xac - 0x9c];
@@ -155,7 +160,9 @@ typedef struct {                /* 0x50 bytes, DGROUP array at DS:2f58 */
     int f2a;                    /* +2a */
     char p2c[0x3e - 0x2c];
     int f3e;                    /* +3e */
-    char p40[0x50 - 0x40];
+    char p40[0x42 - 0x40];
+    int f42;                    /* +42 */
+    char p44[0x50 - 0x44];
 } REC_50;
 
 extern REC_50 g_2f58[];
@@ -258,13 +265,19 @@ extern char g_507c[];
 extern char g_50e0[];
 extern int g_9146;
 extern int g_9686;
+extern int g_9412;
+extern int g_9418;
+int far fn_13_371c(int type, int n);
+void far fn_12_2288(int type, int n);
+/* DS:66e4: a word 4 bytes before each g_66e8 record [inferred] */
+#define G_66E4(i) (((int *)&g_66e8[i])[-2])
 extern int g_9688;
 extern int g_968a;
 void far fn_13_7b40(int n);
 int far fn_04_8626(int type, int idx, int flag);
 int far fn_13_78b8(int n, int m);
 int far fn_04_8346(int n, int x, int y, int v);
-typedef struct { char p00[0x12]; int f12; char p14[0x34 - 0x14]; } REC_34;
+typedef struct { int f00; char p02[0x12 - 0x02]; int f12; char p14[0x34 - 0x14]; } REC_34;
 extern REC_34 g_3d5a[];             /* base as in seg07.c */
 extern REC_70 far *g_1e30;
 extern int g_937a[8];
@@ -397,6 +410,132 @@ void far fn_04_474c(int n, int kind, int m, int ev)
             fn_03_06ec(g_9646, 14, n, 0xab);
         else if (kind == 14)
             fn_03_06ec(g_9646, 14, n, 0xac);
+    }
+}
+
+/* near-match 99.9%: 4:4fc8 (one byte: for `LOBYTE(v) < g_9318 * 2` the game
+ * loads the byte (mov al,[v]), this loads the word (mov ax,[v]); both then
+ * sub ah,ah).
+ * Picks ship n's current target and its approach side [inferred]. */
+void far pascal fn_04_4fc8(int n)
+{
+    int size;
+    int d;
+    int a;
+    int b;
+    int best;
+    int sel;
+    int i;
+    long dx;
+    long dy;
+    long ex;
+    long ey;
+    long c;
+    long v;
+    int changed;
+    RECT rc2;
+    RECT rc;
+
+    size = g_1df8[14][n].f22;
+    changed = 1;
+    if (g_1df8[14][n].f1a == 0) {
+        g_7090[n].f06 = g_7090[n].f32;
+        g_7090[n].f08 = g_7090[n].f34;
+        g_7090[n].f36 = g_7090[n].f38;
+        g_7090[n].f3a = g_7090[n].f3c;
+    } else {
+        v = fn_13_1076(14, n);
+        if (v != -1) {
+            if (HIBYTE(v) == g_7090[n].f06 && LOBYTE(v) == g_7090[n].f08)
+                changed = 0;
+            g_7090[n].f06 = HIBYTE(v);
+            g_7090[n].f08 = LOBYTE(v);
+            g_7090[n].f36 = 3;
+            if (HIBYTE(v) == 8 && g_3d5a[LOBYTE(v)].f00 == -3)
+                g_7090[n].f3a = 5;
+            else if (g_7090[n].f32 == 12 && g_7090[n].f38 == 2 && HIBYTE(v) == 8
+                     && LOBYTE(v) < g_9318 * 2) {
+                if (!(v & 1))
+                    g_7090[n].f3a = 4;
+                else
+                    g_7090[n].f3a = 3;
+            } else {
+                dx = g_1df8[HIBYTE(v)][LOBYTE(v)].f04.x - g_1df8[14][n].f04.x;
+                dy = g_1df8[HIBYTE(v)][LOBYTE(v)].f04.y - g_1df8[14][n].f04.y;
+                ex = g_1df8[HIBYTE(v)][LOBYTE(v)].f0c - g_1df8[14][n].f0c;
+                ey = g_1df8[HIBYTE(v)][LOBYTE(v)].f0e - g_1df8[14][n].f0e;
+                if ((c = dx * ey - dy * ex) > 0)
+                    g_7090[n].f3a = 4;
+                else
+                    g_7090[n].f3a = 3;
+            }
+        } else {
+            best = 350;
+            for (i = 0; i < g_9418; i++)
+                if (g_1df8[9][i].f18 == 0 && g_1df8[9][i].f1a != 0
+                    && (g_7090[n].f32 != 9 || g_7090[n].f34 != i)) {
+                    d = fn_08_285a(&a, &b, g_1df8[14][n].f04, g_1df8[9][i].f04);
+                    if (d < best) {
+                        best = d;
+                        sel = i;
+                    }
+                }
+            if (best < 250) {
+                g_7090[n].f06 = 9;
+                g_7090[n].f08 = sel;
+                g_7090[n].f36 = 3;
+                dx = g_1df8[9][sel].f04.x - g_1df8[14][n].f04.x;
+                dy = g_1df8[9][sel].f04.y - g_1df8[14][n].f04.y;
+                ex = g_1df8[9][sel].f0c - g_1df8[14][n].f0c;
+                ey = g_1df8[9][sel].f0e - g_1df8[14][n].f0e;
+                if ((c = dx * ey - dy * ex) > 0)
+                    g_7090[n].f3a = 4;
+                else
+                    g_7090[n].f3a = 3;
+                best = 20000;
+            } else
+                best = 18888;
+            for (i = 0; i < g_9412; i++)
+                if (g_1df8[6][i].f18 == 0 && (g_66e8[i].f00 != 14 || g_66e8[i].f02 != n)
+                    && G_66E4(i) != 0x1b) {
+                    d = fn_08_285a(&a, &b, g_1df8[14][n].f04, g_1df8[6][i].f04);
+                    if (d < best) {
+                        best = d;
+                        sel = i;
+                    }
+                }
+            if (best < 160) {
+                for (i = 1; i <= g_7090[n].fcb; i++)
+                    if (g_2f58[g_7090[n].fb8[i]].f42) {
+                        if (g_7090[n].fb8[i] != 2
+                            || g_1df8[14][n].f36 == -1 && (g_2f58[G_66E4(i)].f06 == 1
+                                                           || g_2f58[G_66E4(i)].f06 == 5))
+                            fn_04_584c(i, n, 0);
+                        break;
+                    }
+            }
+            if (best < 400) {
+                if (g_7090[n].f5e * 15 + 40 > g_7090[n].f26) {
+                    g_7090[n].f06 = 6;
+                    g_7090[n].f08 = sel;
+                    g_7090[n].f36 = 3;
+                    g_7090[n].f3a = 5;
+                }
+            } else if (best == 18888) {
+                g_7090[n].f06 = g_7090[n].f32;
+                g_7090[n].f08 = g_7090[n].f34;
+                g_7090[n].f36 = g_7090[n].f38;
+                g_7090[n].f3a = g_7090[n].f3c;
+            }
+        }
+    }
+    if (fn_13_371c(g_7090[n].f32, g_7090[n].f34) && g_1df8[14][n].f1a == 0) {
+        SetRect(&rc, g_1df8[14][n].f04.x - 800, g_1df8[14][n].f04.y - 800,
+                g_1df8[14][n].f04.x + g_1df8[14][n].f22 + 800,
+                g_1df8[14][n].f04.y + g_1df8[14][n].f22 + 800);
+        if (IntersectRect(&rc2, (RECT *)&g_66e8[g_7090[n].f34 / 2 - 4], &rc)
+            && g_7090[n].f88 + 3000 < g_1e50)
+            fn_12_2288(14, n);
     }
 }
 

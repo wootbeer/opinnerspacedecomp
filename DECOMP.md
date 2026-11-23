@@ -304,3 +304,15 @@ Conventions
 - A void call inside an `||` chain: `(f(...), 0) || ...`.
 - A `return 0` in a loop compiled as a jump to the final `return 0` was a
   `break`.
+- A bare label just before a load stops an unwanted CSE of a record address.
+- CL moves stores of the same constant forward to merge them; writing the
+  globals as elements of one array (`(&g_9406)[k]`) stops it.
+- An extern declared before `#include "inspace.h"` changes register choice
+  against globals declared in the header.
+- `if (...) continue;` loses cross-block CSE (`row + i`); `if (...) {body}`
+  keeps it.
+- `if (!(v & 1)) A; else B;` lets CL cross-jump B with an identical later
+  block.
+- `CFLAGS='... /Fc'` with match.py --keep gives listings with symbol names.
+- fn_13_1076 is int far pascal (int type, int n). DS:9406 and DS:92ec are
+  int[15] per-type tables.
