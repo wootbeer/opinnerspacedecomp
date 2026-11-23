@@ -415,3 +415,11 @@ Conventions
   `*(long *)&g_x = 0;`.
 - Early `return 1`/`return 0` compiled as jumps to shared return blocks at
   the end: `goto done;` with labels on the final returns.
+- How a variable is used later can change an earlier load (4:4fc8: a later
+  `LOBYTE(v) & 1` made an earlier compare load a byte).
+- The /Fc listing (`CFLAGS='/AM /G3 /Gw /Gs /Os /Fc' match.py FILE --keep`)
+  shows every local's bp offset: fastest way to size frame fillers.
+- Two block-scope ints sharing a 4-byte compiler temp: one block-scope POINT.
+- `if (c) { if (!d) goto skip; ... } x = 0; skip:` gives one store reached by
+  fall-through and by jump.
+- fn_11_39d8 is pascal (type, n, HDC).

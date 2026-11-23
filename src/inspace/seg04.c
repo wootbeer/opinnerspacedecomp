@@ -1041,10 +1041,8 @@ void far fn_04_474c(int n, int kind, int m, int ev)
     }
 }
 
-/* near-match 99.9%: 4:4fc8 (one byte: for `LOBYTE(v) < g_9318 * 2` the game
- * loads the byte (mov al,[v]), this loads the word (mov ax,[v]); both then
- * sub ah,ah).
- * Picks ship n's current target and its approach side [inferred]. */
+/* Picks ship n's current target and its approach side [inferred]. */
+/* @addr 4:4fc8 */
 void far pascal fn_04_4fc8(int n)
 {
     int size;
@@ -1083,7 +1081,7 @@ void far pascal fn_04_4fc8(int n)
                 g_7090[n].f3a = 5;
             else if (g_7090[n].f32 == 12 && g_7090[n].f38 == 2 && HIBYTE(v) == 8
                      && LOBYTE(v) < g_9318 * 2) {
-                if (!(v & 1))
+                if (!(LOBYTE(v) & 1))
                     g_7090[n].f3a = 4;
                 else
                     g_7090[n].f3a = 3;

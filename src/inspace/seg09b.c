@@ -7,6 +7,8 @@ extern int g_90ec;
 #include <stdlib.h>
 
 #include "inspace.h"
+/* Declared before g_933e: CL adds g_933e first in 9:10d4. */
+extern int g_4ee0;
 
 /* Records reached through far pointers or DGROUP arrays; only the fields
  * this file uses are named (offset in the name). */
@@ -21,30 +23,41 @@ typedef struct {                /* 0x70 bytes, far array at DS:1df8 / 1e18 */
     int f18;
     char p1a[0x1e - 0x1a];
     int f1e;
-    char p20[0x26 - 0x20];
+    int f20;                    /* +20 */
+    int f22;                    /* +22 */
+    int f24;                    /* +24 */
     int f26;                    /* +26 */
-    char p28[0x2f - 0x28];
+    char p28[0x2c - 0x28];
+    int f2c;                    /* +2c */
+    char p2e;
     char f2f;
-    char p30[0x44 - 0x30];
+    char p30[0x42 - 0x30];
+    int f42;                    /* +42 */
     int f44;                    /* +44 */
-    char p46[0x50 - 0x46];
+    int f46;                    /* +46 */
+    int f48;                    /* +48 */
+    char p4a[0x50 - 0x4a];
     char f50;                   /* +50 */
     char f51;
     char f52;                   /* +52 */
     char f53;                   /* +53 */
-    char p54[0x66 - 0x54];
+    char f54;                   /* +54 */
+    char p55[0x5e - 0x55];
+    int (far *f5e)(int type, int idx, int amount);  /* +5e [inferred] */
+    void (far pascal *f62)(int type, int n, HDC dc);  /* +62 [inferred] */
     void (far *f66)(int type, int idx);  /* +66 */
     char p6a[0x70 - 0x6a];
 } REC_70;
 
 #pragma pack(1)
 typedef struct {                /* 0x297 bytes, far array at DS:69f4 */
-    char p000[0xa0];
+    POINT f000[40];             /* +000 */
     char fa0;                   /* +a0 */
     char fa1;                   /* +a1 */
     char pa2;
     char fa3;                   /* +a3 */
-    char pa4[0xae - 0xa4];
+    char pa4[0xad - 0xa4];
+    char fad;                   /* +ad */
     int fae[40];                /* +ae */
     int ffe[40];                /* +fe */
     int f14e;                   /* +14e */
@@ -367,6 +380,86 @@ int far fn_14_3eda(void);
 void far fn_14_4074(void);
 int far fn_10_9672(void);
 int far fn_09_88ba(int v);
+/* 0x34-byte records seen from DS:3d50 (below g_3d5a's base) [inferred]. */
+typedef struct {
+    long f00;                   /* +00 */
+    char p04[0x08 - 0x04];
+    int f08;                    /* +08 */
+    int f0a;                    /* +0a */
+    int f0c;                    /* +0c */
+    int f0e;                    /* +0e */
+    int f10;                    /* +10 */
+    char p12[0x18 - 0x12];
+    int f18;                    /* +18 */
+    char p1a[0x1c - 0x1a];
+    int f1c;                    /* +1c */
+    int f1e;                    /* +1e */
+    int f20;                    /* +20 */
+    int f22;                    /* +22 */
+    char p24[0x2a - 0x24];
+    int f2a;                    /* +2a */
+    char p2c[0x2e - 0x2c];
+    int f2e;                    /* +2e */
+    int f30;                    /* +30 */
+    int f32;                    /* +32 */
+} REC_34B;
+extern REC_34B g_3d50[];
+typedef struct {                /* 0x1c bytes at DS:6678 [inferred] */
+    RECT r;                     /* +00 */
+    char p08[0x0a - 0x08];
+    int f0a;                    /* +0a */
+    char p0c[0x0e - 0x0c];
+    int f0e;                    /* +0e */
+    int f10;                    /* +10 */
+    int f12;                    /* +12 */
+    char p14[0x1c - 0x14];
+} REC_1CB;
+extern REC_1CB g_6678[];
+typedef struct {                /* 0x10 bytes at DS:4f2c [inferred] */
+    int f00;                    /* +00: first index */
+    int f02;                    /* +02: end index */
+    int f04;                    /* +04 */
+    char p06[0x0a - 0x06];
+    POINT f0a;                  /* +0a */
+    char p0e[0x10 - 0x0e];
+} REC_10;
+extern REC_10 g_4f2c[];
+#pragma pack(1)
+typedef struct {                /* 0x14 bytes at DS:4d90 [inferred] */
+    char f00;
+    char f01;                   /* +01 */
+    char f02;                   /* +02 */
+    char f03;                   /* +03 */
+    char f04;                   /* +04 */
+    char p05[0x08 - 0x05];
+    char f08;                   /* +08 */
+    char f09;                   /* +09 */
+    int f0a;                    /* +0a */
+    int f0c;                    /* +0c */
+    int f0e;                    /* +0e */
+    int f10;                    /* +10 */
+    char p12[0x14 - 0x12];
+} REC_14;
+#pragma pack()
+extern REC_14 g_4d90[];
+typedef struct { char p00[0x12]; int f12; char p14[0x50 - 0x14]; } REC_50B;
+extern REC_50B g_2f4c[];        /* 0x50-byte records [inferred] */
+extern POINT g_a120[];
+extern POINT g_9ea8[];
+extern int g_9344;
+extern int g_4ed4[2];
+extern int g_4ee4;
+extern int g_4ee8;
+extern int g_4eea;
+#define SC(n) ((n) << g_9156 >> 1)
+void far pascal fn_11_39d8(int type, int n, HDC dc);
+int far fn_07_5090(int type, int idx, int amount);
+int far fn_07_2652(int type, int idx, int amount);
+int far fn_10_18b0(int a, int b, int c, int d, int e);
+void far fn_10_533a(int a);
+void far fn_10_1dd8(void);
+int far pascal fn_08_285a(int far *p, int far *q, POINT a, POINT b);
+void far fn_09_4896(void);
 
 /* @addr 9:0b2a */
 void far fn_09_0b2a(void)
@@ -856,6 +949,328 @@ void far fn_09_2828(void)
     }
     if (g_7090[g_9646].fec && g_91f8 > 0 && (flow_interactive || g_9516 == 0))
         fn_06_885c(0, 0);
+}
+
+/* Places the race track pieces (type 8 and 12 objects), their gates and
+ * the checkpoints at the start of a race [inferred]. */
+/* @addr 9:10d4 */
+void far fn_09_10d4(void)
+{
+    int i;
+    int j;
+    int k;
+    int t;
+    int u0c;
+    int res;
+    int sel;
+    int u12;
+    int a;
+    int b;
+    int d;
+    int cnt;
+    int u1c;
+    RECT rcw;
+    RECT rc1;
+    RECT rc2;
+    RECT rc3;
+    POINT pos;
+    int ok;
+    int flag;
+    char pad46[14];             /* frame filler [inferred] */
+
+    SetRect(&rcw, G_05A0_LO / 2 - 150, G_05A0_HI / 2 - 100,
+            G_05A0_LO / 2 + 150, G_05A0_HI / 2 + 80);
+    for (i = 0; i < g_9318 * 2; i++) {
+        g_1df8[8][i].f08 = -1000;
+        g_1df8[8][i].f00.x = g_1df8[8][i].f08;
+        g_1df8[8][i].f0a = -1000;
+        g_1df8[8][i].f00.y = g_1df8[8][i].f0a;
+        if (!g_94b0)
+            g_1df8[8][i].f1e = g_69f4[g_94a2].fae[i];
+        else
+            g_1df8[8][i].f1e = 0;
+        if (g_94b0) {
+            pos.x = (rand() % (G_05A0_LO - 60) + 30) * 8;
+            pos.y = (rand() % (G_05A0_HI - 60) + 30) * 8;
+        } else
+            pos = g_69f4[g_94a2].f000[i];
+        if (i >= g_9318 * 2)
+            g_1df8[8][i].f04 = pos;
+        g_1df8[8][i].f18 = 0;
+        g_1df8[8][i].f24 = SC(6);
+        g_1df8[8][i].f2f = 2;
+        g_1df8[8][i].f54 = 1;
+        if (i < g_9318 * 2) {
+            g_3d50[i].f30 = -1;
+            g_1df8[8][i].f44 = 3500;
+            g_1df8[8][i].f22 = SC(0x22);
+            g_1df8[8][i].f20 = 0x110;
+            g_1df8[8][i].f42 = 8;
+            g_1df8[8][i].f46 = 1;
+            g_1df8[8][i].f62 = fn_11_39d8;
+            g_1df8[8][i].f5e = fn_07_5090;
+            g_3d50[i].f1c = 3;
+            if (!(i & 1)) {
+                g_6678[i / 2].f0a = 1200;
+                g_6678[i / 2].f0e = 0x50;
+                if (g_9320 == 6) {
+                    pos.x = g_a120[g_9322].x - g_6678[i / 2].f0a / 2 - 160;
+                    pos.y = g_a120[g_9322].y;
+                } else if (g_94b0) {
+                    pos.x = rand() % (G_05A0_LO - 300) * 8;
+                    pos.y = (rand() % (G_05A0_HI - 200) + 200) * 8;
+                }
+                if (g_94b0 && g_9320 != 6) {
+                    do {
+                        SetRect(&rc1, pos.x - 720, pos.y - 720, pos.x + 2400, pos.y + 1200);
+                        ok = 1;
+                        for (j = 0; j < g_9324; j++)
+                            for (k = 0; k < (&g_9406)[j]; k++) {
+                                SetRect(&rc2, g_1df8[j][k].f04.x - 160, g_1df8[j][k].f04.y - 160,
+                                        g_1df8[j][k].f04.x + 320, g_1df8[j][k].f04.y + 320);
+                                if (IntersectRect(&rc3, &rc1, &rc2)) {
+                                    ok = 0;
+                                    pos.x = rand() % (G_05A0_LO - 300) * 8;
+                                    pos.y = (rand() % (G_05A0_HI - 200) + 200) * 8;
+                                    break;
+                                }
+                            }
+                    } while (!ok);
+                } else {
+                    SetRect(&rc1, pos.x - 720, pos.y - 720, pos.x + 2400, pos.y + 1200);
+                    for (t = 0; t <= 9; t++)
+                        if (t == 0 || t == 4 || t == 3 || t == 9)
+                            for (k = 0; k < (&g_9406)[t]; k++) {
+                                SetRect(&rc2, g_1df8[t][k].f04.x - 160, g_1df8[t][k].f04.y - 160,
+                                        g_1df8[t][k].f04.x + 320, g_1df8[t][k].f04.y + 320);
+                                if (IntersectRect(&rc3, &rc1, &rc2))
+                                    g_1df8[t][k].f04.y = (g_1df8[t][k].f04.y + 1600)
+                                                         % (G_05A0_HI * 8);
+                            }
+                }
+                g_1df8[8][i].f04 = pos;
+                g_1df8[8][i + 1].f04 = pos;
+                g_1df8[8][i + 1].f04.x += g_1df8[8][i].f20 + g_6678[i / 2].f0a;
+                g_6678[i / 2].f10 = i;
+                g_1df8[12][i].f04 = pos;
+                g_1df8[12][i + 1].f04 = pos;
+                g_1df8[12][i].f04.x += g_6678[i / 2].f0a / 2 + 160;
+                g_1df8[12][i].f04.y -= 150;
+                g_1df8[12][i + 1].f04.x += g_6678[i / 2].f0a / 2 + 160;
+                SetRect(&g_6678[i / 2].r, g_1df8[8][i].f04.x + g_1df8[8][i].f20,
+                        g_1df8[8][i].f04.y + g_1df8[8][i].f20 / 2 - 24,
+                        g_1df8[8][i].f04.x + g_1df8[8][i].f20 + g_6678[i / 2].f0a,
+                        g_1df8[8][i].f04.y + g_1df8[8][i].f20 / 2 + 24);
+                g_1df8[12][i].f44 = 0;
+                g_1df8[12][i].f22 = 0;
+                g_1df8[12][i].f20 = 0;
+                g_1df8[12][i + 1].f44 = 0;
+                g_1df8[12][i + 1].f22 = 0;
+                if (i == 2)
+                    g_6678[i / 2].f12 = 1;
+                if (i == 4)
+                    g_6678[i / 2].f12 = 2;
+            }
+        }
+    }
+    if (g_94b0 && g_9320 != 6)
+        fn_09_4896();
+    for (i = g_9318 * 2; i < g_9416; i++) {
+        g_1df8[8][i].f08 = -1000;
+        g_1df8[8][i].f00.x = g_1df8[8][i].f08;
+        g_1df8[8][i].f0a = -1000;
+        g_1df8[8][i].f00.y = g_1df8[8][i].f0a;
+        if (!g_94b0) {
+            g_1df8[8][i].f1e = g_69f4[g_94a2].fae[i];
+            g_3d50[i].f2e = g_69f4[g_94a2].ffe[i];
+        } else
+            g_1df8[8][i].f1e = 0;
+        if (g_94b0 || g_9320 == 6) {
+            ok = 0;
+            for (j = 0; j < g_9344; j++)
+                if (g_4f2c[j].f00 <= i && g_4f2c[j].f02 > i) {
+                    ok = 1;
+                    g_3d50[i].f32 = j;
+                    g_1df8[8][i].f54 = 1;
+                    break;
+                }
+            if (!ok) {
+                g_3d50[i].f32 = -1;
+                ok = 0;
+                if (g_9320 != 6)
+                    do {
+                        ok = 1;
+                        pos.x = rand() % G_05A0_LO * 8;
+                        pos.y = rand() % G_05A0_HI * 8;
+                        for (j = 0; j < g_9318; j++)
+                            if (fn_08_285a(&a, &b, pos, g_1df8[12][j * 2].f04) < 150)
+                                ok = 0;
+                        for (j = 0; j < g_9344; j++) {
+                            d = fn_08_285a(&a, &b, pos, g_4f2c[j].f0a);
+                            if ((g_4f2c[j].f04 >> 3) + 200 > d)
+                                ok = 0;
+                        }
+                        for (j = 0; j < i; j++) {
+                            d = fn_08_285a(&a, &b, pos, g_1df8[8][j].f04);
+                            if (d < 80)
+                                ok = 0;
+                        }
+                    } while (!ok);
+                else
+                    *(PAIR *)&pos = fn_09_225a(i - g_9318 * 2);   /* PAIR result into a POINT */
+            } else
+                pos = g_1df8[8][i].f04;
+        } else {
+            pos = g_69f4[g_94a2].f000[i];
+            g_3d50[i].f32 = -1;
+            for (j = 0; j < g_9344; j++)
+                if (g_4f2c[j].f00 <= i && g_4f2c[j].f02 > i)
+                    g_3d50[i].f32 = j;
+        }
+        g_1df8[8][i].f04 = pos;
+        g_1df8[8][i].f18 = 0;
+        g_1df8[8][i].f24 = SC(5);
+        g_1df8[8][i].f54 = 1;
+        if (i < g_9318 * 2 + g_933e) {
+            g_1df8[8][i].f44 = 3500;
+            g_1df8[8][i].f42 = 8;
+            g_1df8[8][i].f46 = 4;
+            g_1df8[8][i].f62 = fn_11_39d8;
+            g_1df8[8][i].f5e = fn_07_2652;
+            g_1df8[8][i].f66 = fn_12_274a;
+            if (i < g_9318 * 2 + g_4ee4) {
+                g_3d50[i].f0a = g_4d90[g_4ee8].f03;
+                g_3d50[i].f30 = g_4ee8;
+            } else {
+                g_3d50[i].f0a = g_4d90[g_4eea].f03;
+                g_3d50[i].f30 = g_4eea;
+            }
+            if (g_3d50[i].f30 == 3) {
+                g_1df8[8][i].f24 = SC(4);
+                g_1df8[8][i].f22 = SC(14);
+                g_1df8[8][i].f20 = 0x70;
+                g_1df8[8][i].f2c = 12000;
+                g_1df8[8][i].f48 = 0;
+            } else if (g_3d50[i].f30 == 4) {
+                g_1df8[8][i].f24 = SC(4);
+                g_1df8[8][i].f22 = SC(20);
+                g_1df8[8][i].f20 = 0x98;
+                g_1df8[8][i].f2c = 0x78;
+                g_1df8[8][i].f48 = 8;
+            } else {
+                g_1df8[8][i].f24 = SC(6);
+                g_1df8[8][i].f22 = SC(0x22);
+                g_1df8[8][i].f20 = 0x110;
+                g_1df8[8][i].f2c = 0x78;
+                g_1df8[8][i].f48 = 8;
+            }
+            g_3d50[i].f1c = 1;
+            if (g_3d50[i].f0a != 4)
+                g_1df8[8][i].f2f = 2;
+        } else {
+            g_3d50[i].f1c = 2;
+            if (i < g_9318 * 2 + g_933e + g_4ee0)
+                sel = 0;
+            else
+                sel = 1;
+            g_3d50[i].f20 = g_4d90[g_4ed4[sel]].f0e;
+            g_3d50[i].f22 = g_4d90[g_4ed4[sel]].f10;
+            g_3d50[i].f2a = g_4d90[g_4ed4[sel]].f01;
+            g_3d50[i].f0a = g_4d90[g_4ed4[sel]].f03;
+            g_3d50[i].f18 = g_4d90[g_4ed4[sel]].f04;
+            g_1df8[8][i].f44 = g_4d90[g_4ed4[sel]].f0a;
+            if (g_9320 == 6)
+                g_1df8[8][i].f54 = 1;
+            else
+                g_1df8[8][i].f54 = g_4d90[g_4ed4[sel]].f02;
+            g_1df8[8][i].f48 = 9;
+            g_1df8[8][i].f2c = g_4d90[g_4ed4[sel]].f0c;
+            if (g_1df8[8][i].f2c < fn_09_88ba(g_1df8[8][i].f1e))
+                g_1df8[8][i].f18 = 1;
+            if (g_3d50[i].f0a != 4)
+                g_1df8[8][i].f2f = 5;
+            if (g_4d90[g_4ed4[sel]].f03 == -1)
+                flag = 1;
+            else
+                flag = 0;
+            if (g_94b0 && g_3d50[i].f0a == -1 && !(rand() & 1))
+                g_3d50[i].f0a = -3;
+            else if (!g_94b0 && g_3d50[i].f0a == -1 && g_1df8[8][i].f1e < 0) {
+                g_1df8[8][i].f1e = -g_1df8[8][i].f1e;
+                g_3d50[i].f0a = -3;
+            }
+            g_3d50[i].f30 = g_4ed4[sel];
+            g_1df8[8][i].f42 = 6;
+            g_1df8[8][i].f46 = 4;
+            g_1df8[8][i].f62 = fn_11_39d8;
+            g_1df8[8][i].f5e = fn_07_2652;
+            g_1df8[8][i].f66 = fn_07_2e02;
+            res = fn_10_18b0(g_3d50[i].f22, g_3d50[i].f20, g_3d50[i].f2a, flag, g_3d50[i].f30);
+            if (g_3d50[i].f0a > 0 && g_2f4c[g_3d50[i].f0a].f12)
+                fn_10_533a(g_3d50[i].f0a);
+            g_1df8[8][i].f24 = SC(g_4d90[g_3d50[i].f30].f09);
+            g_1df8[8][i].f22 = SC(g_4d90[g_3d50[i].f30].f08);
+            g_1df8[8][i].f20 = g_4d90[g_3d50[i].f30].f08 * 8;
+            g_3d50[i].f1e = res;
+        }
+        if (g_3d50[i].f0a == 1)
+            g_3d50[i].f10 = rand() % 7 * 500 + 600;
+        else
+            g_3d50[i].f10 = rand() % 7 * 500 + 1200;
+        g_3d50[i].f00 = 0;
+        g_3d50[i].f0e = rand() % ((g_91f8 + 1) * 200) + 20;
+        g_3d50[i].f0c = (g_91f8 + 5) * 3;
+        if (g_3d50[i].f0c > 22)
+            g_3d50[i].f0c = 22;
+        g_3d50[i].f08 = rand() % 2;
+        if (g_3d50[i].f30 != 4 && g_3d50[i].f30 != 3) {
+            g_1df8[8][i].f04.x -= g_1df8[8][i].f20 / 2;
+            g_1df8[8][i].f04.y -= g_1df8[8][i].f20 / 2;
+        }
+        for (j = 0; j < g_9344; j++)
+            if (g_4f2c[j].f00 <= i && g_4f2c[j].f02 > i) {
+                g_1df8[8][i].f54 = 1;
+                break;
+            }
+    }
+    fn_10_1dd8();
+    cnt = i = 0;
+    for (i = 0; i < g_9344; i++)
+        if (i == 0 || (g_4f2c[i - 1].f0a.x != g_4f2c[i].f0a.x
+                       && g_4f2c[i - 1].f0a.y != g_4f2c[i].f0a.y)) {
+            g_1df8[0][cnt].f54 = 1;
+            g_1df8[0][cnt].f0e = 0;
+            g_1df8[0][cnt].f0c = g_1df8[0][cnt].f0e;
+            g_1df8[0][cnt].f04.x = g_4f2c[i].f0a.x - 128;
+            g_1df8[0][cnt].f04.y = g_4f2c[i].f0a.y - 128;
+            cnt++;
+            g_0992 += (g_4f2c[i].f02 - g_4f2c[i].f00 + 5) * 2;
+        }
+    if (g_9320 == 6 && g_9406 != 0) {
+        POINT p0;               /* shares the frame with CL's temporaries */
+
+        p0.y = g_9ea8[g_9322].x - 360;
+        p0.x = g_1df8[12][0].f04.x;
+        for (i = 0; i < g_9406; i++) {
+            g_1df8[0][i].f54 = 1;
+            g_1df8[0][i].f0e = 0;
+            g_1df8[0][i].f0c = g_1df8[0][i].f0e;
+            g_1df8[0][i].f04.x = ((g_9406 - 1) * 64 / 2 - i * 64 - 16) * 8 + p0.x;
+            g_1df8[0][i].f04.y = p0.y;
+        }
+    }
+    g_69f4[g_94a2].fad = g_9318;
+    if (g_9320 == 6)
+        g_69f4[g_94a2].fad = 0xff - g_9322;
+    for (i = 0; i < g_9416; i++)
+        g_69f4[g_94a2].f000[i] = g_1df8[8][i].f04;
+    if (g_9320 == 6)
+        fn_09_2012();
+}
+
+/* Not yet decompiled: 9:4896 */
+void far fn_09_4896(void)
+{
 }
 
 /* Not yet decompiled. */
