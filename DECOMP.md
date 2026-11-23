@@ -423,3 +423,9 @@ Conventions
 - `if (c) { if (!d) goto skip; ... } x = 0; skip:` gives one store reached by
   fall-through and by jump.
 - fn_11_39d8 is pascal (type, n, HDC).
+- Chained assignment stores right to left: `a = b = x` stores b first;
+  `f_03a = f_038 = f_036 = f_034 = 2` stores f_034 first. Swapped chains give
+  identical bytes and are only caught by the reference check.
+- Several `if (x == K) return 0;` in a row each redo the address imul; one
+  `if (x == 3 || x == 13 || ...) return 0;` gives the trampoline layout.
+- fn_08_7d70 is pascal (8 far int pointers, 2 ints); fn_02_170e(void).

@@ -201,7 +201,9 @@ typedef struct {
     char pad_008[0x16];
     int f_01e;
     int f_020;
-    char pad_022[0xc];
+    char pad_022[0x8];
+    int f_02a;
+    char pad_02c[0x2];
     int f_02e;
     char pad_030[0x20];
     int f_050;

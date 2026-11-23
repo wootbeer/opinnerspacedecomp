@@ -201,7 +201,9 @@ typedef struct {
     char pad_008[0x16];
     int f_01e;
     int f_020;
-    char pad_022[0xc];
+    char pad_022[0x8];
+    int f_02a;
+    char pad_02c[0x2];
     int f_02e;
     char pad_030[0x20];
     int f_050;
@@ -334,6 +336,24 @@ int far fn_09_88ba(int x);
 extern REC70 far *g_1e08;
 extern int g_932c;
 void far pascal fn_13_a6bc(int n);
+
+extern REC70 far *g_1e18;
+extern REC1C g_6682[];               /* 0x1c-byte table read at DS:6682 [inferred] */
+extern POINT g_1050[];
+extern int g_90ea;
+extern HWND g_0a7c;
+extern int g_964c;
+extern int g_3824[][8];
+extern unsigned long g_8e2c;
+void far fn_16_3784(int n, int a);
+void far fn_12_2556(int type, int idx);
+void far fn_07_13b2(int a, int type, int idx);
+int far fn_14_3eda(void);
+void far fn_11_238e(HWND hwnd, HDC dc);
+void far fn_14_0000(int a);
+void far fn_14_4074(void);
+POINT far pascal fn_08_2bbe(POINT pt);
+void far fn_10_744c(int a);
 
 /* @addr 13:910a */
 int far fn_13_910a(int n)
@@ -712,11 +732,7 @@ void far fn_13_a65a(void)
     }
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
-int far fn_13_ae68(int a, int b, int c)
-{
-    return a;
-}
+int far fn_13_ae68(int a, int b, int c);
 
 /* Summon with music [inferred, HANDOFF: report_crime, the enforcer order
  * and escalation call this rather than ae68]. */
@@ -2328,4 +2344,215 @@ void far pascal fn_13_6900(int n)
         } else
             g_7092[n].f_050 = 0;
     }
+}
+
+/* Summon a helper of kind b for object a (respawn a parked ship or
+ * create a new one); c: message for a, or -1. Returns 0, 1 (reused) or 2
+ * (new) [inferred]. */
+/* @addr 13:ae68 */
+int far fn_13_ae68(int a, int b, int c)
+{
+    int i, j, s, lvl, st, cls, found, flag;
+
+    found = 0;
+    if ((g_9320 == 6 || g_9320 == 7) && (b != 0x15 || g_a163 != 8))
+        return 0;
+    if (g_9208 * 2 + 1 < g_964c && b != 0x15)
+        return 0;
+    if (g_9208 + 3 < g_9316)
+        return 0;
+    if (g_92e8 && b != 0x13)
+        return 0;
+    if (b == 0x15) {
+        lvl = 1;
+        cls = 7;
+        st = 0x16;
+    } else if (b == 0x14) {
+        lvl = 0;
+        cls = 7;
+        st = 0x17;
+    } else if (b == 4) {
+        if (g_7092[a].f_0cb >= 0)
+            return 0;
+        lvl = -1;
+        cls = 4;
+        st = 1;
+        if (CLS(a) == 2 && g_3824[0][2] > 50)
+            cls = 0;
+        if (CLS(a) == 3)
+            cls = 3;
+        if (CLS(a) == 6 || g_3824[cls][CLS(a)] < 0)
+            return 0;
+        for (i = 0; i < g_9316; i++)
+            if (g_7092[i].f_0ea && CLS(i) == cls && g_7092[i].f_0cb == a)
+                return 0;
+        if (g_7092[a].f_036 == 1 && cls == 4) {
+            if (g_7092[a].f_0f4[8][8] == 3 || g_7092[a].f_0f4[8][8] == 13
+                || g_7092[a].f_0f4[8][8] == 8 || g_7092[a].f_0f4[8][8] == 10)
+                return 0;
+        }
+    } else if (b == 3) {
+        if (g_7092[a].f_0cb >= 0)
+            return 0;
+        lvl = -1;
+        cls = 3;
+        st = 4;
+        for (i = 0; i < g_9316; i++)
+            if (g_7092[i].f_0ea && CLS(i) == cls && g_7092[i].f_0cb == a)
+                return 0;
+    } else if (b == 0x16) {
+        lvl = 2;
+        cls = 7;
+        st = 0x14;
+    } else if (b == 0x13) {
+        cls = CLS(g_9646);
+        st = 4;
+    }
+    if (cls == 7) {
+        for (j = 0; j <= g_9316; j++) {
+            if (g_1e30[j].f_018 && CLS(j) == cls
+                && (g_7092[j].f_05c == lvl || lvl == -1)) {
+                if (g_7092[j].f_05c < 2)
+                    fn_10_744c(0x70);
+                fn_16_3784(j, 1);
+                s = rand() % g_9318;
+                g_1e30[j].f_004 = g_1e18[s * 2].f_004;
+                g_1e30[j].f_004.x += g_1e18[s * 2].f_022 - g_1e30[j].f_022 / 2
+                                     + g_6682[s].f_00 / 2;
+                g_1e30[j].f_018 = 0;
+                fn_10_754a(0x27, 14, j, found = 1);
+                fn_12_2556(14, j);
+                fn_07_13b2(2, 14, j);
+                g_7092[j].f_050 = st;
+                g_7092[j].f_052 = 14;
+                g_7092[j].f_054 = a;
+                g_7092[j].f_030 = 14;
+                g_7092[j].f_032 = a;
+                g_7092[j].f_092 = g_1e50;
+                g_7092[j].f_0eb = 1;
+                g_7092[j].f_056 = j;
+                g_7092[j].f_096 = g_1e50 + 5000;
+                g_7092[j].f_036 = 3;
+                g_7092[j].f_0cb = a;
+                return 1;
+            }
+        }
+    }
+    for (j = flag = 0; j <= g_9316; j++) {
+        if (b != 4 && b != 0x13) {
+            if (!g_1e30[j].f_018 && CLS(j) == cls
+                && (g_7092[j].f_05c == lvl || lvl == -1)) {
+                if (g_7092[j].f_0ea
+                    && (g_7092[j].f_0cb == -1 || g_7092[j].f_0cb == a)) {
+            if (b == 0x15 || b == 0x14) {
+                if (g_7092[j].f_0cb == a && g_7092[j].f_050 > 0x14)
+                    return 0;
+                fn_03_06ec(g_7092[j].f_054, 14, j, 0x3f);
+            }
+            g_7092[j].f_050 = st;
+            g_7092[j].f_052 = 14;
+            g_7092[j].f_054 = a;
+            g_7092[j].f_0eb = 1;
+            g_7092[j].f_056 = j;
+            g_7092[j].f_092 = g_1e50;
+            g_7092[j].f_036 = 3;
+            g_7092[j].f_0cb = a;
+            if (b == 3)
+                fn_04_8346(j, 14, a, 0xd);
+            return 1;
+                } else
+                    flag = 1;
+            }
+        } else if (b == 4 && g_7092[j].f_0ea && g_1e30[j].f_018
+                   && CLS(j) == CLS(a)) {
+            s = rand() % g_9318;
+            g_1e30[j].f_004 = g_1e18[s * 2].f_004;
+            g_1e30[j].f_004.x += g_1e18[s * 2].f_022 - g_1e30[j].f_022 / 2
+                                 + g_6682[s].f_00 / 2;
+            g_1e30[j].f_018 = 0;
+            fn_10_754a(0x27, 14, j, 1);
+            fn_12_2556(14, j);
+            fn_07_13b2(2, 14, j);
+            g_7092[j].f_050 = st;
+            g_7092[j].f_052 = 14;
+            g_7092[j].f_054 = a;
+            g_7092[j].f_030 = 14;
+            g_7092[j].f_032 = a;
+            g_7092[j].f_092 = g_1e50;
+            g_7092[j].f_0eb = 1;
+            g_7092[j].f_056 = j;
+            g_7092[j].f_096 = g_1e50 + 5000;
+            g_7092[j].f_036 = 3;
+            g_7092[j].f_0cb = a;
+            return 1;
+        }
+    }
+    if (flag)
+        return 0;
+    fn_14_3eda();
+    if (b == 0x15) {
+        if (a == g_9646)
+            fn_10_744c(0x70);
+        else
+            fn_10_754a(0x70, 14, a, 1);
+    }
+    if (c != -1)
+        fn_03_06ec(a, 7, 0, c);
+    fn_11_238e(g_0a7c, 0);
+    if (b == 4)
+        fn_14_0000(cls);
+    else
+        fn_14_0000(b);
+    g_0992 += 10;
+    fn_14_4074();
+    g_1e30[g_9316].f_012 = g_1e30[g_9316].f_024;
+    g_1e30[g_9316].f_02e = 0;
+    g_1e30[g_9316].f_032 = -1;
+    g_1e30[g_9316].f_036 = -1;
+    found = 1;
+    s = rand() % g_9318;
+    if (g_92e8) {
+        int r, dir;
+        POINT p;
+
+        r = rand() % (g_90ea / 5) + g_90ea / 5;
+        dir = rand() % 16;
+        p.x = g_1050[dir].x * r / 16 + g_1e30[g_9646].f_000.x;
+        p.y = g_1050[dir].y * r / 16 + g_1e30[g_9646].f_000.y;
+        g_1e30[j].f_004 = fn_08_2bbe(p);
+    } else {
+        g_1e30[g_9316].f_004 = g_1e18[s * 2].f_004;
+        g_1e30[g_9316].f_004.x += g_1e18[s * 2].f_022
+                                  - g_1e30[g_9316].f_022 / 2
+                                  + g_6682[s].f_00 / 2;
+    }
+    g_1e30[g_9316].f_018 = 0;
+    fn_10_754a(0x27, 14, g_9316, 1);
+    fn_12_2556(14, g_9316);
+    fn_07_13b2(2, 14, g_9316);
+    g_7092[g_9316].f_050 = st;
+    g_7092[g_9316].f_052 = 14;
+    g_7092[g_9316].f_054 = a;
+    g_7092[g_9316].f_030 = 14;
+    g_7092[g_9316].f_032 = a;
+    g_7092[g_9316].f_092 = g_1e50;
+    g_7092[g_9316].f_056 = j;
+    g_7092[g_9316].f_0eb = 1;
+    g_7092[g_9316].f_036 = 3;
+    g_96ea[g_7092[g_9316].f_04c].f_02a = 0;
+    g_7092[g_9316].f_0cb = a;
+    g_964c++;
+    if (b == 3) {
+        g_7092[g_9316].f_0eb = 0;
+        fn_03_06ec(a, 14, g_9316, 0x67);
+        g_7092[g_9316].f_060[a] = -300;
+        fn_04_8346(g_9316, 14, a, 0xd);
+    } else if (b == 4) {
+        g_7092[g_9316].f_0eb = 0;
+        fn_03_06ec(a, 14, g_9316, 0x68);
+        g_7092[g_9316].f_060[a] = 300;
+    }
+    g_7092[g_9316].f_096 = g_1e50 + 5000;
+    g_8e2c = g_1e68;
+    return 2;
 }
