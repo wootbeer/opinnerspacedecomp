@@ -142,7 +142,8 @@ typedef struct {                /* 0x70-byte records */
     int f02;
     int f04;
     int f06;
-    char p08[0x0c - 0x08];
+    int f08;
+    int f0a;
     int f0c;
     int f0e;
     int f10;
@@ -592,9 +593,87 @@ int far fn_18_1dd0(void)
     return 1;
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
-void far pascal fn_18_1934(int a, int b, int c)
+/* Moves object (type << 8 | idx) to its scaled map position and redraws
+ * it from src: erases the uncovered part of the old square, then blits
+ * the new one [inferred]. */
+/* @addr 18:1934 */
+int far pascal fn_18_1934(int key, int unused, HDC src)
 {
+    int type;
+    int idx;
+    int u0;
+    int u5;
+    int u1;
+    POINT d;
+    int u2;
+    int u3;
+    int u4;
+
+    type = (unsigned char)(key >> 8);
+    idx = (unsigned char)key;
+    g_1df8[type][idx].f08 = g_1df8[type][idx].f00;
+    g_1df8[type][idx].f0a = g_1df8[type][idx].f02;
+    g_1df8[type][idx].f00 =
+        (int)((long)g_1df8[type][idx].f04 * g_88c0 / g_88cc) + g_88c4.x;
+    g_1df8[type][idx].f02 =
+        (int)((long)g_1df8[type][idx].f06 * g_88c0 / g_88cc) + g_88c4.y;
+    if (type != 15) {
+        g_1df8[type][idx].f00 += g_2390;
+        g_1df8[type][idx].f02 += g_2392;
+    }
+    d.x = g_1df8[type][idx].f00 - g_1df8[type][idx].f08;
+    d.y = g_1df8[type][idx].f02 - g_1df8[type][idx].f0a;
+    if (g_1df8[type][idx].f24 < fn_09_88ba(d.x)
+        || g_1df8[type][idx].f24 < fn_09_88ba(d.y)) {
+        if (fn_09_88ba(d.x) < g_1df8[type][idx].f22
+            && fn_09_88ba(d.y) < g_1df8[type][idx].f22) {
+            if (d.x < 0) {
+                if (d.y < 0) {
+                    PatBlt(g_13dc, g_1df8[type][idx].f22 + g_1df8[type][idx].f00,
+                           g_1df8[type][idx].f02, -d.x,
+                           g_1df8[type][idx].f22 - d.y, BLACKNESS);
+                    PatBlt(g_13dc, g_1df8[type][idx].f00,
+                           g_1df8[type][idx].f02 + g_1df8[type][idx].f22,
+                           g_1df8[type][idx].f22, -d.y, BLACKNESS);
+                } else {
+                    PatBlt(g_13dc, g_1df8[type][idx].f22 + g_1df8[type][idx].f00,
+                           g_1df8[type][idx].f02 - d.y, -d.x,
+                           g_1df8[type][idx].f22 + d.y, BLACKNESS);
+                    PatBlt(g_13dc, g_1df8[type][idx].f00,
+                           g_1df8[type][idx].f02 - d.y,
+                           g_1df8[type][idx].f22, d.y, BLACKNESS);
+                }
+            } else {
+                if (d.y < 0) {
+                    PatBlt(g_13dc, g_1df8[type][idx].f00 - d.x,
+                           g_1df8[type][idx].f02, d.x,
+                           g_1df8[type][idx].f22 - d.y, BLACKNESS);
+                    PatBlt(g_13dc, g_1df8[type][idx].f00,
+                           g_1df8[type][idx].f02 + g_1df8[type][idx].f22,
+                           g_1df8[type][idx].f22, -d.y, BLACKNESS);
+                } else {
+                    PatBlt(g_13dc, g_1df8[type][idx].f00 - d.x,
+                           g_1df8[type][idx].f02 - d.y, d.x,
+                           g_1df8[type][idx].f22 + d.y, BLACKNESS);
+                    PatBlt(g_13dc, g_1df8[type][idx].f00,
+                           g_1df8[type][idx].f02 - d.y,
+                           g_1df8[type][idx].f22, d.y, BLACKNESS);
+                }
+            }
+        } else
+            PatBlt(g_13dc, g_1df8[type][idx].f08, g_1df8[type][idx].f0a,
+                   g_1df8[type][idx].f22, g_1df8[type][idx].f22, BLACKNESS);
+        BitBlt(g_13dc, g_1df8[type][idx].f00, g_1df8[type][idx].f02,
+               g_1df8[type][idx].f22, g_1df8[type][idx].f22, src,
+               g_1df8[type][idx].f10, g_1df8[type][idx].f12, SRCCOPY);
+    } else {
+        BitBlt(g_13dc, g_1df8[type][idx].f00 - (d.x < 0 ? 0 : d.x), g_1df8[type][idx].f02 - (d.y < 0 ? 0 : d.y),
+               fn_09_88ba(d.x) + g_1df8[type][idx].f22,
+               fn_09_88ba(d.y) + g_1df8[type][idx].f22, src,
+               g_1df8[type][idx].f10 - (d.x < 0 ? 0 : d.x), g_1df8[type][idx].f12 - (d.y < 0 ? 0 : d.y),
+               SRCCOPY);
+    }
+    return 1;
 }
 
 /* @addr 18:17f6 */
