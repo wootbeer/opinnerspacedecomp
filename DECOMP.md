@@ -472,3 +472,9 @@ Conventions
   address order.
 - An instruction-sequence diff that ignores address shifts
   (scratchpad/s0409r7/sd.py) is the most useful tool for large functions.
+- `for (i = 0; i < 8; i++) { if (X > lim) break; ... }` gives the game's
+  layout where putting `X <= lim` in the for condition does not.
+- `arg <= 6` and `arg < 7` compile differently (jle vs jl).
+- `x * 5` on a char field gives `mov al,5; imul byte` and folds a following
+  `* 2` into `* 10`; a local keeps them separate.
+- fn_05_08c0 is the runtime long shift left (__aFlshl). g_3824 is int[8][8].

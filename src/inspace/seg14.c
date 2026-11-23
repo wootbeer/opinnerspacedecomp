@@ -265,7 +265,7 @@ typedef struct {
     char f_73;
     char f_74;
     char f_75;
-    char pad_76[0x77 - 0x76];
+    char f_76;
     char f_77;
     char f_78;
     char f_79;
@@ -1163,7 +1163,7 @@ extern int g_92e4;
 extern int g_94b0;
 extern int g_0994;
 extern int g_4f1c[];
-extern int g_3824[][9];
+extern int g_3824[8][8];
 extern char g_a14d[];
 extern char g_a157[];
 extern int g_1318;
@@ -1246,8 +1246,8 @@ void far fn_14_0000(int arg)
             s1e = g_9646;
             for (i = 0; i <= g_931a; i++)
                 for (j = 0; j <= g_931a; j++) {
-                    t = (g_6e24[i].f_3c[j] * 10 - g_3824[g_6e24[i].f_64][0]) * 9 / 10;
-                    g_6e24[i].f_3c[j] = (t + g_3824[g_6e24[i].f_64][0]) / 10;
+                    t = (g_6e24[i].f_3c[j] * 10 - g_3824[g_6e24[i].f_64][g_6e24[i].f_64]) * 9 / 10;
+                    g_6e24[i].f_3c[j] = (t + g_3824[g_6e24[i].f_64][g_6e24[i].f_64]) / 10;
                 }
         } else
             s1c = 0;
@@ -1562,8 +1562,209 @@ int far fn_14_2300(int t, int n)
     return t + n;
 }
 
+extern int g_9332;
+extern int g_93b6;
+extern int g_94aa;
+extern int g_9432;
+long far abs32(long x);
+
+/* Pick a pilot record (index into DS:6e24) for a new object of kind t;
+ * returns -1 if none, the score in g_95b2 [inferred]. */
+/* near-match 11%: 14:3274 (logic decoded; the skip tests, the order of the
+ * second rating block and the frame temps still differ) */
 int far fn_14_3274(int t, int n)
 {
-    /* Not yet decompiled */
-    return t + n;
+    int u4, k, u8, m, uc, ue, u10, r, best, bk, v18, lvl, c2, c0, c1, s22, s24, j;
+    long L2a, L2e, L32;
+    int u34;
+    int a36, a38, u3a, u3c, me, a40, a42, u44, u46;
+
+    k = rand() % (g_95aa - 1);
+    best = -1000;
+    if (g_9320 == 6) {
+        g_95b2 = -10000;
+        return 0;
+    }
+    for (k = 0; k <= g_931a; k++) {
+        for (m = 0; m < n; m++)
+            if (g_7092[m].f_0d4 == k)
+                r = -888;
+        if (k == g_931c || g_6e24[k].f_38[0] <= 0 || r == -888
+            || !fn_14_455c(g_6e24[k].f_00)) {
+            r = -1000;
+            continue;
+        }
+        if (g_9320 == 6 && n != g_9646 && g_6e20[g_6e24[k].f_00].f_003 != 7) {
+            r = 0;
+            me = g_6e24[g_931c].f_00;
+            u3a = g_6e20[me].f_001 * 5;          /* rating of own ship [inferred] */
+            a38 = (u3a * 2 - g_6e1c[g_6e20[me].f_021].f_01c) * 10
+                / ((int)((long)(g_6e1c[g_6e20[me].f_021].f_01b * 10)
+                         * (g_6e20[me].f_002 / 4 + 100L) / 100L)
+                   + g_6e20[me].f_000 * 2);
+            a40 = (long)u3a * 345 / g_6e1c[g_6e20[me].f_021].f_01c;
+            u3c = g_6e20[g_6e24[k].f_00].f_000 * 2
+                + (int)((long)(g_6e1c[g_6e20[g_6e24[k].f_00].f_021].f_01b * 10)
+                        * (g_6e20[g_6e24[k].f_00].f_002 / 4 + 100L) / 100L);
+            u3a = g_6e20[g_6e24[k].f_00].f_001 * 5;
+            a36 = (u3a * 2 - g_6e1c[g_6e20[g_6e24[k].f_00].f_021].f_01c) * 10 / u3c;
+            a42 = (long)u3a * 345 / g_6e1c[g_6e20[g_6e24[k].f_00].f_021].f_01c;
+            switch (g_94aa) {
+            case 0:
+                r = rand() % 100 + a36 * 10 + a42 / 100;
+                break;
+            case 1:
+                a38 = a38 * 5 / 4;
+                a40 = a40 * 5 / 4;
+            case 2:
+                r = rand() % 150 - (int)abs32((long)(a38 - a36) * 500 / a38) + 450;
+                r += 350 - (int)abs32((long)(a40 - a42) * 400 / a40);
+                break;
+            case 3:
+                if (me == k)
+                    r = 800;
+                break;
+            case 4:
+                a38 = a38 * 3 / 4;
+                a40 = a40 * 3 / 4;
+                r = rand() % 150 - (int)abs32((long)(a38 - a36) * 500 / a38) + 450;
+                r += 350 - (int)abs32((long)(a40 - a42) * 400 / a40);
+                break;
+            case 5:
+                r = rand() % 100 + (90 - a36) * 10 - a42 / 100;
+                break;
+            }
+            r += 100 - (int)abs32((long)(g_6e24[g_931c].f_38[2] - g_6e24[k].f_38[2]) * 200
+                                 / g_6e24[g_931c].f_38[2]);
+        } else if (g_9320 == 7 && n == 1 && k == g_93b6) {
+            bk = k;
+            best = 30000;
+            continue;
+        } else if (t == 1 && g_6e24[k].f_64 == g_6e24[g_931c].f_64) {
+            r = -10;
+            lvl = g_6e24[k].f_76;
+            if (g_6e20[g_6e24[k].f_00].f_004[1] == g_9332)
+                r = 42;
+            switch (g_6e20[g_6e24[k].f_00].f_004[1] - g_9332) {
+            case -1:
+            case 1:
+                r += 30;
+            }
+            if (lvl == g_9334)
+                r += 30;
+            else if (g_9334 + 1 < lvl)
+                r += (g_9334 - lvl) * 28;
+            if (lvl < g_9334)
+                r += (lvl - g_9334) * 16;
+            L32 = g_6e24[k].f_06;
+            if (g_6e24[k].f_79 >= g_91f8 - 1) {
+                L2a = g_6e24[k].f_78 + 1;
+                L32 = L32 * (L2a * L2a * 32 / -9 + (L2a << 5) / 2 + 32) / 32;
+                if (L32 < 0)
+                    L32 = 0;
+            } else if (g_6e24[k].f_78 != -1) {
+                L2e = g_91f8 - g_6e24[k].f_79 - 1;
+                L2a = g_6e24[k].f_78 + 1 < 4 ? 4 : g_6e24[k].f_78 + 1;
+                if (L2e <= L2a / 2)
+                    L32 = 0;
+                else if (L2a != 0)
+                    L32 = min(L32 * ((L2e << 6) / L2a - 32) / 32, L32 * 5 / 4);
+            }
+            r += (int)(L32 / 9) + g_6e24[k].f_3c[g_931c] * 2;
+            if (g_6e24[k].f_64 == g_95b6)
+                r += 1000;
+            r += rand() % 30;
+        } else if (t == 4 && g_6e24[k].f_64 != g_6e24[g_931c].f_64
+                   && g_6e24[k].f_64 != 7) {
+            lvl = g_6e24[k].f_76;
+            v18 = g_6e24[k].f_3c[g_931c] * 10
+                + g_3824[g_96ea[g_7092[g_9646].f_04c].f_020][g_6e24[k].f_64];
+            r = -10;
+            if (g_6e20[g_6e24[k].f_00].f_004[1] == g_9332)
+                r = 65;
+            switch (g_6e20[g_6e24[k].f_00].f_004[1] - g_9332) {
+            case -1:
+            case 1:
+                r += 50;
+            }
+            if (lvl == g_9334)
+                r += 25;
+            else if (g_9334 + 1 < lvl)
+                r += (g_9334 - lvl) * 16;
+            if (lvl < g_9334)
+                r += (lvl - g_9334) * 11;
+            if (g_9332 < 2 && v18 < -150)
+                r += 20;
+            if (g_9332 > 2 && g_6e24[k].f_64 == 2)
+                r += 25;
+            if (g_9332 > 1 && g_6e24[k].f_64 == 4)
+                r += 10;
+            if ((g_6e24[k].f_64 == 3 || g_6e24[k].f_64 == 6 || g_6e24[k].f_64 == 1)
+                && g_9432 > 300)
+                r += g_9432 / 17 < 50 ? 50 : g_9432 / 17;
+            L32 = g_6e24[k].f_06;
+            if (g_6e24[k].f_79 >= g_91f8 - 1) {
+                L2a = g_6e24[k].f_78 + 1;
+                L32 = L32 * (L2a * L2a * 32 / -9 + (L2a << 5) / 2 + 32) / 32;
+                if (L32 < 0)
+                    L32 = 0;
+            } else if (g_6e24[k].f_78 != 0) {
+                L2e = g_91f8 - g_6e24[k].f_79 - 1;
+                L2a = g_6e24[k].f_78 + 1 < 4 ? 4 : g_6e24[k].f_78 + 1;
+                if (L2e <= L2a / 2)
+                    L32 = 0;
+                else if (L2a != 0)
+                    L32 = min(L32 * ((L2e << 6) / L2a - 32) / 32, L32 * 5 / 4);
+            }
+            r += (int)(L32 / 10 > 60 ? 60 : L32 / 10) + fn_09_88ba(g_6e24[k].f_3c[g_931c]);
+            for (j = 0; j < g_0994; j++)
+                if (g_4f1c[j] <= 0 && g_4f1c[j] == -g_6e24[k].f_64
+                    || g_4f1c[j] == -100 && g_6e24[k].f_64 == 3
+                    || g_4f1c[j] == k) {
+                    r += 2000;
+                    g_4f1c[j] = -120;
+                }
+            if (g_6e24[k].f_64 == 3)
+                r -= 500;
+            for (m = s22 = s24 = 0; m <= g_931a; m++)
+                if (g_6e24[m].f_79 + 15 > g_91f8
+                    && g_6e24[m].f_64 != g_6e24[g_931c].f_64) {
+                    if (g_6e24[m].f_64 == g_6e24[k].f_64)
+                        s22 += g_6e24[m].f_77;
+                    s24 += g_6e24[m].f_77;
+                }
+            r += 40 - (int)((long)(s24 + 85) * s22 / (s24 + 1));
+            for (m = c2 = c0 = c1 = 0; m < n; m++)
+                if (g_7092[m].f_0d4 >= 0) {
+                    if (g_6e24[g_7092[m].f_0d4].f_64 == g_6e24[k].f_64)
+                        r += 24;
+                    if (g_6e24[g_7092[m].f_0d4].f_64 == 2)
+                        c2++;
+                    if (g_6e24[g_7092[m].f_0d4].f_64 == 0)
+                        c0++;
+                    if (g_6e24[g_7092[m].f_0d4].f_64 == 1)
+                        c1++;
+                }
+            if (c0 == 0 && c2 != 0 && g_6e20[g_6e24[k].f_00].f_003 == 0)
+                r += 25;
+            if (c0 != 0 && c2 == 0 && g_6e20[g_6e24[k].f_00].f_003 == 2)
+                r += 25;
+            if (c1 == 0 && c2 != 0 && g_6e20[g_6e24[k].f_00].f_003 == 1)
+                r += 25;
+            if (c1 != 0 && c2 == 0 && g_6e20[g_6e24[k].f_00].f_003 == 2)
+                r += 25;
+            r += rand() % 40;
+        } else
+            continue;
+        if (r > best) {
+            bk = k;
+            best = r;
+        }
+    }
+    if (best > -1000)
+        k = bk;
+    else
+        k = -1;
+    g_95b2 = best;
+    return k;
 }
