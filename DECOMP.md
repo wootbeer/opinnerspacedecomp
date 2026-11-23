@@ -402,3 +402,10 @@ Conventions
   then __aFldiv.
 - fn_07_5090 is int far (int type, int idx, int amount); REC_70.f5e
   declarations elsewhere have 2 arguments. g_95f4 is a bitmap handle.
+- Read every incoming jump before blaming the compiler: an odd `je L; jmp`
+  is often the false exit of an outer `if (a && b)` around a nested if.
+- Char arrays sit at bp-2-size; CL dword-aligns `long` locals (a long at a
+  non-multiple of 4 is a struct wrapper or a temp).
+- A value compared with `cmp ax,0xffff` then pushed from ax is WORD.
+- More types: g_9e41 is int[] (9e41..9e53); g_88c0 is copied as a POINT;
+  g_a157 is char[10]; g_1050 POINT[]; g_116a int[]; g_6e10 DWORD.

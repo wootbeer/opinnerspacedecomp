@@ -7,7 +7,8 @@ typedef struct {
     char pad_000[0x8];
     int f_008;    /* DS:709a */
     int f_00a;    /* DS:709c */
-    char pad_00c[0x6];
+    int f_00c;    /* DS:709e */
+    char pad_00e[0x4];
     int f_012;    /* DS:70a4 */
     char pad_014[0x2];
     int f_016;    /* DS:70a8 */
@@ -53,7 +54,9 @@ typedef struct {                /* 0x70-byte records, far pointer at DS:1e30 */
     char p1a[0x22 - 0x1a];
     int f22;
     int f24;
-    char p26[0x70 - 0x26];
+    char p26[0x44 - 0x26];
+    int f44;
+    char p46[0x70 - 0x46];
 } REC_70;
 
 #pragma pack(1)
@@ -63,8 +66,17 @@ typedef struct {                /* 0xad bytes, DGROUP array at DS:96f0 */
     int f0a;
     char p0c[0x1a - 0x0c];
     int f1a;
-    char p1c[0xad - 0x1c];
+    char p1c[0x88 - 0x1c];
+    signed char f88;
+    char p89[0xad - 0x89];
 } REC_AD;
+typedef struct {                /* view of the 0xad records at DS:96e2 (fields below g_96f0) */
+    int f00;
+    int f02;
+    int f04;
+    int f06;
+    char p08[0xad - 0x08];
+} REC_AD_LO;
 #pragma pack()
 
 extern OBJ15A g_7092[];
@@ -80,7 +92,13 @@ extern int g_9460;
 extern int g_9462;
 extern int g_9474;
 typedef struct {                /* 0x7c-byte records, far pointer at DS:6e24 */
-    char p00[0x65];
+    char p00[0x33];
+    signed char f33;
+    signed char f34;
+    signed char f35;
+    signed char f36;
+    signed char f37;
+    char p38[0x65 - 0x38];
     char name[0x77 - 0x65];
     signed char f77;
     char p78[0x7c - 0x78];
@@ -150,6 +168,7 @@ void far fn_03_1542(int a, int b, int c, LPSTR buf, int d);
 void far fn_13_33d6(int i);
 void far fn_17_3746(void);
 void far fn_17_33ee(void);
+extern REC_AD_LO g_96e2[];
 void far fn_17_42ea(int flag);
 void far fn_17_8e60(int i, LPSTR buf);
 void far fn_11_3fd4(LPSTR buf, int a);
@@ -1492,9 +1511,104 @@ void far fn_17_51b0(void)
     }
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Ship statistics lines of the info panel [inferred]. */
+/* near-match 29%: 17:3746 (code shape and order match; CL's choice of CSE temps
+ * differs: the game keeps g_1e30[idx].f44 * 3 in a temp and has no extra copy of
+ * ia4, which shifts the frame and every temp slot). la2 is a struct so that it is
+ * not dword-aligned (the game has it at bp-0xa2). */
 void far fn_17_3746(void)
 {
+    int i;
+    int u1;
+    int u2;
+    int u3;
+    int idx;
+    char buf1[50];
+    char buf2[50];
+    long l74;
+    long l78;
+    long l7c;
+    long l80;
+    long l84;
+    long l88;
+    long l8c;
+    long l90;
+    long l94;
+    int i96;
+    int i98;
+    int i9a;
+    int i9c;
+    int i9e;
+    struct { long v; } la2;
+    int ia4;
+
+    idx = g_9464;
+    l7c = 10L * g_1e30[idx].f44;
+    i96 = 1350 / g_7092[idx].f_012;
+    l90 = g_7092[idx].f_00a;
+    if (g_7092[idx].f_0d4 != -1)
+        l90 = l90 * ((g_6e24[g_7092[idx].f_0d4].f33 + 10) * 10) / 100;
+    l78 = l90 * 3456;
+    l80 = g_96f0[g_7092[idx].f_04c].f00 / 2;
+    i98 = g_7092[idx].f_00a * 3 / 4;
+    ia4 = g_7092[idx].f_00c;
+    i9a = (int)(l90 * 69 / ia4);
+    l74 = l78 / (i9a * 10 / 36);
+    l88 = ia4 * -3600L / (g_1e30[idx].f44 * 3) + 100;
+    la2.v = l88 * l88 * l88 / -60000 - l88 * l88 / 200;
+    l8c = (la2.v - l88 - 100) * 37 / 100 + 100;
+    i9c = (int)(l90 * l8c * 69 / (ia4 * 100L));
+    i9e = g_1e30[idx].f44 * 3 / (ia4 * 12);
+    if (g_7092[idx].f_0d4 != -1) {
+        l94 = g_96e2[g_7092[idx].f_04c].f02 * 100 / (20 - 3 * g_6e24[g_7092[idx].f_0d4].f35)
+            + g_96e2[g_7092[idx].f_04c].f04 * 80 / (20 - 3 * g_6e24[g_7092[idx].f_0d4].f36)
+            + g_96e2[g_7092[idx].f_04c].f00 * 80 / (20 - 3 * g_6e24[g_7092[idx].f_0d4].f34);
+        if (g_96f0[g_7092[idx].f_04c].f0a != -1) {
+            l94 += g_96e2[g_7092[idx].f_04c].f06 * 100 / (20 - 3 * g_6e24[g_7092[idx].f_0d4].f37);
+            l94 /= 4;
+        } else
+            l94 /= 3;
+    } else
+        l94 = g_96f0[g_7092[idx].f_04c].f88;
+    l84 = l94 * (g_1e30[idx].f44 + 350) * 2 / 350 * 12600 / 3000;
+    for (i = 0; i < 7; i++) {
+        fn_09_95ba(i + 0xfe);
+        fn_09_95ba(0x221);
+        switch (i) {
+        case 0:
+            fn_06_0eb8(l7c, buf1);
+            break;
+        case 1:
+            fn_06_0f1a(i96, buf1);
+            break;
+        case 2:
+            fn_06_0f1a(i9a, buf1);
+            lstrcpy(buf2, buf1);
+            fn_09_9580(0x105, buf2);
+            fn_06_0f1a(i9e, buf1);
+            lstrcat(buf2, buf1);
+            break;
+        case 3:
+            fn_06_0f1a(i9c, buf1);
+            break;
+        case 4:
+            fn_06_0f1a(i98, buf1);
+            break;
+        case 5:
+            fn_06_0eb8(l80, buf1);
+            break;
+        case 6:
+            fn_06_0eb8(l84, buf1);
+            break;
+        }
+        if (i == 2)
+            lstrcat(g_6078, buf2);
+        else
+            lstrcat(g_6078, buf1);
+        fn_09_95ba(i + 0x107);
+        if (i < 6)
+            fn_17_42ea(1);
+    }
 }
 
 /* Writes the relations/finance lines of the contact report [inferred]. */
