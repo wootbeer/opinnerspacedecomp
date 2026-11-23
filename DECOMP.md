@@ -494,3 +494,9 @@ Conventions
   identical tails [layout-only; mark it].
 - `duel = race = 0;` vs `race = duel = 0;` picks immediate dword store vs
   `xor ax` + two stores.
+- Nested-block frame layout: a nested block's locals take the slots above the
+  enclosing block's (then a 2-byte gap); inside it a CSE temp takes the top
+  slot, then locals in reverse declaration order. Use /Fc listings.
+- A hole in a block's slot area can be a named local that is never stored.
+- fn_08_5df2 (main damage handler) returns int; g_1e50 is DWORD (seg12.c
+  still says long).

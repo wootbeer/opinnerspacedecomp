@@ -1665,7 +1665,8 @@ void far fn_08_9028();       /* old-style: callers pass ints or a PAIR */
 /* Object (type, idx) takes dmg points of damage from object (stype, sidx):
  * finds the responsible owner, scores, applies it through the record's
  * damage callback (f5e) and returns that callback's result [inferred]. */
-/* @addr 8:5df2 */
+/* near-match 94%: 8:5df2. Only the cross-jumped f66 store at the end
+ * differs: the game keeps the copy in the flag8 arm, CL here the last. */
 int far fn_08_5df2(int type, int idx, int stype, int sidx, int dmg)
 {
     int ret;
@@ -1896,25 +1897,19 @@ int far fn_08_5df2(int type, int idx, int stype, int sidx, int dmg)
             g_70ae[idx].fc4 = 1;
             if (g_1df8[type][idx].f26 == 0)
                 g_1df8[type][idx].f26 = 1;
-            if (flag8) {
+            if (flag8)
                 g_70ae[idx].f66 = max(dmg * 25, 900) + g_1e50;
-            } else if (stype == 8 && g_3d5a[sidx].f00 == -3) {
+            else if (stype == 8 && g_3d5a[sidx].f00 == -3)
                 g_70ae[idx].f66 = max(dmg * 6, 300) + g_1e50;
-                return ret;
-            } else {
+            else {
                 v = max(dmg * 12, 600);
                 if (subgame_active) {
-                    if (g_90f4 == 1) {
+                    if (g_90f4 == 1)
                         g_70ae[idx].f66 = (g_a198 + 3) * v / 6 + g_1e50;
-                        return ret;
-                    } else {
+                    else
                         g_70ae[idx].f66 = v * (g_a198 + 3) / 12 + g_1e50;
-                        return ret;
-                    }
-                } else {
+                } else
                     g_70ae[idx].f66 = v + g_1e50;
-                    return ret;
-                }
             }
         }
     } else if (type == 8) {
