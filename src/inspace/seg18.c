@@ -151,7 +151,8 @@ typedef struct {                /* 0x70-byte records */
     char p14[0x18 - 0x14];
     int f18;
     int f1a;
-    char p1c[0x20 - 0x1c];
+    char p1c[0x1e - 0x1c];
+    int f1e;
     int f20;
     int f22;
     int f24;
@@ -2429,4 +2430,94 @@ void far fn_18_49d8(int n, int m)
         }
         g_a187[n] = 0;
     }
+}
+
+void far fn_07_2080(int t, int unused);
+
+/* Spawns one Demon-arena missile of type g_934a aimed at the player ship
+ * [inferred]. Its size f20 is scaled from record 0, not the new one (as in
+ * the original). */
+/* @addr 18:66e0 */
+void far fn_18_66e0(void)
+{
+    POINT p;
+    POINT d;
+    int i;
+    int found;
+    POINT unused;
+    int speed;
+    int dist;
+
+    if (g_9406[g_934a] < 1) {
+        for (i = 0; i < g_92ec[g_934a]; i++)
+            g_1df8[g_934a][i].f18 = 1;
+        i = -1;
+        found = 0;
+        do {
+            i++;
+            if (i < 4) {
+                if (g_92ec[g_934a] <= i) {
+                    g_92ec[g_934a] = i + 1;
+                    GlobalUnlock(g_9100[g_934a]);
+                    g_9100[g_934a] = GlobalReAlloc(g_9100[g_934a],
+                        (long)(g_92ec[g_934a] < 1 ? 1 : g_92ec[g_934a]) * 0x70,
+                        GMEM_MOVEABLE | GMEM_ZEROINIT);
+                    g_1df8[g_934a] = (REC_70 far *)GlobalLock(g_9100[g_934a]);
+                    g_1df8[g_934a][i].f48 = 9;
+                    g_1df8[g_934a][i].f42 = 8;
+                    g_1df8[g_934a][i].f46 = 4;
+                    g_1df8[g_934a][i].f4c = 0xc0c0c0;
+                    g_1df8[g_934a][i].f5e = fn_07_5090;
+                    g_1df8[g_934a][i].f53 = 0;
+                    g_1df8[g_934a][i].f54 = 0;
+                    g_1df8[g_934a][i].f32 = -1;
+                    g_1df8[g_934a][i].f2e = 0;
+                    g_1df8[g_934a][i].f18 = 1;
+                    g_9406[g_934a] = i + 1;
+                }
+                if (g_1df8[g_934a][i].f18) {
+                    if (g_70ae[g_9646].f08[0] < 50)
+                        g_1df8[g_934a][i].f44 = 1400;
+                    else
+                        g_1df8[g_934a][i].f44 = 466;
+                    g_1df8[g_934a][i].f22 = (44 << g_9156) >> 1;
+                    if (!g_9156)
+                        g_1df8[g_934a][i].f22 = g_1df8[g_934a][i].f22 * 2 / 3;
+                    g_1df8[g_934a][i].f20 = (int)(g_1df8[g_934a]->f22 * g_88cc / g_88c0);
+                    g_1df8[g_934a][i].f24 = (4 << g_9156) >> 1;
+                    g_1df8[g_934a][i].f12 = g_1df8[g_934a][i].f24;
+                    g_1df8[g_934a][i].f62 = fn_11_3914;
+                    g_1df8[g_934a][i].f2c = 40;
+                    g_1df8[g_934a][i].f1e = 0;
+                    g_1df8[g_934a][i].f2f = 0;
+                    g_1df8[g_934a][i].f18 = 0;
+                    p.x = g_1050[(g_1e34->f28 + 8) % 16].x * (g_1e34->f22 / 2 + ((44 << g_9156) >> 2)) / 16
+                        + g_1e34->f22 / 2 - ((44 << g_9156) >> 2) + g_1e34->f00;
+                    p.y = g_1050[(g_1e34->f28 + 8) % 16].y * (g_1e34->f22 / 2 + ((44 << g_9156) >> 2)) / 16
+                        + g_1e34->f22 / 2 - ((44 << g_9156) >> 2) + g_1e34->f02;
+                    *(POINT far *)&g_1df8[g_934a][i].f04 = p = fn_08_2bbe(p);
+                    g_1df8[g_934a][i].f00 = -1000;
+                    g_1df8[g_934a][i].f08 = g_1df8[g_934a][i].f00;
+                    g_1df8[g_934a][i].f02 = -1000;
+                    g_1df8[g_934a][i].f0a = g_1df8[g_934a][i].f02;
+                    d.x = (rand() % (50 - g_a198 * 4) + g_a198 * 3) * g_1df8[g_9324][g_9646].f0c
+                        + g_1df8[g_9324][g_9646].f22 / 2 + g_1df8[g_9324][g_9646].f04
+                        - g_1e34->f22 / 2 - p.x;
+                    d.y = (rand() % (50 - g_a198 * 4) + g_a198 * 3) * g_1df8[g_9324][g_9646].f0e
+                        + g_1df8[g_9324][g_9646].f22 / 2 + g_1df8[g_9324][g_9646].f06
+                        - g_1e34->f22 / 2 - p.y;
+                    dist = fn_08_35d0(d.x, d.y);
+                    if (g_90f4 == 1)
+                        speed = (g_a198 + 10) * 7;
+                    else
+                        speed = (g_a198 + 15) * 4;
+                    g_1df8[g_934a][i].f0c = (long)d.x * speed / dist;
+                    g_1df8[g_934a][i].f0e = (long)d.y * speed / dist;
+                    g_9406[g_934a] = i + 1;
+                    fn_10_754a(0x1c, g_934a, i, found = 1);
+                }
+            }
+        } while (!found && i < 126);
+    } else
+        fn_07_2080(g_934a, 0);
 }

@@ -567,10 +567,124 @@ int far fn_06_5cbc(int i, char far *s)
     return d;
 }
 
-/* Not yet decompiled: stub so calls to it compile as near calls. */
+/* Owner-draw paint of a directory tree item (list box 0x65): indent by
+ * depth, tree lines, folder icon, name [inferred]. */
+/* near-match 99.9%: 6:49c0 (all code bytes equal; CL adds a 2-byte unused
+ * temporary for the `buf[lstrlen(buf) - 1] = 0` loop: sub sp,0xd8 vs 0xd6) */
 void far pascal fn_06_49c0(DRAWITEMSTRUCT far *dis)
 {
-    dis->CtlID = 0;
+    RECT rc;
+    RECT rc2;
+    HBRUSH brush;
+    HGDIOBJ oldfont;
+    int unused1;
+    HDC memdc;
+    int unused2;
+    HGDIOBJ oldbmp;
+    char buf[80];
+    COLORREF oldcolor;
+    int k;
+    int c2;
+    int c1;
+    int x;
+    int sx;
+    int sx0;
+    int depth;
+    int flag2;
+    int flag1;
+    int d2;
+    int count;
+    char buf2[80];
+
+    oldcolor = GetTextColor(dis->hDC);
+    memdc = CreateCompatibleDC(dis->hDC);
+    oldbmp = SelectObject(memdc, g_6aec[0]);
+    CopyRect(&rc, &dis->rcItem);
+    CopyRect(&rc2, &dis->rcItem);
+    SendMessage(dis->hwndItem, 0x40a, dis->itemID, (LONG)(LPSTR)buf);
+    sx0 = 90;
+    depth = buf[lstrlen(buf) - 3] - '0';
+    x = depth * 16 - 6;
+    if (dis->itemID == 0)
+        for (k = x = sx = 0; k < lstrlen(buf); k++)
+            buf[k] = buf[k + 1];
+    c1 = buf[lstrlen(buf) - 2] - '0';
+    c2 = buf[lstrlen(buf) - 1] - '0';
+    for (k = 0; k < 3; k++)
+        buf[lstrlen(buf) - 1] = 0;
+    switch (c1) {
+    case 0:
+    case 2:
+        sx = 0;
+        break;
+    case 1:
+        sx = 15;
+        break;
+    }
+    switch (c2) {
+    case 0:
+        break;
+    case 1:
+        sx += 30;
+        break;
+    case 2:
+        sx += 60;
+        break;
+    case 3:
+        sx += 105;
+        break;
+    }
+    rc2.left += x;
+    brush = CreateSolidBrush(GetSysColor(COLOR_WINDOW));
+    FillRect(dis->hDC, &rc, brush);
+    DeleteObject(brush);
+    if (dis->itemState & ODS_SELECTED) {
+        brush = CreateSolidBrush(GetSysColor(COLOR_HIGHLIGHT));
+        FillRect(dis->hDC, &rc2, brush);
+        DeleteObject(brush);
+    }
+    oldfont = SelectObject(dis->hDC, g_90fe);
+    if (dis->itemID) {
+        flag2 = flag1 = 0;
+        count = (int)SendMessage(dis->hwndItem, 0x40c, 0, 0L);
+        if (dis->itemID >= count - 1) {
+            flag2 = 1;
+            flag1 = 1;
+        } else if (depth > 1) {
+            SendMessage(dis->hwndItem, 0x40a, dis->itemID + 1, (LONG)(LPSTR)buf2);
+            d2 = buf2[lstrlen(buf2) - 3] - '0';
+            if (d2 != depth)
+                flag1 = 1;
+        }
+        MoveTo(dis->hDC, rc.left + 4, rc.top);
+        if (flag2)
+            LineTo(dis->hDC, rc.left + 4, rc.top + 6);
+        else
+            LineTo(dis->hDC, rc.left + 4, rc.bottom);
+        if (depth) {
+            MoveTo(dis->hDC, depth * 14 + rc.left - 10, rc.top);
+            if (flag1)
+                LineTo(dis->hDC, depth * 14 + rc.left - 10, rc.top + 6);
+            else
+                LineTo(dis->hDC, depth * 14 + rc.left - 10, rc.bottom);
+            MoveTo(dis->hDC, depth * 14 + rc.left - 10, rc.top + 6);
+            LineTo(dis->hDC, depth * 14 + rc.left - 5, rc.top + 6);
+        }
+    }
+    BitBlt(dis->hDC, x + rc.left + 1, rc.top + 1, 15, 11, memdc, sx0, 0, SRCAND);
+    BitBlt(dis->hDC, x + rc.left + 1, rc.top + 1, 15, 11, memdc, sx, 0, SRCPAINT);
+    if (dis->itemState & ODS_SELECTED)
+        SetTextColor(dis->hDC, GetSysColor(COLOR_HIGHLIGHTTEXT));
+    else
+        SetTextColor(dis->hDC, GetSysColor(COLOR_WINDOWTEXT));
+    SetBkMode(dis->hDC, TRANSPARENT);
+    fn_11_3fd4(buf, 0);
+    k = lstrlen(buf);
+    TextOut(dis->hDC, x + rc.left + 18, rc.top, buf, lstrlen(buf));
+    SelectObject(dis->hDC, oldfont);
+    SelectObject(memdc, oldbmp);
+    DeleteDC(memdc);
+    SetTextColor(dis->hDC, oldcolor);
 }
 
 /* Owner-draw list item paint [inferred]. */

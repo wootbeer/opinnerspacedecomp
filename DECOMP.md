@@ -333,3 +333,12 @@ Conventions
 - More types: g_6e14/g_6e18 (demon host window size, position) are POINTs;
   g_190a/g_190e, g_1c54/g_1c58 POINT cursors; g_1876, g_05ac, g_1916,
   g_191a, g_1c60, g_187a, g_18b6 DWORD timers; g_94c8 compared signed.
+- `*(POINT far *)&rec.f04 = p = fn(p);` gives the dword store to the local
+  then word stores into the record.
+- Wrapping the body in `if (...) { ... }` instead of an early return keeps a
+  record pointer in bx across the next branch.
+- Assignments inside call arguments (`f(d.x = ..., d.y = ...)`) give the
+  "y computed first" order.
+- Locals placed after the hidden POINT-return temporary are block-scope
+  locals.
+- object_sizes[2] / object_masses[2] cover DS:9442-9448.
