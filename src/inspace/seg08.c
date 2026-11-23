@@ -48,7 +48,7 @@ extern REC_16 g_5b28[][4];
 /* 0x70-byte records; DS:1df8 holds one far array per object type
  * [inferred, as in seg07.c]. */
 typedef struct {
-    char p00[4];
+    POINT f00;                  /* +00 */
     POINT f04;                  /* +04 */
     char p08[4];
     int f0c;                    /* +0c */
@@ -59,7 +59,8 @@ typedef struct {
     char p1c[2];
     int f1e;                    /* +1e */
     int f20;                    /* +20 */
-    char p22[0x2e - 0x22];
+    int f22;                    /* +22 */
+    char p24[0x2e - 0x24];
     char f2e;                   /* +2e */
     char p2f[0x32 - 0x2f];
     int f32;                    /* +32 */
@@ -136,6 +137,32 @@ extern long g_2410;
 extern int g_9320;
 extern char g_9eb5;
 extern int g_9e49;
+extern int g_9324;
+extern int g_9646;
+extern int g_9154;
+extern int g_9156;
+extern int g_238c;
+extern int g_2390;
+extern int g_2392;
+extern int g_2394;
+extern int g_2396;
+extern int g_951a;
+extern RECT g_1e5c;
+extern char g_507c[];
+extern char g_50e0[];
+extern int g_9146;
+/* 0x22-byte records at DS:915c [inferred: animated map objects]. */
+typedef struct {
+    POINT f00;                  /* +00: world position */
+    POINT f04;                  /* +04: screen position */
+    char p08[4];
+    HDC f0c;                    /* +0c: image */
+    HDC f0e;                    /* +0e: mask */
+    char p10[0x1a - 0x10];
+    int f1a;                    /* +1a */
+    char p1c[0x22 - 0x1c];
+} REC_22;
+extern REC_22 g_915c[];
 extern int g_9006;
 extern int g_9328;
 void far pascal fn_08_1e32(int type, int idx);
@@ -396,6 +423,125 @@ void far fn_08_348e(int type, int idx, int type2, int idx2, int speed)
     vy += (long)dy * speed / d;
     g_1df8[type][idx].f0c = vx;
     g_1df8[type][idx].f0e = vy;
+}
+
+/* Redraw map object i, masked when something overlaps it [inferred]. */
+/* @addr 8:08a6 */
+void far pascal fn_08_08a6(int i)
+{
+    RECT r3;
+    RECT r1;
+    RECT r2;
+    int hit;
+    int mine;
+    int k;
+    int size;
+
+    mine = hit = 0;
+    if (g_915c[i].f1a < 2) {
+        g_915c[i].f04 = fn_08_29ea(g_915c[i].f00);
+        return;
+    }
+    if (subgame_active == 0)
+        size = (32 << g_9156) >> 1;
+    else
+        size = ((g_9156 << 6) + 32) / 3;
+    SetRect(&r1, g_915c[i].f04.x, g_915c[i].f04.y,
+            g_915c[i].f04.x + size, g_915c[i].f04.y + size);
+    for (k = 0; k < g_9146; k++) {
+        SetRect(&r2, g_1df8[g_507c[k]][g_50e0[k]].f00.x, g_1df8[g_507c[k]][g_50e0[k]].f00.y,
+                g_1df8[g_507c[k]][g_50e0[k]].f22 + g_1df8[g_507c[k]][g_50e0[k]].f00.x,
+                g_1df8[g_507c[k]][g_50e0[k]].f22 + g_1df8[g_507c[k]][g_50e0[k]].f00.y);
+        if (IntersectRect(&r3, &r2, &r1)) {
+            hit = 1;
+            if (g_507c[k] == g_9324 && g_50e0[k] == g_9646)
+                mine = 1;
+        }
+    }
+    if (hit) {
+        if (g_915c[i].f04.x > -40 && g_915c[i].f04.x < g_90ea + 40
+            && g_915c[i].f04.y > -40 && g_915c[i].f04.y < g_90ec + 40)
+            BitBlt(g_13dc, g_915c[i].f04.x, g_915c[i].f04.y, size, size,
+                   g_915c[i].f0e, 0, 0, SRCAND);
+        g_915c[i].f04 = fn_08_29ea(g_915c[i].f00);
+        if (g_915c[i].f04.x > -40 && g_915c[i].f04.x < g_90ea + 40
+            && g_915c[i].f04.y > -40 && g_915c[i].f04.y < g_90ec + 40) {
+            BitBlt(g_13dc, g_915c[i].f04.x, g_915c[i].f04.y, size, size,
+                   g_915c[i].f0e, 0, 0, SRCAND);
+            BitBlt(g_13dc, g_915c[i].f04.x, g_915c[i].f04.y, size, size,
+                   g_915c[i].f0c, g_915c[i].f1a / 2 % 5 * size, 0, SRCPAINT);
+        }
+    } else {
+        if (g_915c[i].f04.x > -40 && g_915c[i].f04.x < g_90ea + 40
+            && g_915c[i].f04.y > -40 && g_915c[i].f04.y < g_90ec + 40)
+            PatBlt(g_13dc, g_915c[i].f04.x, g_915c[i].f04.y, size, size, BLACKNESS);
+        g_915c[i].f04 = fn_08_29ea(g_915c[i].f00);
+        if (g_915c[i].f04.x > -40 && g_915c[i].f04.x < g_90ea + 40
+            && g_915c[i].f04.y > -40 && g_915c[i].f04.y < g_90ec + 40)
+            BitBlt(g_13dc, g_915c[i].f04.x, g_915c[i].f04.y, size, size,
+                   g_915c[i].f0c, g_915c[i].f1a / 2 % 5 * size, 0, SRCCOPY);
+    }
+}
+
+/* Move the stars against the ship's motion, wrapping round the view
+ * with a new random position and colour [inferred]. */
+/* @addr 8:1320 */
+void far pascal fn_08_1320(int still)
+{
+    int i;
+
+    if (g_1df8[g_9324][g_9646].f18 == 1) {
+        g_1df8[g_9324][g_9646].f0c = 0;
+        g_1df8[g_9324][g_9646].f0e = 0;
+    }
+    if (still == 0 && g_238c == 0 && g_1df8[g_9324][g_9646].f0c == 0
+        && g_1df8[g_9324][g_9646].f0e == 0)
+        return;
+    for (i = 0; i < g_9152; i++) {
+        if (g_91c2[i])
+            PatBlt(g_13dc, g_2398[i].x, g_2398[i].y, 3, 3, BLACKNESS);
+        if (still == 0) {
+            if (g_951a) {
+                g_2398[i].x -= (g_2394 << g_9156) >> 2;
+                g_2398[i].y -= (g_2396 << g_9156) >> 2;
+            } else {
+                g_2398[i].x -= (g_1df8[g_9324][g_9646].f0c << g_9156) >> 2;
+                g_2398[i].y -= (g_1df8[g_9324][g_9646].f0e << g_9156) >> 2;
+            }
+            if (g_238c) {
+                g_2398[i].x += (g_2390 << g_9156) >> 2;
+                g_2398[i].y += (g_2392 << g_9156) >> 2;
+            }
+            if (g_2398[i].x < 0) {
+                g_2398[i].x = g_90ea;
+                g_2398[i].y = rand() % g_90ec;
+                g_2f04[i] = RGB(255, rand() % 255, rand() % 255);
+            } else if (g_2398[i].x > g_90ea) {
+                g_2398[i].x = 0;
+                g_2398[i].y = rand() % g_90ec;
+                g_2f04[i] = RGB(255, rand() % 255, rand() % 255);
+            }
+            if (g_2398[i].y < 0) {
+                g_2398[i].y = g_90ec;
+                g_2398[i].x = rand() % g_90ea;
+                g_2f04[i] = RGB(255, rand() % 255, rand() % 255);
+            } else if (g_2398[i].y > g_90ec) {
+                g_2398[i].y = 0;
+                g_2398[i].x = rand() % g_90ea;
+                g_2f04[i] = RGB(255, rand() % 255, rand() % 255);
+            }
+        }
+        if (g_9154 == g_9152) {
+            if (!PtInRect(&g_1e5c, g_2398[i])) {
+                PatBlt(g_13dc, g_2398[i].x, g_2398[i].y, 3, 3, WHITENESS);
+                g_91c2[i] = 1;
+            } else {
+                g_91c2[i] = 0;
+            }
+        }
+    }
+    if (g_9154 != g_9152)
+        g_9152 = g_9154;
 }
 
 /* Random positions and colours for g_9152 entries [inferred: stars]. */

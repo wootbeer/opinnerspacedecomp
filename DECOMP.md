@@ -200,3 +200,10 @@ Conventions
   write the global (`g_1df8[g_9328][idx]`), as the game does.
 - More types: fn_10_9526 returns HBITMAP; fn_08_083e is pascal (i, j);
   DS:3c8c is POINT[4]; g_3d08 POINT[16], g_3ce8 int[16].
+- A load the game makes and ignores: `*(volatile int far *)&p->f;`.
+- Chains of `continue` reset register tracking; one `&&` condition or nested
+  ifs often match instead.
+- A different symbol for the same address can stop an unwanted CSE load
+  (12:07c0: g_2f5e[k].f02 vs g_2f5a[k].f06).
+- fn_08_35d0 and fn_08_285a return int. Segment 8 from 8256 is its own
+  source file (seg08c.c).

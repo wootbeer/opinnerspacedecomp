@@ -1,21 +1,26 @@
 /* INSPACE.EXE segment 8 (selector 1038), part compiled with /G2:
  * no 32-bit code from 8:3688 to 8:81f8 [inferred: one source file]. */
 /* @cflags /AM /G2 /Gw /Gs /Os */
+#include <stdlib.h>
 #include "inspace.h"
 
 /* 0x70-byte records; DS:1df8 holds one far array per object type
  * [inferred, as in seg07.c]. */
 typedef struct {
-    char p00[4];
+    POINT f00;                  /* +00 */
     POINT f04;                  /* +04 */
     char p08[4];
     int f0c;                    /* +0c */
     int f0e;                    /* +0e */
-    char p10[0x1c - 0x10];
+    char p10[0x18 - 0x10];
+    int f18;                    /* +18 */
+    int f1a;                    /* +1a */
     int f1c;                    /* +1c */
     char p1e[0x44 - 0x1e];
     int f44;                    /* +44 */
-    char p46[0x54 - 0x46];
+    char p46[0x50 - 0x46];
+    char f50;                   /* +50 */
+    char p51[0x54 - 0x51];
     char f54;                   /* +54 */
     char p55[0x70 - 0x55];
 } REC_70;
@@ -38,6 +43,20 @@ typedef struct {
 extern REC_15A g_70ae[];
 
 extern int g_9324;
+extern int g_9326;
+extern int g_9e49;
+extern int g_9158;
+extern int g_9146;
+extern int g_952e;
+extern int g_9406[];
+extern RECT g_23e0[];
+extern char g_507c[];
+extern char g_50e0[];
+extern int subgame_active;      /* DS:9130 */
+/* 0x34-byte records at DS:3d5a (as in seg10.c) [inferred]. */
+typedef struct { char p00[0x26]; int f26; char p28[0x34 - 0x28]; } REC_34;
+extern REC_34 g_3d5a[];
+void far fn_11_9fdc(int type, int idx);
 /* 0x14-byte records at DS:1e90 (as in seg12.c) [inferred]. */
 typedef struct {
     int f00;                    /* +00 */
@@ -277,6 +296,78 @@ void far fn_08_804a(int a, int b, int c)
             g_5170[k].x = g_6098[a].x0[c][0];
             g_5170[k].y = g_6098[a].y0[c][0];
             return;
+        }
+    }
+}
+
+/* Collect the objects inside the view rectangles into the draw list
+ * DS:507c/50e0 [inferred]. */
+/* @addr 8:4e14 */
+void far fn_08_4e14(void)
+{
+    int t;
+    int i;
+    int r;
+    int unused[6];
+    int found;
+    int mode;
+
+    mode = 1;
+    if (subgame_active == 0) {
+        if (g_9e49 > 6 || g_9e49 < 3)
+            mode = 0;
+        for (t = g_9326; t <= g_9324; t++) {
+            if (mode == 0 || t != 7) {
+                if (t == 14 && mode)
+                    mode = 2;
+                for (i = 0; i < g_9406[t]; i++) {
+                    if (g_1df8[t][i].f18 == 0 && g_1df8[t][i].f44 != 0
+                        && (t != 8 || g_3d5a[i].f26 != 4)
+                        && (mode < 2 || i != g_952e)) {
+                        for (r = found = 0; r < g_9158; r++) {
+                            if (PtInRect(&g_23e0[r], g_1df8[t][i].f04)) {
+                                g_1df8[t][i].f1c = 0;
+                                g_507c[g_9146] = t;
+                                g_50e0[g_9146] = i;
+                                g_9146++;
+                                found = 1;
+                                break;
+                            }
+                        }
+                        if (found) {
+                            g_1df8[t][i].f1a = 1;
+                        } else if (g_1df8[t][i].f1a <= 0) {
+                            g_1df8[t][i].f1a = 0;
+                            g_1df8[t][i].f00.x = -1000;
+                            g_1df8[t][i].f00.y = -1000;
+                        } else {
+                            g_1df8[t][i].f1a = -1;
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        for (t = g_9326; t <= g_9324; t++) {
+            for (i = 0; i < g_9406[t]; i++) {
+                g_1df8[t][i].f1c = 0;
+                g_507c[g_9146] = t;
+                g_50e0[g_9146] = i;
+                g_9146++;
+                g_1df8[t][i].f1a = 1;
+            }
+        }
+    }
+    if (rand() % 9 == 0) {
+        for (t = 0; t < g_9146; t++) {
+            if (g_1df8[g_507c[t]][g_50e0[t]].f50 && g_507c[t] != g_9324) {
+                for (i = 0; i < g_9146; i++) {
+                    if (g_1df8[g_507c[i]][g_50e0[i]].f18 == 0 && i != t) {
+                        fn_11_9fdc(g_507c[t], g_50e0[t]);
+                        break;
+                    }
+                }
+            }
         }
     }
 }
