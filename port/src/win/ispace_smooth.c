@@ -19,17 +19,17 @@
 #define DARK 245                        /* entry for shades below a ramp */
 #define FAINT 2                         /* shades up to this stay background */
 
-/* The palette entries a ramp of image colours is shaded with, first
- * (lightest) to last, and their lightness. */
-typedef struct {
-    int16_t first, last, lum_first, lum_last;
-} Ramp;
+typedef IspaceRamp Ramp;
 
 static struct {
     Ramp a[10];                         /* colours 0-9: DS:1108, 111c, 1130, 1144 */
     Ramp b[5];                          /* colours 10-14: DS:1ca4, 1cae, 1cb8, 1cc2 */
-    int16_t ds_1ccc;                    /* set by ordinal 2's surfaces (not ported): 0 */
 } st;
+
+IspaceRamp *ispace_ramps(int group)
+{
+    return group ? st.b : st.a;
+}
 
 static void not_ported(const char *what)
 {
@@ -89,8 +89,7 @@ static int16_t set_of_color_6a4e(int r, int g, int b, int m)
     return 100 * r / g > 80 ? 5 : 4;
 }
 
-/* 5:66ea: the colour set id (0-13) whose hue colour r, g, b has. */
-static int16_t set_of_color(int r, int g, int b)
+int16_t ispace_set_of_color(int r, int g, int b)
 {
     int m;
 
@@ -238,9 +237,7 @@ static int16_t nearest_shade(const PALETTEENTRY *e, int16_t v, int16_t first, in
     return step > 0 ? last : first;
 }
 
-/* The entry for lightness v on ramp rp: its place on the ramp, then the
- * nearest shade around it. */
-static uint8_t shade(const PALETTEENTRY *e, const Ramp *rp, uint8_t v)
+uint8_t ispace_ramp_shade(const PALETTEENTRY *e, const IspaceRamp *rp, uint8_t v)
 {
     int16_t idx, den = (int16_t)(rp->lum_first - rp->lum_last);
     int32_t q;
@@ -425,11 +422,11 @@ static uint8_t final_pixel(const Planes *pl, long i, const PALETTEENTRY *e)
         m -= TAKEN;
     if (e0 > FAINT && e1 < e0) {
         k = m % 2 == 1 ? 0 : m >> 1;
-        return k < 10 ? shade(e, &st.a[k], (uint8_t)e0) : 0;
+        return k < 10 ? ispace_ramp_shade(e, &st.a[k], (uint8_t)e0) : 0;
     }
     if (e1 > FAINT) {
         k = m & 1 ? m >> 1 : 0;
-        return k < 5 ? shade(e, &st.b[k], (uint8_t)e1) : 0;
+        return k < 5 ? ispace_ramp_shade(e, &st.b[k], (uint8_t)e1) : 0;
     }
     return 0;
 }
@@ -450,7 +447,7 @@ static void group_ramps(int s, const IspaceDib *d, int from, int to, signed char
         const uint8_t *c = ispace_dib_color(d, i);
 
         if (set == 12)
-            id[i] = set_of_color(c[2], c[1], c[0]);
+            id[i] = ispace_set_of_color(c[2], c[1], c[0]);
         lum[i] = ispace_lum_image(c[2], c[1], c[0]);
     }
     if (set != 12) {
@@ -548,7 +545,7 @@ static HBITMAP render(int s, int16_t pal, const Image *im, int n, const int16_t 
  * stretched over w x h. */
 static HBITMAP stretch(HBITMAP img, int16_t pal, int16_t size, int16_t w, int16_t h)
 {
-    HBITMAP bm = CreateCompatibleBitmap(ispace_dc(), (int16_t)(w * (st.ds_1ccc + 1)), h);
+    HBITMAP bm = CreateCompatibleBitmap(ispace_dc(), (int16_t)(w * (*ispace_ds_1ccc() + 1)), h);
     HDC dc[2];
     HPALETTE old_pal[2];
     HGDIOBJ old[2];
@@ -587,7 +584,7 @@ static int16_t smooth(int16_t pal, int16_t id, int16_t w, int16_t h, int16_t g, 
     if (s < 0 || !pal)
         return 0;
     if (c == 0)
-        st.ds_1ccc = 0;
+        *ispace_ds_1ccc() = 0;
     f->ds_0188 = 1;
     if (!ispace_dib_load(pal, id, "", 0, a, b, ispace_pal_fixed(s) != 0, &src))
         return 0;

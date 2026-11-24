@@ -82,6 +82,8 @@ static int16_t run(int ordinal, Args *a)
 
     switch (ordinal) {
     case 1: return ispace_load_image(w[0], w[1], a->s[2], w[3], w[4], w[5]);
+    case 2: return ispace_build_surface(w[0], w[1], 0, w[3], w[4], w[5], w[6], w[7], w[8], w[9],
+                                        (char)w[10], (char)w[11], (char)w[12], w[13]);
     case 3: return ispace_load_bitmap(a->s[0]);
     case 4: return ispace_palette(w[0], w[1], w[2], w[3], w[4], w[5], w[6]);
     case 5: return ispace_image_height();

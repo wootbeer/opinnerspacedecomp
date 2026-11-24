@@ -352,6 +352,12 @@ static void load_set(int s, int16_t id)
     ispace_pal_animate(p->pal, 0, st.dc);
 }
 
+void ispace_pal_load_set(int slot, int16_t id)
+{
+    if (slot >= 0 && slot < SLOTS)
+        load_set(slot, id);
+}
+
 /* 5:254c, 5:2626: entries 11-102 from ISPACE.DLL's resource 100 of type
  * 5500 (92 colours, red, green, blue). */
 static void load_base_colors(Slot *p)

@@ -35,6 +35,9 @@ int ispace_pal_bits(void);                /* DS:1e9a: bits per pixel of the disp
 /* The DC the DLL's routines last worked on (DS:1a32). */
 void ispace_set_dc(HDC dc);
 HDC ispace_dc(void);
+/* 5:61b2: colour set id (3-13) into the slot's palette, or one more user
+ * of the range it already has. */
+void ispace_pal_load_set(int slot, int16_t id);
 /* 5:4378: sends the slot's game entries (10-245) to the screen. */
 void ispace_pal_animate(HPALETTE pal, HWND hwnd, HDC dc);
 /* 5:3dee (mode 6): an entry for colour (r, g, b); -1 when a near colour
@@ -79,6 +82,8 @@ extern const int16_t ispace_ramp_area[2][3];
 int ispace_dib_load(int16_t pal, int16_t id, LPCSTR name, int16_t mode, signed char a,
                     signed char b, int16_t own, IspaceDib *d);
 HBITMAP ispace_dib_bitmap(IspaceDib *d, int16_t pal);          /* 5:2080 */
+/* 5:23a4: a zeroed 8-bit DIB of w x h, rows padded to 4 bytes. */
+int ispace_dib8_new(int16_t w, int16_t h, IspaceDib *d);
 const uint8_t *ispace_dib_color(const IspaceDib *d, int k);   /* blue, green, red */
 const uint8_t *ispace_dib_bits(const IspaceDib *d);
 void ispace_set_image_height(int16_t h);                       /* DS:1c72 */
@@ -90,15 +95,36 @@ void ispace_set_image_height(int16_t h);                       /* DS:1c72 */
 int16_t ispace_lum(int r, int g, int b);
 int16_t ispace_lum_image(int r, int g, int b);
 
-/* Image loader, ordinal 1 (5:0402), and ordinal 2 (6:0000). */
+/* Image loader, ordinal 1 (5:0402), and ordinal 2 (6:0000; the
+ * calibration strip in ispace_img.c, the surfaces in ispace_surface.c). */
 int16_t ispace_load_image(int16_t pal, int16_t id, char *name, int16_t dc, int16_t b, int16_t c);
 int16_t ispace_build_surface(int16_t pal, int16_t a, int32_t name, int16_t dc, int16_t e, int16_t f,
                              int16_t g, int16_t h, int16_t i, int16_t j, char k, char l, char m,
                              int16_t n);
 int16_t ispace_image_height(void);        /* ordinal 5 (6:00b0) */
+/* 6:011c: image id turned to 4 or 16 angles, shaded (ispace_surface.c). */
+int16_t ispace_surface(int16_t pal, int16_t id, LPCSTR name, int16_t dc, int16_t f, int16_t i,
+                       int16_t j, signed char k, signed char l, signed char m);
 /* Ordinal 12 (6:00c4): the image smoothed at twice its size. */
 int16_t ispace_smooth_image(int16_t pal, int16_t id, int32_t name, int16_t dc, int16_t w,
                             int16_t h, int16_t g, int16_t c, int16_t i, char a, char b);
+
+/* DS:1108-1144 and DS:1ca4-1cc2: the ramps image colours 0-9 (group 0,
+ * ten ramps) and 10-14 (group 1, five) are shaded with: first (lightest)
+ * and last palette entry and their lightness (ordinals 2 and 12). */
+typedef struct {
+    int16_t first, last, lum_first, lum_last;
+} IspaceRamp;
+
+IspaceRamp *ispace_ramps(int group);
+/* The entry for lightness v on ramp rp: its place on the ramp, then the
+ * nearest shade around it (5:6b72); entry 245 when darker than the ramp. */
+uint8_t ispace_ramp_shade(const PALETTEENTRY *e, const IspaceRamp *rp, uint8_t v);
+/* 5:66ea: the colour set id (0-13) whose hue colour r, g, b has. */
+int16_t ispace_set_of_color(int r, int g, int b);
+/* DS:1ccc: the angles of ordinal 2's last surface; ordinal 12 makes its
+ * bitmap that many times wider again (ispace_surface.c). */
+int16_t *ispace_ds_1ccc(void);
 
 /* DS:01ac: set by palette mode 0, read by the New Game dialog as its
  * registered flag (-1: not known yet). */

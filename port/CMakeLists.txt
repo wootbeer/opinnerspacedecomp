@@ -33,6 +33,7 @@ add_executable(inspace
     src/win/ispace_shape.c
     src/win/ispace_smooth.c
     src/win/ispace_sprite.c
+    src/win/ispace_surface.c
     src/win/kernel.c
     src/win/listbox.c
     src/win/module.c

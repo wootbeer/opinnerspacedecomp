@@ -4,11 +4,11 @@
  *
  * Ported so far: images from resources, the colour sets of the caller,
  * colours left as they are (mode 3), added to the palette (mode 2) or put
- * in the palette as ramps (mode 0), and ordinal 2's calibration strip
- * (5:17c2), and 5:0000, the dialogs' ship pictures.  The branches that
- * keep an image's own colours, 5:075e, 6:7fc8, images from files
- * (5:1d74) and ordinal 2's other surfaces log themselves once and give
- * no bitmap. */
+ * in the palette as ramps (mode 0), ordinal 2's calibration strip
+ * (5:17c2) and its surfaces (6:011c, ispace_surface.c), and 5:0000, the
+ * dialogs' ship pictures.  The branches that keep an image's own colours,
+ * 5:075e, 6:7fc8, images from files (5:1d74) and ordinal 2's surfaces of
+ * 6:78ba log themselves once and give no bitmap. */
 #include <stdlib.h>
 #include <string.h>
 
@@ -532,14 +532,11 @@ int16_t ispace_build_surface(int16_t pal, int16_t a, int32_t name, int16_t dc, i
     (void)e;
     (void)g;
     (void)h;
-    (void)i;
-    (void)j;
-    (void)k;
-    (void)l;
-    (void)m;
-    (void)n;
     if (a == -1000)
         return (int16_t)build_strip(pal, dc, f);
-    not_ported("ispace_2: surfaces (6:011c, 6:78ba)");
-    return 0;
+    if (n) {
+        not_ported("ispace_2: surfaces of 6:78ba");
+        return 0;
+    }
+    return ispace_surface(pal, a, "", dc, f, i, j, (signed char)k, (signed char)l, (signed char)m);
 }

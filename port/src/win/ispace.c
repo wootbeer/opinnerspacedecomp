@@ -4,7 +4,8 @@
  * The palette manager is in ispace_pal.c, the image loader in
  * ispace_img.c, the dialogs in ispace_dlg.c, the copy checks in
  * ispace_reg.c, the rooms in ispace_room.c and ispace_shape.c, the
- * panel helpers in ispace_panel.c. */
+ * panel helpers in ispace_panel.c, ordinal 2's surfaces in
+ * ispace_surface.c. */
 
 #include <stdlib.h>
 #include <string.h>

@@ -363,9 +363,12 @@ Native versions of the DLL's routines, written from its disassembly
     divides by zero) starts its search at its last entry; set ids 14-99
     (an uninitialised word in 7:4ee8) give no ramp; palettes that are
     not the manager's and images that are not 4-bit give no bitmap.
+  - DS:1ccc, the angles of ordinal 2's last surface, makes the bitmap
+    that many times wider again unless c is 0 (checked with the oracle,
+    surfaces.txt). The ramp tables (DS:1108, DS:1ca4) are shared with
+    ordinal 2.
   - **Not modelled:** DS:1e80-1e84 (per-palette colour sets, written
-    only), DS:1ccc (set by ordinal 2's surfaces; makes the bitmap wider),
-    the per-row callback 9:360a (DS:21aa/2222/1738, set by the sound
+    only), the per-row callback 9:360a (DS:21aa/2222/1738, set by the sound
     ordinals, which are stubs); 5:6f58 (colour set to id), whose results
     7:12d8 stores but never reads.
 
@@ -692,9 +695,9 @@ on a directory with programs leads to the wave's briefing.
   the earlier 4 slots kept until a search ended, these could take the
   slot of the tree's own search (DS:69f8).
 - **Not ported yet, met after Navigation:** ISPACE ordinal 1's branch
-  5:075e and ordinal 2's surfaces (6:011c, 6:78ba) (both log as stubs on
-  the way to the briefing). Ordinals 14 and 18, met in the launch scene,
-  are ported (below).
+  5:075e (logs as a stub on the way to the briefing). Ordinal 2's
+  surfaces (6:011c), met there too, and ordinals 14 and 18, met in the
+  launch scene, are ported (below).
 
 ## ISPACE.DLL in the launch scene and the wave (ordinals 14, 18, 29)
 
@@ -759,3 +762,70 @@ on a directory with programs leads to the wave's briefing.
     and the 16 calls of a flight in a wave: all identical (results and
     every word).
 
+## ISPACE.DLL surfaces (ordinal 2, 6:011c; port/src/win/ispace_surface.c)
+
+The pictures of the wave's ships and objects: the game calls ordinal 2
+through 10:6ee6 and 10:6fec (the shield picture of 18:08bc) and cuts
+its sprites from the result. Words used: f (the black border around
+each cell; 99: 5 for an odd image height, 6 for an even one; -100: one
+angle and no border), i (4 angles, 16 when 0), j (the sheet 2^j times
+the image's size), k and l (colour sets of colours 0-9 and 10-14), m
+(1: only two frames) and n (non-zero: 6:78ba, below). e, g and h are
+not read on the 8-bit path.
+
+- **Image.** Loaded in mode 1 (5:1b8e) with colour sets k and l, which
+  are first put in the palette (5:6f58 set to id, 5:61b2); it is a strip
+  of frames as wide as it is high. With m == 1 only two frames are made,
+  the second from the image's last frame.
+- **Ramps.** Per group a ramp per hue met (5:66ea) for the image's own
+  colours (set 12), else one ramp of the set; each ramp is the range its
+  set has in the palette (DS:1dea, DS:1398), set into the palette once
+  more (5:61b2 again: one more user of the range). The ends' lightness
+  as ordinal 12's, except group 1's: the root from half the mean, six
+  Newton steps. Colours 0-9 count 5 lighter than their lightness.
+- **Drawing** (per frame): as ordinal 12's passes 2 and 3 into 2n x 2n
+  planes per group and a code plane (ramp * 2 + group), then the corner
+  cut; no blur. Angles 1-3 (or 1-15) are turned from angle 0 (DS:011a
+  sine, DS:013a minus cosine, x 512): every cell lit above 0x1e goes to
+  its turned place, rounded down; cells below 0x1c between two lit
+  cells of a row take the left one.
+- **Shading.** Each angle at the image's size (j 0: the mean of the lit
+  cells of each 2x2 block, two at least, the code of the last; j 1, 2:
+  one cell), group 0 then group 1 over it, on the block's ramp
+  (ispace_ramp_shade, as ordinal 12). With 4 or 16 angles each cell is
+  also written turned a quarter, half and three quarters round, 4, 8
+  and 12 cells on: 16 directions from 4 angles. A frame's sheet (16
+  cells n + f apart, f around) is an 8-bit DIB made a bitmap (5:2080)
+  and blitted into the result, frames n + f apart; one angle gives one
+  n x n cell.
+- **Quirks kept:** a frame starting on an odd column (frames of odd
+  height after the first) is drawn one block right and loses its last
+  column (the DLL skips block 0); the corner cut of frame f works on
+  the planes of index f, not the frame's own (with several angles, for
+  f > 0 planes still empty unless f is a multiple of the angles), so
+  later frames keep their corners; the turn's rounding terms are cleared before use;
+  with m == 1 the bitmap is a cell wider (left black); with j 2 each row
+  of a cell steps half a plane row, so odd rows read the plane h cells
+  on; with 16 angles the turned copies of angles 4-15 land past the 16
+  cells, in later rows of the sheet.
+- **Fixed silently (memory safety, divide faults):** a ramp whose ends
+  are equally light (the DLL divides by zero; seen in the emulated DLL)
+  starts its search at its last entry; with j 2 the last row of a cell
+  reads past its planes (0 here; the DLL reads the next block); writes
+  past a sheet (16 angles) are dropped; more than 48 frames x angles
+  (the DLL writes past its tables of planes) give no bitmap; 5:6f58 for
+  set 12 and unknown sets (an uninitialised word) gives no set; a set
+  without a range (the DLL reads before the range table) and a ramp
+  index past the tables give entry 0; a palette not the manager's gives
+  no bitmap.
+- **Not ported:** fixed palettes, images with VGA colours (6:7fc8),
+  displays of fewer than 8 bits (log, no bitmap); n != 0 (6:78ba, which
+  sets colour sets up and calls 6:5538; logs, no bitmap; not met yet);
+  the per-row callback 9:360a (sound, stubs).
+- **Verified** with the oracle (tools/dll_oracle/surfaces.txt): the
+  three calls of a wave (images 180, 60 with m 1, 370) after the
+  wave's set-up, and 21 variations (one angle, 16 angles, j 0 and 1,
+  frames of odd and even height, m 0 and 1, other colour sets and
+  borders, 18:08bc's calls), and ordinal 12 after them: bitmaps and
+  palettes identical. **Not verified:** j 2 (Size=2; the emulated DLL
+  reads past its planes there and faults or differs).

@@ -107,7 +107,7 @@ the first command again after files are added there.
   compared after the call. Results of routines that return nothing
   (`VOID`, ordinal 14) are not compared. A call that stops the emulation
   (a Windows call without a stand-in) is reported with its number.
-  Ordinals 1, 3, 4, 5, 6, 12, 14, 18, 29 and 32-35 are supported, and pseudo-ordinal
+  Ordinals 1-6, 12, 14, 18, 29 and 32-35 are supported, and pseudo-ordinal
   1000 for 5:0000 (the dialogs' ship picture, a C-convention routine the
   DLL does not export: `INTERNAL` in oracle.py); add others to
   `ORDINALS` (oracle.py) and `run` (port_calls.c). Ordinal 32's script
@@ -128,6 +128,11 @@ the first command again after files are added there.
   launch scene's ordinal 14 calls and more percentages, ordinal 18 as the
   game calls it (kinds 1 and 0) and six variations, and ordinal 29: the
   16 calls of a flight in a wave and 400 random ones. All agree.
+- `surfaces.txt`: wave.txt's set-up with ordinal 2's surfaces where the
+  game makes them in a wave (images 180, 60, 370), 21 variations (one
+  and 16 angles, j 0 and 1, frames, colour sets, borders, 18:08bc's
+  calls) and ordinal 12 after them. All agree. j 2 is left out: the DLL
+  reads past its planes there (port/NOTES-port.md).
 - `panel.txt`: the same set-up, then ordinals 33-35 on a memory DC. All
   agree. (Image 200, taller than wide, differs
   in 37 pixels of its top rows: the DLL reads past its pixels there, see

@@ -27,7 +27,7 @@ from emu import IspaceEmu, ROOT, new_bitmap, new_dc  # noqa: E402
 # of ordinal 32 (no script argument: a far pointer and a handle), p a
 # far pointer to a word (the script gives its value; the words are
 # compared after the call).
-ORDINALS = {1: 'wwswww', 3: 's', 4: 'wwwwwww', 5: '', 6: 'www', 12: 'wwswwwwwwbb', 1000: 'wwswww',
+ORDINALS = {1: 'wwswww', 2: 'wwswwwwwwwbbbw', 3: 's', 4: 'wwwwwww', 5: '', 6: 'www', 12: 'wwswwwwwwbb', 1000: 'wwswww',
             14: 'wwwww', 18: 'wwwwww', 29: 'ppppppppwwwwpp', 32: 'wwRwlwlwwwwww', 33: 'wwlwlwws', 34: 'wwwwww', 35: 'wwwwww'}
 # Ordinals that return nothing (AX is left over).
 VOID = {14}

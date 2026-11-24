@@ -90,8 +90,7 @@ static uint8_t nearest_set_entry(int s, uint8_t r, uint8_t g, uint8_t b, int set
     return (uint8_t)(ds_01a6 >> 2);
 }
 
-/* A zeroed 8-bit DIB of w x h (5:23a4). */
-static int new_dib(int16_t w, int16_t h, IspaceDib *d)
+int ispace_dib8_new(int16_t w, int16_t h, IspaceDib *d)
 {
     uint32_t bits = (uint32_t)stride_of(w) * (uint32_t)h;
 
@@ -161,7 +160,7 @@ static int image_colors(int s, const uint8_t *sheet, int16_t h, int16_t n, int16
 
     for (k = 1; k < 16; k++)
         map[k] = nearest_image_entry(s, t[4 * k], t[4 * k + 1], t[4 * k + 2], swap);
-    if (!new_dib((int16_t)(h * n), h, out))
+    if (!ispace_dib8_new((int16_t)(h * n), h, out))
         return 0;
     bits = out->data + 40 + 1024;
     size = out->size - 40 - 1024;
@@ -187,7 +186,7 @@ static int half_size(int s, const uint8_t *sheet, int16_t h, int16_t n, int16_t 
     int ch;
 
     rgb = calloc(1, (size_t)rgb_stride * (size_t)(h / 2) + 3);
-    if (!rgb || !new_dib(ow, h, out)) {
+    if (!rgb || !ispace_dib8_new(ow, h, out)) {
         free(rgb);
         return 0;
     }
