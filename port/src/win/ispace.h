@@ -8,6 +8,7 @@
 
 HINSTANCE ispace_module(void);
 HINSTANCE igraphic_module(void);
+HINSTANCE ispace_lang_module(void);      /* DS:0690: <Language>_LANG.DLL (ispace_dlg.c) */
 
 /* Ordinal 3 (5:0612) and ordinal 6 (5:0650). */
 int16_t ispace_load_bitmap(LPCSTR name);
@@ -30,6 +31,8 @@ void ispace_pal_animate(HPALETTE pal, HWND hwnd, HDC dc);
 /* 5:3dee (mode 6): an entry for colour (r, g, b); -1 when a near colour
  * is already there or no entry is free. */
 int16_t ispace_pal_add_color(HPALETTE pal, int16_t r, int16_t g, int16_t b);
+/* 5:4292: the first black entry from 11 to 244, or -1. */
+int16_t ispace_pal_first_black(HPALETTE pal);
 /* The slot's 256 entries as the DLL keeps them (DS:116c). */
 PALETTEENTRY *ispace_pal_entries(int slot);
 /* The colour sets of 5:5846: ten colours for DIB colours 0-9 and five
@@ -96,6 +99,20 @@ HBITMAP ispace_ship_image(int16_t pal, int16_t id, char *name, int16_t a, int16_
 /* Ordinal 36 (10:2e1a): StretchBlt doubling or mirroring (ispace.c). */
 int16_t ispace_blit_double(HDC dst, int16_t x, int16_t y, int16_t w, int16_t h, HDC src, int16_t xs,
                            int16_t ys, int16_t ws, int16_t hs, int32_t rop);
+
+/* Ordinal 32 (8:0000): a room of IGRAPHIC.DLL drawn into a new bitmap
+ * (ispace_room.c); ordinals 33-35 (8:037a, 8:05ac, 8:0768): text in the
+ * ALPHABET font, a raised or sunken box, a gauge (ispace_panel.c). */
+HBITMAP ispace_room(int16_t dc, int16_t pal, RECT *rects, HGLOBAL hrects, int16_t id, int32_t d,
+                    int16_t e, int32_t f, int16_t g, int16_t w, int16_t h, int16_t y, int16_t x,
+                    int16_t lift);
+void ispace_letters(int16_t dc, int16_t pal, int32_t size, int16_t align, int32_t color, int16_t x,
+                    int16_t y, char *text);
+void ispace_bevel(int16_t dc, int16_t x, int16_t y, int16_t w, int16_t h, int16_t kind);
+void ispace_gauge(int16_t dc, int16_t x, int16_t y, int16_t w, int16_t h, int16_t percent);
+HBITMAP ispace_alphabet(void);           /* DS:1ea2 */
+/* 6:7f52: three Newton steps towards the square root of sq from m. */
+int16_t ispace_newton_root(int32_t sq, int32_t m);
 
 /* Ordinal 10 (9:145e): the game's dialogs (ispace_dlg.c). */
 int16_t ispace_dialog(int16_t hwnd, int16_t dc, int16_t pal, int16_t v1, int16_t v0, int16_t w6,

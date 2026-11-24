@@ -29,9 +29,10 @@ from optl_unpack import unpack       # noqa: E402
 
 ROOT = os.path.dirname(TOOLS)
 DATA_SEG = 11                        # ISPACE.DLL's DGROUP
-HINST = {0x0b00: 'ISPACE', 0x0c00: 'IGRAPHIC'}
+HINST = {0x0b00: 'ISPACE', 0x0c00: 'IGRAPHIC', 0x0d00: 'ENG_LANG'}
 ISPACE_HINST_SLOT = 0x1a30           # DS words LibMain / ordinal 3 would fill
 IGRAPHIC_HINST_SLOT = 0x0692
+LANG_HINST_SLOT = 0x0690            # the language DLL (ordinal 7, 9:0174)
 SRCCOPY = 0x00cc0020
 
 # The 20 static colours of the Windows 3.1 system palette.
@@ -82,7 +83,8 @@ class IspaceEmu:
         data = unpack(packed)
         self.entries = entry_points(data)
         self.res = {'ISPACE': load_resources(packed),
-                    'IGRAPHIC': load_resources(open(os.path.join(data_dir, 'IGRAPHIC.DLL'), 'rb').read())}
+                    'IGRAPHIC': load_resources(open(os.path.join(data_dir, 'IGRAPHIC.DLL'), 'rb').read()),
+                    'ENG_LANG': load_resources(open(os.path.join(data_dir, 'ENG_LANG.DLL'), 'rb').read())}
         self.uc = Uc(UC_ARCH_X86, UC_MODE_16)
         self.uc.mem_map(0, 0x111000)
         self._load(data)
@@ -94,8 +96,13 @@ class IspaceEmu:
         self.res_handles = {}
         self.time = 100000
         self.failed = None
+        self.texts = []
         self.wds(ISPACE_HINST_SLOT, 0x0b00)
         self.wds(IGRAPHIC_HINST_SLOT, 0x0c00)
+        self.wds(LANG_HINST_SLOT, 0x0d00)
+        self.stock = {}
+        for i, kw in STOCK.items():
+            self.stock[i] = self.new_gdi(kw[0], **kw[1])
 
     # loading
     def _load(self, data):
@@ -163,6 +170,7 @@ class IspaceEmu:
             out.append(c)
 
     def galloc(self, size):
+        size = (size + 31) & ~31
         n = (size + 15) // 16 + 1
         for i, (p, avail) in enumerate(self.free):
             if avail >= n:
@@ -246,7 +254,9 @@ class IspaceEmu:
     def dc_palette(self, dc):
         """The selected palette's colours by index, or None (the default
         palette: the static colours)."""
-        d = self.obj(dc, 'dc')
+        return self.dc_palette_of(self.obj(dc, 'dc'))
+
+    def dc_palette_of(self, d):
         p = self.obj(d['pal'], 'pal') if d else None
         return [tuple(e[:3]) for e in p['e']] if p else None
 
@@ -301,7 +311,9 @@ def GlobalFree(e, h):
 
 @api(2, 'w')
 def GlobalSize(e, h):
-    return e.blocks[h][1] if h in e.blocks else 0
+    """Windows 3.1 gives blocks in 32-byte units; the scene data of
+    IGRAPHIC.DLL (type 6600) is laid out for that."""
+    return (e.blocks[h][1] + 31) & ~31 if h in e.blocks else 0
 
 
 @api(6, 'www')
@@ -328,7 +340,67 @@ def GetVersion(e):
 
 @api(0, '')
 def GetWinFlags(e):
-    return 0x0413
+    """As the port's: a 486 with a coprocessor in enhanced mode."""
+    return 0x0429
+
+
+def put_string(e, fp, text, size):
+    data = text.encode('latin-1')[:max(size - 1, 0)]
+    e.uc.mem_write(e.lin(fp), data + b'\0')
+    return len(data)
+
+
+@api(6, 'lw')
+def GetWindowsDirectory(e, fp, size):
+    return put_string(e, fp, 'C:\\WINDOWS', size)
+
+
+@api(6, 'lw')
+def GetSystemDirectory(e, fp, size):
+    return put_string(e, fp, 'C:\\WINDOWS\\SYSTEM', size)
+
+
+@api(22, 'llllwl')
+def GetPrivateProfileString(e, app, key, default, ret, size, file):
+    """No INI files (the port's settings folder has none of SYSTEM.INI,
+    CONTROL.INI, PROTOCOL.INI or NETWORK.INF): the default."""
+    return put_string(e, ret, e.cstr(e.lin(default)), size)
+
+
+@api(8, 'll')
+def lstrcat(e, a, b):
+    e.uc.mem_write(e.lin(a), (e.cstr(e.lin(a)) + e.cstr(e.lin(b))).encode('latin-1') + b'\0')
+    return a
+
+
+@api(0, '')
+def waveOutGetNumDevs(e):
+    return 1
+
+
+@api(8, 'wlw')
+def waveOutGetDevCaps(e, dev, fp, size):
+    """As the port's: one stereo device, no WAVECAPS_SYNC."""
+    caps = struct.pack('<HHH32sIHHI', 0, 0, 0, b'', 0, 2, 0, 0)
+    e.uc.mem_write(e.lin(fp), caps[:size])
+    return 0
+
+
+@api(2, 'w')
+def GetSystemMetrics(e, i):
+    return {0: 640, 1: 480}.get(i, 0)
+
+
+@api(10, 'wwlw')
+def LoadString(e, inst, sid, fp, size):
+    blob = e.res[HINST[inst]].get(('STRING', str((sid >> 4) + 1)))
+    text, q = '', 0
+    for i in range(16 if blob else 0):
+        n = blob[q]
+        if i == sid & 15:
+            text = blob[q + 1:q + 1 + n].decode('latin-1')
+        q += 1 + n
+    return put_string(e, fp, text, size)
 
 
 def res_name(e, fp):
@@ -406,7 +478,8 @@ def lstrlen(e, a):
 
 # GDI: device contexts
 def new_dc(e):
-    return e.new_gdi('dc', bmp=None, pal=None, bk=0xffffff)
+    return e.new_gdi('dc', bmp=None, pal=None, bk=0xffffff, text=0, brush=e.stock[0],
+                     pen=e.stock[7], pos=(0, 0))
 
 
 @api(16, 'llll')
@@ -440,12 +513,17 @@ def GetDeviceCaps(e, dc, i):
     return CAPS.get(i, 0)
 
 
+SLOT = {'bmp': 'bmp', 'brush': 'brush', 'pen': 'pen', 'font': 'font'}
+
+
 @api(4, 'ww')
 def SelectObject(e, dc, h):
     d = e.obj(dc, 'dc')
-    if not d or not e.bitmap(h):
+    o = e.gdi.get(h)
+    if not d or not o or o['kind'] not in SLOT:
         return 0x3f2
-    old, d['bmp'] = d['bmp'], h
+    slot = SLOT[o['kind']]
+    old, d[slot] = d.get(slot), h
     return old or 0x3f2
 
 
@@ -457,7 +535,7 @@ def DeleteObject(e, h):
 
 @api(2, 'w')
 def GetStockObject(e, i):
-    return 0x380 + 2 * i
+    return e.stock.get(i, 0x380 + 2 * i)
 
 
 @api(6, 'wl')
@@ -592,28 +670,93 @@ def GetObject(e, h, n, fp):
     return n
 
 
+def s16(v):
+    return v - 0x10000 if v & 0x8000 else v
+
+
+def rop3(code, p, s, d):
+    """The ternary raster operation, bit by bit (as port/src/win/draw.c)."""
+    r = 0
+    for i in range(8):
+        if code >> i & 1:
+            r |= (p if i & 4 else ~p) & (s if i & 2 else ~s) & (d if i & 1 else ~d)
+    return r & 0xff
+
+
+def color_index(e, d, c):
+    """The port's rule (gdi.c color_index): PALETTEINDEX as is,
+    PALETTERGB the nearest entry of the DC's palette, anything else the
+    nearest static colour."""
+    rgb = (c & 0xff, c >> 8 & 0xff, c >> 16 & 0xff)
+    if c >> 24 == 1:
+        return c & 0xff
+    pal = e.dc_palette_of(d)
+    if c >> 24 == 2 and pal:
+        return nearest(pal, rgb)
+    return nearest(None, rgb)
+
+
+def pixel_of(e, d, c):
+    b = e.bitmap(d['bmp']) if d else None
+    if not b or not b['mono']:
+        return color_index(e, d, c)
+    if c >> 24 == 1:
+        pal = e.dc_palette_of(d) or [STATICS.get(i, (0, 0, 0)) for i in range(256)]
+        return int(sum(pal[c & 0xff]) >= 384)
+    return int((c & 0xff) + (c >> 8 & 0xff) + (c >> 16 & 0xff) >= 384)
+
+
+def brush_pixel(e, d, x, y):
+    b = e.gdi.get(d.get('brush'))
+    if not b or b['kind'] != 'brush' or b.get('null'):
+        return 0
+    if b.get('pattern') is None:
+        return pixel_of(e, d, b['color'])
+    v = b['pattern'][(y & 7) * 8 + (x & 7)]
+    if b.get('mono'):
+        return pixel_of(e, d, d['bk'] if v else d['text'])
+    return v
+
+
 def blit(e, dst, x, y, w, h, src, sx, sy, sw, sh, rop):
-    d, s = e.obj(dst, 'dc'), e.obj(src, 'dc')
-    db, sb = e.bitmap(d['bmp']) if d else None, e.bitmap(s['bmp']) if s else None
-    if not db or not sb:
+    """port/src/win/draw.c draw_blit: any ROP3 on palette indices,
+    stretching by nearest pixel, negative extents mirror."""
+    x, y, w, h, sx, sy, sw, sh = map(s16, (x, y, w, h, sx, sy, sw, sh))
+    d, s = e.obj(dst, 'dc'), e.obj(src, 'dc') if src is not None else None
+    db = e.bitmap(d['bmp']) if d else None
+    sb = e.bitmap(s['bmp']) if s else None
+    code = rop >> 16 & 0xff
+    aw, ah, asw, ash = abs(w), abs(h), abs(sw), abs(sh)
+    if not db or not aw or not ah or (s and (not sb or not asw or not ash)):
         return 1
-    if rop != SRCCOPY:
-        raise RuntimeError('raster operation %#x not modelled' % rop)
-    bk = None
-    if db['mono'] and not sb['mono']:
-        c = s['bk']
-        bk = (c & 0xff, c >> 8 & 0xff, c >> 16 & 0xff)
-        pal = e.dc_palette(src) or [STATICS.get(i, (0, 0, 0)) for i in range(256)]
-    for j in range(h):
-        for i in range(w):
-            tx, ty = x + i, y + j
-            fx, fy = sx + i * sw // w, sy + j * sh // h
-            if not (0 <= tx < db['w'] and 0 <= ty < db['h'] and 0 <= fx < sb['w'] and 0 <= fy < sb['h']):
+    x0, y0 = (x + w + 1 if w < 0 else x), (y + h + 1 if h < 0 else y)
+    sx0, sy0 = (sx + sw + 1 if sw < 0 else sx), (sy + sh + 1 if sh < 0 else sy)
+    mx, my = (w < 0) != (sw < 0), (h < 0) != (sh < 0)
+    mask = 1 if db['mono'] else 0xff
+    sbk = pixel_of(e, s, s['bk']) if sb and not sb['mono'] and db['mono'] else None
+    W, H, px = db['w'], db['h'], db['px']
+    for j in range(ah):
+        ty = y0 + j
+        if not 0 <= ty < H:
+            continue
+        syy = 0
+        if sb:
+            k = j * ash // ah
+            syy = sy0 + (ash - 1 - k if my else k)
+        for i in range(aw):
+            tx = x0 + i
+            if not 0 <= tx < W:
                 continue
-            v = sb['px'][fy * sb['w'] + fx]
-            if bk is not None:
-                v = int(pal[v] == bk)
-            db['px'][ty * db['w'] + tx] = v
+            sv = 0
+            if sb:
+                k = i * asw // aw
+                sxx = sx0 + (asw - 1 - k if mx else k)
+                if 0 <= sxx < sb['w'] and 0 <= syy < sb['h']:
+                    sv = sb['px'][syy * sb['w'] + sxx]
+                    if sb['mono'] != db['mono']:
+                        sv = pixel_of(e, d, d['bk'] if sv else d['text']) if sb['mono'] else int(sv == sbk)
+            pv = brush_pixel(e, d, tx, ty)
+            px[ty * W + tx] = rop3(code, pv, sv, px[ty * W + tx]) & mask
     return 1
 
 
@@ -624,21 +767,102 @@ def Polygon(e, dc, points, n):
     return 1
 
 
-@api(16, 'wwwwwl')
+@api(14, 'wwwwwl')
 def PatBlt(e, dc, x, y, w, h, rop):
-    """BLACKNESS and WHITENESS; nothing to do on a DC without a bitmap
-    (the screen)."""
+    return blit(e, dc, x, y, w, h, None, 0, 0, 0, 0, rop)
+
+
+# GDI: brushes, pens, lines, pixels, text state
+STOCK = {0: ('brush', dict(color=0xffffff)), 1: ('brush', dict(color=0xc0c0c0)),
+         2: ('brush', dict(color=0x808080)),
+         3: ('brush', dict(color=0x404040, pattern=[0 if (i // 8 + i % 8) & 1 else 248 for i in range(64)])),
+         4: ('brush', dict(color=0)), 5: ('brush', dict(color=0, null=True)),
+         6: ('pen', dict(color=0xffffff)), 7: ('pen', dict(color=0)), 8: ('pen', dict(color=0, null=True))}
+
+
+@api(4, 'l')
+def CreateSolidBrush(e, c):
+    return e.new_gdi('brush', color=c)
+
+
+@api(2, 'w')
+def CreatePatternBrush(e, h):
+    b = e.bitmap(h)
+    pat = [b['px'][(y % b['h']) * b['w'] + x % b['w']] for y in range(8) for x in range(8)] if b else None
+    return e.new_gdi('brush', color=0, pattern=pat, mono=bool(b and b['mono']))
+
+
+@api(8, 'wwl')
+def CreatePen(e, style, width, c):
+    return e.new_gdi('pen', color=c, null=style == 5)
+
+
+@api(6, 'www')
+def MoveTo(e, dc, x, y):
     d = e.obj(dc, 'dc')
-    b = e.bitmap(d['bmp']) if d else None
-    if not b:
+    old = d['pos']
+    d['pos'] = (s16(x), s16(y))
+    return (old[0] & 0xffff) | (old[1] & 0xffff) << 16
+
+
+def put(e, d, x, y, v):
+    b = e.bitmap(d['bmp'])
+    if b and 0 <= x < b['w'] and 0 <= y < b['h']:
+        b['px'][y * b['w'] + x] = v
+
+
+@api(6, 'www')
+def LineTo(e, dc, x, y):
+    """port/src/win/draw.c line(): Bresenham, end point left out."""
+    d = e.obj(dc, 'dc')
+    x1, y1 = s16(x), s16(y)
+    x0, y0 = d['pos']
+    d['pos'] = (x1, y1)
+    p = e.gdi.get(d['pen'])
+    if not p or p.get('null'):
         return 1
-    fill = {0x00000042: 0, 0x00ff0062: 1 if b['mono'] else 255}.get(rop)
-    if fill is None:
-        raise RuntimeError('PatBlt raster operation %#x not modelled' % rop)
-    for j in range(max(y, 0), min(y + h, b['h'])):
-        for i in range(max(x, 0), min(x + w, b['w'])):
-            b['px'][j * b['w'] + i] = fill
+    v = pixel_of(e, d, p['color'])
+    dx, dy = abs(x1 - x0), -abs(y1 - y0)
+    stx, sty = (1 if x0 < x1 else -1), (1 if y0 < y1 else -1)
+    err = dx + dy
+    while x0 != x1 or y0 != y1:
+        e2 = 2 * err
+        put(e, d, x0, y0, v)
+        if e2 >= dy:
+            err += dy
+            x0 += stx
+        if e2 <= dx:
+            err += dx
+            y0 += sty
     return 1
+
+
+@api(10, 'wwwl')
+def SetPixel(e, dc, x, y, c):
+    d = e.obj(dc, 'dc')
+    put(e, d, s16(x), s16(y), pixel_of(e, d, c))
+    return c
+
+
+@api(6, 'wl')
+def SetTextColor(e, dc, c):
+    d = e.obj(dc, 'dc')
+    old, d['text'] = d['text'], c
+    return old
+
+
+@api(4, 'ww')
+def SetBkMode(e, dc, m):
+    d = e.obj(dc, 'dc')
+    old, d['bkmode'] = d.get('bkmode', 2), m
+    return old
+
+
+@api(4, 'ww')
+def SetTextAlign(e, dc, a):
+    d = e.obj(dc, 'dc')
+    old, d['align'] = d.get('align', 0), a
+    return old
 
 
 @api(20, 'wwwwwwwwl')
@@ -649,3 +873,25 @@ def BitBlt(e, dst, x, y, w, h, src, sx, sy, rop):
 @api(24, 'wwwwwwwwwwl')
 def StretchBlt(e, dst, x, y, w, h, src, sx, sy, sw, sh, rop):
     return blit(e, dst, x, y, w, h, src, sx, sy, sw, sh, rop)
+
+
+@api(12, 'lwwww')
+def SetRect(e, fp, l, t, r, b):
+    e.uc.mem_write(e.lin(fp), struct.pack('<4H', l, t, r, b))
+
+
+@api(30, 'wwwwwbbbbbbbbl'.replace('b', 'w'))
+def CreateFont(e, h, w, esc, orient, weight, italic, underline, strike, charset, out, clip, quality,
+               pitch, face):
+    return e.new_gdi('font', height=s16(h), width=s16(w), weight=weight, italic=italic & 0xff,
+                     face=e.cstr(e.lin(face)))
+
+
+@api(12, 'wwwlw')
+def TextOut(e, dc, x, y, fp, n):
+    """Recorded, not drawn (text is rasterised by the port's text.c)."""
+    d = e.obj(dc, 'dc')
+    e.texts.append(dict(x=s16(x), y=s16(y), text=e.rd(e.lin(fp), n).decode('latin-1'),
+                        font=dict(e.gdi.get(d.get('font'), {})), color=d['text'], bk=d['bk'],
+                        bkmode=d.get('bkmode', 2), align=d.get('align', 0)))
+    return 1

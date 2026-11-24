@@ -3,7 +3,8 @@
  * routines, written from the DLL's code; those not done yet are stubs.
  * The palette manager is in ispace_pal.c, the image loader in
  * ispace_img.c, the dialogs in ispace_dlg.c, the copy checks in
- * ispace_reg.c. */
+ * ispace_reg.c, the rooms in ispace_room.c and ispace_shape.c, the
+ * panel helpers in ispace_panel.c. */
 
 #include <stdlib.h>
 #include <string.h>
@@ -186,10 +187,6 @@ static int16_t ispace_15(int16_t a, int16_t b, int16_t c, int16_t d, int16_t e, 
 static void ispace_17(int16_t a, int16_t b, int32_t c, int16_t d, int16_t e, int16_t f, int16_t g, char h, char i, int16_t j, int16_t k, char l, char m) { (void)a; (void)b; (void)c; (void)d; (void)e; (void)f; (void)g; (void)h; (void)i; (void)j; (void)k; (void)l; (void)m; STUB(); }
 static int16_t ispace_18(int16_t a, int16_t b, int16_t c, int16_t d, int16_t e, int16_t f) { (void)a; (void)b; (void)c; (void)d; (void)e; (void)f; STUB(); return 0; }
 static int16_t ispace_29(int16_t *a, int16_t *b, int16_t *c, int16_t *d, int16_t *e, int16_t *f, int16_t *g, int16_t *h, int16_t i, int16_t j, int16_t k, int16_t l, int16_t *m, int16_t *n) { (void)a; (void)b; (void)c; (void)d; (void)e; (void)f; (void)g; (void)h; (void)i; (void)j; (void)k; (void)l; (void)m; (void)n; STUB(); return 0; }
-static HBITMAP ispace_32(int16_t a, int16_t b, RECT *c, HGLOBAL d, int16_t e, int32_t f, int16_t g, int32_t h, int16_t i, int16_t j, int16_t k, int16_t l, int16_t m, int16_t n) { (void)a; (void)b; (void)c; (void)d; (void)e; (void)f; (void)g; (void)h; (void)i; (void)j; (void)k; (void)l; (void)m; (void)n; STUB(); return 0; }
-static void ispace_33(int16_t a, int16_t b, int32_t c, int16_t d, int32_t e, int16_t f, int16_t g, int32_t h) { (void)a; (void)b; (void)c; (void)d; (void)e; (void)f; (void)g; (void)h; STUB(); }
-static void ispace_34(int16_t a, int16_t b, int16_t c, int16_t d, int16_t e, int16_t f) { (void)a; (void)b; (void)c; (void)d; (void)e; (void)f; STUB(); }
-static void ispace_35(int16_t a, int16_t b, int16_t c, int16_t d, int16_t e, int16_t f) { (void)a; (void)b; (void)c; (void)d; (void)e; (void)f; STUB(); }
 static int16_t ispace_41(int16_t a, int32_t b) { (void)a; (void)b; STUB(); return 0; }
 
 FARPROC ispace_proc(int ordinal)
@@ -212,10 +209,10 @@ FARPROC ispace_proc(int ordinal)
     case 18: return PROC(ispace_18);
     case 24: return PROC(ispace_check);
     case 29: return PROC(ispace_29);
-    case 32: return PROC(ispace_32);
-    case 33: return PROC(ispace_33);
-    case 34: return PROC(ispace_34);
-    case 35: return PROC(ispace_35);
+    case 32: return PROC(ispace_room);
+    case 33: return PROC(ispace_letters);
+    case 34: return PROC(ispace_bevel);
+    case 35: return PROC(ispace_gauge);
     case 36: return PROC(ispace_blit_double);
     case 41: return PROC(ispace_41);
     default: return NULL;

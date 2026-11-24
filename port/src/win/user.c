@@ -5,9 +5,11 @@
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_timer.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "user.h"
+#include "video.h"
 #include "platform/platform.h"
 
 #define MAX_CLASSES 24
@@ -190,6 +192,39 @@ static void invalidate(Wnd *w, const RECT *r, int erase)
     w->erase |= erase;
 }
 
+/* Dialogs keep the screen under them while shown and put it back when
+ * they go (the dialog class has CS_SAVEBITS), so what lies under is not
+ * repainted.  Drawing under a shown dialog is clipped, so what was saved
+ * stays right unless the dialog moves. */
+static void save_under(Wnd *w)
+{
+    Framebuffer *fb = video_framebuffer();
+    int y, cw = w->rect.right - w->rect.left;
+
+    if (w->saved || wnd_is_child(w) || !dialog_is(w->hwnd) || w->rect.left < 0 || w->rect.top < 0
+        || w->rect.right > fb->width || w->rect.bottom > fb->height || cw <= 0)
+        return;
+    w->saved = malloc((size_t)cw * (size_t)(w->rect.bottom - w->rect.top));
+    for (y = w->rect.top; w->saved && y < w->rect.bottom; y++)
+        memcpy(w->saved + (size_t)(y - w->rect.top) * (size_t)cw, fb->pixels + (size_t)y * (size_t)fb->width + w->rect.left,
+               (size_t)cw);
+}
+
+static int restore_under(Wnd *w)
+{
+    Framebuffer *fb = video_framebuffer();
+    int y, cw = w->rect.right - w->rect.left;
+
+    if (!w->saved)
+        return 0;
+    for (y = w->rect.top; y < w->rect.bottom; y++)
+        memcpy(fb->pixels + (size_t)y * (size_t)fb->width + w->rect.left, w->saved + (size_t)(y - w->rect.top) * (size_t)cw,
+               (size_t)cw);
+    free(w->saved);
+    w->saved = NULL;
+    return 1;
+}
+
 /* Marks what lies under r (screen) for repainting, as Windows does when
  * a window above goes away or moves. */
 static void uncover(const RECT *r)
@@ -226,6 +261,8 @@ static int place(Wnd *w, int x, int y, int cx, int cy)
     w->rect.bottom = (int16_t)(w->rect.top + cy);
     wnd_frame(w->style, dialog_is(w->hwnd), &w->client, &w->rect);
     zgen++;
+    free(w->saved);
+    w->saved = NULL;
     if (wnd_visible(w))
         uncover(&old);
     return 1;
@@ -286,8 +323,9 @@ BOOL DestroyWindow(HWND h)
 
     if (!w)
         return 0;
-    if (w->visible && !wnd_is_child(w))
+    if (w->visible && !wnd_is_child(w) && !restore_under(w))
         uncover(&w->rect);
+    free(w->saved);
     zgen++;
     for (i = 0; i < MAX_WINDOWS; i++)
         if (windows[i] && wnd_get(windows[i]) && wnd_get(windows[i])->parent == h)
@@ -327,10 +365,12 @@ BOOL ShowWindow(HWND h, int16_t cmd)
     w->visible = cmd != SW_HIDE;
     zgen++;
     if (w->visible) {
+        if (!was)
+            save_under(w);
         invalidate(w, &w->rect, 1);
         if (!active && !wnd_is_child(w))
             SetActiveWindow(h);
-    } else if (was) {
+    } else if (was && !restore_under(w)) {
         uncover(&w->rect);
     }
     return (BOOL)was;

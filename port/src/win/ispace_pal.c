@@ -138,6 +138,11 @@ PALETTEENTRY *ispace_pal_entries(int slot)
     return st.slot[slot].e;
 }
 
+HBITMAP ispace_alphabet(void)
+{
+    return st.alphabet;
+}
+
 int ispace_pal_fixed(int slot)
 {
     return st.slot[slot].fixed;
@@ -466,6 +471,17 @@ int16_t ispace_pal_add_color(HPALETTE pal, int16_t r, int16_t g, int16_t b)
             return (int16_t)i;
         }
     }
+    return -1;
+}
+
+/* 5:4292: the first entry from 11 to 244 whose colour is black, or -1. */
+int16_t ispace_pal_first_black(HPALETTE pal)
+{
+    int s = ispace_pal_slot(pal), i;
+
+    for (i = FIRST + 1; s >= 0 && i < FIRST + COUNT - 1; i++)
+        if (is_black(&st.slot[s].e[i]))
+            return (int16_t)i;
     return -1;
 }
 

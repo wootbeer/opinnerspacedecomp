@@ -1500,7 +1500,7 @@ extern int16_t (*g_fp_3c64)(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t
 extern int16_t (*g_fp_3c68)(char *, char *, int16_t); /* DS:3c68 */
 extern int16_t (*g_fp_3c6c)(int16_t *, int16_t *, int16_t *, int16_t *, int16_t *, int16_t *, int16_t *, int16_t *, int16_t, int16_t, int16_t, int16_t, int16_t *, int16_t *); /* DS:3c6c */
 extern void (*g_fp_3c70)(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t); /* DS:3c70 */
-extern void (*g_fp_3c74)(int16_t, int16_t, int32_t, int16_t, int32_t, int16_t, int16_t, int32_t); /* DS:3c74 */
+extern void (*g_fp_3c74)(int16_t, int16_t, int32_t, int16_t, int32_t, int16_t, int16_t, char *); /* DS:3c74 */
 extern HBITMAP (*g_fp_3c78)(int16_t, int16_t, RECT *, HGLOBAL, int16_t, int32_t, int16_t, int32_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t); /* DS:3c78 */
 extern void (*g_fp_3c7c)(int16_t, int16_t, int16_t, int16_t, int16_t); /* DS:3c7c */
 extern void (*g_fp_3c80)(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t); /* DS:3c80 */
@@ -2649,7 +2649,7 @@ int16_t fn_10_885e(int16_t a);
 HBITMAP world_map(int16_t w, int16_t h, int16_t a, int16_t map, int16_t c, int16_t d, int16_t e);
 int16_t fn_10_946a(char *p);
 void fn_10_949c(int16_t a, int16_t b, int16_t c, int16_t d, int16_t e, int16_t f);
-void fn_10_94c4(int16_t a, int16_t b, int32_t c, int16_t d, int16_t e, int32_t f);
+void fn_10_94c4(int16_t a, int16_t b, int32_t c, int16_t d, int16_t e, char *f);
 HBITMAP fn_10_9526(RECT *a, HGLOBAL b, int16_t c, int32_t d, int16_t e, int32_t f, int16_t g, int16_t h, int16_t i, int16_t x, int16_t y, int16_t k);
 void fn_10_9568(void);
 int16_t fn_10_9672(void);

@@ -24,7 +24,13 @@ Demon fight and the evil-twin fight may be reversed.
 - Intro logo: 15:5914 loads the "SD_LOGO" bitmap.
 - Title screen: 15:6cdc, state machine on DS:95cc (text, version and
   CD/demo lines, logo dissolve, scrolling title, fireworks).
-- Desk scene: drawn by ISPACE.DLL ordinal 32 (HANDOFF).
+- Desk scene: 15:0cb0 draws room 100 of IGRAPHIC.DLL with ISPACE.DLL
+  ordinal 32, then the monitor (15:8604) and the tower's panel (15:8ae6)
+  into its rectangles 0 and 1. The monitor types the mission text, the
+  ship rises on a launch pad and flies into the monitor; then the "Inner
+  Space Navigation" window (the directory picker) opens. Rooms 105, 110
+  and 120 are the backgrounds of 15:302e (briefing, by g_90f4), room 115
+  of 15:0760.
 - Briefing: draw_briefing_panel_with_esc_prompt (9:8934), briefing
   typewriter text 9:8d18, briefing text builder 15:52e4.
 - Ambulance: the line buffer at DS:6db8 (90 bytes, HANDOFF), filled by

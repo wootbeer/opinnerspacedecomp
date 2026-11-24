@@ -49,6 +49,7 @@
    - **K&R definitions** `fn_08_1cbe` (OBJREF, int), `fn_08_9028` (four ints), `fn_11_2154` (int align) are written as prototypes.
    - **`REC_70` function pointers:** a slot called with several shapes takes the longest signature: `f_5e` is `int16_t (*)(type, idx, amount)`, `f_62` is `void (*)(type, n, HDC)`, `f_66` is `void (*)(type, idx)`. Earlier, `f_5e(type, idx)` and `f_62()` would have dropped the amount and the HDC. `fn_07_570a` and `fn_16_085e`, stored in `f_5e`, got the unused parameters (they ignored them in 1994 too).
    - `g_1d4c/1d50/1d54` (hook DLL procedures) are `void (*)(HINSTANCE)`; the GetProcAddress results are cast to the pointer's type.
+   - `fn_10_94c4` (ordinal 33's thunk) and `g_fp_3c74` take the string as `char *` (the definition passed it on as a long).
    - `fn_15_80b0` takes two POINTs (callers passed POINTs seen as longs, or MAKELONG(x, y)).
    - `fn_13_2206` returns the OBJREF packed in a word, as defined; the two callers that store it into an OBJREF use `objref_of()` (game.h).
    - WinMain passes an uninitialised 26-byte block as the WNDCLASS of `fn_06_12b6`; the local is now a WNDCLASS (still uninitialised).
@@ -230,6 +231,94 @@ Native versions of the DLL's routines, written from its disassembly
     ordinals, which are stubs); 5:6f58 (colour set to id), whose results
     7:12d8 stores but never reads.
 
+## ISPACE.DLL rooms (ordinal 32; port/src/win/ispace_room.c, ispace_shape.c)
+
+Ordinal 32 (8:0000) draws a room of IGRAPHIC.DLL (resource type 6600:
+100 the desk, 105 inside the computer, 110 and 115 pentagram halls, 120)
+into a new bitmap and returns the rectangles the game draws into (the
+monitor's screen, the tower, ...). The format and the view are described
+in ispace_room.h.
+
+- **Loading (8:5b76).** The DLL copies the header (0x6c bytes) into a
+  block and the rest of the resource from GlobalSize of that block on:
+  Windows gives 0x80, and the rooms are laid out for it (objects start at
+  0x80). The object count comes from the rounded size of the second
+  block (the slack is zero; it reads as an empty object of type 0).
+- **Layout (8:0a36).** Passes over the objects until one places none: an
+  object is placed once its parent (and a line's second reference) is.
+  Positions and sizes are thousandths of what their mode names (the
+  parent's extent, the room's width, or the parent's words from its size
+  on: mode 4 reads the parent's first position mode [sic]); modes 6 and
+  up are screen units turned into world units at the object's depth. Then
+  each colour ramp of the header becomes palette entries (5:3dee, from
+  the first black entry found by 5:4292) and the palette goes to the
+  screen (5:4378).
+- **Drawing (8:15ec).** In the room's order (8:1b66 sets the identity
+  order; its sort, 8:1c14, is never reached): boxes (8:28de: lid or
+  bottom, the side facing the middle, then the front; vents (8:28de
+  side loops), slots, a black screen inset, textures METAL and image 76,
+  text and the "HIGH VOLTAGE" sign, the monitor and tower fronts as the
+  game's rectangles), lines (8:5470, 8:5632), upright cylinders (8:3874,
+  with the batteries' "+"), flat points (type 4, 8:50ec). Faces are
+  filled in bands with wedges along slanted edges (8:1fe6); every band is
+  shaded by the floor's distance below the horizon (8:27f0 picks the
+  ramp's entry).
+- **System information (8:5c86).** The desk's computer can show the
+  display and sound drivers (SYSTEM.INI, CONTROL.INI), the network card
+  (PROTOCOL.INI, NETWORK.INF), the processor; objects can depend on a
+  386 coprocessor, a 486, a wave device or stereo. The port's answers:
+  no INI files (defaults "Video Card", "Sound Card", no network), a 486
+  with a coprocessor (GetWinFlags), one stereo wave device. Room 100
+  shows none of it.
+- **Verified** against the DLL with the oracle (tools/dll_oracle,
+  rooms.txt): the one ordinal 32 call the game makes up to the
+  navigation window (room 100 at 640x480, captured from a run), room 120,
+  and room 100 with other vanishing points, lifts and sizes: bitmaps,
+  palettes and rectangles identical.
+- **Not ported:** object type 5 (8:4206, a ring or disc; rooms 110 and
+  115 draw it and are not identical yet; they are not reached before the
+  navigation window); rooms in the caller's memory (id -1, unused by the
+  game); the paths for displays of fewer than 256 colours. Room 105's
+  two fronts with texture 120 stay black: ordinal 1 does not load image
+  76 (its VGA colours, 6:7fc8, are not ported).
+- **Quirks kept:** a box size of mode 0 is the parent's width on all
+  three axes; object 2 is lifted (word 14) only when its rectangle byte
+  is -20; the 12th and 13th words set the vanishing point's y and x (the
+  game's thunk calls them x and y); textures other than 100 and 120 use
+  an uninitialised bitmap (none here: 0).
+- **Fixed silently (memory safety, divide faults):** a zero divisor (a
+  divide fault in the DLL) gives 0; parent indexes outside the room and
+  modes outside 0-10 are not followed (the DLL reads outside the object
+  table); a box's text with an id of 0 or 1 is empty (the DLL draws an
+  uninitialised buffer); cylinders and points without a colour ramp
+  (the DLL reads before its ramp tables) and kinds of text not 1-3 (an
+  uninitialised font size) are not drawn; header bytes past 0x6c read 0.
+- **Uncertain (GDI, not checked by the oracle, which draws as the port
+  does):** lines are drawn with pens 2 pixels wide, which the port draws
+  1 pixel wide (wide pens are not modelled); the wedges along slanted
+  edges are PatBlts of negative width, which the port fills from x + w +
+  1 to x; the text of room 105 goes through text.c.
+- **Rectangles block.** The DLL grows the game's locked block
+  (GlobalReAlloc) and writes the rectangles through the new pointer; the
+  game keeps its old pointer (in Win16 the selector stays). kernel.c
+  keeps a block's address when it grows within its slack, which covers
+  the five rectangles of room 100.
+
+## ISPACE.DLL panel helpers (ordinals 33-35; port/src/win/ispace_panel.c)
+
+- **Ordinal 33 (8:037a):** text in the ALPHABET bitmap (18x20 glyphs:
+  letters, digits from glyph 35, `/ ( ) : ! ? , . - % \`), each glyph
+  stretched to the asked size and ANDed with a solid brush of the colour
+  (MERGECOPY); space and `_` are black, other characters are skipped.
+  The game's thunk passed the string as a long; `fn_10_94c4` and
+  `g_fp_3c74` now take a `char *` (port/overrides/signatures.txt).
+- **Ordinal 34 (8:05ac):** a box: kind 0 black with a grey shadow, 1 and
+  2 light grey raised (2 with a grey bottom edge), 3 sunken. Other kinds
+  leave the DLL's brush unset: the port draws nothing.
+- **Ordinal 35 (8:0768):** a gauge: sunken frame, black empty part,
+  green full part with yellow and dark green edges.
+- **Verified** with the oracle (panel.txt): all identical.
+
 ## Text (port/src/win/text.c)
 
 - **Fonts.** Liberation Sans for Arial (and every other face, including
@@ -254,6 +343,13 @@ Native versions of the DLL's routines, written from its disassembly
 
 ## Windows, input and dialogs (port/src/win/user.c, input.c, dialog.c, controls.c)
 
+- **Dialogs keep what they cover.** The dialog class has CS_SAVEBITS:
+  while a dialog is shown the screen under it is kept, and when it goes
+  it is put back instead of being repainted (drawing under a shown
+  dialog is clipped, so the copy stays right; a dialog that moves loses
+  it). Without this, the area of the New Game dialog was erased black by
+  the next WM_PAINT after the desk was drawn (the game does not repaint
+  the desk) [uncertain: when Windows 3.1 discards saved bits].
 - **Windows.** Top-level windows stack in the order they are made (a
   dialog above the game window); a window DC does not draw where a
   visible popup above its window lies, so the game drawing on timers
@@ -376,10 +472,13 @@ Native versions of the DLL's routines, written from its disassembly
   demo days, the New Game dialog forces TRANSFORMER and leaves out the
   ships whose bodies are images 178, 310, 320, 400, 440, 450, 520, 550,
   560, 590, 600, 604, 605, 710, 720, 730, 750, 890, 900, 930 and 950.
-  This is the original's behaviour with these files; before, a stub of
-  ordinal 24 answered "registered". WIN.INI (settings folder) [windows]
-  PDev=743 makes this copy registered, as the original on Windows NT
-  [inferred: what the installer writes there]. The flag is cached in
+  This is the original's behaviour with these files. The port runs it
+  only with the setting `[Port] CopyCheck=1` (port/README.md); by default
+  mode 2 answers 0, a registered copy, so nothing has to be put in the
+  Windows folder (Android users have none). Mode 10 still reads the
+  name (" - " in the user's INSPACE.EXE). With the check on, WIN.INI
+  (settings folder) [windows] PDev=743 makes this copy registered, as the
+  original on Windows NT [inferred: what the installer writes there]. The flag is cached in
   DS:01ac, which palette mode 0 also writes (a palette handle) when its
   second word is set; the game never sets it.
 - **Not modelled:** the date of mode 15 is stored but not used yet;

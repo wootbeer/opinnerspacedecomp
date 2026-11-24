@@ -68,6 +68,19 @@ settings folder (SDL pref path).
 Windows: `cmake -S port -B build-win -DCMAKE_TOOLCHAIN_FILE=<mingw.cmake>
 -DCMAKE_PREFIX_PATH=<SDL3 Windows install>`.
 
+## Settings
+
+Port options live in INSPACE.INI (the settings folder) under `[Port]`;
+each is off unless set to 1.
+
+- `CopyCheck=1`: the original copy check (ISPACE.DLL ordinal 24, mode 2).
+  Off, the port reports a registered copy. On, it checks the key in
+  INSPACE.EXE against the disk serial number or WIN.INI `PDev` as the
+  original did, which the user's files normally fail: the title shows
+  "limited inner space" and the New Game dialog offers only TRANSFORMER
+  and fewer ships. Off by default so that no files in the Windows folder
+  are needed (Android has none).
+
 ## Quirks
 
 Original behaviour is the default. Crashes and memory-safety bugs are fixed;

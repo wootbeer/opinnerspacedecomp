@@ -71,7 +71,8 @@ static int16_t pdev_less_vidsp(void)
 }
 
 /* 10:4f9c (mode 0): 0 when the key matches the disk; 1, 2, 3 or 1000
- * otherwise. */
+ * otherwise.  The port answers 0 (registered) unless the setting
+ * CopyCheck is on (port/README.md). */
 static int16_t check_key(void)
 {
     uint8_t key[10] = {0};
@@ -79,6 +80,8 @@ static int16_t check_key(void)
     uint32_t stored, serial;
     int16_t diff;
 
+    if (!port_option("CopyCheck"))
+        return 0;
     exe_path(path, sizeof path);
     read_resource(path, KEY_TYPE, KEY_ID, key, sizeof key);
     diff = pdev_less_vidsp();

@@ -1,0 +1,25 @@
+# The palette set-up as the game makes it up to the desk (captured from a
+# run), then ordinal 32: the desk as the game draws it, and rooms 100 and
+# 120 with other sizes and vanishing points.
+4 0 0 0 0 0 0 0
+4 @0 0 0 0 2 -1000 1
+4 @0 0 DC 0 0 0 3
+4 @0 0 0 0 0 0 2
+4 0 0 0 0 0 0 0
+4 @4 0 0 0 2 8 1
+4 @4 0 DC 0 0 0 3
+4 @4 0 0 0 1 8 1
+4 @4 0 DC 0 0 0 3
+4 @4 0 0 0 0 5 7
+1 @4 300 "" DC 0 -1
+12 @4 300 "" DC -2 -2 2 0 1 1 12
+1 @4 60 "" DC 0 -140
+4 @4 0 DC 0 0 1 4
+4 @4 0 DC 0 0 0 3
+4 @4 0 0 0 2 109 1
+32 DC @4 100 0 0 0 0 640 480 0 0 0
+32 DC @4 120 0 0 0 0 640 480 0 0 0
+32 DC @4 100 0 0 0 0 640 480 300 200 40
+32 DC @4 100 0 0 0 0 640 480 -201 500 75
+32 DC @4 100 0 0 0 0 320 240 0 0 0
+32 DC @4 120 0 0 0 0 800 600 100 700 0

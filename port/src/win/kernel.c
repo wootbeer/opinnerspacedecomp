@@ -8,12 +8,16 @@
 #include "platform/platform.h"
 
 /* Some records are larger natively than in 1994 (REC_70 holds far
- * function pointers, see NOTES-port.md), so every block gets slack. */
+ * function pointers, see NOTES-port.md), so every block gets slack.  A
+ * block keeps its address when it is reallocated within its slack, as a
+ * Win16 block keeps its selector: the game holds pointers to locked
+ * blocks that ISPACE.DLL grows (ordinal 32's rectangles). */
 #define MEM_SLACK(n) ((n) / 4 + 64)
 
 typedef struct {
     void *p;
     DWORD size;
+    DWORD cap;                  /* bytes allocated */
 } Mem;
 
 HGLOBAL GlobalAlloc(UINT flags, DWORD size)
@@ -27,6 +31,7 @@ HGLOBAL GlobalAlloc(UINT flags, DWORD size)
         return 0;
     }
     m->size = size;
+    m->cap = size + MEM_SLACK(size);
     h = handle_new(H_MEM, m);
     if (!h) {
         free(m->p);
@@ -62,12 +67,15 @@ HGLOBAL GlobalReAlloc(HGLOBAL h, DWORD size, UINT flags)
 
     if (!m)
         return 0;
-    p = realloc(m->p, size + MEM_SLACK(size));
-    if (!p)
-        return 0;
+    if (size > m->cap) {
+        p = realloc(m->p, size + MEM_SLACK(size));
+        if (!p)
+            return 0;
+        m->p = p;
+        m->cap = size + MEM_SLACK(size);
+    }
     if (size > m->size && (flags & GMEM_ZEROINIT))
-        memset((char *)p + m->size, 0, size - m->size);
-    m->p = p;
+        memset((char *)m->p + m->size, 0, size - m->size);
     m->size = size;
     return h;
 }
@@ -243,6 +251,34 @@ UINT GetWindowsDirectory(LPSTR buf, UINT size)
 {
     snprintf(buf, size, "%s", WIN_DIR);
     return (UINT)strlen(buf);
+}
+
+/* A 486 with a coprocessor in enhanced mode [inferred: the machines the
+ * game was made for; the desk scene shows it]. */
+DWORD GetWinFlags(void)
+{
+    return 0x0001 | WF_CPU486 | 0x0020 | WF_80x87;
+}
+
+UINT GetSystemDirectory(LPSTR buf, UINT size)
+{
+    snprintf(buf, size, "%s\\SYSTEM", WIN_DIR);
+    return (UINT)strlen(buf);
+}
+
+/* One stereo wave device. */
+UINT waveOutGetNumDevs(void)
+{
+    return 1;
+}
+
+UINT waveOutGetDevCaps(UINT dev, WAVEOUTCAPS *caps, UINT size)
+{
+    (void)dev;
+    (void)size;
+    memset(caps, 0, sizeof *caps);
+    caps->wChannels = 2;
+    return 0;
 }
 
 UINT SetErrorMode(UINT mode)

@@ -23,8 +23,11 @@ add_executable(inspace
     src/win/ispace.c
     src/win/ispace_dlg.c
     src/win/ispace_img.c
+    src/win/ispace_panel.c
     src/win/ispace_pal.c
     src/win/ispace_reg.c
+    src/win/ispace_room.c
+    src/win/ispace_shape.c
     src/win/ispace_smooth.c
     src/win/kernel.c
     src/win/module.c

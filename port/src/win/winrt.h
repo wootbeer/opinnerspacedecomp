@@ -40,6 +40,9 @@ void handle_free(uint16_t h);
 #define WIN_DIR "C:\\WINDOWS"
 int dos_to_host(const char *dos, char *out, size_t size);
 
+/* Port settings (INSPACE.INI [Port]; profile.c): 1 when name=1. */
+int port_option(const char *name);
+
 /* Modules and resources (module.c).  A resource name or type is a
  * string or MAKEINTRESOURCE(n). */
 #define IS_INTRESOURCE(s) ((uintptr_t)(s) <= 0xffff)
@@ -73,6 +76,25 @@ HBITMAP CreateDIBitmap(HDC dc, const BITMAPINFOHEADER *bih, DWORD init, const vo
 int16_t _getdrive(void);            /* 1 = A: */
 int16_t _chdrive(int16_t drive);    /* 0, or -1 when there is no such drive */
 UINT SetErrorMode(UINT mode);
+#define WF_CPU286 0x0002
+#define WF_CPU386 0x0004
+#define WF_CPU486 0x0008
+#define WF_80x87 0x0400
+DWORD GetWinFlags(void);
+UINT GetSystemDirectory(LPSTR buf, UINT size);
+
+/* MMSYSTEM: the wave device as ISPACE.DLL's room code asks about it. */
+#define WAVECAPS_SYNC 0x0010
+typedef struct {
+    WORD wMid, wPid;
+    WORD vDriverVersion;
+    char szPname[32];
+    DWORD dwFormats;
+    WORD wChannels;
+    DWORD dwSupport;
+} WAVEOUTCAPS;
+UINT waveOutGetNumDevs(void);
+UINT waveOutGetDevCaps(UINT dev, WAVEOUTCAPS *caps, UINT size);
 
 #include "win.h"
 

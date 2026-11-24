@@ -36,8 +36,7 @@ static void not_ported(const char *what)
     win_stub(what);
 }
 
-/* 6:7f52: three Newton steps towards the square root of sq from m. */
-static int16_t newton_root(int32_t sq, int32_t m)
+int16_t ispace_newton_root(int32_t sq, int32_t m)
 {
     int i;
 
@@ -51,7 +50,7 @@ static int16_t newton_root(int32_t sq, int32_t m)
 
 static int16_t rms3(int32_t r, int32_t g, int32_t b)
 {
-    return newton_root((r * r + g * g + b * b) / 3, (int16_t)((r + g + b) / 3));
+    return ispace_newton_root((r * r + g * g + b * b) / 3, (int16_t)((r + g + b) / 3));
 }
 
 int16_t ispace_lum(int r, int g, int b)

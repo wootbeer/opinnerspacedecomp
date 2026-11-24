@@ -62,7 +62,7 @@ static void not_ported(const char *what)
 }
 
 /* DS:0690: <Language>_LANG.DLL, which ordinal 7 (9:0174) loads. */
-static HINSTANCE lang_module(void)
+HINSTANCE ispace_lang_module(void)
 {
     static HINSTANCE h;
     char name[128], lang[5];
@@ -362,7 +362,7 @@ static void restore_show(HWND dlg, int16_t i)
     SetWindowText(GetDlgItem(dlg, 331), "?");
     SetWindowText(GetDlgItem(dlg, 329), "?");
     SetWindowText(GetDlgItem(dlg, 269), "?");
-    LoadString(lang_module(), 0x47d, text, sizeof text);
+    LoadString(ispace_lang_module(), 0x47d, text, sizeof text);
     SetWindowText(GetDlgItem(dlg, 330), text);
     st.ds_1f8c = -1;
     show_ship(-1, 0, 0);
@@ -520,7 +520,7 @@ static void team_name(int16_t type, char *out)
 {
     char section[0x28], key[0x28], num[8];
 
-    LoadString(lang_module(), 0x8e7, key, sizeof key);
+    LoadString(ispace_lang_module(), 0x8e7, key, sizeof key);
     lstrcpy(section, key);
     lstrcat(section, "s");
     SDL_snprintf(num, sizeof num, "%d", type + 1);
@@ -542,7 +542,7 @@ static void add_strings(HWND combo, int16_t first, int n)
     int k;
 
     for (k = 0; k < n; k++) {
-        LoadString(lang_module(), (UINT)(first + k), text, 0x1e);
+        LoadString(ispace_lang_module(), (UINT)(first + k), text, 0x1e);
         combo_add_string(combo, text);
     }
 }
@@ -692,7 +692,7 @@ static int16_t ask(HWND dlg, UINT first, int n, int16_t size, UINT type)
 
     text[0] = 0;
     for (k = 0; k < n; k++) {
-        LoadString(lang_module(), first + (UINT)k, part, size);
+        LoadString(ispace_lang_module(), first + (UINT)k, part, size);
         SDL_strlcat(text, part, sizeof text);
     }
     return MessageBox(dlg, text, APP, type);
@@ -794,10 +794,10 @@ static void exit_init(HWND h)
     SendDlgItemMessage(h, 0x24f, STM_SETICON, LoadIcon(inst, "GAME"), 0);
     if (st.ds_213c == 5) {
         LoadString(inst, 0x708, name, sizeof name);
-        LoadString(lang_module(), 0xb4, text, sizeof text);
+        LoadString(ispace_lang_module(), 0xb4, text, sizeof text);
         lstrcat(text, name);
     } else {
-        LoadString(lang_module(), 0xae, text, sizeof text);
+        LoadString(ispace_lang_module(), 0xae, text, sizeof text);
     }
     lstrcat(text, "?");
     SetWindowText(GetDlgItem(h, 0x24e), text);
@@ -832,7 +832,7 @@ static int16_t run(HWND owner, int id, DLGPROC proc, const char *what)
         not_ported(what);
         return 0;
     }
-    return DialogBox(lang_module(), MAKEINTRESOURCE(id), owner, proc);
+    return DialogBox(ispace_lang_module(), MAKEINTRESOURCE(id), owner, proc);
 }
 
 /* 10:42c6 */

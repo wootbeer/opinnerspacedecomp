@@ -33,7 +33,7 @@ int16_t (*g_fp_3c64)(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16
 int16_t (*g_fp_3c68)(char *, char *, int16_t);
 int16_t (*g_fp_3c6c)(int16_t *, int16_t *, int16_t *, int16_t *, int16_t *, int16_t *, int16_t *, int16_t *, int16_t, int16_t, int16_t, int16_t, int16_t *, int16_t *);
 void (*g_fp_3c70)(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t);
-void (*g_fp_3c74)(int16_t, int16_t, int32_t, int16_t, int32_t, int16_t, int16_t, int32_t);
+void (*g_fp_3c74)(int16_t, int16_t, int32_t, int16_t, int32_t, int16_t, int16_t, char *);
 HBITMAP (*g_fp_3c78)(int16_t, int16_t, RECT *, HGLOBAL, int16_t, int32_t, int16_t, int32_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t);
 void (*g_fp_3c7c)(int16_t, int16_t, int16_t, int16_t, int16_t);
 void (*g_fp_3c80)(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t);

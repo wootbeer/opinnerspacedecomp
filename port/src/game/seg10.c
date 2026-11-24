@@ -891,7 +891,7 @@ int32_t fn_10_804c(int16_t a)
 }
 
 /* 10:94c4 */
-void fn_10_94c4(int16_t a, int16_t b, int32_t c, int16_t d, int16_t e, int32_t f)
+void fn_10_94c4(int16_t a, int16_t b, int32_t c, int16_t d, int16_t e, char *f)
 {
     int32_t l;
 

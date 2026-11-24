@@ -19,6 +19,9 @@
 
 static int16_t results[MAX_CALLS];
 static int ncalls;
+static HBITMAP mdc_bitmap;      /* the bitmap of the last MDC argument */
+static RECT *rects;             /* ordinal 32's rectangles */
+static HGLOBAL rect_block;
 
 void app_frame(void)
 {
@@ -26,6 +29,7 @@ void app_frame(void)
 
 typedef struct {
     int16_t w[MAX_ARGS];
+    int32_t l[MAX_ARGS];
     char s[MAX_ARGS][64];
     int n;
 } Args;
@@ -46,6 +50,7 @@ static int parse(char *line, int *ordinal, Args *a)
             break;
         a->s[k][0] = 0;
         a->w[k] = 0;
+        a->l[k] = 0;
         if (*p == '"') {
             size_t len = strcspn(++p, "\"");
             snprintf(a->s[k], sizeof a->s[k], "%.*s", (int)len, p);
@@ -53,11 +58,18 @@ static int parse(char *line, int *ordinal, Args *a)
         } else if (*p == '@') {
             long i = strtol(p + 1, &p, 10);
             a->w[k] = i >= 0 && i < ncalls ? results[i] : 0;
+        } else if (!strncmp(p, "MDC", 3)) {
+            HDC dc = CreateCompatibleDC(0);
+            mdc_bitmap = CreateCompatibleBitmap(GetDC(0), 640, 480);
+            SelectObject(dc, mdc_bitmap);
+            a->w[k] = (int16_t)dc;
+            p += 3;
         } else if (!strncmp(p, "DC", 2)) {
             a->w[k] = (int16_t)GetDC(0);
             p += 2;
         } else {
-            a->w[k] = (int16_t)strtol(p, &p, 0);
+            a->l[k] = (int32_t)strtoll(p, &p, 0);
+            a->w[k] = (int16_t)a->l[k];
         }
     }
     return 1;
@@ -75,6 +87,20 @@ static int16_t run(int ordinal, Args *a)
     case 6: return (int16_t)ispace_make_mask(w[0], w[1], w[2]);
     case 12: return ispace_smooth_image(w[0], w[1], 0, w[3], w[4], w[5], w[6], w[7], w[8],
                                         (char)w[9], (char)w[10]);
+    case 32:
+        rect_block = GlobalAlloc(GHND, 8);
+        rects = GlobalLock(rect_block);
+        return (int16_t)ispace_room(w[0], w[1], rects, rect_block, w[2], a->l[3], w[4], a->l[5], w[6], w[7], w[8],
+                                    w[9], w[10], w[11]);
+    case 33:
+        ispace_letters(w[0], w[1], a->l[2], w[3], a->l[4], w[5], w[6], a->s[7]);
+        return 0;
+    case 34:
+        ispace_bevel(w[0], w[1], w[2], w[3], w[4], w[5]);
+        return 0;
+    case 35:
+        ispace_gauge(w[0], w[1], w[2], w[3], w[4], w[5]);
+        return 0;
     case 1000: return (int16_t)ispace_ship_image(w[0], w[1], a->s[2], w[3], w[4], w[5]);
     default:
         fprintf(stderr, "port_calls: ordinal %d not supported\n", ordinal);
@@ -96,7 +122,17 @@ static void report(int k, int ordinal)
     Bmp *b = handle_get((uint16_t)results[k], H_BITMAP);
     int i;
 
+    if (!b && ordinal >= 33 && ordinal <= 35)
+        b = handle_get(mdc_bitmap, H_BITMAP);
     printf("call %d ord %d ret %d\n", k, ordinal, results[k]);
+    if (ordinal == 32) {
+        int n = (int)(GlobalSize(rect_block) / 8);
+        rects = GlobalLock(rect_block);
+        printf("rects");
+        for (i = 0; i < n; i++)
+            printf(" %d %d %d %d", rects[i].left, rects[i].top, rects[i].right, rects[i].bottom);
+        printf("\n");
+    }
     if (b) {
         printf("bmp %d %d %d ", b->w, b->h, b->mono);
         hex(b->px, (size_t)b->w * (size_t)b->h);

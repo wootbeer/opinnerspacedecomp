@@ -83,6 +83,7 @@ typedef struct {
     char cls[32];
     char text[256];
     void *data;             /* state of a built-in control (controls.c) */
+    uint8_t *saved;         /* the screen under a dialog while it is shown */
     WORD words[8];
     LONG longs[4];
 } Wnd;

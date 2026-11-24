@@ -50,6 +50,12 @@ fn fn_10_9526: HBITMAP far fn_10_9526(RECT far *a, HGLOBAL b, int c, long d, int
 extern g_fp_3c78: extern HBITMAP (far pascal *g_fp_3c78)(int, int, RECT far *, HGLOBAL, int,
         long, int, long, int, int, int, int, int, int);
 
+# Text in the ALPHABET font (ordinal 33): the last argument is the
+# string (the definition passed it on as a long).
+fn fn_10_94c4: void far fn_10_94c4(int a, int b, long c, int d, int e, char far *f)
+extern g_fp_3c74: extern void (far pascal *g_fp_3c74)(int, int, long, int, long, int, int,
+        char far *);
+
 # --- Hook DLL (seg02): the message hook's result is used by both window
 # procedures.
 fn fn_02_1a5a: int far fn_02_1a5a(int a, int b, long c) | return
