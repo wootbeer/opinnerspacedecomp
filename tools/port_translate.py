@@ -675,6 +675,25 @@ class FileTranslator:
             spans.append((start, last))
         return i, j, spans
 
+    def hoist_shared_assignments(self, args, spans):
+        """An argument 'x = e' that assigns a variable another argument
+        reads: MSC evaluated it first (pascal callees left to right; C ones
+        computed it once for both), C leaves the order open.  It becomes a
+        statement before the call and the argument x; returns those
+        statements."""
+        pre = []
+        for j, a in enumerate(args):
+            if not (isinstance(a, c_ast.Assignment) and a.op == '='):
+                continue
+            set_ = {n.lvalue.name for n in walk(a)
+                    if isinstance(n, c_ast.Assignment) and isinstance(n.lvalue, c_ast.ID)}
+            if any(k != j and any(isinstance(n, c_ast.ID) and n.name in set_ for n in walk(b))
+                   for k, b in enumerate(args)):
+                pre.append(spans[j])
+                spans[j] = self.span(a.lvalue)
+                self.counts['assignment argument hoisted'] += 1
+        return pre
+
     def is_plain(self, node):
         """No side effects: safe to name twice."""
         for n in walk(node):
@@ -723,9 +742,6 @@ class FileTranslator:
 
     def rewrite_call(self, node, scope, parent=None):
         ct = self.callee_type(node, scope)
-        if ct is None:
-            return
-        name, ft, pascal = ct
         args = node.args.exprs if node.args else []
         sp = self.arg_spans(node)
         if sp is None:
@@ -733,6 +749,13 @@ class FileTranslator:
         oi, ci, spans = sp
         if len(spans) != len(args):
             return
+        if ct is None:
+            hoisted = self.hoist_shared_assignments(args, spans)
+            if hoisted:
+                self.emit_call(node, parent, oi, ci, [[x] for x in spans], hoisted)
+                self.note(node, 'call: assignment read by another argument: done before the call')
+            return
+        name, ft, pascal = ct
         line = node.coord.line if node.coord else 0
         ov = pm.OV.calls.get((self.m.fn, line, name))
         if ov is not None:
@@ -745,6 +768,9 @@ class FileTranslator:
         ats = [self.typeof(a, scope) for a in args]
         out = []
         changed = []
+        hoisted = self.hoist_shared_assignments(args, spans)
+        if hoisted:
+            changed.append('assignment read by another argument: done before the call')
         i = j = 0
         while i < len(params) and j < len(args):
             p = params[i]
@@ -843,12 +869,13 @@ class FileTranslator:
             out.append([spans[j]])
             i += 1
             j += 1
-        effects = []
+        effects = hoisted
         if j < len(args):
             changed.append('dropped %d extra argument(s): %s' % (
                 len(args) - j, ', '.join(self.src[a:b] for a, b in spans[j:])))
             # keep side effects of dropped arguments (evaluated first: right to left)
-            effects = [spans[k] for k in range(len(args) - 1, j - 1, -1) if not self.is_plain(args[k])]
+            effects = hoisted + [spans[k] for k in range(len(args) - 1, j - 1, -1)
+                                 if not self.is_plain(args[k])]
         if i < len(params):
             self.note(node, 'call to %s passes %d argument(s) for %d parameters' % (
                 name or 'pointer', len(args), len(params)))
@@ -856,6 +883,17 @@ class FileTranslator:
             return
         if not changed:
             return
+        self.emit_call(node, parent, oi, ci, out, effects)
+        for c in changed:
+            self.note(node, 'call to %s: %s' % (name or 'pointer', c))
+            self.counts['call adapted'] += 1
+            if c.startswith('dropped'):
+                self.dropped.append('%s:%d %s: %s' % (self.m.fn, line, name or self.src[
+                    self.pos(node) or 0:self.toks[oi].pos].strip(), c))
+
+    def emit_call(self, node, parent, oi, ci, out, effects):
+        """The call's new argument list (pieces per argument), with the
+        effects evaluated before it: statements, or a comma expression."""
         pieces = ['(']
         for k, a in enumerate(out):
             if k:
@@ -878,12 +916,6 @@ class FileTranslator:
                     pre += [sp_, ', ']
                 self.ed.add(cs, cs, pre)
                 self.ed.add(self.toks[ci].pos + 1, self.toks[ci].pos + 1, ')')
-        for c in changed:
-            self.note(node, 'call to %s: %s' % (name or 'pointer', c))
-            self.counts['call adapted'] += 1
-            if c.startswith('dropped'):
-                self.dropped.append('%s:%d %s: %s' % (self.m.fn, line, name or self.src[
-                    self.pos(node) or 0:self.toks[oi].pos].strip(), c))
 
     def rewrite_flat_index(self, node, scope):
         """f[j] through a 1-D view of a field merged as a 2-D array."""

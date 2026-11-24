@@ -748,7 +748,7 @@ void fn_07_5e04(void)
     int16_t q;
     int16_t srcx;
     int16_t j;
-    int16_t k;
+    int16_t k = 0;
     int16_t tbl[6];
     RECT r2;
     RECT r1;
@@ -765,7 +765,7 @@ void fn_07_5e04(void)
             q = g_58bc[i].f_10 / 9;
             if (g_58bc[i].f_10 % 4 <= g_9208 + 2) {
                 w = (q + 5) * 2 << g_9156 >> 1;
-                srcx = q * (30 << g_9156 >> 1) + (tbl[q] << g_9156 >> 1)
+                srcx = q * (30 << g_9156 >> 1) + ((q < 6 ? tbl[q] : k) << g_9156 >> 1)
                     + w * (g_58bc[i].f_10 / 3 % 3);
                 off = q;
                 fn_08_124a(i);

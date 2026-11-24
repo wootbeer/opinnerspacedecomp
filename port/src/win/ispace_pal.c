@@ -143,6 +143,25 @@ HBITMAP ispace_alphabet(void)
     return st.alphabet;
 }
 
+int ispace_pal_kind(int slot)
+{
+    return st.slot[slot].kind;
+}
+
+int16_t ispace_pal_set_range(int slot, int set)
+{
+    int kind = st.slot[slot].kind;
+
+    return kind >= 0 && kind < KINDS && set >= 0 && set < SET_IDS ? st.set_range[kind][set] : -1;
+}
+
+const int16_t *ispace_pal_range(int slot, int16_t r)
+{
+    int kind = st.slot[slot].kind;
+
+    return kind >= 0 && kind < KINDS && r >= 0 && r < RANGES ? st.range[kind][r] : NULL;
+}
+
 int ispace_pal_fixed(int slot)
 {
     return st.slot[slot].fixed;
@@ -526,6 +545,39 @@ int16_t ispace_palette(int16_t pal, int16_t w2, int16_t w3, int16_t w4, int16_t 
         break;
     }
     return 0;
+}
+
+/* Ordinal 14 (5:50cc): scales the colours of the ramps (kind 3: entries
+ * 185-229, DS:0178-0180) or of the image colours (other kinds: 230-245,
+ * DS:0180 + 0x40) to percent of themselves, at most 255, in the DLL's
+ * copy, and shows the palette.  The changes stay: a later call scales the
+ * scaled colours.  Palettes made fixed (mode 0's fourth word, never set by
+ * this game) blend colour sets instead; that path is not ported. */
+static uint8_t scaled(uint8_t c, int16_t percent)
+{
+    int16_t v = (int16_t)((int16_t)(c * percent) / 100);
+
+    return (uint8_t)(v > 255 ? 255 : v);
+}
+
+void ispace_pal_scale(int16_t pal, int16_t kind, int16_t percent, HWND hwnd, HDC dc)
+{
+    int s = ispace_pal_slot(pal), i;
+    PALETTEENTRY *e;
+
+    if (s < 0)
+        return;
+    if (st.slot[s].fixed) {
+        win_stub("ispace_14: fixed palette (5:5268)");
+        return;
+    }
+    for (i = kind == 3 ? 185 : 230; i < (kind == 3 ? 230 : 246); i++) {
+        e = &st.slot[s].e[i];
+        e->peRed = scaled(e->peRed, percent);
+        e->peGreen = scaled(e->peGreen, percent);
+        e->peBlue = scaled(e->peBlue, percent);
+    }
+    ispace_pal_animate(pal, hwnd, dc);
 }
 
 int16_t *ispace_ds_01ac(void)

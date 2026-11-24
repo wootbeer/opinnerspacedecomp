@@ -42,6 +42,15 @@
 - **16-bit arithmetic** (`tools/port_int16.py`, run on each generated file). It types every expression under the 1994 rules (16-bit int/unsigned, MSC conversions, literal types) and tracks the range of its native value. Natively an int16 expression equals the 1994 value modulo 2^16, so a cast is inserted only where the whole value is used and can differ: compare, `/ % >>`, condition, widening to long, a libc int parameter (`(int16_t)(a * b) < c`, `(uint16_t)i < u`, `u == 0xffff`). Stores to 16-bit variables, 16-bit parameters and array indexes need none. Reads through a view of the other signedness (`int` view of a HWND, `long` view of a DWORD) are marked by the translator and cast where it matters. Long arithmetic wraps with `-fwrapv`. Counts by kind and every site are in translate-notes; `python3 -I tools/port_int16_check.py` checks the result against a 1994 evaluator on random values.
 - **Names.** Confirmed names from `names/INSPACE.EXE.txt` replace `g_XXXX` / `fn_SS_OOOO` everywhere in the generated code (declarations, definitions, calls, uses). Names tagged `[inferred]` are only comments in game.h; where the decomp already used one as an identifier (`command_watch_ship`), the code goes back to the address name.
 - **Signatures** (`tools/port_overrides.py`, `port/overrides/signatures.txt`). The callee's definition is the real signature. The overrides file lists the exceptions (thunks whose callers use the result or pass other types, K&R definitions, a few single calls); they are applied to the decomp text in memory before parsing, so game.h, the definition and all callers follow. The translator then adapts every call to the callee's signature: extra arguments are dropped (side effects kept, as statements before the call), two values become a `(POINT){x, y}` or a long (`MAKELONG` or a literal), a long or a two-int record passed for two int parameters is split, `(char)idx | type << 8` becomes `(OBJREF){idx, type}`, and a function stored in a function pointer loses its cast when it has the pointer's type. Each adaptation is a note in translate-notes; dropped arguments are listed under `== dropped call arguments`.
+- **Assignments read by another argument.** C leaves the order of a
+  call's arguments open, MSC did not: `PatBlt(dc, x, y, t1 = n, t1, ...)`
+  (8:158a, the stars' erase) passed the new t1 twice in 1994 (pascal
+  callees take their arguments left to right; for the C callee of
+  10:4412 the compiler pushed the one value twice), while gcc read the
+  old t1 first, so the stars were erased one pixel short and left
+  trails. The translator makes such an assignment a statement before the
+  call (or a comma expression) and passes the variable (4 sites,
+  `assignment argument hoisted` in translate-notes).
 
 ## Current state
 
@@ -103,6 +112,52 @@
    - Views a few bytes below a global of the same shape are rewritten onto it with a shifted index (`g_a191[i]` = `g_a193[i - 2]`, `g_9f39` above).
    - seg10.c:1668 passes the record's position, read through a long/POINT union in the decomp, as the POINT (`call` override, written in port terms).
 
+## Game speed (Calibrate)
+
+The game is paced by real time, not by the processor (help file, "Play
+Speed": "calibrated for 36 frames/second"). Its main loop (2:0000) polls
+with PeekMessage and, whenever no message waits, runs one idle step
+(2:1c08, 7:0000); the step counts idle calls and does a frame only
+every g_9004-th (outside waves) or g_8f76-th (in waves) call, and 7:2206
+and 7:0000 rescale those counts every 250 ms and every second towards 72
+frames a second outside waves and FrameRateSet (INI, default 36) in
+waves, with timeGetTime forcing or skipping wave frames 27-28 ms apart.
+
+Calibrate (15:5e22, the counting digits at start-up) is the number of
+idle calls in one second times 2.3, written to the INI by 6:0a6c. It
+sets the starting frame divisors (g_9004 = Calibrate / 50 above 1200,
+/ 150 above 850, else 0; g_8f76 from INI GameSpeed, which defaults to
+Calibrate, / 28 above 600), the thrust divisor g_9006 (Calibrate / 38,
+kept within 7-10: 10 for any value from 380), and per-frame steps of some
+animations, chosen for slow (below 800 or 1300) or fast machines; the
+title's enhanced logo needs 800. The help file's table: above 1300 "very
+fast", 800-1300, 520-800, below 520 "use LOW or MEDIUM Detail".
+
+On a modern host the idle loop ran 10 000-25 000 times a second
+(Calibrate 22717 was seen), the value is stored in a 16-bit word (it
+wraps negative above 32767, about 14 000 calls a second, which would
+select every slow-machine branch), the frame-divisor arithmetic
+(`g_914c * g_9004` in 16 bits) overflows on still faster hosts, and the
+busy loop takes a whole processor core.
+
+**Port's choice:** PeekMessage (user.c) answers "no message" once a
+millisecond (calls owed after a long sleep are caught up, at most 50),
+sleeping in between: the game sees one fixed machine whatever the host,
+Calibrate is 2300 (+-20), the "very fast" class, so every speed-dependent
+choice is the fast machine's: thrust divisor 10, the fast animation
+steps, the enhanced title. Frames per second are what the original
+gives on a fast machine (36 in waves, shown with B: "36 SET, 35
+ACTUAL"). [uncertain: which machine the designers had in mind; the
+help file's top class]
+
+**Alternative for the user to decide:** a slower model machine (for
+example 500 idle calls a second, Calibrate about 1150: the 800-1300
+class) would take the medium branches (animation steps of 3 rather than 5
+in the launch scene's ship rise, 15:374c; the title's logo pieces drawn
+one per frame, 15:80da). Frames per second and the gameplay constants
+would not change (all are above 380 and paced by time). The rate is
+one constant (`pace_idle`, user.c).
+
 ## Silent fixes in the game code (`fix` entries in overrides/signatures.txt)
 
 Memory-safety bugs of the 1994 code, fixed where the translator applies
@@ -117,6 +172,30 @@ the overrides; `src/inspace/` is unchanged.
   dissolve now has its own 2 KB map. At zoom 2x the maps never
   overflowed, so play there is unchanged; at 1x a dissolve now ends after
   exactly its pixels instead of with whatever the corrupted fields said.
+- **Sparkle bursts (7:5e04).** A burst's last frame (its counter 54,
+  q = 6) takes its source column from `tbl[6]`, one past the six-entry
+  table. In the 1994 stack frame that word is the local k (bp-10), set
+  only by the sub-game's loop (4 after it), stack garbage otherwise; the
+  frame drawn from the sparkle bitmap was then arbitrary. The port reads
+  k as the original did, 0 where the original had garbage (found by
+  AddressSanitizer in a wave).
+- **Tethers (8:1e32).** Breaking a tether clears the far end's link
+  through the tether record's type and index; when another routine
+  (11:947a, 12:3778, 12:3498) had already released the record (type -1),
+  1994 wrote through `g_1df8[-1]`, the far pointer 0000:0078 made of
+  DS:1df4-1df6 (the calibration word g_1df4 and a zero): a null selector,
+  a general protection fault. The port skips that write (found by
+  AddressSanitizer while flying in a wave, through the rock records of
+  the next item, whose link 0 pointed at tether record 0).
+- **Tether forces (8:1e32)** divide by both objects' masses. In a wave
+  (flying and shooting rocks) records 44-46 of the rocks (type 3) had
+  mass 0 and a tether link of 0 rather than -1, so they were treated as
+  tethered to object 0 of type 0, and the division faulted (found by
+  AddressSanitizer). A zero mass now gives no force. [uncertain: whether
+  1994 could reach this state (a divide fault there) or the port missed
+  setting the records up: the wave's set-up (9:6624) sets the links to
+  -1 for the records counted then (g_92ec, from 9:22b4); which routine
+  made these three is not found yet.]
 - **Empty directory paths (6:4368, 6:420a, 6:4190, 6:4748).**
   `path[lstrlen(path) - 1]` read the byte before the buffer when the path
   was empty; that byte was almost never `\`, so a `\` was appended. The
@@ -581,10 +660,69 @@ on a directory with programs leads to the wave's briefing.
   slot of the tree's own search (DS:69f8).
 - **Not ported yet, met after Navigation:** ISPACE ordinal 1's branch
   5:075e and ordinal 2's surfaces (6:011c, 6:78ba) (both log as stubs on
-  the way to the briefing). Ordinals 14 and 18 are stubs met before
-  Navigation, in the launch scene: 14 (5:50cc) blends the colour sets
-  of a palette's ranges (kind 2 or 3) by a percentage
-  through its thunk fn_10_993a (seg15b; the decomp's comment on 15:0000
-  calls it a sound pitch, which it is not); 18 (6:5e76, about 6.7 KB of
-  code) loads a sprite image, used by fn_10_7032 for the ship of the
-  launch and briefing scenes.
+  the way to the briefing). Ordinals 14 and 18, met in the launch scene,
+  are ported (below).
+
+## ISPACE.DLL in the launch scene and the wave (ordinals 14, 18, 29)
+
+- **Ordinal 14 (5:50cc; ispace_pal.c `ispace_pal_scale`).** Scales the
+  colours of one group of game entries to a percentage of themselves
+  (at most 255) in the DLL's copy of the palette and shows it: kind 3
+  the ramps (entries 185-229, DS:0178-0180), any other kind the image
+  colours (230-245). Called by the launch scene through 10:993a (the
+  decomp's comment on 15:0000 calls it a sound pitch, which it is not),
+  96-99 % per frame, so the ramps fade step by step. The fixed-palette
+  path (5:5268, colour sets blended through DS:1e80/DS:1f2a) is not
+  ported: this game never makes a fixed palette (it logs if met).
+  Verified with the oracle on the calls of a run up to the wave
+  (tools/dll_oracle/wave.txt) and percentages 0-400: palettes identical.
+- **Ordinal 18 (6:5e76; ispace_sprite.c).** Image 280 (an 18 x 18 shaded
+  ball) turned to n angles (5, a quarter turn in 22.5-degree steps:
+  DS:00f6/0108, sine and minus cosine x 512, rounded half away from zero,
+  each angle shifted by a pixel or two, bp-15a), side by side; single
+  gaps in a row are closed with the colour on their left. Kind 1 (the
+  launch scene, 10:7032 with b = 1): loaded in mode 0 with sets 4/-1 (the
+  colours go to entries 230-245), each colour mapped to the nearest of
+  those entries (5:4e96: sum of channel differences, the first below 14
+  wins), full size. Kind 0 (the sheet the wave's sprites are cut from,
+  10:5c42): loaded in mode 1 (the image's own colours, DS:1178, 5:39f6),
+  each 2 x 2 block averaged in RGB to half size; blocks with a channel
+  above 0x32 get the nearest entry of colour set 1's range (5:64f8, which
+  keeps its last answer in DS:01a6 when it has nothing to search), the
+  top half of the bitmap; the bottom half has the same entries moved
+  into colour set 0's range (linear between the ranges' first entries).
+  The fourth word swaps red and blue (DS:1ea6) as the colours go into
+  the palette.
+  - **Quirk kept:** rows run up to the image's width and columns up to
+    its height (the image is square).
+  - **Fixed silently (memory safety):** a palette not the manager's, n
+    outside 1-5 (the DLL reads other locals as the shifts), an image not
+    4-bit, writes outside the sheet, and colour sets without a range (the
+    DLL reads before its range table) or an empty range (divide fault)
+    give no bitmap, nothing, or entry 0.
+  - **Not ported:** the 4-bit and 1-bit display paths (7:08e6, the
+    dithered 16-colour path 6:71f6) and fixed palettes (6:773c; logs).
+  - **Verified** with the oracle: the two calls of a run (kinds 1 and 0)
+    and six variations (n 1-5, both swaps): bitmaps and palettes
+    identical.
+- **Ordinal 29 (2:003c; ispace_collide.c).** Two round objects meeting
+  [inferred: the game's collision response; called by 8:546c, 8:6f3c,
+  8:3688 and 18:403e for ships, shots and rocks]: velocities, positions, sizes and masses
+  in; it works in tenths with the runtime's 32-bit helpers (3:00fe,
+  3:0130) and keeps their truncation. When the objects move apart
+  (positive closing speed along the line between them) every velocity
+  word grows a step (x2 below 3, x4/3 below 7, x7/6 below 11, else
+  x11/10) and it returns 0. Otherwise object 1 is moved back by the time
+  the gap along the nearer axis needs to close, the velocities along the
+  line between the centres are exchanged as an elastic collision of the
+  masses, and half of each one's change of speed goes to the two result
+  words (damage); it returns 1. Nearly still objects (both velocity
+  differences 4 or less) first get object 2's velocity less half a unit
+  along the line. Length (2:0850): one Newton step from the larger
+  component plus half the smaller.
+  - **Fixed silently:** divisions by zero (divide faults in the DLL) give
+    0.
+  - **Verified** with the oracle: 400 random calls in the game's ranges
+    and the 16 calls of a flight in a wave: all identical (results and
+    every word).
+

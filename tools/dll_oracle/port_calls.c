@@ -4,7 +4,8 @@
  * other half of oracle.py (tools/README.md); not part of the game.
  *
  * Script lines: ORDINAL ARG...; an ARG is a number, "text", @K (the
- * result of call K, from 0) or DC (a screen DC). */
+ * result of call K, from 0) or DC (a screen DC).  Ordinal 29's words
+ * are passed by pointer and printed after the call ("outs"). */
 #include <SDL3/SDL.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -87,6 +88,13 @@ static int16_t run(int ordinal, Args *a)
     case 6: return (int16_t)ispace_make_mask(w[0], w[1], w[2]);
     case 12: return ispace_smooth_image(w[0], w[1], 0, w[3], w[4], w[5], w[6], w[7], w[8],
                                         (char)w[9], (char)w[10]);
+    case 14:
+        ispace_pal_scale(w[0], w[1], w[2], w[3], w[4]);
+        return 0;
+    case 18: return ispace_sprite_sheet(w[0], w[1], w[2], w[3], w[4], w[5]);
+    case 29:
+        return ispace_collide(&w[0], &w[1], &w[2], &w[3], &w[4], &w[5], &w[6], &w[7], w[8], w[9],
+                              w[10], w[11], &w[12], &w[13]);
     case 32:
         rect_block = GlobalAlloc(GHND, 8);
         rects = GlobalLock(rect_block);
@@ -117,7 +125,7 @@ static void hex(const uint8_t *p, size_t n)
     printf("\n");
 }
 
-static void report(int k, int ordinal)
+static void report(int k, int ordinal, const Args *a)
 {
     Bmp *b = handle_get((uint16_t)results[k], H_BITMAP);
     int i;
@@ -125,6 +133,13 @@ static void report(int k, int ordinal)
     if (!b && ordinal >= 33 && ordinal <= 35)
         b = handle_get(mdc_bitmap, H_BITMAP);
     printf("call %d ord %d ret %d\n", k, ordinal, results[k]);
+    if (ordinal == 29) {
+        printf("outs");
+        for (i = 0; i < 14; i++)
+            if (i < 8 || i > 11)
+                printf(" %d", a->w[i]);
+        printf("\n");
+    }
     if (ordinal == 32) {
         int n = (int)(GlobalSize(rect_block) / 8);
         rects = GlobalLock(rect_block);
@@ -170,7 +185,7 @@ int main(int argc, char **argv)
         if (line[0] == '#' || !parse(line, &ordinal, &a))
             continue;
         results[ncalls] = run(ordinal, &a);
-        report(ncalls++, ordinal);
+        report(ncalls++, ordinal, &a);
     }
     fclose(f);
     return 0;

@@ -110,3 +110,24 @@ fix seg07b.c fn_07_13b2: for (j = 0; j < 80; j++) => for (j = 0; j < (int)sizeof
 fix seg07b.c fn_07_13b2: g_221c[i].b[j] = 0; => dissolve_map[i][j] = 0;
 fix seg07b.c fn_07_158e: ok = !(mask & g_221c[i].b[k]); => ok = !(mask & dissolve_map[i][k]);
 fix seg07b.c fn_07_158e: g_221c[i].b[k] |= mask; => dissolve_map[i][k] |= mask;
+
+# Sparkle bursts (7:5e04): a burst's last frame (q = 6) reads tbl[6], one
+# past the six-entry table: in the 1994 frame that word is the local k
+# (bp-10), set only by the sub-game's loop (stack garbage otherwise; 0
+# here).
+fix seg07.c fn_07_5e04: int k; => int k = 0;
+fix seg07.c fn_07_5e04: (tbl[q] << g_9156 >> 1) => ((q < 6 ? tbl[q] : k) << g_9156 >> 1)
+
+# Tethers (8:1e32): breaking a tether whose record another routine has
+# already released (its type -1) wrote through g_1df8[-1], the far pointer
+# 0000:0078 made of DS:1df4-1df6: a null selector, a GP fault in 1994.
+fix seg08.c fn_08_1e32: g_1df8[g_65cc[bi].f04][g_65cc[bi].f06].f36 = -1; => if (g_65cc[bi].f04 >= 0) g_1df8[g_65cc[bi].f04][g_65cc[bi].f06].f36 = -1;
+
+# Tether forces (8:1e32) divide by both objects' masses.  A rock with
+# mass 0 tethered to object 0 of type 0 was met in a wave (records 44-46
+# of type 3: mass 0 and link 0, never set up) [uncertain: whether 1994
+# could reach this state; there it was a divide fault].  A zero mass
+# gives no force.
+fix seg08.c fn_08_1e32: f1 = (int)((long)u * 100 / ((long)m1 * 100 / m2 + 100)); => f1 = m2 && (long)m1 * 100 / m2 + 100 ? (int)((long)u * 100 / ((long)m1 * 100 / m2 + 100)) : 0;
+fix seg08.c fn_08_1e32: f1 += force / m1; => f1 += m1 ? force / m1 : 0;
+fix seg08.c fn_08_1e32: f2 += force / m2; => f2 += m2 ? force / m2 : 0;

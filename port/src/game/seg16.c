@@ -1584,12 +1584,10 @@ void fn_16_0cfe(int16_t a)
         HPALETTE pal;
         POINT p;
 
-        BitBlt(g_13dc,
-               p.x = LO16(g_90ea) / 2
+        p.x = LO16(g_90ea) / 2
                    - (w = (g_6e24[g_7090[main_ship].f_0d6].f_7a
-                           + (g_6e24[g_7090[main_ship].f_0d6].f_7b - 6) / 2) * 4) / 2,
-               p.y = g_92d6 + 2, w, w,
-               g_3cdc[1], 0, g_3ce8[1], SRCAND);
+                           + (g_6e24[g_7090[main_ship].f_0d6].f_7b - 6) / 2) * 4) / 2;
+        BitBlt(g_13dc, p.x, p.y = g_92d6 + 2, w, w, g_3cdc[1], 0, g_3ce8[1], SRCAND);
         BitBlt(g_13dc, p.x, p.y, w, w, g_3cdc[0], 0, g_3ce8[1], SRCPAINT);
         w = g_1df8[14][main_ship].f_22 << 3 >> g_959e;
         if (!g_953c)

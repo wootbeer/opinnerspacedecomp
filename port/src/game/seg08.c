@@ -775,7 +775,7 @@ lbl:
         || g_1df8[g_1df8[type][idx].f_32][g_1df8[type][idx].f_34].f_18 != 0
         || type == 7) {
         g_1df8[type][idx].f_32 = -1;
-        g_1df8[g_65cc[bi].f_04][g_65cc[bi].f_06].f_36 = -1;
+        if (g_65cc[bi].f_04 >= 0) g_1df8[g_65cc[bi].f_04][g_65cc[bi].f_06].f_36 = -1;
         g_65cc[bi].f_00 = -1;
         g_65cc[bi].f_04 = -1;
         old = SelectObject(g_13dc, GetStockObject(BLACK_PEN));
@@ -816,14 +816,14 @@ lbl:
                     fn_11_a234(g_9324, i2, type, idx);
                 }
                 if (dot < 0) {
-                    f1 = (int16_t)((int32_t)u * 100 / ((int32_t)m1 * 100 / m2 + 100));
+                    f1 = m2 && (int32_t)m1 * 100 / m2 + 100 ? (int16_t)((int32_t)u * 100 / ((int32_t)m1 * 100 / m2 + 100)) : 0;
                     f2 = u - f1;
                 } else
                     f1 = f2 = 0;
-                f1 += force / m1;
+                f1 += m1 ? force / m1 : 0;
                 g_1df8[type][idx].f_0c += (g_17bc / 3 + f1) * dp.x / dist;
                 g_1df8[type][idx].f_0e += (g_17bc / 3 + f1) * dp.y / dist;
-                f2 += force / m2;
+                f2 += m2 ? force / m2 : 0;
                 g_1df8[t2][i2].f_0c -= (g_17be / 3 + f2) * dp.x / dist;
                 g_1df8[t2][i2].f_0e -= (g_17be / 3 + f2) * dp.y / dist;
                 g_17bc = f1;
@@ -1103,8 +1103,7 @@ void fn_08_158a(int16_t still)
     }
     for (i = 0; i < g_9152; i++) {
         if (g_91c2[i])
-            PatBlt(g_13dc, g_2398[i].x, g_2398[i].y,
-                   t1 = g_91d4[i] > maxsz ? maxsz : g_91d4[i], t1, BLACKNESS);
+            (t1 = g_91d4[i] > maxsz ? maxsz : g_91d4[i], PatBlt(g_13dc, g_2398[i].x, g_2398[i].y, t1, t1, BLACKNESS));
         if (still == 0) {
             t1 = g_9156 + 1;
             t2 = 6 - g_91d4[i];

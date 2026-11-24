@@ -37,6 +37,7 @@ seg07b.c:883: call to fn_07_119c: dropped 1 extra argument(s): 0
 seg07b.c:1234: call to fn_07_2080: dropped 1 extra argument(s): g_221c[i].idx
 seg08.c:1081: call to fn_07_2080: dropped 1 extra argument(s): -1
 seg08.c:1128: call to fn_08_1cbe: packed word -> OBJREF
+seg08.c:1407: call: assignment read by another argument: done before the call
 seg08b.c:1245: call to fn_18_5350: record -> two values
 seg08b.c:1882: call to fn_07_2080: dropped 1 extra argument(s): idx
 seg08b.c:1896: call to fn_08_99ce: dropped 1 extra argument(s): ret
@@ -50,6 +51,7 @@ seg10.c:411: call to g_fp_3c50: long -> two words
 seg10.c:458: call to g_fp_3c50: long -> two words
 seg10.c:470: call to g_fp_3c50: long -> two words
 seg10.c:476: call to g_fp_3c50: long -> two words
+seg10.c:3083: call to fn_10_9962: assignment read by another argument: done before the call
 seg11.c:1438: call to fn_16_638a: two words -> long
 seg11.c:2089: call to fn_10_7328: long -> two words
 seg11.c:4461: call to fn_07_2080: dropped 1 extra argument(s): -1
@@ -80,6 +82,7 @@ seg12.c:2912: call to fn_07_2080: dropped 1 extra argument(s): i
 seg12.c:2972: call to fn_08_1d54: packed word -> OBJREF
 seg13.c:1845: call to fn_07_2080: dropped 1 extra argument(s): -1
 seg13.c:1916: call to fn_07_2080: dropped 1 extra argument(s): -1
+seg13.c:2296: call: assignment read by another argument: done before the call
 seg13.c:2657: call to fn_07_5d6a: record -> two values
 seg13.c:3064: call to fn_07_2080: dropped 1 extra argument(s): -1
 seg13.c:3139: call to fn_07_2080: dropped 1 extra argument(s): g_9e41.f_00 = -1
@@ -102,6 +105,7 @@ seg15b.c:768: call to fn_10_6e76: two words -> long
 seg15b.c:771: call to fn_10_6e76: two words -> long
 seg16.c:1277: field f2c lies in the next record
 seg16.c:2006: call to fn_07_2080: dropped 1 extra argument(s): -1
+seg16.c:2064: call: assignment read by another argument: done before the call
 seg16.c:2569: call to fn_10_6e76: two words -> long
 seg16.c:2579: call to fn_16_7210: dropped 1 extra argument(s): 1
 seg16.c:2809: call to fn_10_6e76: two words -> long
@@ -117,7 +121,8 @@ seg18.c:3118: call to fn_07_2080: dropped 1 extra argument(s): 0
 VIEW: 410
 alias kept: 8
 alias resolved: 228
-call adapted: 95
+assignment argument hoisted: 4
+call adapted: 96
 call override: 4
 flat index: 4
 function cast dropped: 4
@@ -700,18 +705,18 @@ signedness view: 664
   seg08.c:839: divide: (int16_t), overflow: (py << 3)
   seg08.c:841: divide: (int16_t), overflow: (px << 3)
   seg08.c:842: divide: (int16_t), overflow: (py << 3)
-  seg08.c:1115: shift right: (int16_t), overflow: g_1df8[g_9324][main_ship].f_0c << t1
-  seg08.c:1116: shift right: (int16_t), overflow: g_1df8[g_9324][main_ship].f_0e << t1
-  seg08.c:1231: compare: (int16_t), overflow: (LO16(g_05a0)) * 4
-  seg08.c:1233: widen to long: (int16_t), overflow: (LO16(g_05a0)) * 8
-  seg08.c:1233: widen to long: (int16_t), overflow: (LO16(g_05a0)) * 8
-  seg08.c:1236: widen to long: (int16_t), overflow: HI16(g_05a0) * 4
-  seg08.c:1238: widen to long: (int16_t), overflow: HI16(g_05a0) * 8
-  seg08.c:1238: widen to long: (int16_t), overflow: HI16(g_05a0) * 8
+  seg08.c:1114: shift right: (int16_t), overflow: g_1df8[g_9324][main_ship].f_0c << t1
+  seg08.c:1115: shift right: (int16_t), overflow: g_1df8[g_9324][main_ship].f_0e << t1
+  seg08.c:1230: compare: (int16_t), overflow: (LO16(g_05a0)) * 4
+  seg08.c:1232: widen to long: (int16_t), overflow: (LO16(g_05a0)) * 8
+  seg08.c:1232: widen to long: (int16_t), overflow: (LO16(g_05a0)) * 8
+  seg08.c:1235: widen to long: (int16_t), overflow: HI16(g_05a0) * 4
+  seg08.c:1237: widen to long: (int16_t), overflow: HI16(g_05a0) * 8
+  seg08.c:1237: widen to long: (int16_t), overflow: HI16(g_05a0) * 8
+  seg08.c:1309: widen to long: (int16_t), overflow: (LO16(g_05a0)) * 8
   seg08.c:1310: widen to long: (int16_t), overflow: (LO16(g_05a0)) * 8
-  seg08.c:1311: widen to long: (int16_t), overflow: (LO16(g_05a0)) * 8
+  seg08.c:1311: widen to long: (int16_t), overflow: HI16(g_05a0) * 8
   seg08.c:1312: widen to long: (int16_t), overflow: HI16(g_05a0) * 8
-  seg08.c:1313: widen to long: (int16_t), overflow: HI16(g_05a0) * 8
   seg08b.c:304: divide: (int16_t), overflow: dx * 15
   seg08b.c:305: divide: (int16_t), overflow: dy * 15
   seg08b.c:316: divide: (int16_t), overflow: vx * 100
@@ -1134,14 +1139,14 @@ signedness view: 664
   seg16.c:309: compare: constant -> 0xffff
   seg16.c:710: compare: constant -> 0xffff
   seg16.c:1422: compare: constant -> 0xffff
-  seg16.c:2126: compare: (int16_t), overflow: (LO16(g_05a0) - 0x82) * 8
-  seg16.c:2127: compare: (int16_t), overflow: (HI16(g_05a0) - 0x5a) * 8
-  seg16.c:2138: compare: (int16_t), overflow: LO16(g_05a0) * 8
-  seg16.c:2140: compare: (int16_t), overflow: HI16(g_05a0) * 8
-  seg16.c:2479: divide: (int16_t), overflow: (bm.bmHeight - g_1df8[g_9324][i].f_24)
-  seg16.c:2480: divide: (int16_t), overflow: (g_1df8[g_9324][i].f_22 + g_1df8[g_9324][i].f_24)
-  seg16.c:2958: divide: (int16_t), overflow: price * q
-  seg16.c:3182: compare: (int16_t), overflow: rc.right - margin
+  seg16.c:2124: compare: (int16_t), overflow: (LO16(g_05a0) - 0x82) * 8
+  seg16.c:2125: compare: (int16_t), overflow: (HI16(g_05a0) - 0x5a) * 8
+  seg16.c:2136: compare: (int16_t), overflow: LO16(g_05a0) * 8
+  seg16.c:2138: compare: (int16_t), overflow: HI16(g_05a0) * 8
+  seg16.c:2477: divide: (int16_t), overflow: (bm.bmHeight - g_1df8[g_9324][i].f_24)
+  seg16.c:2478: divide: (int16_t), overflow: (g_1df8[g_9324][i].f_22 + g_1df8[g_9324][i].f_24)
+  seg16.c:2956: divide: (int16_t), overflow: price * q
+  seg16.c:3180: compare: (int16_t), overflow: rc.right - margin
   seg16b.c:127: divide: (int16_t), overflow: days * 10
   seg17.c:60: divide: (int16_t), overflow: (i * 2 + 3) * (a + 2) * (i + 6) * (i + 7) * 2
   seg17.c:60: divide: (int16_t), overflow: (a + 3)

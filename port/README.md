@@ -57,8 +57,11 @@ Command line:
   frames later. KEY is an SDL key name (`Escape`, `Return`, `Down`, `F4`,
   `X`, ...), modifiers before it with `+` (`Alt+X`, `Shift+Tab`). Example:
   `--frames 1700 --keys "1600:Escape" --dump out.ppm` shows the Restore
-  Game dialog. Frames follow real time, so the frame a screen appears at
-  varies a little between runs.
+  Game dialog. `FRAME:KEY/HOLD` holds the key HOLD frames
+  (`4100:Up/200` thrusts for about three seconds). Frames follow real
+  time, so the frame a screen appears at varies a little between runs.
+- `--shots N` (with `--dump FILE`): also save every Nth frame as
+  `FILE-NNNNN.ppm`.
 
 Game data (INSPACE.EXE and the other original files) is read from `data/`
 or the folder in `INSPACE_DATA`; it is not part of the repository. The game
@@ -84,6 +87,14 @@ the switches are off unless set to 1.
 - `DriveC=<folder>` (any letter C-Z): the host folder the game sees as
   that drive, an absolute path in the host's form. It replaces the
   platform's choice for that letter ("Drives and file names").
+
+## Game speed
+
+The game paces itself by real time (36 frames a second in waves) but
+measures the machine at start-up (INSPACE.INI `Calibrate`) and picks some
+animation steps from it. The port shows it one fixed fast machine
+(Calibrate about 2300) whatever the computer: see NOTES-port.md "Game
+speed".
 
 ## Quirks
 

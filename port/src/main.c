@@ -12,14 +12,16 @@
 
 static int frame_limit = -1;        /* --frames N: run N frames, then exit */
 static const char *dump_path;       /* --dump FILE: save the last frame */
+static int shot_every;              /* --shots N: also save every Nth frame */
 static int frame_count;
 
 /* --keys "FRAME:KEY,...": keys pressed at a frame and released two
- * frames later, for headless runs.  KEY is an SDL key name, with
- * modifiers before it: "1600:Escape,1700:Alt+X". */
-#define MAX_KEYS 64
+ * frames later (or HOLD frames later: FRAME:KEY/HOLD), for headless
+ * runs.  KEY is an SDL key name, with modifiers before it:
+ * "1600:Escape,1700:Alt+X,1800:Up/120". */
+#define MAX_KEYS 256
 static struct {
-    int frame, n;
+    int frame, hold, n;
     SDL_Keycode key[4];
 } keys[MAX_KEYS];
 static int key_count;
@@ -37,7 +39,7 @@ static SDL_Keycode key_named(const char *name)
 
 static int parse_keys(const char *spec)
 {
-    char buf[512], *item, *save, *part, *save2;
+    char buf[4096], *item, *save, *part, *save2, *slash;
 
     SDL_strlcpy(buf, spec, sizeof buf);
     for (item = SDL_strtok_r(buf, ",", &save); item && key_count < MAX_KEYS;
@@ -47,6 +49,10 @@ static int parse_keys(const char *spec)
             return 0;
         *colon = 0;
         keys[key_count].frame = SDL_atoi(item);
+        slash = SDL_strchr(colon + 1, '/');
+        keys[key_count].hold = slash ? SDL_atoi(slash + 1) : 2;
+        if (slash)
+            *slash = 0;
         for (part = SDL_strtok_r(colon + 1, "+", &save2); part && keys[key_count].n < 4;
              part = SDL_strtok_r(NULL, "+", &save2))
             if ((keys[key_count].key[keys[key_count].n++] = key_named(part)) == SDLK_UNKNOWN)
@@ -75,7 +81,7 @@ static void inject_keys(void)
         if (keys[i].frame == frame_count)
             for (j = 0; j < keys[i].n; j++)
                 push_key(keys[i].key[j], 1);
-        if (keys[i].frame + 2 == frame_count)
+        if (keys[i].frame + keys[i].hold == frame_count)
             for (j = keys[i].n - 1; j >= 0; j--)
                 push_key(keys[i].key[j], 0);
     }
@@ -90,9 +96,19 @@ static void finish(int code)
     exit(code);
 }
 
+static void save_shot(void)
+{
+    char path[512];
+
+    SDL_snprintf(path, sizeof path, "%s-%05d.ppm", dump_path, frame_count);
+    video_save_ppm(path);
+}
+
 void app_frame(void)
 {
     video_present();
+    if (dump_path && shot_every > 0 && frame_count % shot_every == 0)
+        save_shot();
     if (++frame_count >= frame_limit && frame_limit >= 0)
         finish(0);
     inject_keys();
@@ -108,9 +124,11 @@ int main(int argc, char **argv)
             frame_limit = SDL_atoi(argv[++i]);
         else if (!strcmp(argv[i], "--dump") && i + 1 < argc)
             dump_path = argv[++i];
+        else if (!strcmp(argv[i], "--shots") && i + 1 < argc)
+            shot_every = SDL_atoi(argv[++i]);
         else if (!strcmp(argv[i], "--keys") && i + 1 < argc) {
             if (!parse_keys(argv[++i])) {
-                fprintf(stderr, "--keys: FRAME:KEY[+KEY],... with SDL key names\n");
+                fprintf(stderr, "--keys: FRAME:KEY[+KEY][/HOLD],... with SDL key names\n");
                 return 1;
             }
         }

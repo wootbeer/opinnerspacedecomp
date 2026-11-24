@@ -1636,8 +1636,8 @@ void fn_13_5c22(HDC hdc, int16_t x, int16_t y, int16_t s, int16_t k, int16_t w, 
         e = CreateCompatibleDC(hdc);
         oldbmp = SelectObject(e, i);
         memdc = SelectPalette(e, g_920e, 0);
-        StretchBlt(hdc, pt.x, pt.y, 0x29 >> c, 0x29 >> c, e, 0, 0,
-                   h = w8 = 0x29, h, SRCCOPY);
+        h = w8 = 0x29;
+        StretchBlt(hdc, pt.x, pt.y, 0x29 >> c, 0x29 >> c, e, 0, 0, h, h, SRCCOPY);
         SelectPalette(e, memdc, 0);
         SelectObject(e, oldbmp);
         DeleteDC(e);

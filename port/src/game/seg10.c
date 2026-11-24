@@ -2704,8 +2704,8 @@ void fn_10_4412(int16_t a, int16_t b, int16_t c, int16_t d)
         SetStretchBltMode(g_39e8[a], 3);
         x = g_1df8[b]->f_24;
         for (i = 0; i < d; i++) {
-            fn_10_9962(0, g_39e8[a], x, g_1df8[b]->f_24, u = (i - d) * 2 + h, u,
-                       dc, 0, 0, h, h, SRCCOPY);
+            u = (i - d) * 2 + h;
+            fn_10_9962(0, g_39e8[a], x, g_1df8[b]->f_24, u, u, dc, 0, 0, h, h, SRCCOPY);
             x += g_1df8[b]->f_24 + h;
         }
     }

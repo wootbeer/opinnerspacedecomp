@@ -27,7 +27,8 @@ const int16_t ispace_ramp_area[2][3] = {{0x2e4, 0x354, 0x398}, {0x28, 0x14c, 0x1
 static struct {
     int16_t height;                     /* DS:1c72: height of the last image */
     int16_t ds_0024;                    /* ramp shift of a ship picture (5:0000) */
-    int16_t ds_1ea6;                    /* set by routines not ported: always 0 here */
+    int16_t ds_1ea6;                    /* red and blue swapped (ordinal 18) */
+    uint8_t ds_1178[16][4];             /* the image's colours, modes 0 and 1 */
     IspaceImgFlags f;
 } st;
 
@@ -226,6 +227,33 @@ static void put_ramps(int16_t pal, const Dib *d, signed char a, signed char b)
         put_ramp(e, off_b, d, 10, 15, steps_b);
 }
 
+/* 5:39f6 and 5:26a2: the image's colours as a 16-entry palette (DS:1178;
+ * the DLL also makes a palette of them, DS:1eae, which nothing reads). */
+static void keep_colors(const Dib *d)
+{
+    int n = dib_colors(d), k;
+
+    memset(st.ds_1178, 0, sizeof st.ds_1178);
+    for (k = 0; k < 16 && k < n; k++) {
+        const uint8_t *c = dib_color(d, k);
+
+        st.ds_1178[k][0] = c[2];
+        st.ds_1178[k][1] = c[1];
+        st.ds_1178[k][2] = c[0];
+        st.ds_1178[k][3] = PC_RESERVED;
+    }
+}
+
+const uint8_t *ispace_image_colors(void)
+{
+    return st.ds_1178[0];
+}
+
+void ispace_set_image_swap(int16_t on)
+{
+    st.ds_1ea6 = on;
+}
+
 /* 5:26a2: fits the image's colours to palette pal.  Colours 0-9 come
  * from colour set a, 10-14 from set b (unless OWN_COLORS or -1); colours
  * 10-14 equal to one of 0-9 are nudged apart.  Mode 2 adds the colours
@@ -265,6 +293,8 @@ static int fit_colors(int16_t pal, int16_t id, Dib *d, int16_t mode, signed char
     if (st.ds_0024)
         for (k = 0; k < 15; k++)
             nudge(dib_color(d, k), 2);
+    if ((mode == 0 || mode == 1) && !st.f.ds_1ea4)
+        keep_colors(d);
     if (mode == 0 && ispace_pal_bits() >= 8)
         put_ramps(pal, d, a, b);
     if (mode == 2)

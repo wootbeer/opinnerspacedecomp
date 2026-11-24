@@ -24,9 +24,13 @@ from emu import IspaceEmu, ROOT, new_bitmap, new_dc  # noqa: E402
 
 # Argument kinds per ordinal, in the DLL's (Pascal) order: w word,
 # s far string, b byte (passed as a word), l long, R the rectangle block
-# of ordinal 32 (no script argument: a far pointer and a handle).
+# of ordinal 32 (no script argument: a far pointer and a handle), p a
+# far pointer to a word (the script gives its value; the words are
+# compared after the call).
 ORDINALS = {1: 'wwswww', 3: 's', 4: 'wwwwwww', 5: '', 6: 'www', 12: 'wwswwwwwwbb', 1000: 'wwswww',
-            32: 'wwRwlwlwwwwww', 33: 'wwlwlwws', 34: 'wwwwww', 35: 'wwwwww'}
+            14: 'wwwww', 18: 'wwwwww', 29: 'ppppppppwwwwpp', 32: 'wwRwlwlwwwwww', 33: 'wwlwlwws', 34: 'wwwwww', 35: 'wwwwww'}
+# Ordinals that return nothing (AX is left over).
+VOID = {14}
 # Pseudo-ordinal -> (segment, offset) of a C-convention routine: 1000 is
 # 5:0000, the ship picture of the dialogs (pal, id, name, a, b, mode).
 INTERNAL = {1000: (5, 0x0000)}
@@ -53,9 +57,14 @@ def run_emu(calls, data_dir):
     e = IspaceEmu(data_dir)
     results, out = [], []
     for k, (ordinal, args) in enumerate(calls):
-        words, rect_block, mdc = [], None, None
+        words, rect_block, mdc, ptrs = [], None, None, []
         for kind, a in script_args(ordinal, args):
-            if kind == 'R':
+            if kind == 'p':
+                h = e.galloc(2)
+                e.uc.mem_write(e.blocks[h][0] * 16, struct.pack('<h', int(a, 0)))
+                ptrs.append(e.blocks[h][0] * 16)
+                words += [e.blocks[h][0], 0]
+            elif kind == 'R':
                 rect_block = e.galloc(8)
                 words += [e.blocks[rect_block][0], 0, rect_block]
             elif kind == 's':
@@ -74,10 +83,13 @@ def run_emu(calls, data_dir):
                 words.append(results[int(a[1:])])
             else:
                 words.append(int(a, 0) & (0xff if kind == 'b' else 0xffff))
-        if ordinal in INTERNAL:
-            r = e.call(*INTERNAL[ordinal], words[::-1]) & 0xffff
-        else:
-            r = e.call_ordinal(ordinal, words) & 0xffff
+        try:
+            if ordinal in INTERNAL:
+                r = e.call(*INTERNAL[ordinal], words[::-1]) & 0xffff
+            else:
+                r = e.call_ordinal(ordinal, words) & 0xffff
+        except RuntimeError as x:
+            sys.exit('call %d (ordinal %d): %s' % (k, ordinal, x))
         results.append(r)
         b = e.bitmap(r) or (e.bitmap(e.obj(mdc, 'dc')['bmp']) if mdc else None)
         pals = {i: e.palette(h) for i, h in enumerate(results) if e.palette(h)}
@@ -86,8 +98,9 @@ def run_emu(calls, data_dir):
             lin = e.word(e.ds * 16 + 0xd16) * 16 + e.word(e.ds * 16 + 0xd14)
             n = e.blocks.get(e.word(e.ds * 16 + 0x1a36), [0, 0])[1] // 8
             rects = [struct.unpack('<4h', e.rd(lin + 8 * i, 8)) for i in range(n)]
+        outs = [struct.unpack('<h', e.rd(q, 2))[0] for q in ptrs]
         out.append(dict(ret=r, bmp=(b['w'], b['h'], int(b['mono']), bytes(b['px'])) if b else None,
-                        pals=pals, rects=rects, texts=e.texts))
+                        pals=pals, rects=rects, texts=e.texts, outs=outs))
         e.texts = []
     return out
 
@@ -99,7 +112,9 @@ def run_port(script, exe):
     for line in text.splitlines():
         p = line.split()
         if p[0] == 'call':
-            out.append(dict(ret=int(p[5]) & 0xffff, bmp=None, pals={}, rects=None))
+            out.append(dict(ret=int(p[5]) & 0xffff, bmp=None, pals={}, rects=None, outs=[]))
+        elif p[0] == 'outs':
+            out[-1]['outs'] = [int(x) for x in p[1:]]
         elif p[0] == 'rects':
             v = [int(x) for x in p[1:]]
             out[-1]['rects'] = [tuple(v[i:i + 4]) for i in range(0, len(v), 4)]
@@ -111,12 +126,14 @@ def run_port(script, exe):
     return out
 
 
-def compare(k, o, p, show):
+def compare(k, ordinal, o, p, show):
     """Differences of call k as lines (none when they agree)."""
     diffs = []
-    is_handle = o['bmp'] or p['bmp'] or k in o['pals'] or k in p['pals']
+    is_handle = o['bmp'] or p['bmp'] or k in o['pals'] or k in p['pals'] or ordinal in VOID
     if not is_handle and o['ret'] != p['ret']:
         diffs.append('result: DLL %d, port %d' % (o['ret'], p['ret']))
+    if o['outs'] != p['outs']:
+        diffs.append('words: DLL %s, port %s' % (o['outs'], p['outs']))
     if bool(o['bmp']) != bool(p['bmp']):
         diffs.append('bitmap returned: DLL %s, port %s' % (bool(o['bmp']), bool(p['bmp'])))
     elif o['bmp']:
@@ -159,7 +176,7 @@ def main():
     dll, port = run_emu(calls, a.data), run_port(a.script, a.port)
     failed = 0
     for k, (ordinal, args) in enumerate(calls):
-        diffs = compare(k, dll[k], port[k], a.show)
+        diffs = compare(k, ordinal, dll[k], port[k], a.show)
         failed += bool(diffs)
         print('%3d ord %-2d %-40s %s' % (k, ordinal, ' '.join(args)[:40], 'differs' if diffs else 'same'))
         for d in diffs:

@@ -23,6 +23,7 @@ add_executable(inspace
     src/win/icon.c
     src/win/input.c
     src/win/ispace.c
+    src/win/ispace_collide.c
     src/win/ispace_dlg.c
     src/win/ispace_img.c
     src/win/ispace_panel.c
@@ -31,6 +32,7 @@ add_executable(inspace
     src/win/ispace_room.c
     src/win/ispace_shape.c
     src/win/ispace_smooth.c
+    src/win/ispace_sprite.c
     src/win/kernel.c
     src/win/listbox.c
     src/win/module.c

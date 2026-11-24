@@ -960,13 +960,40 @@ static int next_message(MSG *m, int remove)
     return 0;
 }
 
+/* The game polls with PeekMessage and does a step of its frame whenever
+ * no message is waiting (2:0000).  On a 1994 machine that idle loop ran
+ * as fast as the processor allowed; the game measures its rate
+ * (Calibrate, 15:5e22) and counts frame steps in idle calls.  The port
+ * answers "no message" once a millisecond, as one fixed machine
+ * (Calibrate about 2300, the help file's "very fast" class) whatever the
+ * host's speed; calls owed after a long sleep are caught up, at most
+ * IDLE_BURST of them. */
+#define IDLE_BURST 50
+
+static void pace_idle(void)
+{
+    static uint32_t next;           /* the millisecond of the next idle call */
+    uint32_t now = platform_time_ms();
+
+    if ((int32_t)(now - next) > IDLE_BURST)
+        next = now - IDLE_BURST;
+    while ((int32_t)(next - now) > 0) {
+        SDL_Delay(1);
+        now = platform_time_ms();
+    }
+    next++;
+}
+
 BOOL PeekMessage(MSG *m, HWND h, UINT lo, UINT hi, UINT flags)
 {
     (void)h;
     (void)lo;
     (void)hi;
     win_pump();
-    return (BOOL)next_message(m, flags & PM_REMOVE);
+    if (next_message(m, flags & PM_REMOVE))
+        return 1;
+    pace_idle();
+    return 0;
 }
 
 BOOL GetMessage(MSG *m, HWND h, UINT lo, UINT hi)

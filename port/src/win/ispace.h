@@ -18,10 +18,19 @@ HBITMAP ispace_make_mask(int16_t pal, int16_t bm, int16_t dc);
 int16_t ispace_palette(int16_t pal, int16_t w2, int16_t w3, int16_t w4, int16_t w5, int16_t w6,
                        int16_t mode);
 
+/* Ordinal 14 (5:50cc): a group of game colours scaled to percent. */
+void ispace_pal_scale(int16_t pal, int16_t kind, int16_t percent, HWND hwnd, HDC dc);
+
 /* The slot (0-2) of one of the manager's palettes, or -1. */
 int ispace_pal_slot(HPALETTE pal);
 HPALETTE ispace_pal_handle(int slot);    /* DS:1cd6 */
 int ispace_pal_fixed(int slot);           /* DS:1e92 of the slot */
+int ispace_pal_kind(int slot);            /* DS:1e9c: mode 1's kind (0-2) */
+/* DS:1dea: the range colour set `set` occupies in the slot's kind (-1:
+ * none); DS:1398: a range's first and last entry as byte offsets (NULL
+ * outside the tables). */
+int16_t ispace_pal_set_range(int slot, int set);
+const int16_t *ispace_pal_range(int slot, int16_t r);
 int ispace_pal_bits(void);                /* DS:1e9a: bits per pixel of the display */
 /* The DC the DLL's routines last worked on (DS:1a32). */
 void ispace_set_dc(HDC dc);
@@ -58,6 +67,12 @@ typedef struct {
 } IspaceImgFlags;
 
 IspaceImgFlags *ispace_img_flags(void);
+/* DS:1178: the last image's 16 colours (red, green, blue, flags: 4 bytes
+ * each) as loaded in modes 0 and 1 (5:26a2, 5:39f6). */
+const uint8_t *ispace_image_colors(void);
+/* DS:1ea6: red and blue of the image's colours swapped when they go into
+ * the palette (set by ordinal 18). */
+void ispace_set_image_swap(int16_t on);
 extern const int16_t ispace_ramp_area[2][3];
 /* 5:1b8e: image id with its colours fitted to palette pal (colour sets a
  * and b, mode as 5:26a2 takes it). */
@@ -113,6 +128,16 @@ void ispace_gauge(int16_t dc, int16_t x, int16_t y, int16_t w, int16_t h, int16_
 HBITMAP ispace_alphabet(void);           /* DS:1ea2 */
 /* 6:7f52: three Newton steps towards the square root of sq from m. */
 int16_t ispace_newton_root(int32_t sq, int32_t m);
+
+/* Ordinal 18 (6:5e76): image 280 turned to n angles, as a sprite sheet
+ * (ispace_sprite.c). */
+int16_t ispace_sprite_sheet(int16_t pal, int16_t unused1, int16_t unused2, int16_t kind, int16_t n,
+                            int16_t swap);
+
+/* Ordinal 29 (2:003c): two objects meeting (ispace_collide.c). */
+int16_t ispace_collide(int16_t *vx1, int16_t *vy1, int16_t *vx2, int16_t *vy2, int16_t *x1,
+                       int16_t *y1, int16_t *x2, int16_t *y2, int16_t s1, int16_t s2, int16_t m1,
+                       int16_t m2, int16_t *hit1, int16_t *hit2);
 
 /* Ordinal 10 (9:145e): the game's dialogs (ispace_dlg.c). */
 int16_t ispace_dialog(int16_t hwnd, int16_t dc, int16_t pal, int16_t v1, int16_t v0, int16_t w6,
