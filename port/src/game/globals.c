@@ -25,7 +25,7 @@ void (*g_fp_3c40)(int16_t, int16_t, int16_t);
 int16_t (*g_fp_3c44)(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t);
 int16_t (*g_fp_3c48)(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int32_t);
 int16_t (*g_fp_3c4c)(void);
-int16_t (*g_fp_3c50)(int16_t, int16_t, int16_t, int16_t, int32_t, int16_t);
+int16_t (*g_fp_3c50)(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t);
 void (*g_fp_3c54)(int32_t, int16_t);
 int16_t (*g_fp_3c58)(POINT, int16_t, int16_t, int32_t);
 int16_t (*g_fp_3c5c)(int16_t, POINT, int16_t, int32_t, int32_t, DWORD, LPCSTR);

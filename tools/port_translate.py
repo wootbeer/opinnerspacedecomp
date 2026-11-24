@@ -585,7 +585,9 @@ class FileTranslator:
         if vt is None:
             return None
         t = vt.t
+        name = None
         if isinstance(n, c_ast.ID) and self.is_global(n.name, scope):
+            name = n.name
             addr = pm.global_addr(n.name)
             g, off = self.mg.global_at(addr) if addr is not None else (None, None)
             if g is not None and off == 0:
@@ -595,7 +597,8 @@ class FileTranslator:
             if mt is not None:
                 t = mt
         if isinstance(t, Ptr) and isinstance(t.to, Func):
-            return None, t.to, getattr(t, 'pascal', False)
+            pascal = getattr(t, 'pascal', False) or (name is not None and self.mg.is_pascal_ptr(name))
+            return name, t.to, pascal
         return None
 
     def merged_field_type(self, X, scope):
@@ -794,7 +797,7 @@ class FileTranslator:
                     parts = None
                 if parts is not None:
                     if pascal:
-                        parts = parts[3:] + [', '] + parts[:2] if k is not None else \
+                        parts = [hi, ', ', lo] if k is not None else \
                             ['HI16(', spans[j], '), LO16(', spans[j], ')']
                     out.append(parts)
                     changed.append('long -> two words')

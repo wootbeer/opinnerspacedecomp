@@ -1227,6 +1227,17 @@ class Merge:
             self._pascal[name] = bool(r)
         return self._pascal[name]
 
+    def is_pascal_ptr(self, name):
+        """True if a declaration of the function pointer name says pascal."""
+        if not hasattr(self, '_pascal_ptr'):
+            self._pascal_ptr = {}
+        if name not in self._pascal_ptr:
+            pat = re.compile(r'\bpascal\s*\*\s*%s\s*\)' % re.escape(name))
+            with open(os.path.join(SRC, 'inspace.h'), encoding='latin-1') as f:
+                hdr = OV.apply('inspace.h', f.read())
+            self._pascal_ptr[name] = any(pat.search(s) for s in [hdr] + [m.src for m in self.models])
+        return self._pascal_ptr[name]
+
     def view_of_type(self, t):
         vs = self.type_views.get(id(t))
         return vs[0] if vs else None

@@ -19,6 +19,7 @@ static const struct {
 
 static HBITMAP screen_bmp, default_bmp;
 static HPALETTE default_pal;
+static HPALETTE realized_pal;       /* the palette the screen shows */
 static HGDIOBJ stock[18];
 
 Dc *dc_get(HDC h)
@@ -298,9 +299,9 @@ int16_t GetDeviceCaps(HDC h, int16_t i)
         return 20;
     case 38:                /* RASTERCAPS: RC_PALETTE | RC_BITBLT | RC_STRETCHBLT ... */
         return 0x0799;
-    case 104:               /* SIZEPALETTE */
+    case SIZEPALETTE:
         return 256;
-    case 106:               /* NUMRESERVED */
+    case NUMRESERVED:
         return 20;
     default:
         return 0;
@@ -355,6 +356,8 @@ BOOL DeleteObject(HGDIOBJ obj)
     p = handle_get(obj, type);
     if (type == H_BITMAP && ((Bmp *)p)->owned)
         free(((Bmp *)p)->px);
+    if (obj == realized_pal)
+        realized_pal = 0;
     free(p);
     handle_free(obj);
     return 1;
@@ -411,6 +414,24 @@ HBITMAP CreateCompatibleBitmap(HDC h, int16_t w, int16_t hgt)
     return gdi_new_bitmap(w, hgt, b ? b->mono : 0);
 }
 
+/* Pixels of a DIB (bpp 1, 4 or 8, rows bottom-up, stride bytes apart)
+ * as a device bitmap, each value mapped through map. */
+static HBITMAP dib_pixels(int w, int h, int bpp, int mono, const uint8_t *bits, const uint8_t map[256])
+{
+    int x, y, stride = (w * bpp + 31) / 32 * 4;
+    HBITMAP hb = gdi_new_bitmap(w, h, mono);
+    Bmp *b = handle_get(hb, H_BITMAP);
+
+    if (!b)
+        return 0;
+    for (y = 0; y < h; y++) {
+        const uint8_t *row = bits + (size_t)(h - 1 - y) * stride;
+        for (x = 0; x < w; x++)
+            b->px[y * w + x] = map[bpp == 8 ? row[x] : row[x * bpp / 8] >> (8 - bpp - x * bpp % 8) & ((1 << bpp) - 1)];
+    }
+    return hb;
+}
+
 /* A packed DIB (BITMAPINFOHEADER or BITMAPCOREHEADER, colours, bits) as a
  * device bitmap, the way LoadBitmap makes one: monochrome stays
  * monochrome, colours map to the static system colours. */
@@ -423,37 +444,48 @@ HBITMAP gdi_bitmap_from_dib(const uint8_t *dib, uint32_t size)
     int bpp = core ? dib[10] : dib[14];
     int ncol = core ? 0 : dib[32] | dib[33] << 8;
     int qsize = core ? 3 : 4;
-    int x, y, stride;
+    int x;
     const uint8_t *pal = dib + hsize, *bits;
-    uint8_t map[256];
-    HBITMAP hb;
-    Bmp *b;
+    uint8_t map[256] = {0};
 
-    if (bpp > 8)
+    if (bpp != 1 && bpp != 4 && bpp != 8)
         return 0;
-    if (!ncol)
+    if (!ncol || ncol > 1 << bpp)
         ncol = 1 << bpp;
     bits = pal + ncol * qsize;
-    stride = (w * bpp + 31) / 32 * 4;
-    if ((uint32_t)(bits - dib) + (uint32_t)stride * h > size)
+    if ((uint32_t)(bits - dib) + (uint32_t)((w * bpp + 31) / 32 * 4) * h > size)
         return 0;
-    hb = gdi_new_bitmap(w, h, bpp == 1);
-    b = handle_get(hb, H_BITMAP);
-    if (!b)
-        return 0;
-    for (x = 0; x < ncol && x < 256; x++) {
+    for (x = 0; x < ncol; x++) {
         COLORREF c = RGB(pal[x * qsize + 2], pal[x * qsize + 1], pal[x * qsize]);
         map[x] = bpp == 1 ? (uint8_t)(GetRValue(c) + GetGValue(c) + GetBValue(c) >= 384)
                           : gdi_color_index(0, c);
     }
-    for (y = 0; y < h; y++) {
-        const uint8_t *row = bits + (size_t)(h - 1 - y) * stride;
-        for (x = 0; x < w; x++) {
-            int v = bpp == 8 ? row[x] : row[x * bpp / 8] >> (8 - bpp - x * bpp % 8) & ((1 << bpp) - 1);
-            b->px[y * w + x] = map[v < ncol ? v : 0];
-        }
-    }
-    return hb;
+    for (; x < 256; x++)
+        map[x] = map[0];
+    return dib_pixels(w, h, bpp, bpp == 1, bits, map);
+}
+
+/* CreateDIBitmap for a BITMAPINFOHEADER DIB of 1, 4 or 8 bits per pixel,
+ * always initialised (CBM_INIT): a colour bitmap whose pixels are the
+ * colour table's palette indices (DIB_PAL_COLORS) or the colours'
+ * nearest entries in dc's palette (DIB_RGB_COLORS). */
+HBITMAP CreateDIBitmap(HDC dc, const BITMAPINFOHEADER *bih, DWORD init, const void *bits,
+                       const void *bmi, UINT usage)
+{
+    const uint8_t *table = (const uint8_t *)bmi + bih->biSize;
+    int bpp = bih->biBitCount, ncol = bih->biClrUsed ? (int)bih->biClrUsed : 1 << bpp;
+    uint8_t map[256] = {0};
+    int i;
+
+    (void)init;
+    if (bpp != 1 && bpp != 4 && bpp != 8)
+        return 0;
+    if (ncol > 1 << bpp)
+        ncol = 1 << bpp;
+    for (i = 0; i < ncol; i++)
+        map[i] = usage == DIB_PAL_COLORS ? table[2 * i]
+                                         : gdi_color_index(dc, PALETTERGB(table[4 * i + 2], table[4 * i + 1], table[4 * i]));
+    return dib_pixels((int)bih->biWidth, (int)bih->biHeight, bpp, 0, bits, map);
 }
 
 /* Palettes. */
@@ -479,12 +511,59 @@ UINT RealizePalette(HDC h)
 
     if (!p || d->pal == default_pal)
         return 0;
+    realized_pal = d->pal;
     for (i = 0; i < p->n; i++) {
         fb->palette[i].r = p->e[i].peRed;
         fb->palette[i].g = p->e[i].peGreen;
         fb->palette[i].b = p->e[i].peBlue;
     }
     return (UINT)p->n;
+}
+
+HPALETTE CreatePalette(const LOGPALETTE *lp)
+{
+    return gdi_new_palette(lp->palPalEntry, lp->palNumEntries);
+}
+
+/* Entries of pal from start on take the new colours where pal has them
+ * PC_RESERVED; on the screen at once when pal is the realized palette
+ * (identity mapping: logical index = screen index). */
+void AnimatePalette(HPALETTE pal, UINT start, UINT n, const PALETTEENTRY *e)
+{
+    Pal *p = handle_get(pal, H_PALETTE);
+    Framebuffer *fb = video_framebuffer();
+    UINT i;
+
+    if (!p)
+        return;
+    for (i = 0; i < n && start + i < (UINT)p->n; i++) {
+        PALETTEENTRY *d = &p->e[start + i];
+        if (!(d->peFlags & PC_RESERVED))
+            continue;
+        d->peRed = e[i].peRed;
+        d->peGreen = e[i].peGreen;
+        d->peBlue = e[i].peBlue;
+        if (pal == realized_pal) {
+            fb->palette[start + i].r = d->peRed;
+            fb->palette[start + i].g = d->peGreen;
+            fb->palette[start + i].b = d->peBlue;
+        }
+    }
+}
+
+UINT GetSystemPaletteEntries(HDC h, UINT start, UINT n, PALETTEENTRY *e)
+{
+    Framebuffer *fb = video_framebuffer();
+    UINT i;
+
+    (void)h;
+    for (i = 0; i < n && start + i < 256; i++) {
+        e[i].peRed = fb->palette[start + i].r;
+        e[i].peGreen = fb->palette[start + i].g;
+        e[i].peBlue = fb->palette[start + i].b;
+        e[i].peFlags = 0;
+    }
+    return i;
 }
 
 int16_t UpdateColors(HDC h)

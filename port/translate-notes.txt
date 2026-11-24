@@ -29,6 +29,10 @@ seg08c.c:478: call to fn_08_9028: record -> two values
 seg09.c:602: call to fn_11_3cc2: dropped 1 extra argument(s): 0
 seg09.c:792: call to fn_17_30b0: two words -> long
 seg09b.c:2187: view g_9f39 read as g_9f3a with the last index shifted by -1
+seg10.c:411: call to g_fp_3c50: long -> two words
+seg10.c:458: call to g_fp_3c50: long -> two words
+seg10.c:470: call to g_fp_3c50: long -> two words
+seg10.c:476: call to g_fp_3c50: long -> two words
 seg11.c:1438: call to fn_16_638a: two words -> long
 seg11.c:2089: call to fn_10_7328: long -> two words
 seg11.c:4461: call to fn_07_2080: dropped 1 extra argument(s): -1
@@ -96,8 +100,8 @@ seg18.c:3118: call to fn_07_2080: dropped 1 extra argument(s): 0
 VIEW: 410
 alias kept: 8
 alias resolved: 228
-call adapted: 91
-call override: 3
+call adapted: 95
+call override: 4
 flat index: 4
 function cast dropped: 4
 objref from word: 2

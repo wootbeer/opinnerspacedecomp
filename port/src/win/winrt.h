@@ -72,6 +72,20 @@ void win_pump(void);        /* SDL events and frame presentation */
 void gdi_init(void);
 uint8_t gdi_color_index(HDC dc, COLORREF c);
 
+/* GDI calls only ISPACE.DLL makes (the game's headers do not declare
+ * them). */
+#define PC_RESERVED 0x01
+#define SIZEPALETTE 104
+#define NUMRESERVED 106
+#define DIB_RGB_COLORS 0
+#define DIB_PAL_COLORS 1
+#define CBM_INIT 0x04L
+HPALETTE CreatePalette(const LOGPALETTE *lp);
+void AnimatePalette(HPALETTE pal, UINT start, UINT n, const PALETTEENTRY *e);
+UINT GetSystemPaletteEntries(HDC dc, UINT start, UINT n, PALETTEENTRY *e);
+HBITMAP CreateDIBitmap(HDC dc, const BITMAPINFOHEADER *bih, DWORD init, const void *bits,
+                       const void *bmi, UINT usage);
+
 #include "win.h"
 
 #endif

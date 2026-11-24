@@ -20,6 +20,13 @@
 fn fn_10_86ca: int far fn_10_86ca(void) | return
 extern g_fp_3c4c: extern int (far pascal *g_fp_3c4c)(void);
 
+# Palette manager (ISPACE.DLL ordinal 4): seven words, the mode last.
+# Most callers pass words 5-6 as one long (high word first); seg10's
+# FP7I casts pass seven ints.  The zero-extended unsigned of 10:6ea0
+# is passed as its two words.
+extern g_fp_3c50: extern int (far pascal *g_fp_3c50)(int, int, int, int, int, int, int);
+call seg10.c:464 g_fp_3c50: g_920e, 0, 0, 0, 0, a, 7
+
 fn fn_10_6b54: int far fn_10_6b54(void) | return
 extern g_fp_3c84: extern int (far pascal *g_fp_3c84)(int, long);
 

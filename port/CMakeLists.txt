@@ -17,6 +17,8 @@ add_executable(inspace
     src/win/gdi.c
     src/win/handles.c
     src/win/ispace.c
+    src/win/ispace_img.c
+    src/win/ispace_pal.c
     src/win/kernel.c
     src/win/module.c
     src/win/ne.c

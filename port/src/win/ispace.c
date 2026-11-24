@@ -1,14 +1,17 @@
 /* ISPACE.DLL, the game's graphics and support library, called by ordinal
  * through the pointers fetched in fn_10_6656.  Native versions of its
- * routines, written from the DLL's code; those not done yet are stubs. */
+ * routines, written from the DLL's code; those not done yet are stubs.
+ * The palette manager is in ispace_pal.c, the image loader in
+ * ispace_img.c. */
 
 #include "gdi.h"
+#include "ispace.h"
 #include "ne.h"
 
 /* GCC allows function pointer casts through void (*)(void). */
 #define PROC(f) ((FARPROC)(void (*)(void))(f))
 
-static HINSTANCE ispace_module(void)
+HINSTANCE ispace_module(void)
 {
     static HINSTANCE h;
 
@@ -17,7 +20,7 @@ static HINSTANCE ispace_module(void)
     return h;
 }
 
-static HINSTANCE igraphic_module(void)
+HINSTANCE igraphic_module(void)
 {
     static HINSTANCE h;
 
@@ -28,7 +31,7 @@ static HINSTANCE igraphic_module(void)
 
 /* Ordinal 3 (5:0612): LoadBitmap of name from IGRAPHIC.DLL; SD_LOGO comes
  * from ISPACE.DLL itself. */
-static int16_t load_bitmap(LPCSTR name)
+int16_t ispace_load_bitmap(LPCSTR name)
 {
     HINSTANCE m = lstrcmp(name, "SD_LOGO") == 0 ? ispace_module() : igraphic_module();
     uint32_t size;
@@ -38,7 +41,7 @@ static int16_t load_bitmap(LPCSTR name)
 }
 
 /* Ordinal 6 (5:0650): a monochrome mask of bitmap bm, 1 where it is black. */
-static HBITMAP make_mask(int16_t pal, int16_t bm, int16_t dc)
+HBITMAP ispace_make_mask(int16_t pal, int16_t bm, int16_t dc)
 {
     BITMAP info;
     HBITMAP mask, old[2];
@@ -47,7 +50,8 @@ static HBITMAP make_mask(int16_t pal, int16_t bm, int16_t dc)
     COLORREF bk;
     int i;
 
-    GetObject(bm, sizeof info, &info);
+    if (!GetObject(bm, sizeof info, &info))
+        return 0;
     mask = CreateBitmap(info.bmWidth, info.bmHeight, 1, 1, NULL);
     for (i = 0; i < 2; i++)
         dcs[i] = CreateCompatibleDC(dc);
@@ -67,10 +71,6 @@ static HBITMAP make_mask(int16_t pal, int16_t bm, int16_t dc)
     return mask;
 }
 
-static int16_t ispace_1(int16_t a, int16_t b, char *c, int16_t d, int16_t e, int16_t f) { (void)a; (void)b; (void)c; (void)d; (void)e; (void)f; STUB(); return 0; }
-static int16_t ispace_2(int16_t a, int16_t b, int32_t c, int16_t d, int16_t e, int16_t f, int16_t g, int16_t h, int16_t i, int16_t j, char k, char l, char m, int16_t n) { (void)a; (void)b; (void)c; (void)d; (void)e; (void)f; (void)g; (void)h; (void)i; (void)j; (void)k; (void)l; (void)m; (void)n; STUB(); return 0; }
-static int16_t ispace_4(int16_t a, int16_t b, int16_t c, int16_t d, int32_t e, int16_t f) { (void)a; (void)b; (void)c; (void)d; (void)e; (void)f; STUB(); return 0; }
-static int16_t ispace_5(void) { STUB(); return 0; }
 static int16_t ispace_7(int32_t a, int16_t b) { (void)a; (void)b; STUB(); return 1; }
 static int16_t ispace_8(POINT a, int16_t b, int16_t c, int32_t d) { (void)a; (void)b; (void)c; (void)d; STUB(); return 0; }
 static int16_t ispace_9(int16_t a, POINT b, int16_t c, int32_t d, int32_t e, DWORD f, LPCSTR g) { (void)a; (void)b; (void)c; (void)d; (void)e; (void)f; (void)g; STUB(); return 0; }
@@ -92,12 +92,12 @@ static int16_t ispace_41(int16_t a, int32_t b) { (void)a; (void)b; STUB(); retur
 FARPROC ispace_proc(int ordinal)
 {
     switch (ordinal) {
-    case 1: return PROC(ispace_1);
-    case 2: return PROC(ispace_2);
-    case 3: return PROC(load_bitmap);
-    case 4: return PROC(ispace_4);
-    case 5: return PROC(ispace_5);
-    case 6: return PROC(make_mask);
+    case 1: return PROC(ispace_load_image);
+    case 2: return PROC(ispace_build_surface);
+    case 3: return PROC(ispace_load_bitmap);
+    case 4: return PROC(ispace_palette);
+    case 5: return PROC(ispace_image_height);
+    case 6: return PROC(ispace_make_mask);
     case 7: return PROC(ispace_7);
     case 8: return PROC(ispace_8);
     case 9: return PROC(ispace_9);

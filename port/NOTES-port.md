@@ -102,3 +102,48 @@
 - **Far-pointer arithmetic.** About 93 casts turn a far pointer into an integer, and 17 go the other way. These are segment:offset arithmetic and `(long)ptr` comparisons. Each must become plain pointer arithmetic.
 - **`huge` and `_lread`/`_lwrite` sizes.** `huge` is dropped. The 0x7fff-byte chunking in fn_06_9e66 is harmless natively.
 - **Runtime types that differ natively.** `time()`, `stat()` and `utime()` use the host's runtime types. The original's `time_t` was 32 bits; check any place that stores these values in 32-bit globals.
+
+## ISPACE.DLL (port/src/win/ispace*.c)
+
+Native versions of the DLL's routines, written from its disassembly
+(ISPACE.DLL unpacked with tools/optl_unpack.py).
+
+- **Palette manager signature.** Ordinal 4 takes seven words, the mode
+  last. Most callers pass words 5-6 as one long, seg10's `FP7I` casts pass
+  seven ints, so `g_fp_3c50` is declared with seven ints
+  (`port/overrides/signatures.txt`) and the translator splits the longs
+  (high word first: the pointer is pascal). 10:6ea0 passes an unsigned,
+  zero-extended to a long in 1994: a `call` override passes `0, a`.
+  Translator fixes for this: `call` overrides can name a function-pointer
+  global, pascal is read from a pointer's declaration, and a constant long
+  split for a pascal callee gives `hi, lo` (it gave a broken argument list).
+- **Colour sets.** 5:5846 fills two tables of colour ramps (18 sets of ten
+  and of five colours) at every mode 0; the port has the result as
+  constant tables. Set 12 ("the image's own colours") is written only by
+  an image-loader branch not ported yet; it will then need to be state.
+- **DLL bugs, fixed silently (memory safety):**
+  - A palette handle that is not one of the manager's (or 0, which finds a
+    free slot) indexes the slot tables at slot 3 (DS:1cd6 + 6 is the colour
+    table at DS:1cdc; mode 1 writes the kind over the ALPHABET handle) or
+    works on an unallocated slot. The port ignores the call.
+  - 5:61b2 (colour set into the palette) reads an uninitialised local as
+    the colour set for set ids other than 3 and 5-13 (the game passes only
+    those). The port loads no colours for them.
+  - 5:4378 restores an uninitialised palette handle when the slot has no
+    palette; ordinal 1 returns an uninitialised handle for image id 0;
+    ordinal 6 sizes the mask from an uninitialised BITMAP when GetObject
+    fails. The port uses 0 / gives no bitmap.
+  - Image data is checked against the resource size (the DLL trusts it).
+- **Quirks kept:**
+  - Mode 6 returns -1 both when no entry is free and when a near colour
+    (all channels within 3) is already there; it does not return that
+    entry. Entries 10 and 245 are never given out.
+  - Mode 1 with n = -1000 (white) and the black fills change only the DLL's
+    copy; the screen palette changes at the next mode 3 (or mode 4, 5, 7).
+  - 5:61b2 and mode 1 store a colour set's range as byte offsets, mode 1
+    counted from the palette header, 5:61b2 from the first entry (one entry
+    apart).
+- **Uncertain:** `CreateDIBitmap` with DIB_RGB_COLORS takes the nearest
+  entry of the DC's logical palette (squared RGB distance, first one on a
+  tie). Windows 3.1's exact metric and tie rule are not verified; images
+  loaded in mode 3 (all 16-colour game images so far) depend on it.
