@@ -2,6 +2,7 @@
  * of palette indices (as on a 256-colour display) or monochrome 0/1. */
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "gdi.h"
 
@@ -61,11 +62,22 @@ void draw_blit(Dc *d, int x, int y, int w, int h, Dc *s, int sx, int sy, int sw,
     int x0 = w < 0 ? x + w + 1 : x, y0 = h < 0 ? y + h + 1 : y;
     int sx0 = sw < 0 ? sx + sw + 1 : sx, sy0 = sh < 0 ? sy + sh + 1 : sy;
     int mx = (w < 0) != (sw < 0), my = (h < 0) != (sh < 0);
+    const uint8_t *spx = sb ? sb->px : NULL;
+    uint8_t *copy = NULL;
     int i, j;
     uint8_t mask;
 
     if (!db || !aw || !ah || (s && (!sb || !asw || !ash)))
         return;
+    /* Within one bitmap the source is read as it was before the blit,
+     * however the rectangles overlap, as Windows does. */
+    if (sb == db) {
+        size_t n = (size_t)db->w * db->h;
+        if (!(copy = malloc(n)))
+            return;
+        memcpy(copy, db->px, n);
+        spx = copy;
+    }
     mask = db->mono ? 1 : 0xff;
     for (j = 0; j < ah; j++) {
         int ty = y0 + j, syy = 0;
@@ -86,12 +98,13 @@ void draw_blit(Dc *d, int x, int y, int w, int h, Dc *s, int sx, int sy, int sw,
                 int k = (int)((long)i * asw / aw);
                 int sxx = sx0 + (mx ? asw - 1 - k : k);
                 if (sxx >= 0 && sxx < sb->w && syy >= 0 && syy < sb->h)
-                    sv = convert(d, db, s, sb, sb->px[(size_t)syy * sb->w + sxx]);
+                    sv = convert(d, db, s, sb, spx[(size_t)syy * sb->w + sxx]);
             }
             pv = brush_pixel(d, br, tx - d->ox, ty - d->oy);
             row[tx] = rop3(code, pv, sv, row[tx]) & mask;
         }
     }
+    free(copy);
 }
 
 void draw_fill(Dc *d, const RECT *r, HBRUSH brush, DWORD rop)

@@ -473,6 +473,20 @@ in ispace_room.h.
   green full part with yellow and dark green edges.
 - **Verified** with the oracle (panel.txt): all identical.
 
+## GDI (port/src/win/draw.c)
+
+- **Blits within one bitmap** read the source as it was before the blit,
+  however source and destination overlap, as Windows' BitBlt does. A
+  burning icon in a wave (7:477e, then 7:4d86 each frame) melts by
+  copying narrow columns of its pane a row or two down onto themselves,
+  in the icon sheet and in its five burning frames. Drawn row by row
+  from the top, each copied row was copied again, so every column
+  touched became the black border above the pane, and within a second
+  the icon (and the panel's target picture of it) was a few red stripes.
+  The oracle's stand-in (tools/dll_oracle/emu.py) reads the same way.
+  [uncertain: whether Windows 3.1's StretchBlt did so too for an
+  overlapping stretch, as 7:3a42's shrinking icon has.]
+
 ## Text (port/src/win/text.c)
 
 - **Fonts.** Liberation Sans for Arial (and every other face, including

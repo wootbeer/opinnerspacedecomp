@@ -720,7 +720,8 @@ def brush_pixel(e, d, x, y):
 
 def blit(e, dst, x, y, w, h, src, sx, sy, sw, sh, rop):
     """port/src/win/draw.c draw_blit: any ROP3 on palette indices,
-    stretching by nearest pixel, negative extents mirror."""
+    stretching by nearest pixel, negative extents mirror; within one
+    bitmap the source is read as it was before the blit."""
     x, y, w, h, sx, sy, sw, sh = map(s16, (x, y, w, h, sx, sy, sw, sh))
     d, s = e.obj(dst, 'dc'), e.obj(src, 'dc') if src is not None else None
     db = e.bitmap(d['bmp']) if d else None
@@ -735,6 +736,7 @@ def blit(e, dst, x, y, w, h, src, sx, sy, sw, sh, rop):
     mask = 1 if db['mono'] else 0xff
     sbk = pixel_of(e, s, s['bk']) if sb and not sb['mono'] and db['mono'] else None
     W, H, px = db['w'], db['h'], db['px']
+    spx = sb and (bytes(sb['px']) if sb is db else sb['px'])
     for j in range(ah):
         ty = y0 + j
         if not 0 <= ty < H:
@@ -752,7 +754,7 @@ def blit(e, dst, x, y, w, h, src, sx, sy, sw, sh, rop):
                 k = i * asw // aw
                 sxx = sx0 + (asw - 1 - k if mx else k)
                 if 0 <= sxx < sb['w'] and 0 <= syy < sb['h']:
-                    sv = sb['px'][syy * sb['w'] + sxx]
+                    sv = spx[syy * sb['w'] + sxx]
                     if sb['mono'] != db['mono']:
                         sv = pixel_of(e, d, d['bk'] if sv else d['text']) if sb['mono'] else int(sv == sbk)
             pv = brush_pixel(e, d, tx, ty)
