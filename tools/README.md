@@ -12,6 +12,7 @@ Python 3. Run from the repo root; game files live in `data/` (git-ignored).
 | `omf_match.py NE LIB... [--list]` | Finds OMF library modules (C runtime) in an NE file's code, fixup bytes masked. |
 | `fat12_extract.py IMG DIR` | Extracts a FAT12 floppy image (install disks). |
 | `msexpand.c` | Expands Microsoft COMPRESS files (KWAJ or SZDD) with libmspack: `cc -std=c99 -Wall -Wextra -pedantic -O2 -o msexpand tools/msexpand.c -lmspack` (`apt-get install libmspack-dev`). |
+| `dll_oracle/` | Test oracle: ISPACE.DLL ordinals run on the original DLL (Unicorn) and on the port, compared; see below. |
 | `szdd_expand.py SRC DST` | Pure-Python SZDD expander (SZDD only; the C7 disks are KWAJ, use `msexpand`). |
 
 Unpack everything into the git-ignored `unpacked/`:
@@ -67,3 +68,35 @@ pointer fixup per file sit right after a `call far` (9A) opcode.
 `/home/user/toolchain/msvc`; flags `CFLAGS`, default `/AM /G3 /Gw /Gs /Os`) and
 compares every function tagged `/* @addr SEG:OFF */` with the game. Needs
 `dosbox` and the MSVC 1.5x `BIN`, `LIB`, `INCLUDE` (not in git).
+
+## DLL oracle (`dll_oracle/`)
+
+A test tool, never part of the port: runs ISPACE.DLL's own code (unpacked
+in memory from the user's `data/ISPACE.DLL`) under Unicorn with Python
+stand-ins for the Windows calls it makes, runs the same calls on the
+port's native versions, and compares the results, returned bitmaps pixel
+for pixel and palettes entry for entry. Needs `pip install unicorn` (2.1)
+and SDL3 for the port side.
+
+```
+cmake -S tools/dll_oracle -B build/dll_oracle -DCMAKE_PREFIX_PATH=<SDL3 install>
+cmake --build build/dll_oracle
+python3 -I tools/dll_oracle/oracle.py tools/dll_oracle/smooth.txt
+```
+
+- `emu.py`: the emulated DLL (`IspaceEmu`: loading, relocations, import
+  stand-ins, `call_ordinal`). The stand-ins model memory, resources,
+  palettes and 8-bit bitmaps with their pixels; a call without one stops
+  the run with its name. Colour matching (`CreateDIBitmap` with RGB
+  colours, `LoadBitmap`) follows the port's rule, so it is not checked.
+- `port_calls.c`: runs a script on the port's `ispace_*` routines and
+  prints the results (built from the port's sources without `main.c`).
+- `oracle.py SCRIPT`: runs both and lists each call as same or differs.
+  A script line is `ORDINAL ARG...`; an argument is a number, `"text"`,
+  `@K` (the result of call K, from 0) or `DC` (a screen DC). Ordinals 1,
+  3, 4, 5, 6 and 12 are supported; add others to `ORDINALS` (oracle.py)
+  and `run` (port_calls.c).
+- `smooth.txt`: the palette set-up up to the title and ordinal 12 on 21
+  images of IGRAPHIC.DLL. All agree. (Image 200, taller than wide, differs
+  in 37 pixels of its top rows: the DLL reads past its pixels there, see
+  port/NOTES-port.md.)

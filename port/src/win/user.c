@@ -1,23 +1,23 @@
-/* USER: window classes, windows, the message queue, timers and input.
- * Every window draws straight into the screen; its client area is the
- * whole window rectangle. */
-#include <SDL3/SDL_events.h>
+/* USER: window classes, windows, focus, painting, the message queue and
+ * timers.  Every window draws straight into the screen; top-level windows
+ * are stacked in the order they were made, and window DCs do not draw
+ * where a later popup lies (wnd_occluders). */
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_timer.h>
 #include <string.h>
 
-#include "winrt.h"
+#include "user.h"
 #include "platform/platform.h"
-#include "video.h"
 
-#define MAX_CLASSES 16
-#define MAX_WINDOWS 64
+#define MAX_CLASSES 24
+#define MAX_WINDOWS 128
 #define MAX_TIMERS 16
 #define QUEUE_LEN 256
 #define SCREEN_W 640
 #define SCREEN_H 480
-#define FRAME_MS 16
+#define CAPTION_H 19        /* SM_CYCAPTION less the line it shares with the frame */
+#define DLGFRAME 4
 
 static struct {
     char name[32];
@@ -25,30 +25,81 @@ static struct {
 } classes[MAX_CLASSES];
 static int class_count;
 
-static HWND windows[MAX_WINDOWS];
-static HWND active, focus;
+static HWND windows[MAX_WINDOWS];   /* in creation order: parents before children */
+static HWND active, focus, capture;
 
 static struct {
     HWND hwnd;
     UINT id, ms;
     uint32_t due;
     TIMERPROC proc;
-    int pending;
 } timers[MAX_TIMERS];
 
+static uint32_t zgen;
 static MSG queue[QUEUE_LEN];
 static int q_head, q_count;
 static int quit_posted, quit_code;
-
-static BYTE keys[256];
-static POINT cursor;
-static uint32_t last_frame;
 
 Wnd *wnd_get(HWND h)
 {
     return handle_get(h, H_WND);
 }
 
+int wnd_is_child(const Wnd *w)
+{
+    return (w->style & WS_CHILD) != 0;
+}
+
+static int wnd_visible(const Wnd *w)
+{
+    while (w && w->visible) {
+        if (!wnd_is_child(w))
+            return 1;
+        w = wnd_get(w->parent);
+    }
+    return 0;
+}
+
+static const Wnd *top_level(const Wnd *w)
+{
+    const Wnd *p;
+
+    while (w && wnd_is_child(w) && (p = wnd_get(w->parent)) != NULL)
+        w = p;
+    return w;
+}
+
+static int z_index(HWND h)
+{
+    int i;
+
+    for (i = 0; i < MAX_WINDOWS; i++)
+        if (windows[i] == h)
+            return i;
+    return -1;
+}
+
+int wnd_occluders(const Wnd *w, RECT *out, int max)
+{
+    int i, n = 0;
+
+    w = top_level(w);
+    if (!w)
+        return 0;
+    for (i = z_index(w->hwnd) + 1; i < MAX_WINDOWS && n < max; i++) {
+        Wnd *o = wnd_get(windows[i]);
+        if (o && !wnd_is_child(o) && o->visible)
+            out[n++] = o->rect;
+    }
+    return n;
+}
+
+uint32_t wnd_zgen(void)
+{
+    return zgen;
+}
+
+/* Classes. */
 static const WNDCLASS *find_class(LPCSTR name)
 {
     int i;
@@ -69,6 +120,118 @@ ATOM RegisterClass(const WNDCLASS *wc)
     return (ATOM)(0xc000 + class_count++);
 }
 
+BOOL UnregisterClass(LPCSTR name, HINSTANCE inst)
+{
+    int i;
+
+    (void)inst;
+    for (i = 0; i < class_count; i++)
+        if (!SDL_strcasecmp(classes[i].name, name)) {
+            classes[i] = classes[--class_count];
+            classes[i].wc.lpszClassName = classes[i].name;
+            return 1;
+        }
+    return 0;
+}
+
+int16_t GetClassName(HWND h, LPSTR name, int16_t n)
+{
+    Wnd *w = wnd_get(h);
+
+    if (!w || n <= 0)
+        return 0;
+    SDL_strlcpy(name, w->cls, (size_t)n);
+    return (int16_t)SDL_strlen(name);
+}
+
+/* Window geometry. */
+void wnd_frame(DWORD style, int dialog, RECT *client, const RECT *rect)
+{
+    int b = 0, top = 0;
+
+    if ((dialog && style & DS_MODALFRAME) || (style & WS_CAPTION) == WS_DLGFRAME)
+        b = DLGFRAME;
+    else if (style & WS_BORDER)
+        b = 1;
+    if ((style & WS_CAPTION) == WS_CAPTION)
+        top = CAPTION_H;
+    SetRect(client, (int16_t)(rect->left + b), (int16_t)(rect->top + b + top),
+            (int16_t)(rect->right - b), (int16_t)(rect->bottom - b));
+}
+
+static void offset_tree(HWND h, int dx, int dy)
+{
+    Wnd *w = wnd_get(h);
+    int i;
+
+    OffsetRect(&w->rect, (int16_t)dx, (int16_t)dy);
+    OffsetRect(&w->client, (int16_t)dx, (int16_t)dy);
+    OffsetRect(&w->update, (int16_t)dx, (int16_t)dy);
+    for (i = 0; i < MAX_WINDOWS; i++) {
+        Wnd *c = wnd_get(windows[i]);
+        if (c && wnd_is_child(c) && c->parent == h)
+            offset_tree(c->hwnd, dx, dy);
+    }
+}
+
+/* Adds r (screen) to what w must repaint. */
+static void invalidate(Wnd *w, const RECT *r, int erase)
+{
+    RECT x;
+
+    if (!IntersectRect(&x, r, &w->rect))
+        return;
+    if (w->dirty) {
+        UnionRect(&w->update, &w->update, &x);
+    } else {
+        w->update = x;
+        w->dirty = 1;
+    }
+    w->erase |= erase;
+}
+
+/* Marks what lies under r (screen) for repainting, as Windows does when
+ * a window above goes away or moves. */
+static void uncover(const RECT *r)
+{
+    int i;
+
+    for (i = 0; i < MAX_WINDOWS; i++) {
+        Wnd *w = wnd_get(windows[i]);
+        if (w && wnd_visible(w))
+            invalidate(w, r, 1);
+    }
+}
+
+/* Places w at (x, y) (relative to its parent's client area for a child)
+ * with size cx x cy, moving its children along.  Returns 0 when nothing
+ * changed. */
+static int place(Wnd *w, int x, int y, int cx, int cy)
+{
+    Wnd *p = wnd_is_child(w) ? wnd_get(w->parent) : NULL;
+    RECT old = w->rect;
+    int dx, dy;
+
+    if (p) {
+        x += p->client.left;
+        y += p->client.top;
+    }
+    dx = x - w->rect.left;
+    dy = y - w->rect.top;
+    if (!dx && !dy && cx == w->rect.right - w->rect.left && cy == w->rect.bottom - w->rect.top)
+        return 0;
+    if (dx || dy)
+        offset_tree(w->hwnd, dx, dy);
+    w->rect.right = (int16_t)(w->rect.left + cx);
+    w->rect.bottom = (int16_t)(w->rect.top + cy);
+    wnd_frame(w->style, dialog_is(w->hwnd), &w->client, &w->rect);
+    zgen++;
+    if (wnd_visible(w))
+        uncover(&old);
+    return 1;
+}
+
+/* Windows. */
 HWND CreateWindow(LPCSTR cls, LPCSTR title, DWORD style, int16_t x, int16_t y, int16_t w, int16_t h,
                   HWND parent, HMENU menu, HINSTANCE inst, void *param)
 {
@@ -76,7 +239,6 @@ HWND CreateWindow(LPCSTR cls, LPCSTR title, DWORD style, int16_t x, int16_t y, i
     Wnd *wnd;
     int i;
 
-    (void)inst;
     (void)param;
     if (!wc || !(wnd = calloc(1, sizeof *wnd)))
         return 0;
@@ -89,7 +251,9 @@ HWND CreateWindow(LPCSTR cls, LPCSTR title, DWORD style, int16_t x, int16_t y, i
     wnd->style = style;
     wnd->parent = parent;
     wnd->id = menu;
-    SetRect(&wnd->rect, x, y, x + w, y + h);
+    wnd->inst = inst;
+    wnd->background = wc->hbrBackground;
+    SDL_strlcpy(wnd->cls, wc->lpszClassName, sizeof wnd->cls);
     SDL_strlcpy(wnd->text, title ? title : "", sizeof wnd->text);
     wnd->hwnd = handle_new(H_WND, wnd);
     if (!wnd->hwnd) {
@@ -100,12 +264,14 @@ HWND CreateWindow(LPCSTR cls, LPCSTR title, DWORD style, int16_t x, int16_t y, i
         ;
     if (i < MAX_WINDOWS)
         windows[i] = wnd->hwnd;
+    place(wnd, x, y, w, h);
     if (wnd->proc(wnd->hwnd, WM_CREATE, 0, 0) == -1) {
         DestroyWindow(wnd->hwnd);
         return 0;
     }
     if (wnd_get(wnd->hwnd)) {
-        wnd->proc(wnd->hwnd, WM_SIZE, 0, MAKELONG(w, h));
+        wnd->proc(wnd->hwnd, WM_SIZE, 0, MAKELONG(wnd->client.right - wnd->client.left,
+                                                  wnd->client.bottom - wnd->client.top));
         wnd->proc(wnd->hwnd, WM_MOVE, 0, MAKELONG(x, y));
     }
     if (style & WS_VISIBLE)
@@ -120,6 +286,9 @@ BOOL DestroyWindow(HWND h)
 
     if (!w)
         return 0;
+    if (w->visible && !wnd_is_child(w))
+        uncover(&w->rect);
+    zgen++;
     for (i = 0; i < MAX_WINDOWS; i++)
         if (windows[i] && wnd_get(windows[i]) && wnd_get(windows[i])->parent == h)
             DestroyWindow(windows[i]);
@@ -134,7 +303,10 @@ BOOL DestroyWindow(HWND h)
         active = 0;
     if (focus == h)
         focus = 0;
+    if (capture == h)
+        capture = 0;
     handle_free(h);
+    free(w->data);
     free(w);
     return 1;
 }
@@ -153,10 +325,13 @@ BOOL ShowWindow(HWND h, int16_t cmd)
         return 0;
     was = w->visible;
     w->visible = cmd != SW_HIDE;
+    zgen++;
     if (w->visible) {
-        w->dirty = 1;
-        if (!active)
-            active = focus = h;
+        invalidate(w, &w->rect, 1);
+        if (!active && !wnd_is_child(w))
+            SetActiveWindow(h);
+    } else if (was) {
+        uncover(&w->rect);
     }
     return (BOOL)was;
 }
@@ -165,18 +340,34 @@ void UpdateWindow(HWND h)
 {
     Wnd *w = wnd_get(h);
 
-    if (w && w->visible && w->dirty)
+    if (w && wnd_visible(w) && w->dirty)
         SendMessage(h, WM_PAINT, 0, 0);
+}
+
+/* Children are repainted where their parent is (no WS_CLIPCHILDREN). */
+static void invalidate_tree(Wnd *w, const RECT *r, int erase)
+{
+    int i;
+
+    invalidate(w, r, erase);
+    for (i = z_index(w->hwnd) + 1; i > 0 && i < MAX_WINDOWS; i++) {
+        Wnd *c = wnd_get(windows[i]);
+        if (c && wnd_is_child(c) && c->parent == w->hwnd)
+            invalidate_tree(c, r, erase);
+    }
 }
 
 void InvalidateRect(HWND h, const RECT *r, BOOL erase)
 {
     Wnd *w = wnd_get(h);
+    RECT s;
 
-    (void)r;
-    (void)erase;
-    if (w)
-        w->dirty = 1;
+    if (!w)
+        return;
+    s = r ? *r : w->rect;
+    if (r)
+        OffsetRect(&s, w->client.left, w->client.top);
+    invalidate_tree(w, &s, erase != 0);
 }
 
 BOOL IsIconic(HWND h)
@@ -187,14 +378,29 @@ BOOL IsIconic(HWND h)
 
 BOOL IsWindowEnabled(HWND h)
 {
-    return wnd_get(h) != NULL;
+    Wnd *w = wnd_get(h);
+
+    return w && !(w->style & WS_DISABLED);
 }
 
 BOOL EnableWindow(HWND h, BOOL on)
 {
-    (void)h;
-    (void)on;
-    return 0;
+    Wnd *w = wnd_get(h);
+    int was_disabled;
+
+    if (!w)
+        return 0;
+    was_disabled = (w->style & WS_DISABLED) != 0;
+    if (on)
+        w->style &= ~WS_DISABLED;
+    else
+        w->style |= WS_DISABLED;
+    if (was_disabled == !on)
+        return (BOOL)was_disabled;
+    if (!on && focus == h)
+        SetFocus(0);
+    SendMessage(h, WM_ENABLE, (WPARAM)(on != 0), 0);
+    return (BOOL)was_disabled;
 }
 
 HWND GetActiveWindow(void)
@@ -205,9 +411,13 @@ HWND GetActiveWindow(void)
 HWND SetActiveWindow(HWND h)
 {
     HWND old = active;
+    Wnd *f = wnd_get(focus);
 
-    if (wnd_get(h))
-        active = h;
+    if (!wnd_get(h))
+        return old;
+    active = h;
+    if (!f || top_level(f)->hwnd != h)
+        SetFocus(h);
     return old;
 }
 
@@ -220,8 +430,92 @@ HWND SetFocus(HWND h)
 {
     HWND old = focus;
 
+    if (h == old || (h && !wnd_get(h)))
+        return old;
+    if (old)
+        SendMessage(old, WM_KILLFOCUS, h, 0);
     focus = h;
+    if (h)
+        SendMessage(h, WM_SETFOCUS, old, 0);
     return old;
+}
+
+HWND SetCapture(HWND h)
+{
+    HWND old = capture;
+
+    capture = h;
+    return old;
+}
+
+void ReleaseCapture(void)
+{
+    capture = 0;
+}
+
+HWND GetParent(HWND h)
+{
+    Wnd *w = wnd_get(h);
+
+    return w ? w->parent : 0;
+}
+
+/* GW_CHILD: the first child; GW_HWNDNEXT: the next child of the same
+ * parent, in creation order. */
+HWND GetWindow(HWND h, UINT cmd)
+{
+    Wnd *w = wnd_get(h);
+    HWND parent;
+    int i;
+
+    if (!w || (cmd != GW_CHILD && cmd != GW_HWNDNEXT))
+        return 0;
+    parent = cmd == GW_CHILD ? h : w->parent;
+    for (i = cmd == GW_CHILD ? 0 : z_index(h) + 1; i < MAX_WINDOWS; i++) {
+        Wnd *c = wnd_get(windows[i]);
+        if (c && wnd_is_child(c) && c->parent == parent)
+            return c->hwnd;
+    }
+    return 0;
+}
+
+/* The last visible window containing p among the top-level windows
+ * (parent 0) or the children of parent. */
+static HWND topmost_at(HWND parent, POINT p)
+{
+    HWND found = 0;
+    int i;
+
+    for (i = 0; i < MAX_WINDOWS; i++) {
+        Wnd *w = wnd_get(windows[i]);
+        if (w && w->visible && PtInRect(&w->rect, p) &&
+            (parent ? wnd_is_child(w) && w->parent == parent : !wnd_is_child(w)))
+            found = w->hwnd;
+    }
+    return found;
+}
+
+HWND wnd_at(int x, int y)
+{
+    POINT p;
+    HWND h, c;
+
+    p.x = (int16_t)x;
+    p.y = (int16_t)y;
+    h = topmost_at(0, p);
+    if (!IsWindowEnabled(h))
+        return 0;
+    while ((c = topmost_at(h, p)) != 0 && IsWindowEnabled(c))
+        h = c;
+    return h;
+}
+
+void wnd_send_click(HWND h, UINT msg, int x, int y, WPARAM keys)
+{
+    Wnd *w = wnd_get(capture ? capture : h);
+
+    if (w)
+        PostMessage(w->hwnd, msg, keys, MAKELONG(x - w->client.left, y - w->client.top));
 }
 
 void GetClientRect(HWND h, RECT *r)
@@ -229,7 +523,7 @@ void GetClientRect(HWND h, RECT *r)
     Wnd *w = wnd_get(h);
 
     if (w)
-        SetRect(r, 0, 0, w->rect.right - w->rect.left, w->rect.bottom - w->rect.top);
+        SetRect(r, 0, 0, w->client.right - w->client.left, w->client.bottom - w->client.top);
     else
         SetRect(r, 0, 0, SCREEN_W, SCREEN_H);
 }
@@ -249,38 +543,54 @@ void ClientToScreen(HWND h, POINT *p)
     Wnd *w = wnd_get(h);
 
     if (w) {
-        p->x += w->rect.left;
-        p->y += w->rect.top;
+        p->x += w->client.left;
+        p->y += w->client.top;
+    }
+}
+
+void ScreenToClient(HWND h, POINT *p)
+{
+    Wnd *w = wnd_get(h);
+
+    if (w) {
+        p->x -= w->client.left;
+        p->y -= w->client.top;
     }
 }
 
 BOOL MoveWindow(HWND h, int16_t x, int16_t y, int16_t cx, int16_t cy, BOOL repaint)
 {
     Wnd *w = wnd_get(h);
+    int moved;
 
     if (!w)
         return 0;
-    SetRect(&w->rect, x, y, x + cx, y + cy);
-    w->proc(h, WM_SIZE, 0, MAKELONG(cx, cy));
+    moved = place(w, x, y, cx, cy);
+    w->proc(h, WM_SIZE, 0, MAKELONG(w->client.right - w->client.left, w->client.bottom - w->client.top));
     w->proc(h, WM_MOVE, 0, MAKELONG(x, y));
-    if (repaint)
-        w->dirty = 1;
+    if (repaint && moved)
+        invalidate(w, &w->rect, 1);
     return 1;
 }
 
 BOOL SetWindowPos(HWND h, HWND after, int16_t x, int16_t y, int16_t cx, int16_t cy, UINT flags)
 {
     Wnd *w = wnd_get(h);
+    Wnd *p;
 
     (void)after;
     if (!w)
         return 0;
-    if (!(flags & SWP_NOMOVE))
-        SetRect(&w->rect, x, y, x + w->rect.right - w->rect.left, y + w->rect.bottom - w->rect.top);
-    if (!(flags & SWP_NOSIZE)) {
-        w->rect.right = w->rect.left + cx;
-        w->rect.bottom = w->rect.top + cy;
+    p = wnd_is_child(w) ? wnd_get(w->parent) : NULL;
+    if (flags & SWP_NOMOVE) {
+        x = (int16_t)(w->rect.left - (p ? p->client.left : 0));
+        y = (int16_t)(w->rect.top - (p ? p->client.top : 0));
     }
+    if (flags & SWP_NOSIZE) {
+        cx = (int16_t)(w->rect.right - w->rect.left);
+        cy = (int16_t)(w->rect.bottom - w->rect.top);
+    }
+    place(w, x, y, cx, cy);
     return 1;
 }
 
@@ -288,8 +598,10 @@ void SetWindowText(HWND h, LPCSTR s)
 {
     Wnd *w = wnd_get(h);
 
-    if (w)
-        SDL_strlcpy(w->text, s, sizeof w->text);
+    if (!w)
+        return;
+    SDL_strlcpy(w->text, s, sizeof w->text);
+    SendMessage(h, WM_SETTEXT, 0, 0);
 }
 
 int16_t GetWindowText(HWND h, LPSTR s, int16_t n)
@@ -319,6 +631,19 @@ WORD SetWindowWord(HWND h, int16_t index, WORD v)
     old = w->words[index / 2];
     w->words[index / 2] = v;
     return old;
+}
+
+WORD GetWindowWord(HWND h, int16_t index)
+{
+    Wnd *w = wnd_get(h);
+
+    if (!w)
+        return 0;
+    if (index == GWW_ID)
+        return w->id;
+    if (index == GWW_HINSTANCE)
+        return w->inst;
+    return index >= 0 && index / 2 < 8 ? w->words[index / 2] : 0;
 }
 
 LONG GetWindowLong(HWND h, int16_t index)
@@ -387,16 +712,28 @@ int16_t GetSystemMetrics(int16_t i)
 }
 
 /* Painting. */
+/* The DC is clipped to what needs painting. */
 HDC BeginPaint(HWND h, PAINTSTRUCT *ps)
 {
     Wnd *w = wnd_get(h);
+    HRGN rgn;
 
     memset(ps, 0, sizeof *ps);
     if (!w)
         return 0;
+    if (!w->dirty)
+        SetRect(&w->update, 0, 0, 0, 0);
     w->dirty = 0;
     ps->hdc = GetDC(h);
-    GetClientRect(h, &ps->rcPaint);
+    ps->rcPaint = w->update;
+    OffsetRect(&ps->rcPaint, (int16_t)-w->client.left, (int16_t)-w->client.top);
+    rgn = CreateRectRgn(ps->rcPaint.left, ps->rcPaint.top, ps->rcPaint.right, ps->rcPaint.bottom);
+    SelectClipRgn(ps->hdc, rgn);
+    DeleteObject(rgn);
+    if (w->erase) {
+        w->erase = 0;
+        ps->fErase = !SendMessage(h, WM_ERASEBKGND, ps->hdc, 0);
+    }
     return ps->hdc;
 }
 
@@ -405,12 +742,73 @@ void EndPaint(HWND h, const PAINTSTRUCT *ps)
     ReleaseDC(h, ps->hdc);
 }
 
+/* The frame of a window with a border or caption: Windows 3.1's look
+ * (black outline, caption in the active caption colour, centred title). */
+static void paint_frame(Wnd *w)
+{
+    HDC dc = GetWindowDC(w->hwnd);
+    int wd = w->rect.right - w->rect.left, ht = w->rect.bottom - w->rect.top;
+    int b = w->client.left - w->rect.left, top = w->client.top - w->rect.top;
+    HBRUSH frame = CreateSolidBrush(GetSysColor(COLOR_WINDOWFRAME));
+    HBRUSH caption = CreateSolidBrush(GetSysColor(COLOR_ACTIVECAPTION));
+    RECT r;
+
+    SetRect(&r, 0, 0, (int16_t)wd, (int16_t)ht);
+    FillRect(dc, &r, caption);
+    FrameRect(dc, &r, frame);
+    if (b > 1) {
+        SetRect(&r, (int16_t)(b - 1), (int16_t)(b - 1), (int16_t)(wd - b + 1), (int16_t)(ht - b + 1));
+        FrameRect(dc, &r, frame);
+    }
+    if (top > b) {
+        HFONT font = CreateFont(-12, 0, 0, 0, 700, 0, 0, 0, 0, 0, 0, 0, 0, "System");
+        HFONT old = SelectObject(dc, font);
+        SetRect(&r, (int16_t)(b - 1), (int16_t)(top - 1), (int16_t)(wd - b + 1), (int16_t)top);
+        FillRect(dc, &r, frame);
+        SetBkMode(dc, TRANSPARENT);
+        SetTextColor(dc, GetSysColor(COLOR_CAPTIONTEXT));
+        SetTextAlign(dc, TA_CENTER);
+        TextOut(dc, (int16_t)(wd / 2), (int16_t)(b + 2), w->text, (int16_t)SDL_strlen(w->text));
+        SelectObject(dc, old);
+        DeleteObject(font);
+    }
+    DeleteObject(frame);
+    DeleteObject(caption);
+    ReleaseDC(w->hwnd, dc);
+}
+
+/* The brush of a system colour, made once. */
+static HBRUSH sys_brush(int i)
+{
+    static HBRUSH made[32];
+
+    if (!made[i & 31])
+        made[i & 31] = CreateSolidBrush(GetSysColor((int16_t)i));
+    return made[i & 31];
+}
+
 LRESULT DefWindowProc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
 {
+    Wnd *w = wnd_get(h);
     PAINTSTRUCT ps;
+    RECT r;
 
     (void)lp;
     switch (msg) {
+    case WM_NCPAINT:
+        if (w && (w->client.left != w->rect.left || w->client.top != w->rect.top))
+            paint_frame(w);
+        return 0;
+    case WM_CTLCOLOR:
+        SetTextColor(wp, GetSysColor(COLOR_WINDOWTEXT));
+        SetBkColor(wp, GetSysColor(COLOR_WINDOW));
+        return sys_brush(COLOR_WINDOW);
+    case WM_ERASEBKGND:
+        if (!w || !w->background)
+            return 0;
+        GetClientRect(h, &r);
+        FillRect(wp, &r, w->background);
+        return 1;
     case WM_PAINT:
         BeginPaint(h, &ps);
         EndPaint(h, &ps);
@@ -430,16 +828,18 @@ LRESULT DefWindowProc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
 BOOL PostMessage(HWND h, UINT msg, WPARAM wp, LPARAM lp)
 {
     MSG *m;
+    POINT pt;
 
     if (q_count == QUEUE_LEN)
         return 0;
+    GetCursorPos(&pt);
     m = &queue[(q_head + q_count++) % QUEUE_LEN];
     m->hwnd = h;
     m->message = msg;
     m->wParam = wp;
     m->lParam = lp;
     m->time = platform_time_ms();
-    m->pt = cursor;
+    m->pt = pt;
     return 1;
 }
 
@@ -463,7 +863,24 @@ static void make_msg(MSG *m, HWND h, UINT msg, WPARAM wp, LPARAM lp)
     m->wParam = wp;
     m->lParam = lp;
     m->time = platform_time_ms();
-    m->pt = cursor;
+    GetCursorPos(&m->pt);
+}
+
+/* The next window to paint, parents before children; its frame is
+ * painted first. */
+static HWND next_paint(void)
+{
+    int i;
+
+    for (i = 0; i < MAX_WINDOWS; i++) {
+        Wnd *w = wnd_get(windows[i]);
+        if (w && w->dirty && wnd_visible(w)) {
+            if (w->erase)
+                SendMessage(w->hwnd, WM_NCPAINT, 0, 0);
+            return w->hwnd;
+        }
+    }
+    return 0;
 }
 
 /* The next message in Windows' order: posted (and input), quit, paint,
@@ -471,6 +888,7 @@ static void make_msg(MSG *m, HWND h, UINT msg, WPARAM wp, LPARAM lp)
 static int next_message(MSG *m, int remove)
 {
     uint32_t now = platform_time_ms();
+    HWND paint;
     int i;
 
     if (q_count) {
@@ -487,12 +905,9 @@ static int next_message(MSG *m, int remove)
             quit_posted = 0;
         return 1;
     }
-    for (i = 0; i < MAX_WINDOWS; i++) {
-        Wnd *w = wnd_get(windows[i]);
-        if (w && w->visible && w->dirty) {
-            make_msg(m, w->hwnd, WM_PAINT, 0, 0);
-            return 1;
-        }
+    if ((paint = next_paint()) != 0) {
+        make_msg(m, paint, WM_PAINT, 0, 0);
+        return 1;
     }
     for (i = 0; i < MAX_TIMERS; i++) {
         if (timers[i].ms && (int32_t)(now - timers[i].due) >= 0) {
@@ -525,19 +940,6 @@ BOOL GetMessage(MSG *m, HWND h, UINT lo, UINT hi)
             return m->message != WM_QUIT;
         SDL_Delay(1);
     }
-}
-
-BOOL TranslateMessage(const MSG *m)
-{
-    int c = (int)m->wParam;
-
-    if (m->message != WM_KEYDOWN)
-        return 0;
-    if (c >= 'A' && c <= 'Z' && !(keys[VK_SHIFT] & 0x80))
-        c += 'a' - 'A';
-    else if (!((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || c == ' ' || c == 13 || c == 27 || c == 8))
-        return 0;
-    return PostMessage(m->hwnd, WM_CHAR, (WPARAM)c, m->lParam);
 }
 
 LONG DispatchMessage(const MSG *m)
@@ -585,157 +987,11 @@ BOOL KillTimer(HWND h, UINT id)
     return 0;
 }
 
-/* Input. */
-static int vk_of(SDL_Keycode k)
+/* Keyboard and mouse messages go to the focus window (else the active
+ * one) and to the window under the cursor (or the capture). */
+HWND user_key_target(void)
 {
-    if (k >= 'a' && k <= 'z')
-        return (int)(k - 'a' + 'A');
-    if ((k >= '0' && k <= '9') || k == ' ')
-        return (int)k;
-    if (k >= SDLK_F1 && k <= SDLK_F12)
-        return 0x70 + (int)(k - SDLK_F1);
-    switch (k) {
-    case SDLK_ESCAPE: return 0x1b;
-    case SDLK_RETURN: return 0x0d;
-    case SDLK_BACKSPACE: return 0x08;
-    case SDLK_TAB: return 0x09;
-    case SDLK_LEFT: return 0x25;
-    case SDLK_UP: return 0x26;
-    case SDLK_RIGHT: return 0x27;
-    case SDLK_DOWN: return 0x28;
-    case SDLK_INSERT: return 0x2d;
-    case SDLK_DELETE: return 0x2e;
-    case SDLK_HOME: return 0x24;
-    case SDLK_END: return 0x23;
-    case SDLK_PAGEUP: return 0x21;
-    case SDLK_PAGEDOWN: return 0x22;
-    case SDLK_LSHIFT: case SDLK_RSHIFT: return VK_SHIFT;
-    case SDLK_LCTRL: case SDLK_RCTRL: return VK_CONTROL;
-    case SDLK_LALT: case SDLK_RALT: return VK_MENU;
-    default: return 0;
-    }
-}
-
-static HWND window_at(int x, int y)
-{
-    HWND found = 0;
-    int i;
-
-    for (i = 0; i < MAX_WINDOWS; i++) {
-        Wnd *w = wnd_get(windows[i]);
-        if (w && w->visible && x >= w->rect.left && x < w->rect.right &&
-            y >= w->rect.top && y < w->rect.bottom)
-            found = w->hwnd;
-    }
-    return found ? found : active;
-}
-
-static void post_mouse(UINT msg, int x, int y)
-{
-    HWND h = window_at(x, y);
-    Wnd *w = wnd_get(h);
-    WPARAM wp = 0;
-
-    if (!w)
-        return;
-    if (keys[VK_LBUTTON] & 0x80)
-        wp |= MK_LBUTTON;
-    if (keys[VK_RBUTTON] & 0x80)
-        wp |= MK_RBUTTON;
-    PostMessage(h, msg, wp, MAKELONG(x - w->rect.left, y - w->rect.top));
-}
-
-void win_pump(void)
-{
-    SDL_Event ev;
-    uint32_t now;
-    int vk, x, y;
-
-    while (SDL_PollEvent(&ev)) {
-        switch (ev.type) {
-        case SDL_EVENT_QUIT:
-            if (active)
-                PostMessage(active, WM_CLOSE, 0, 0);
-            else
-                PostQuitMessage(0);
-            break;
-        case SDL_EVENT_KEY_DOWN:
-        case SDL_EVENT_KEY_UP:
-            vk = vk_of(ev.key.key);
-            if (!vk)
-                break;
-            if (ev.type == SDL_EVENT_KEY_DOWN) {
-                if (!(keys[vk] & 0x80))
-                    keys[vk] ^= 1;
-                keys[vk] |= 0x80;
-            } else {
-                keys[vk] &= 0x7f;
-            }
-            if (focus || active)
-                PostMessage(focus ? focus : active, ev.type == SDL_EVENT_KEY_DOWN ? WM_KEYDOWN : WM_KEYUP,
-                            (WPARAM)vk, ev.key.repeat ? 0x40000001L : 1);
-            break;
-        case SDL_EVENT_MOUSE_MOTION:
-            video_map_point(ev.motion.x, ev.motion.y, &x, &y);
-            cursor.x = (int16_t)x;
-            cursor.y = (int16_t)y;
-            post_mouse(WM_MOUSEMOVE, x, y);
-            break;
-        case SDL_EVENT_MOUSE_BUTTON_DOWN:
-        case SDL_EVENT_MOUSE_BUTTON_UP:
-            vk = ev.button.button == SDL_BUTTON_RIGHT ? VK_RBUTTON : VK_LBUTTON;
-            video_map_point(ev.button.x, ev.button.y, &x, &y);
-            if (ev.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
-                keys[vk] |= 0x80;
-            else
-                keys[vk] &= 0x7f;
-            if (ev.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
-                post_mouse(vk == VK_LBUTTON ? (ev.button.clicks == 2 ? WM_LBUTTONDBLCLK : WM_LBUTTONDOWN)
-                                            : WM_RBUTTONDOWN, x, y);
-            else
-                post_mouse(vk == VK_LBUTTON ? WM_LBUTTONUP : WM_RBUTTONUP, x, y);
-            break;
-        default:
-            break;
-        }
-    }
-    now = platform_time_ms();
-    if (now - last_frame >= FRAME_MS) {
-        last_frame = now;
-        app_frame();
-    }
-}
-
-int16_t GetKeyState(int16_t vk)
-{
-    return (int16_t)((keys[vk & 0xff] & 0x80 ? 0xff80 : 0) | (keys[vk & 0xff] & 1));
-}
-
-int16_t GetAsyncKeyState(int16_t vk)
-{
-    win_pump();
-    return (int16_t)(keys[vk & 0xff] & 0x80 ? 0x8000 : 0);
-}
-
-void GetKeyboardState(BYTE *k)
-{
-    memcpy(k, keys, sizeof keys);
-}
-
-void SetKeyboardState(BYTE *k)
-{
-    memcpy(keys, k, sizeof keys);
-}
-
-void GetCursorPos(POINT *p)
-{
-    *p = cursor;
-}
-
-void SetCursorPos(int16_t x, int16_t y)
-{
-    cursor.x = x;
-    cursor.y = y;
+    return focus ? focus : active;
 }
 
 HCURSOR SetCursor(HCURSOR c)
@@ -771,6 +1027,25 @@ void SetRect(RECT *r, int16_t l, int16_t t, int16_t rt, int16_t b)
 void CopyRect(RECT *d, const RECT *s)
 {
     *d = *s;
+}
+
+void OffsetRect(RECT *r, int16_t dx, int16_t dy)
+{
+    r->left += dx;
+    r->right += dx;
+    r->top += dy;
+    r->bottom += dy;
+}
+
+void UnionRect(RECT *d, const RECT *a, const RECT *b)
+{
+    RECT r;
+
+    r.left = a->left < b->left ? a->left : b->left;
+    r.top = a->top < b->top ? a->top : b->top;
+    r.right = a->right > b->right ? a->right : b->right;
+    r.bottom = a->bottom > b->bottom ? a->bottom : b->bottom;
+    *d = r;
 }
 
 BOOL PtInRect(const RECT *r, POINT p)

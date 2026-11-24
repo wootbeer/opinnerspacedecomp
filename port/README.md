@@ -49,6 +49,17 @@ Needs CMake and SDL3.
 
 Run headless (tests): `SDL_VIDEO_DRIVER=offscreen build/inspace --frames 3 --dump out.ppm`.
 
+Command line:
+
+- `--frames N`: run N frames (about 60 a second), then exit.
+- `--dump FILE`: save the last frame as a PPM picture.
+- `--keys "FRAME:KEY,..."`: press KEY at frame FRAME and release it two
+  frames later. KEY is an SDL key name (`Escape`, `Return`, `Down`, `F4`,
+  `X`, ...), modifiers before it with `+` (`Alt+X`, `Shift+Tab`). Example:
+  `--frames 1700 --keys "1600:Escape" --dump out.ppm` shows the Restore
+  Game dialog. Frames follow real time, so the frame a screen appears at
+  varies a little between runs.
+
 Game data (INSPACE.EXE and the other original files) is read from `data/`
 or the folder in `INSPACE_DATA`; it is not part of the repository. The game
 sees it as `C:\SPACE\`; `C:\WINDOWS\` (INSPACE.INI) is the platform's

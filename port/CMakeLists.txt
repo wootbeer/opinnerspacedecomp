@@ -11,12 +11,16 @@ add_executable(inspace
     src/main.c
     src/video.c
     src/platform/platform_sdl.c
+    src/win/controls.c
     src/win/crt.c
     src/win/dgroup.c
+    src/win/dialog.c
     src/win/draw.c
     src/win/gdi.c
     src/win/handles.c
+    src/win/input.c
     src/win/ispace.c
+    src/win/ispace_dlg.c
     src/win/ispace_img.c
     src/win/ispace_pal.c
     src/win/ispace_smooth.c

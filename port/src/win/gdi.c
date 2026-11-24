@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "gdi.h"
+#include "user.h"
 #include "video.h"
 
 /* The 20 static colours of the Windows 3.1 system palette. */
@@ -225,7 +226,8 @@ static HDC new_dc(HWND hwnd, HBITMAP bmp)
     return h;
 }
 
-/* The clip a window DC starts with: its window on the screen. */
+/* The clip a window DC starts with: its client area (whole window for
+ * GetWindowDC) inside its parents' client areas and the screen. */
 static void window_clip(Dc *d)
 {
     Bmp *s = handle_get(screen_bmp, H_BITMAP);
@@ -235,20 +237,56 @@ static void window_clip(Dc *d)
     SetRect(&all, 0, 0, (int16_t)s->w, (int16_t)s->h);
     d->ox = d->oy = 0;
     d->clip = all;
-    if (w) {
-        d->ox = w->rect.left;
-        d->oy = w->rect.top;
-        IntersectRect(&d->clip, &all, &w->rect);
+    if (!w)
+        return;
+    d->ox = d->nonclient ? w->rect.left : w->client.left;
+    d->oy = d->nonclient ? w->rect.top : w->client.top;
+    IntersectRect(&d->clip, &all, d->nonclient ? &w->rect : &w->client);
+    while (wnd_is_child(w) && (w = wnd_get(w->parent)) != NULL)
+        IntersectRect(&d->clip, &d->clip, &w->client);
+}
+
+int gdi_drawable(Dc *d, int x, int y)
+{
+    POINT p;
+    int i;
+
+    if (x < d->clip.left || x >= d->clip.right || y < d->clip.top || y >= d->clip.bottom)
+        return 0;
+    if (!d->hwnd)
+        return 1;
+    if (d->zgen != wnd_zgen()) {
+        d->zgen = wnd_zgen();
+        d->nexcl = wnd_occluders(wnd_get(d->hwnd), d->excl, (int)(sizeof d->excl / sizeof d->excl[0]));
     }
+    p.x = (int16_t)x;
+    p.y = (int16_t)y;
+    for (i = 0; i < d->nexcl; i++)
+        if (PtInRect(&d->excl[i], p))
+            return 0;
+    return 1;
+}
+
+static HDC window_dc(HWND hwnd, int nonclient)
+{
+    HDC h = new_dc(hwnd, screen_bmp);
+
+    if (h) {
+        dc_get(h)->nonclient = nonclient;
+        dc_get(h)->zgen = wnd_zgen() - 1;
+        window_clip(dc_get(h));
+    }
+    return h;
 }
 
 HDC GetDC(HWND hwnd)
 {
-    HDC h = new_dc(hwnd, screen_bmp);
+    return window_dc(hwnd, 0);
+}
 
-    if (h)
-        window_clip(dc_get(h));
-    return h;
+HDC GetWindowDC(HWND hwnd)
+{
+    return window_dc(hwnd, 1);
 }
 
 int16_t ReleaseDC(HWND hwnd, HDC h)
@@ -740,20 +778,17 @@ DWORD GetWindowOrg(HDC h)
     return d ? MAKELONG(d->org.x, d->org.y) : 0;
 }
 
+/* Windows 3.1's default colour scheme. */
 COLORREF GetSysColor(int16_t i)
 {
-    switch (i) {
-    case 5:                 /* COLOR_WINDOW */
-        return RGB(255, 255, 255);
-    case 13:                /* COLOR_HIGHLIGHT */
-        return RGB(0, 0, 128);
-    case 14:                /* COLOR_HIGHLIGHTTEXT */
-        return RGB(255, 255, 255);
-    case 15:                /* COLOR_BTNFACE */
-        return RGB(192, 192, 192);
-    case 16:                /* COLOR_BTNSHADOW */
-        return RGB(128, 128, 128);
-    default:
-        return RGB(0, 0, 0);
-    }
+    static const COLORREF colors[21] = {
+        RGB(192, 192, 192), RGB(0, 128, 128), RGB(0, 0, 128), RGB(255, 255, 255),
+        RGB(255, 255, 255), RGB(255, 255, 255), RGB(0, 0, 0), RGB(0, 0, 0),
+        RGB(0, 0, 0), RGB(255, 255, 255), RGB(192, 192, 192), RGB(192, 192, 192),
+        RGB(255, 255, 255), RGB(0, 0, 128), RGB(255, 255, 255), RGB(192, 192, 192),
+        RGB(128, 128, 128), RGB(128, 128, 128), RGB(0, 0, 0), RGB(0, 0, 0),
+        RGB(255, 255, 255),
+    };
+
+    return i >= 0 && i < 21 ? colors[i] : RGB(0, 0, 0);
 }

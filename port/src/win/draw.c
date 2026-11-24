@@ -80,7 +80,7 @@ void draw_blit(Dc *d, int x, int y, int w, int h, Dc *s, int sx, int sy, int sw,
         for (i = 0; i < aw; i++) {
             int tx = x0 + i;
             uint8_t sv = 0, pv;
-            if (tx < d->clip.left || tx >= d->clip.right)
+            if (!gdi_drawable(d, tx, ty))
                 continue;
             if (sb) {
                 int k = (int)((long)i * asw / aw);
@@ -189,7 +189,7 @@ static void put(Dc *d, int x, int y, uint8_t v)
 
     x = DX(d, x);
     y = DY(d, y);
-    if (b && x >= d->clip.left && x < d->clip.right && y >= d->clip.top && y < d->clip.bottom)
+    if (b && gdi_drawable(d, x, y))
         b->px[(size_t)y * b->w + x] = v;
 }
 

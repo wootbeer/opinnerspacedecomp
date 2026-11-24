@@ -1,7 +1,7 @@
 /* Start-up of the native layer and the call of the game's WinMain. */
 #include <stdio.h>
 
-#include "winrt.h"
+#include "user.h"
 #include "win.h"
 #include "globals.h"
 
@@ -10,6 +10,8 @@ int win_init(void)
     char exe[1024];
 
     gdi_init();
+    controls_register();
+    dialog_register();
     if (!dos_to_host(GAME_DIR "INSPACE.EXE", exe, sizeof exe) || !dgroup_init(exe) || !module_init()) {
         fprintf(stderr, "cannot read INSPACE.EXE (%s)\n", exe);
         return 0;

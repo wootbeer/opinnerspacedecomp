@@ -152,8 +152,8 @@ Native versions of the DLL's routines, written from its disassembly
   It copies the source rectangle, makes a doubled and/or mirrored copy
   through an 8-bit DIB (5:0062, 5:0106; GetDIBits and back is the identity
   on palette indices, so the port works on the indices) and blits it. The
-  palette it selects is slot DS:1f92's, which only 10:42c6 (from ordinal
-  10's 9:1508, not ported) changes; the port uses slot 0.
+  palette it selects is slot DS:1f92's, which ordinal 10's dialogs
+  (10:42c6) set; slot 0 before any.
   - **Quirk kept:** a copy both doubled and mirrored horizontally is one
     column off (each pixel's right half lands one column right, column 0
     stays black, the last column spills into the row padding or the next
@@ -200,8 +200,9 @@ Native versions of the DLL's routines, written from its disassembly
   - The result (2n x 2n for an n x n image) is stretched to the asked
     size with COLORONCOLOR; negative sizes are multiples of the image
     height.
-  - **Verified** against the DLL's own code run in a scratch Unicorn
-    harness (not part of the repository): the game's ISPACE calls up to
+  - **Verified** against the DLL's own code run under Unicorn
+    (`tools/dll_oracle`, a test tool, not part of the port; its
+    `smooth.txt` keeps 21 of these calls): the game's ISPACE calls up to
     the title replayed on the emulated DLL, then ordinal 12 compared
     pixel for pixel and palette entry for entry: the title call, and 107
     more (every 16-colour image of IGRAPHIC.DLL and ISPACE.DLL with random
@@ -249,3 +250,73 @@ Native versions of the DLL's routines, written from its disassembly
   50% coverage, so glyph shapes and some advances differ by a pixel from
   the original. tmFirstChar/LastChar/DefaultChar are guesses (the game
   reads only tmHeight and tmExternalLeading).
+
+## Windows, input and dialogs (port/src/win/user.c, input.c, dialog.c, controls.c)
+
+- **Windows.** Top-level windows stack in the order they are made (a
+  dialog above the game window); a window DC does not draw where a
+  visible popup above its window lies, so the game drawing on timers
+  while a dialog is up does not cover it. Children are clipped to their
+  parents and repainted where their parent is (no WS_CLIPCHILDREN). What
+  a window uncovers when it goes away or moves is repainted (erased with
+  the class brush first), as in Windows. Showing the game window
+  activates it and gives it the focus (WM_SETFOCUS), as in Windows.
+- **Keyboard.** US layout. Alt makes WM_SYSKEYDOWN/WM_SYSCHAR, so the
+  game's Alt accelerators (MainAccel: Alt-X exit, Alt-G, ...) arrive as in
+  Windows; Alt-X opens the exit question (ordinal 10 mode 5).
+- **Dialog look** (Windows 3.1 default colours; sizes partly
+  [uncertain]): dialog units from the dialog font (DS_SETFONT "Helv" 8,
+  mapped to Liberation Sans at 11 pixels) as the letters' average width,
+  rounded, and the font height [uncertain: Windows 3.1's own rule;
+  tmAveCharWidth would give 5 instead of 6, and the Restore Game labels
+  would not fit]. Frame 4 pixels, caption 19 (title in Liberation Sans
+  Bold standing in for the System font), push buttons with a 1-pixel
+  highlight and 2-pixel shadow, combo box field the font height + 6 with
+  a 17-pixel arrow button, drop-down list of whole items. Not modelled:
+  the dotted focus rectangle (drawn solid), the edit caret's blinking and
+  selection, list scroll bars, icons in statics, dithering of brush
+  colours that are not in the palette (stock DKGRAY_BRUSH shows black, so
+  the preview's dark bevel is black). At 14 pixels some glyphs lose
+  detail (the colon's upper dot), see "Text".
+- **Uncertain:** CB_FINDSTRING with an empty string finds item 0 (the
+  Restore Game dialog relies on it while INI Restore is unset).
+- **Messages with pointers** (CB_ADDSTRING, CB_GETLBTEXT, CB_FINDSTRING,
+  WM_SETTEXT's text) cannot carry a native pointer in the 32-bit lParam:
+  the native DLL code calls `combo_*` (user.h), and WM_SETTEXT is sent
+  after SetWindowText has stored the text. The game's own dialogs
+  (seg06d, seg16) pass `(LPARAM)(LPSTR)buf` and need the far-pointer
+  step first.
+
+## ISPACE.DLL dialogs (port/src/win/ispace_dlg.c)
+
+- **Ordinal 10 (9:145e)** keeps some of its words for the dialogs by mode
+  and runs 10:42c6, which picks the palette slot (DS:1f92), makes the
+  dialog fonts (9:29c0: Arial 14x6, regular and weight 730) and runs the
+  mode's dialog from ENG_LANG.DLL. Ported: mode 1's Restore Game dialog
+  (template 267; 10:0ec2 with 10:1438, 10:1a38, 10:1a80 for " NEW GAME",
+  10:1d36), its LevClass preview window (10:4250, 10:309c, 10:2c68,
+  10:2aac without a ship), the ship tables it loads (10:3f70, 10:406a,
+  freed by 10:4168), 10:602a (fonts for the controls), and modes 5/7, the
+  exit question (template 244; 10:103c, 10:109a). The language DLL handle
+  (DS:0690, which ordinal 7's 9:0174 loads) is loaded on first use.
+- **Flow:** ESC on the title runs mode 1. OK with " NEW GAME" writes INI
+  `Restore= NEW GAME` and ends with 1; 10:42c6 then runs the New Game
+  dialog (template 321, 10:0f26), **not ported**: it answers 0, as if
+  cancelled, and the intro goes on (credits). Cancel ends with 0; a saved
+  game ends with 2 (its details, 10:1b13, are not ported). Modes other
+  than 1, 5, 7 and 15 log "not ported" and answer 0.
+- **Not modelled:** the date of mode 15 is stored but not used yet;
+  LocalPath and ShipPath are read from the INI when used (the DLL reads
+  LocalPath once, in 10:4b1c).
+- **DLL bugs, fixed silently (memory safety):**
+  - 10:3f70/10:406a: when reading MASTER.BOD/SHP fails the DLL frees the
+    block but keeps its pointer (10:4168 frees it again) and leaves the
+    file open; the port drops the data and closes the file.
+  - 10:1438 cuts ".SAV" by writing before the name if it is shorter than
+    4 characters (impossible for *.SAV matches); the port stops there.
+  - 10:42c6 uses slot 3 (DS:1cd6 + 6, inside the colour table) when the
+    palette passed is not one of the manager's; the port uses no palette
+    (ordinal 36: slot 0).
+  - Ordinal 10 modes 10 and 13 return whatever AX holds; the port 0.
+- **Quirk kept:** a ship file's length is divided as its low word,
+  sign-extended (files of 32 KB or more give no records).

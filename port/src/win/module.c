@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "winrt.h"
+#include "user.h"
 #include "ne.h"
 
 typedef struct {
@@ -252,21 +252,35 @@ HACCEL LoadAccelerators(HINSTANCE h, LPCSTR name)
     return p ? handle_new(H_ACCEL, (void *)p) : 0;
 }
 
+/* A virtual-key entry matches WM_KEYDOWN/WM_SYSKEYDOWN with the same
+ * Shift, Ctrl and Alt state; a character entry matches WM_CHAR, or
+ * WM_SYSCHAR when it asks for Alt. */
 int16_t TranslateAccelerator(HWND hwnd, HACCEL acc, MSG *msg)
 {
     const uint8_t *p = handle_get(acc, H_ACCEL);
     int virt, shift, ctrl, alt;
 
-    if (!p || (msg->message != WM_KEYDOWN && msg->message != WM_SYSKEYDOWN && msg->message != WM_CHAR))
+    if (!p)
         return 0;
-    virt = msg->message != WM_CHAR;
+    switch (msg->message) {
+    case WM_KEYDOWN:
+    case WM_SYSKEYDOWN:
+        virt = 1;
+        break;
+    case WM_CHAR:
+    case WM_SYSCHAR:
+        virt = 0;
+        break;
+    default:
+        return 0;
+    }
     shift = GetKeyState(VK_SHIFT) < 0;
     ctrl = GetKeyState(VK_CONTROL) < 0;
     alt = GetKeyState(VK_MENU) < 0;
     for (;; p += 5) {
         unsigned fl = p[0], key = p[1] | p[2] << 8, cmd = p[3] | p[4] << 8;
-        if (!!(fl & 1) == virt && key == msg->wParam &&
-            (!virt || (!!(fl & 4) == shift && !!(fl & 8) == ctrl && !!(fl & 0x10) == alt))) {
+        if (!!(fl & 1) == virt && key == msg->wParam && !!(fl & 0x10) == alt &&
+            (!virt || (!!(fl & 4) == shift && !!(fl & 8) == ctrl))) {
             SendMessage(hwnd, WM_COMMAND, (WPARAM)cmd, MAKELONG(0, 1));
             return 1;
         }

@@ -52,6 +52,10 @@ typedef struct {
     POINT org;              /* window origin (SetWindowOrg) */
     RECT clip;              /* in bitmap pixels */
     POINT pos;              /* current position */
+    int nonclient;          /* GetWindowDC: origin at the window, not its client area */
+    uint32_t zgen;          /* windows' stacking when excl was taken */
+    int nexcl;
+    RECT excl[8];           /* popups above a window DC's window */
 } Dc;
 
 /* Logical coordinates to pixels of the DC's bitmap. */
@@ -63,6 +67,10 @@ Bmp *dc_bmp(const Dc *d);
 HBITMAP gdi_new_bitmap(int w, int h, int mono);
 HBITMAP gdi_bitmap_from_dib(const uint8_t *dib, uint32_t size);
 HPALETTE gdi_new_palette(const PALETTEENTRY *e, int n);
+
+/* Device pixel (x, y) may be drawn: inside the clip and, for a window
+ * DC, not under a popup above its window. */
+int gdi_drawable(Dc *d, int x, int y);
 
 /* A COLORREF as a pixel value in d's bitmap. */
 uint8_t gdi_pixel_of(const Dc *d, COLORREF c);

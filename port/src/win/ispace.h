@@ -82,4 +82,9 @@ int16_t ispace_image_height(void);        /* ordinal 5 (6:00b0) */
 int16_t ispace_smooth_image(int16_t pal, int16_t id, int32_t name, int16_t dc, int16_t w,
                             int16_t h, int16_t g, int16_t c, int16_t i, char a, char b);
 
+/* Ordinal 10 (9:145e): the game's dialogs (ispace_dlg.c). */
+int16_t ispace_dialog(int16_t hwnd, int16_t dc, int16_t pal, int16_t v1, int16_t v0, int16_t w6,
+                      int16_t mode);
+int ispace_dialog_slot(void);    /* DS:1f92, slot 0 before any dialog */
+
 #endif

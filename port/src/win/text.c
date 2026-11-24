@@ -285,7 +285,8 @@ static void fill_box(Dc *d, RECT r, const RECT *clip, uint8_t v)
     IntersectRect(&r, &r, clip);
     for (y = r.top; y < r.bottom; y++)
         for (x = r.left; x < r.right; x++)
-            b->px[(size_t)y * b->w + x] = v;
+            if (gdi_drawable(d, x, y))
+                b->px[(size_t)y * b->w + x] = v;
 }
 
 /* Draws the glyphs of s with the cell's top-left at device (x, y). */
@@ -304,7 +305,7 @@ static void draw_glyphs(Dc *d, Face *f, int x, int y, LPCSTR s, int n, const int
                 continue;
             for (i = 0; i < g->w; i++) {
                 int px = x + g->x + i;
-                if (g->bits[j * g->w + i] && px >= clip->left && px < clip->right)
+                if (g->bits[j * g->w + i] && px >= clip->left && px < clip->right && gdi_drawable(d, px, py))
                     b->px[(size_t)py * b->w + px] = v;
             }
         }

@@ -51,23 +51,6 @@ int module_is(HINSTANCE h, const char *name);
 /* ISPACE.DLL entry points by ordinal (ispace.c). */
 FARPROC ispace_proc(int ordinal);
 
-/* Windows and messages (user.c). */
-typedef struct {
-    uint16_t hwnd;
-    WNDPROC proc;
-    RECT rect;              /* screen coordinates; the client area is the whole window */
-    DWORD style;
-    uint16_t parent;
-    HMENU id;
-    int visible;
-    int dirty;              /* needs WM_PAINT */
-    char text[80];
-    WORD words[8];
-    LONG longs[4];
-} Wnd;
-Wnd *wnd_get(HWND h);
-void win_pump(void);        /* SDL events and frame presentation */
-
 /* GDI (gdi.c): the screen is an 8-bit bitmap over the framebuffer. */
 void gdi_init(void);
 uint8_t gdi_color_index(HDC dc, COLORREF c);

@@ -133,7 +133,7 @@ static int16_t ispace_blit_double(HDC dst, int16_t x, int16_t y, int16_t w, int1
                                   int16_t xs, int16_t ys, int16_t ws, int16_t hs, int32_t rop)
 {
     int16_t out_w = w, out_h = h;
-    HPALETTE pal = ispace_pal_handle(0), old_pal = 0;
+    HPALETTE pal = ispace_pal_handle(ispace_dialog_slot()), old_pal = 0;
     HBITMAP bm, copy, old;
     HDC mdc;
     int doubled;
@@ -180,7 +180,6 @@ static int16_t ispace_blit_double(HDC dst, int16_t x, int16_t y, int16_t w, int1
 static int16_t ispace_7(int32_t a, int16_t b) { (void)a; (void)b; STUB(); return 1; }
 static int16_t ispace_8(POINT a, int16_t b, int16_t c, int32_t d) { (void)a; (void)b; (void)c; (void)d; STUB(); return 0; }
 static int16_t ispace_9(int16_t a, POINT b, int16_t c, int32_t d, int32_t e, DWORD f, LPCSTR g) { (void)a; (void)b; (void)c; (void)d; (void)e; (void)f; (void)g; STUB(); return 0; }
-static int16_t ispace_10(int16_t a, int16_t b, int16_t c, int16_t d, int16_t e, int16_t f, int16_t g) { (void)a; (void)b; (void)c; (void)d; (void)e; (void)f; (void)g; STUB(); return 0; }
 static void ispace_14(int16_t a, int16_t b, int16_t c, int16_t d, int16_t e) { (void)a; (void)b; (void)c; (void)d; (void)e; STUB(); }
 static int16_t ispace_15(int16_t a, int16_t b, int16_t c, int16_t d, int16_t e, int16_t f, int16_t g, int16_t h, int16_t i) { (void)a; (void)b; (void)c; (void)d; (void)e; (void)f; (void)g; (void)h; (void)i; STUB(); return 0; }
 static void ispace_17(int16_t a, int16_t b, int32_t c, int16_t d, int16_t e, int16_t f, int16_t g, char h, char i, int16_t j, int16_t k, char l, char m) { (void)a; (void)b; (void)c; (void)d; (void)e; (void)f; (void)g; (void)h; (void)i; (void)j; (void)k; (void)l; (void)m; STUB(); }
@@ -205,7 +204,7 @@ FARPROC ispace_proc(int ordinal)
     case 7: return PROC(ispace_7);
     case 8: return PROC(ispace_8);
     case 9: return PROC(ispace_9);
-    case 10: return PROC(ispace_10);
+    case 10: return PROC(ispace_dialog);
     case 12: return PROC(ispace_smooth_image);
     case 14: return PROC(ispace_14);
     case 15: return PROC(ispace_15);
