@@ -306,12 +306,14 @@ static void draw_group(Planes *pl, const Image *im, int n, int pass, const int16
         for (x = 0; x < n; x++) {
             long o = 2 * y * w + 2 * x;
             int c = pixel(im, x, y), stop[4], other[4];
-            uint8_t full = (uint8_t)(lum[c] >> 1), part = (uint8_t)(lum[c] >> 2);
+            uint8_t full, part;
 
             if (c == BG) {
                 fill_block(pl->code, o, w, BG_CODE);
                 continue;
             }
+            full = (uint8_t)(lum[c] >> 1);
+            part = (uint8_t)(lum[c] >> 2);
             if (g == 1)
                 full = (uint8_t)(full + part);
             if ((c >= 10) != (pass == 3) || full == 0)

@@ -1554,7 +1554,8 @@ class FileTranslator:
         for s, e in pp:
             line = self.src[s:e]
             if re.match(r'\s*#\s*include\s*"inspace.h"', line):
-                self.ed.add(s, e, '#include "game.h"')
+                decls = ''.join('\n\n' + d for d in pm.OV.file_decls(self.m.fn))
+                self.ed.add(s, e, '#include "game.h"' + decls)
             elif re.match(r'\s*#\s*(include|pragma)', line):
                 le = e + 1 if e < len(self.src) else e
                 self.ed.add(s, le, '', prio=2)

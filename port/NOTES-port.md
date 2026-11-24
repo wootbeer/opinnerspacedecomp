@@ -103,6 +103,25 @@
    - Views a few bytes below a global of the same shape are rewritten onto it with a shifted index (`g_a191[i]` = `g_a193[i - 2]`, `g_9f39` above).
    - seg10.c:1668 passes the record's position, read through a long/POINT union in the decomp, as the POINT (`call` override, written in port terms).
 
+## Silent fixes in the game code (`fix` entries in overrides/signatures.txt)
+
+Memory-safety bugs of the 1994 code, fixed where the translator applies
+the overrides; `src/inspace/` is unchanged.
+
+- **Dissolve pixel maps (7:13b2, 7:158e).** Each of the 4 dissolves at
+  DS:221c marks the pixels it has drawn in an 80-byte map (640 pixels),
+  but a 30x30 icon at zoom 1x has 900. The extra bits overwrote the
+  record's type, idx, r, sq and count and the next record; a corrupted
+  type then indexed the per-type record table out of range, which
+  crashed the port when the first icon dissolved in a wave. Each
+  dissolve now has its own 2 KB map. At zoom 2x the maps never
+  overflowed, so play there is unchanged; at 1x a dissolve now ends after
+  exactly its pixels instead of with whatever the corrupted fields said.
+- **Empty directory paths (6:4368, 6:420a, 6:4190, 6:4748).**
+  `path[lstrlen(path) - 1]` read the byte before the buffer when the path
+  was empty; that byte was almost never `\`, so a `\` was appended. The
+  port appends it for an empty path.
+
 ## Far pointers and save files
 
 - **Function pointers in `REC_70`.** The far function pointers at +5e/+62/+66 make `REC_70` 124 bytes natively instead of 0x70. Any code that sizes these blocks as 0x70, copies them as raw bytes, or reads them from a file must be checked. Every other record type is pointer-free, so its native layout equals the original.

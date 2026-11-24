@@ -94,3 +94,19 @@ call seg10.c:1668 fn_08_285a: &i, &j, pt, g_1df8[g_9324][main_ship].f_04
 # f_5e(type, idx, amount): these two ignore the trailing arguments.
 fn fn_07_570a: int far fn_07_570a(int type, int idx, int amount)
 fn fn_16_085e: int far fn_16_085e(int type, int idx, int amount)
+
+# --- Silent memory-safety fixes.  An empty directory read the byte before
+# the path buffer; it was almost never '\', so a '\' was appended.
+fix seg06d.c fn_06_4368: if (path[lstrlen(path) - 1] != '\\') => if (!path[0] || path[lstrlen(path) - 1] != '\\')
+fix seg06d.c fn_06_420a: if (path[lstrlen(path) - 1] != '\\') => if (!path[0] || path[lstrlen(path) - 1] != '\\')
+fix seg06d.c fn_06_4190: if (path[lstrlen(path) - 1] != '\\') => if (!path[0] || path[lstrlen(path) - 1] != '\\')
+fix seg06d.c fn_06_4748: if (path[lstrlen(path) - 1] != '\\') => if (!path[0] || path[lstrlen(path) - 1] != '\\')
+
+# Dissolve pixel maps: the record's 80-byte map holds 640 pixels, but a
+# 30x30 icon at zoom 1x needs 900, so the 1994 code overwrote the record's
+# type, idx, r, sq and the next record.  Each dissolve gets its own map.
+decl seg07b.c: static unsigned char dissolve_map[4][0x800];
+fix seg07b.c fn_07_13b2: for (j = 0; j < 80; j++) => for (j = 0; j < (int)sizeof dissolve_map[i]; j++)
+fix seg07b.c fn_07_13b2: g_221c[i].b[j] = 0; => dissolve_map[i][j] = 0;
+fix seg07b.c fn_07_158e: ok = !(mask & g_221c[i].b[k]); => ok = !(mask & dissolve_map[i][k]);
+fix seg07b.c fn_07_158e: g_221c[i].b[k] |= mask; => dissolve_map[i][k] |= mask;

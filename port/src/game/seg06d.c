@@ -421,7 +421,7 @@ void fn_06_4368(char *dir, char *name)
             break;
         }
     }
-    if (path[lstrlen(path) - 1] != '\\')
+    if (!path[0] || path[lstrlen(path) - 1] != '\\')
         lstrcat(path, "\\");
     lstrcat(path, name);
     n = (int16_t)ExtractIcon(g_8e66, path, -1);
@@ -477,7 +477,7 @@ int16_t fn_06_420a(char *dir, char *mask)
 
     flag = 0;
     lstrcpy(path, dir);
-    if (path[lstrlen(path) - 1] != '\\')
+    if (!path[0] || path[lstrlen(path) - 1] != '\\')
         lstrcat(path, "\\");
     lstrcat(path, mask);
     r = _dos_findfirst(path, 0, &ft);
@@ -564,7 +564,7 @@ int16_t fn_06_4190(char *dir)
     char path[120];
 
     lstrcpy(path, dir);
-    if (path[lstrlen(path) - 1] != '\\')
+    if (!path[0] || path[lstrlen(path) - 1] != '\\')
         lstrcat(path, "\\");
     lstrcat(path, "*.exe");
     r = _dos_findfirst(path, 0, &ft);
@@ -635,7 +635,7 @@ int16_t fn_06_4748(char *dir)
     char path[120];
 
     lstrcpy(path, dir);
-    if (path[lstrlen(path) - 1] != '\\')
+    if (!path[0] || path[lstrlen(path) - 1] != '\\')
         lstrcat(path, "\\");
     lstrcat(path, "*.*");
     r = _dos_findfirst(path, _A_RDONLY | _A_SYSTEM | _A_SUBDIR, &ft);

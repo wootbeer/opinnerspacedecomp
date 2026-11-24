@@ -21,6 +21,12 @@ Entry forms (a line starting with whitespace continues the entry):
   local FILE FUNC: OLD => NEW
       In FUNC's body, replace the declaration text OLD by NEW (a local
       declared as a byte block but used as a real type).
+  fix FILE FUNC: OLD => NEW
+      In FUNC's body, replace the first OLD by NEW: a silent fix of a
+      memory-safety bug in the 1994 code (listed in NOTES-port.md).
+  decl FILE: DECLARATION
+      Add a file-scope declaration after the generated file's game.h
+      include, for state a fix needs.
 """
 import os
 import re
@@ -35,6 +41,7 @@ class Overrides:
         self.externs = {}    # name -> decl
         self.calls = {}      # (file, line, name) -> args text
         self.locals = []     # (file, func, old, new)
+        self.decls = []      # (file, declaration)
         if os.path.exists(path):
             self.load(path)
 
@@ -63,9 +70,13 @@ class Overrides:
             if m:
                 self.calls[(m.group(1), int(m.group(2)), m.group(3))] = ' '.join(m.group(4).split())
                 continue
-            m = re.match(r'local\s+(\S+)\s+(\w+)\s*:\s*(.*?)\s*=>\s*(.*)$', e, re.S)
+            m = re.match(r'(?:local|fix)\s+(\S+)\s+(\w+)\s*:\s*(.*?)\s*=>\s*(.*)$', e, re.S)
             if m:
                 self.locals.append((m.group(1), m.group(2), m.group(3).strip(), m.group(4).strip()))
+                continue
+            m = re.match(r'decl\s+(\S+)\s*:\s*(.*)$', e, re.S)
+            if m:
+                self.decls.append((m.group(1), m.group(2).strip()))
                 continue
             raise ValueError('bad override entry: %s' % e)
 
@@ -80,13 +91,17 @@ class Overrides:
                 continue
             r = self.find_def(text, func)
             if r is None:
-                raise ValueError('local override: no %s in %s' % (func, fn))
+                raise ValueError('local/fix override: no %s in %s' % (func, fn))
             e = self.body_end(text, r[1])
             body = text[r[1]:e]
             if old not in body:
-                raise ValueError('local override: %r not in %s' % (old, func))
+                raise ValueError('local/fix override: %r not in %s' % (old, func))
             text = text[:r[1]] + body.replace(old, new, 1) + text[e:]
         return text
+
+    def file_decls(self, fn):
+        """The decl entries for FILE, emitted after its game.h include."""
+        return [d for f, d in self.decls if f == fn]
 
     @staticmethod
     def match_paren(text, i):

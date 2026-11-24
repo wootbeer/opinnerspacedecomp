@@ -2,6 +2,8 @@
  * (files.tsv group 13). */
 #include "game.h"
 
+static unsigned char dissolve_map[4][0x800];
+
 /* Main per-tick dispatcher on the game state g_90f4 [inferred].
  * Remaining difference: the original places the flow_interactive arm of
  * the g_1e80 timer test (9134 clamp, g_1e84 = g_1e50 / fn_09_6bc2) after
@@ -648,8 +650,8 @@ void fn_07_13b2(char kind, int16_t type, int16_t idx)
         g_221c[i].r = r;
         if (type == 14)
             g_7090[idx].f_0eb = 1;
-        for (j = 0; j < 80; j++)
-            g_221c[i].b[j] = 0;
+        for (j = 0; j < (int16_t)sizeof dissolve_map[i]; j++)
+            dissolve_map[i][j] = 0;
         found = 1;
         dissolve_active_count++;
         if (kind == 2 && g_221c[i].type <= 14)
@@ -697,9 +699,9 @@ void fn_07_158e(void)
                     k = pix >> 3;
                     bit = pix & 7;
                     mask = 1 << bit;
-                    ok = !(mask & g_221c[i].b[k]);
+                    ok = !(mask & dissolve_map[i][k]);
                 } while (!ok);
-                g_221c[i].b[k] |= mask;
+                dissolve_map[i][k] |= mask;
                 g_221c[i].f_58++;
                 if (g_221c[i].type <= 14) {
                     x = pix % g_221c[i].r << g_9156;

@@ -664,7 +664,7 @@ signedness view: 664
   seg07.c:17: compare: (int16_t), overflow: amount * 3 + g_1df8[0][n].f_1e
   seg07.c:1393: divide: (int16_t), overflow: amount * 3
   seg07.c:1447: divide: (int16_t), overflow: g_1df8[g_934a][n].f_22 * 2
-  seg07b.c:840: divide: (int16_t), overflow: (g_1df8[8][r * 2 + 1].f_04.x - g_1df8[8][r * 2].f_04.x)
+  seg07b.c:842: divide: (int16_t), overflow: (g_1df8[8][r * 2 + 1].f_04.x - g_1df8[8][r * 2].f_04.x)
   seg08.c:278: divide: (int16_t), overflow: dx * 12
   seg08.c:279: divide: (int16_t), overflow: dy * 12
   seg08.c:345: compare: (int16_t), overflow: s.x / 2 + m
