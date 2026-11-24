@@ -30,11 +30,47 @@ void ispace_pal_animate(HPALETTE pal, HWND hwnd, HDC dc);
 /* 5:3dee (mode 6): an entry for colour (r, g, b); -1 when a near colour
  * is already there or no entry is free. */
 int16_t ispace_pal_add_color(HPALETTE pal, int16_t r, int16_t g, int16_t b);
+/* The slot's 256 entries as the DLL keeps them (DS:116c). */
+PALETTEENTRY *ispace_pal_entries(int slot);
 /* The colour sets of 5:5846: ten colours for DIB colours 0-9 and five
  * for colours 10-14, as red, green, blue. */
 #define ISPACE_SETS 18
 extern const uint8_t ispace_set10[ISPACE_SETS][10][3];
 extern const uint8_t ispace_set5[ISPACE_SETS][5][3];
+
+/* A packed DIB (BITMAPINFOHEADER, colour table, bits) in the DLL's
+ * memory. */
+typedef struct {
+    uint8_t *data;
+    uint32_t size;
+} IspaceDib;
+
+/* Flags the image loader leaves in the DLL's data for what follows. */
+typedef struct {
+    int16_t ds_0188;                    /* id -2 asked for: colour 15's red counts */
+    int16_t ds_1ea4;                    /* the image is being recoloured */
+    int16_t ds_1ea8;                    /* colour 15 was not black: VGA colours put in */
+    int16_t ds_1eaa;                    /* colours 0-9 went into the palette as a ramp */
+    int16_t ds_1eac;                    /* colours 10-14 likewise */
+} IspaceImgFlags;
+
+IspaceImgFlags *ispace_img_flags(void);
+extern const int16_t ispace_ramp_area[2][3];
+/* 5:1b8e: image id with its colours fitted to palette pal (colour sets a
+ * and b, mode as 5:26a2 takes it). */
+int ispace_dib_load(int16_t pal, int16_t id, LPCSTR name, int16_t mode, signed char a,
+                    signed char b, int16_t own, IspaceDib *d);
+HBITMAP ispace_dib_bitmap(IspaceDib *d, int16_t pal);          /* 5:2080 */
+const uint8_t *ispace_dib_color(const IspaceDib *d, int k);   /* blue, green, red */
+const uint8_t *ispace_dib_bits(const IspaceDib *d);
+void ispace_set_image_height(int16_t h);                       /* DS:1c72 */
+
+/* 6:7f52 as its callers use it: the root mean square of three weighted
+ * channels, three Newton steps from their mean.  Red counts 3/4, blue
+ * 5/8 for image colours (ispace_lum_image), 1/2 for palette entries
+ * (ispace_lum). */
+int16_t ispace_lum(int r, int g, int b);
+int16_t ispace_lum_image(int r, int g, int b);
 
 /* Image loader, ordinal 1 (5:0402), and ordinal 2 (6:0000). */
 int16_t ispace_load_image(int16_t pal, int16_t id, char *name, int16_t dc, int16_t b, int16_t c);
@@ -42,5 +78,8 @@ int16_t ispace_build_surface(int16_t pal, int16_t a, int32_t name, int16_t dc, i
                              int16_t g, int16_t h, int16_t i, int16_t j, char k, char l, char m,
                              int16_t n);
 int16_t ispace_image_height(void);        /* ordinal 5 (6:00b0) */
+/* Ordinal 12 (6:00c4): the image smoothed at twice its size. */
+int16_t ispace_smooth_image(int16_t pal, int16_t id, int32_t name, int16_t dc, int16_t w,
+                            int16_t h, int16_t g, int16_t c, int16_t i, char a, char b);
 
 #endif

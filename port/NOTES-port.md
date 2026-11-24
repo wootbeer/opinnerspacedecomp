@@ -160,22 +160,73 @@ Native versions of the DLL's routines, written from its disassembly
     row). Nothing seen so far draws one.
   - **Fixed silently:** a source width of 0 (divide by zero in the DLL)
     draws nothing; the spill past the last row goes into a spare row.
-- **Ordinal 12 (6:00c4 → 7:12d8), not ported.** The title (fn_15_6cdc
-  state 0) draws image 300 doubled with ordinal 36, then, on a machine the
-  calibration rates fast and with Enhance on, replaces it two rows at a
-  time in random order with ordinal 12's 276x276 bitmap. With the stub
-  returning 0 the logo dissolves to black. 6:00c4 stores the DC in DS:1a32,
-  returns 0 if either byte argument is 0xff and passes the rest to 7:12d8.
-  7:12d8 is one 15 KB function (about 5200 instructions): it loads the
-  image with 5:1b8e (ported), recolours it with 6:7fc8 when DS:1ea8 is set,
-  allocates five work buffers, computes weighted colour sums and square
-  roots per colour-table entry (6:7f52 [inferred] square root), builds the
-  image at the size given (negative sizes are multiples of the image
-  height: -2 gives 2h x 2h), turns it into a bitmap (5:2080, ported) and
-  ends with StretchBlt. Other callees: 3:00fe/0130/01ca (long multiply,
-  divide, shift), 5:22e6/23a4/24be (DIB headers), 5:3a68, 5:4b40 (150
-  instructions), 5:66ea (500), 5:6b72 (400), 5:6f58 (70), 9:360a, 5:4378
-  (ported). Porting it is a step of its own.
+- **Image loader mode 0 (5:26a2).** Mode 0 puts the image's colours in
+  the palette: colours 0-9 as a ramp of 28 entries from 185 (three steps
+  from each colour to the next), 10-14 as 17 entries from 213 (four
+  steps); a fixed palette (mode 0's fourth word 1) would use entries
+  10/83 and 8/7 steps, recolouring (DS:1ea4) one step each from entries
+  170/180, both groups always. A group whose colour set is the image's own (12)
+  gets its ramp only when its colours get darker one after the other
+  (DS:1eaa, DS:1eac, read by ordinal 12). Sets 4 and -1 put colours 1-15
+  in one after the other from entry 230. Mode 1 and the 16-colour palette
+  of the image (DS:1178, DS:1eae, 5:39f6, 5:3a68) are not modelled; no
+  ported routine reads them. Ordinal 1 reaches mode 0 only for
+  recolouring (c < -100), id -2 and id 0x28a, which the game does not use
+  so far; that part of ordinal 1 is not checked against the DLL.
+- **Ordinal 12 (6:00c4, 7:12d8; ispace_smooth.c).** The title's logo and
+  the "Enhance" ship pictures (seg15b). The image (16 colours, colour 15
+  the background) is loaded with mode 0 and drawn at twice its size,
+  each pixel a 2x2 block, colours 0-9 and 10-14 as two groups:
+  - Each group has ramps of palette entries (7:4ee8, ranges at DS:1108
+    and DS:1ca4). A colour set other than 12, or a ramp the loader made
+    (DS:1eaa/1eac), gives one ramp over the group's area; set 12 gives one
+    ramp per run of colours of the same hue (5:66ea), filled from that
+    hue's colour set (ids 3-13 map to sets as in 5:61b2).
+  - Per colour a lightness: 6:7f52, three Newton steps of the square
+    root of the mean square of red x 3/4, green, blue x 5/8 (palette
+    entries: blue x 1/2), started from the mean. ispace_lum and
+    ispace_lum_image.
+  - Pass 2 (colours 0-9) and 3 (10-14) draw each block at half its
+    colour's lightness (3/4 with the mode word 1) into their own plane,
+    add a quarter (or half) at corners touching the other group and a
+    quarter into the facing cells of neighbouring blocks of the same
+    group; a code plane keeps the block's ramp and group. Each plane is
+    blurred into a final plane (3/4 of the cell plus 1/16 of each
+    diagonal neighbour, or of the cell itself where that is 20 or
+    less), corners where two blocks of the other group meet are cut
+    (taking that group's neighbouring cell), and each cell gets the
+    entry of its ramp nearest its lightness (5:6b72), entry 245 when
+    darker than the ramp, 0 when unlit.
+  - The result (2n x 2n for an n x n image) is stretched to the asked
+    size with COLORONCOLOR; negative sizes are multiples of the image
+    height.
+  - **Verified** against the DLL's own code run in a scratch Unicorn
+    harness (not part of the repository): the game's ISPACE calls up to
+    the title replayed on the emulated DLL, then ordinal 12 compared
+    pixel for pixel and palette entry for entry: the title call, and 107
+    more (every 16-colour image of IGRAPHIC.DLL and ISPACE.DLL with random
+    colour sets and both shading modes) in one sequence. All identical
+    except the two noted below. 5:66ea was compared for all 2^24
+    colours.
+  - **Quirks kept:** columns run up to the image's height, not its width
+    (the images used are square); the mode word only lightens with 1
+    (its switch sets the corner shift 3 for mode 1, then falls through to
+    2); the corner cut looks at the diagonal block on the other side
+    (below-left for the top-left corner); codes of taken cells wrap as
+    bytes; colour set 0xff in either word returns 0 (6:00c4).
+  - **Fixed silently (memory safety):** an image taller than wide is
+    read past its pixels by the DLL (the port reads that as background;
+    images 200 and 260 differ from the DLL in their top rows); a ramp
+    index outside the tables (possible only after wrapped codes, never
+    seen) gives entry 0; a ramp whose ends are equally light (the DLL
+    divides by zero) starts its search at its last entry; set ids 14-99
+    (an uninitialised word in 7:4ee8) give no ramp; palettes that are
+    not the manager's and images that are not 4-bit give no bitmap.
+  - **Not modelled:** DS:1e80-1e84 (per-palette colour sets, written
+    only), DS:1ccc (set by ordinal 2's surfaces; makes the bitmap wider),
+    the per-row callback 9:360a (DS:21aa/2222/1738, set by the sound
+    ordinals, which are stubs); 5:6f58 (colour set to id), whose results
+    7:12d8 stores but never reads.
 
 ## Text (port/src/win/text.c)
 

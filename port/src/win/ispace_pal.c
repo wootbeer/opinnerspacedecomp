@@ -132,6 +132,11 @@ HPALETTE ispace_pal_handle(int slot)
     return st.slot[slot].pal;
 }
 
+PALETTEENTRY *ispace_pal_entries(int slot)
+{
+    return st.slot[slot].e;
+}
+
 int ispace_pal_fixed(int slot)
 {
     return st.slot[slot].fixed;

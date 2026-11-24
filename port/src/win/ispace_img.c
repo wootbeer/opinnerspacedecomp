@@ -3,10 +3,10 @@
  * ordinal 2 (6:0000) builds surfaces from such images.
  *
  * Ported so far: images from resources, the colour sets of the caller,
- * colours left as they are (mode 3) or added to the palette (mode 2),
- * and ordinal 2's calibration strip (5:17c2).  The branches that rewrite
- * an image for its own palette ranges (mode 0/1 of 5:26a2, 5:075e,
- * 6:7fc8), images from files (5:1d74) and ordinal 2's other surfaces log
+ * colours left as they are (mode 3), added to the palette (mode 2) or put
+ * in the palette as ramps (mode 0), and ordinal 2's calibration strip
+ * (5:17c2).  The branches that keep an image's own colours, 5:075e,
+ * 6:7fc8, images from files (5:1d74) and ordinal 2's other surfaces log
  * themselves once and give no bitmap. */
 #include <stdlib.h>
 #include <string.h>
@@ -16,19 +16,18 @@
 #define TYPE_IMAGE 4000                 /* resource type of the images */
 #define OWN_COLORS 12                   /* colour set "the image's own" */
 
-/* A packed DIB (BITMAPINFOHEADER, colour table, bits) in the DLL's
- * memory. */
-typedef struct {
-    uint8_t *data;
-    uint32_t size;
-} Dib;
+typedef IspaceDib Dib;
+
+/* DS:178, 17c, 180 for a palette made with mode 0's fourth word 0 and 1:
+ * where the ramps of colours 0-9, 10-14 and the colours of sets 4 and -1
+ * start, as byte offsets of the entries. */
+const int16_t ispace_ramp_area[2][3] = {{0x2e4, 0x354, 0x398}, {0x28, 0x14c, 0x1c0}};
 
 static struct {
     int16_t height;                     /* DS:1c72: height of the last image */
     int16_t ds_0024;                    /* set by 5:0000, not ported: always 0 here */
-    int16_t ds_0188;                    /* id -2 asked for: colour 15's red counts */
-    int16_t ds_1ea4;                    /* the image is being recoloured */
-    int16_t ds_1ea8;                    /* colour 15 was not black: VGA colours put in */
+    int16_t ds_1ea6;                    /* set by routines not ported: always 0 here */
+    IspaceImgFlags f;
 } st;
 
 static void not_ported(const char *what)
@@ -128,6 +127,104 @@ static void nudge(uint8_t *c, int step)
     c[1] = (uint8_t)(c[1] >= 0xfb ? c[1] - step : c[1] + step);
 }
 
+/* Colour k of the image as red, green, blue (or blue, green, red). */
+static void image_rgb(const Dib *d, int k, int swap, int rgb[3])
+{
+    const uint8_t *c = dib_color(d, k);
+
+    rgb[0] = c[swap ? 0 : 2];
+    rgb[1] = c[1];
+    rgb[2] = c[swap ? 2 : 0];
+}
+
+/* Writes a colour at byte offset off of the palette entries (the DLL
+ * keeps them as bytes; offsets need not be whole entries). */
+static void put_rgb(PALETTEENTRY *e, int off, const int rgb[3])
+{
+    uint8_t *p = (uint8_t *)e + off;
+    int i;
+
+    for (i = 0; i < 3; i++)
+        p[i] = (uint8_t)rgb[i];
+}
+
+/* Colours from..to-1 as a ramp at byte offset off: steps entries from
+ * each colour towards the next, then the last colour. */
+static void put_ramp(PALETTEENTRY *e, int off, const Dib *d, int from, int to, int16_t steps)
+{
+    int c[3], next[3], step[3], k, i, j;
+
+    for (k = from; k < to - 1; k++) {
+        image_rgb(d, k, 0, c);
+        image_rgb(d, k + 1, 0, next);
+        for (j = 0; j < 3; j++)
+            step[j] = (next[j] - c[j]) / steps;
+        for (i = 0; i < steps; i++, off += 4) {
+            put_rgb(e, off, c);
+            for (j = 0; j < 3; j++)
+                c[j] += step[j];
+        }
+    }
+    image_rgb(d, to - 1, 0, c);
+    put_rgb(e, off, c);
+}
+
+/* Colours from..to-1 get darker (or stay) one after the other. */
+static int descending(const Dib *d, int from, int to)
+{
+    int16_t prev = 1000, lum;
+    int k;
+
+    for (k = from; k < to; k++) {
+        const uint8_t *c = dib_color(d, k);
+
+        lum = ispace_lum_image(c[2], c[1], c[0]);
+        if (lum > prev)
+            return 0;
+        prev = lum;
+    }
+    return 1;
+}
+
+/* 5:26a2 mode 0: the image's colours go into palette pal.  Sets 4 and
+ * -1: colours 1-15 one after the other.  Otherwise colours 0-9 and 10-14
+ * as ramps, each unless its colour set is the image's own and its colours
+ * do not get darker in order (DS:1eaa, DS:1eac). */
+static void put_ramps(int16_t pal, const Dib *d, signed char a, signed char b)
+{
+    int s = ispace_pal_slot(pal), fixed, k, rgb[3];
+    int16_t steps_a, steps_b, off_a, off_b;
+    PALETTEENTRY *e;
+
+    if (s < 0)
+        return;
+    e = ispace_pal_entries(s);
+    fixed = ispace_pal_fixed(s) == 1;
+    if (a == 4 && b == -1) {
+        for (k = 1; k < 16; k++) {
+            image_rgb(d, k, st.ds_1ea6, rgb);
+            put_rgb(e, ispace_ramp_area[fixed][2] + 4 * (k - 1), rgb);
+        }
+        return;
+    }
+    if (st.f.ds_1ea4) {
+        steps_a = steps_b = 1;
+        off_a = (int16_t)(0x2a8 + st.ds_0024);  /* DS:174 */
+        off_b = (int16_t)(0x2d0 + st.ds_0024);  /* DS:176 */
+    } else {
+        steps_a = fixed ? 8 : 3;
+        steps_b = fixed ? 7 : 4;
+        off_a = ispace_ramp_area[fixed][0];
+        off_b = ispace_ramp_area[fixed][1];
+        st.f.ds_1eaa = a != OWN_COLORS || descending(d, 0, 10);
+        st.f.ds_1eac = b != OWN_COLORS || descending(d, 10, 15);
+    }
+    if (st.f.ds_1ea4 || st.f.ds_1eaa)
+        put_ramp(e, off_a, d, 0, 10, steps_a);
+    if (st.f.ds_1ea4 || st.f.ds_1eac)
+        put_ramp(e, off_b, d, 10, 15, steps_b);
+}
+
 /* 5:26a2: fits the image's colours to palette pal.  Colours 0-9 come
  * from colour set a, 10-14 from set b (unless OWN_COLORS or -1); colours
  * 10-14 equal to one of 0-9 are nudged apart.  Mode 2 adds the colours
@@ -139,15 +236,15 @@ static int fit_colors(int16_t pal, int16_t id, Dib *d, int16_t mode, signed char
     int n = dib_colors(d), k, j;
     uint8_t *c15 = dib_color(d, 15);
 
-    st.ds_1ea8 = 0;
+    st.f.ds_1ea8 = 0;
     if (!n)
         return 1;
-    if ((st.ds_0188 && c15[2]) || c15[1] || c15[0]) {
-        st.ds_1ea8 = 1;
+    if ((st.f.ds_0188 && c15[2]) || c15[1] || c15[0]) {
+        st.f.ds_1ea8 = 1;
         for (k = 0; k < 16; k++)
             set_color(dib_color(d, k), vga[k]);
     }
-    st.ds_0188 = 0;
+    st.f.ds_0188 = 0;
     if (own) {
         not_ported("ispace image: keep own colours (5:26a2)");
         return 0;
@@ -167,10 +264,8 @@ static int fit_colors(int16_t pal, int16_t id, Dib *d, int16_t mode, signed char
     if (st.ds_0024)
         for (k = 0; k < 15; k++)
             nudge(dib_color(d, k), 2);
-    if (mode == 0 || mode == 1) {
-        not_ported("ispace image: palette ranges (5:26a2 mode 0/1)");
-        return 0;
-    }
+    if (mode == 0 && ispace_pal_bits() >= 8)
+        put_ramps(pal, d, a, b);
     if (mode == 2)
         for (k = 0; k < n; k++) {
             uint8_t *c = dib_color(d, k);
@@ -181,8 +276,8 @@ static int fit_colors(int16_t pal, int16_t id, Dib *d, int16_t mode, signed char
 
 /* 5:1b8e: image id (from a file when negative: name) with its colours
  * fitted; shows the palette in modes 0 and 2. */
-static int load_dib(int16_t pal, int16_t id, LPCSTR name, int16_t mode, signed char a, signed char b,
-                    int16_t own, Dib *d)
+int ispace_dib_load(int16_t pal, int16_t id, LPCSTR name, int16_t mode, signed char a,
+                    signed char b, int16_t own, Dib *d)
 {
     (void)name;
     if (id < 0) {
@@ -202,7 +297,7 @@ static int load_dib(int16_t pal, int16_t id, LPCSTR name, int16_t mode, signed c
 
 /* 5:2080: a bitmap of the DIB for the screen with pal realized: 8-bit
  * pixels are palette indices, other colours are matched to pal. */
-static HBITMAP dib_to_bitmap(Dib *d, int16_t pal)
+HBITMAP ispace_dib_bitmap(Dib *d, int16_t pal)
 {
     const uint8_t *bits = dib_bits(d);
     HPALETTE old = 0;
@@ -247,48 +342,68 @@ int16_t ispace_load_image(int16_t pal, int16_t id, char *name, int16_t dc, int16
     ispace_set_dc(dc);
     mode = fixed ? 2 : 3;
     if (id == -2)
-        st.ds_0188 = 1;
+        st.f.ds_0188 = 1;
     if (id == -2 || c < -100) {
         if (c < -100) {
             c += 150;
             recolor = 1;
         }
-        st.ds_1ea4 = 1;
+        st.f.ds_1ea4 = 1;
         mode = 0;
     } else {
-        st.ds_1ea4 = 0;
+        st.f.ds_1ea4 = 0;
     }
     if ((fixed && id == 0x118) || id == 0x28a) {
         special = 1;
-        if (!load_dib(pal, id, name, fixed && id == 0x118, 4, -1, 0, &d))
+        if (!ispace_dib_load(pal, id, name, fixed && id == 0x118, 4, -1, 0, &d))
             return 0;
     } else if (recolor) {
-        if (!load_dib(pal, id, name, mode, (signed char)b, (signed char)c, 0, &d))
+        if (!ispace_dib_load(pal, id, name, mode, (signed char)b, (signed char)c, 0, &d))
             return 0;
         c = -1;
         b = 0;
-    } else if (!load_dib(pal, id, name, mode, OWN_COLORS, OWN_COLORS, 0, &d)) {
+    } else if (!ispace_dib_load(pal, id, name, mode, OWN_COLORS, OWN_COLORS, 0, &d)) {
         return 0;
     }
-    if (st.ds_1ea8 || (GetDeviceCaps(dc, SIZEPALETTE) >= 256 && b)) {
-        not_ported(st.ds_1ea8 ? "ispace image: VGA colours (6:7fc8)" : "ispace image: 5:075e");
+    if (st.f.ds_1ea8 || (GetDeviceCaps(dc, SIZEPALETTE) >= 256 && b)) {
+        not_ported(st.f.ds_1ea8 ? "ispace image: VGA colours (6:7fc8)" : "ispace image: 5:075e");
         free(d.data);
         return 0;
     }
     (void)special;
     (void)c;
-    bm = dib_to_bitmap(&d, pal);
+    bm = ispace_dib_bitmap(&d, pal);
     if (GetObject(bm, sizeof info, &info))
         st.height = info.bmHeight;
     free(d.data);
     st.ds_0024 = 0;
-    st.ds_1ea4 = 0;
+    st.f.ds_1ea4 = 0;
     return (int16_t)bm;
 }
 
 int16_t ispace_image_height(void)
 {
     return st.height;
+}
+
+void ispace_set_image_height(int16_t h)
+{
+    st.height = h;
+}
+
+IspaceImgFlags *ispace_img_flags(void)
+{
+    return &st.f;
+}
+
+const uint8_t *ispace_dib_color(const Dib *d, int k)
+{
+    return dib_color(d, k);
+}
+
+const uint8_t *ispace_dib_bits(const Dib *d)
+{
+    return dib_bits(d);
 }
 
 /* 5:17c2: the calibration strip: fourteen 40-pixel cells gap apart on
