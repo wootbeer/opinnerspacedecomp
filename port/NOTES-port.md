@@ -150,6 +150,39 @@ gives on a fast machine (36 in waves, shown with B: "36 SET, 35
 ACTUAL"). [uncertain: which machine the designers had in mind; the
 help file's top class]
 
+Every use of the calibrated value (g_8ffc) outside start-up, all at
+2300 in the port:
+
+- 6:0a6c (start-up): frame divisor g_9004, thrust divisor g_9006 (10
+  from 380 up), in-wave divisor g_8f76 via GameSpeed. The divisors are
+  rescaled by time within a second, so only g_9006 lasts. g_9008 is
+  derived from GameSpeed and then overwritten with 4.
+- 15:80da: title logo pieces all at once (from 1400) or one per frame.
+- 15:7cda (title logo zoom): steps 3, or 6 below 800.
+- 15:7cda: logo reveal step 2 (above 900 with Detail > 1) or 4.
+- 15:374c (launch, ship rise) and 15:0000 (landing):
+  steps per frame for the fast class (from 1300 / 1400) or larger
+  steps for slower machines.
+- 15:302e: a warning text shown before the wave below 850, or below
+  1600 on a display of fewer than 256 colours.
+- 15:302e: after a wave, the outside-wave frame divisor is doubled
+  (above 1500) or quadrupled (above 2000); it is rescaled by time
+  within a second.
+- 16:2144: dissolve uses one pattern below 300, four otherwise.
+
+The slower-machine branches take bigger steps per frame because those
+machines could not reach the target frame rate; at the full rate the
+fast-class steps are the ones that keep the animations' speed in real
+time. None of the branches touches flight physics, damage or scoring.
+
+In-game speed controls (all kept): Alt + and Alt - change FrameRateSet
+by 2 (4-104 frames a second; above 104 it becomes 1200, which turns
+off the frame limit), saved to the INI and shown with B. Physics
+advance a fixed amount per frame, so FrameRateSet is the game's speed:
+a higher rate is a faster game, not a smoother one. Detail (INI, 1-3)
+and GameSpeed (INI, overrides Calibrate for the in-wave divisor) are
+the other two.
+
 **Alternative for the user to decide:** a slower model machine (for
 example 500 idle calls a second, Calibrate about 1150: the 800-1300
 class) would take the medium branches (animation steps of 3 rather than 5
