@@ -69,6 +69,11 @@ UINT GetSystemPaletteEntries(HDC dc, UINT start, UINT n, PALETTEENTRY *e);
 HBITMAP CreateDIBitmap(HDC dc, const BITMAPINFOHEADER *bih, DWORD init, const void *bits,
                        const void *bmi, UINT usage);
 
+/* Runtime and KERNEL calls only ISPACE.DLL makes. */
+int16_t _getdrive(void);            /* 1 = A: */
+int16_t _chdrive(int16_t drive);    /* 0, or -1 when there is no such drive */
+UINT SetErrorMode(UINT mode);
+
 #include "win.h"
 
 #endif

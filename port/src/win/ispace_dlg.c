@@ -1,8 +1,8 @@
 /* ISPACE.DLL ordinal 10 (9:145e): the game's dialogs (new game, restore,
  * options, ...), run by 10:42c6 from ENG_LANG.DLL's templates with
- * dialog procedures in the DLL's segment 10.  Ported so far: the
- * Restore Game dialog (mode 1's first, 10:0ec2), with its ship preview
- * window class LevClass (10:309c) as far as " NEW GAME" shows it. */
+ * dialog procedures in the DLL's segment 10.  Ported so far: mode 1's
+ * Restore Game (10:0ec2) and New Game (10:0f26) dialogs with the ship
+ * preview window class LevClass (10:309c), and the exit question. */
 #include <SDL3/SDL_stdinc.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,9 +16,16 @@
 #define ID_CANCEL 0x14d
 #define ID_PREVIEW 0x64
 #define ID_SAVE_EXIT 0x251
+#define ID_PILOT 0x142          /* New Game: the pilot's name */
+#define ID_SHIP 0x144
+#define ID_PLAY 0x145
+#define ID_TEAM 0x146
+#define ID_DRIVE 0x14a
+#define ID_ZOOM 0x14c
 #define STM_SETICON (WM_USER + 0)
-#define SHIP_SIZE 0x41          /* a MASTER.SHP record */
-#define BODY_SIZE 0x2c          /* a MASTER.BOD record */
+#define SHIP_SIZE 0x41          /* a MASTER.SHP record: type +3, colour sets +7 +8, name +0xa, body +0x21 */
+#define BODY_SIZE 0x2c          /* a MASTER.BOD record: size +0x1a, image id +0x21, image file +0x23 */
+#define NAME_SIZE 0x14
 
 static struct {
     int16_t ds_01aa, ds_204e, ds_2134, ds_2136, ds_2138, ds_213a, ds_213c;
@@ -30,7 +37,13 @@ static struct {
     int16_t ds_1f7e;            /* INI BadVideo */
     int16_t ds_1f8c;            /* the saved game shown (-1: none) */
     int16_t ds_0cea;            /* the saved game last picked */
+    int16_t ds_0cec;            /* the ship last picked */
     int16_t ds_1f82, ds_2296;   /* set by dialogs not ported: 0 here */
+    int16_t ds_1f78;            /* set: no team shown (by a dialog not ported; 0 here) */
+    int16_t ds_1f88;            /* height of the last ship picture */
+    BITMAP ds_2014;             /* the last ship picture's */
+    char ship_name[NAME_SIZE];  /* DS:1554 */
+    char player[NAME_SIZE];     /* DS:1568 */
     HFONT font[2];              /* DS:1714 Arial 14x6, DS:1716 the same bold */
     uint8_t *ships, *bodies;    /* DS:14e4 MASTER.SHP, DS:14e0 MASTER.BOD */
     int16_t ship_count, body_count;     /* DS:1f84, DS:1f86 */
@@ -39,6 +52,7 @@ static struct {
         HBITMAP bm, old_bm;     /* DS:157c, DS:1580 */
         HDC dc;                 /* DS:1588 */
         HPALETTE old_pal;       /* DS:158c */
+        int16_t size;           /* DS:1544: the picture's height */
     } slot[2];
 } st;
 
@@ -98,16 +112,18 @@ static uint8_t *read_records(const char *name, long size, int16_t *count)
     if (path[0] && path[SDL_strlen(path) - 1] != '\\')
         SDL_strlcat(path, "\\", sizeof path);
     SDL_strlcat(path, name, sizeof path);
+    *count = 0;
     if ((f = OpenFile(path, &of, 0)) == -1)
         return NULL;
     len = (int16_t)_filelength(f) / size;   /* the DLL divides the low word, sign-extended */
-    *count = (int16_t)len;
     data = len > 0 ? malloc((size_t)(len * size)) : NULL;
     if (data && _lread(f, data, (UINT)(len * size)) != (UINT)(len * size)) {
         free(data);
         data = NULL;
     }
     _lclose(f);
+    if (data)
+        *count = (int16_t)len;
     return data;
 }
 
@@ -141,12 +157,34 @@ static void set_fonts(HWND dlg)
     }
 }
 
-/* 10:2c68: slot's preview window cleared inside its frame (and the
- * ship drawn, not ported). */
+/* 10:2d3c: StretchBlt, through ordinal 36 for an exact 2x or a mirror
+ * when INI BadVideo is set and the display has 2-8 bits a pixel. */
+static void stretch(HDC dst, int16_t x, int16_t y, int16_t w, int16_t h, HDC src, int16_t xs, int16_t ys,
+                    int16_t ws, int16_t hs, DWORD rop)
+{
+    HBITMAP probe = CreateCompatibleBitmap(src, 2, 2);
+    BITMAP b;
+    int bits, doubled, mirrored;
+
+    memset(&b, 0, sizeof b);
+    GetObject(probe, sizeof b, &b);
+    bits = b.bmPlanes * b.bmBitsPixel;
+    DeleteObject(probe);
+    doubled = (int16_t)(2 * ws) == w && (int16_t)(2 * hs) == h;
+    mirrored = (w < 0 || h < 0) && ws != 0 && w % ws == 0;     /* the DLL divides by 0 */
+    if (st.ds_1f7e && bits != 1 && bits <= 8 && (doubled || mirrored))
+        ispace_blit_double(dst, x, y, w, h, src, xs, ys, ws, hs, (int32_t)rop);
+    else
+        StretchBlt(dst, x, y, w, h, src, xs, ys, ws, hs, rop);
+}
+
+/* 10:2c68: slot's preview window cleared inside its frame and the ship
+ * drawn at twice its size in the middle. */
 static void draw_preview(int slot)
 {
     HPALETTE old = 0;
     HDC dc;
+    int16_t n = st.slot[slot].size;
 
     if (!st.preview[slot])
         return;
@@ -155,7 +193,8 @@ static void draw_preview(int slot)
         old = SelectPalette(dc, dialog_palette(), 0);
     PatBlt(dc, 3, 3, 0x5a, 0x5a, BLACKNESS);
     if (st.slot[slot].dc)
-        not_ported("ispace dialog: ship picture (10:2d3c)");
+        stretch(dc, (int16_t)(0x30 - n), (int16_t)(0x30 - n), (int16_t)(2 * n), (int16_t)(2 * n), st.slot[slot].dc,
+                0, 0, n, n, SRCCOPY);
     if (old)
         SelectPalette(dc, old, 0);
     ReleaseDC(st.preview[slot], dc);
@@ -174,14 +213,56 @@ static void free_slot(int slot)
     st.slot[slot].bm = 0;
 }
 
-/* 10:2aac: shows ship i (-1: none) in slot's preview. */
-static void show_ship(int i, int slot)
+static const uint8_t *ship_rec(int16_t i)
 {
+    return st.ships + (size_t)i * SHIP_SIZE;
+}
+
+/* Ship i's body, NULL when its index is outside MASTER.BOD (the DLL
+ * reads past the table). */
+static const uint8_t *body_of(int16_t i)
+{
+    const uint8_t *ship = ship_rec(i);
+    int16_t k = (int16_t)(ship[0x21] | ship[0x22] << 8);
+
+    return k >= 0 && k < st.body_count ? st.bodies + (size_t)k * BODY_SIZE : NULL;
+}
+
+static int16_t body_image(const uint8_t *body)
+{
+    return (int16_t)(body[0x21] | body[0x22] << 8);
+}
+
+/* 10:2aac: shows ship i (-1: none) in slot's preview (slot 2: slot 0
+ * with the ramps of mode 2, see ispace_ship_image).  fill 1 and 2
+ * blacken the picture left and right of a body of its size. */
+static void show_ship(int16_t i, int16_t slot, int16_t fill)
+{
+    int16_t mode = slot, half;
+    HPALETTE pal = dialog_palette();
+    const uint8_t *ship, *body;
+    HDC dc;
+
     if (slot == 2)
         slot = 0;
     free_slot(slot);
-    if (i > -1)
-        not_ported("ispace dialog: ship preview (10:2b2f)");
+    if (i > -1 && (body = body_of(i)) != NULL) {
+        ship = ship_rec(i);
+        st.slot[slot].bm = ispace_ship_image(pal, body_image(body), (char *)body + 0x23,
+                                             (signed char)ship[7], (signed char)ship[8], mode);
+        GetObject(st.slot[slot].bm, sizeof st.ds_2014, &st.ds_2014);
+        dc = st.slot[slot].dc = CreateCompatibleDC((HDC)st.ds_2012);
+        st.slot[slot].old_bm = SelectObject(dc, st.slot[slot].bm);
+        st.slot[slot].old_pal = pal ? SelectPalette(dc, pal, 0) : 0;
+        st.ds_1f88 = st.slot[slot].size = st.ds_2014.bmHeight;
+        half = (int16_t)((st.ds_2014.bmHeight - (signed char)body[0x1a]) / 2);
+        if (fill >= 2) {
+            PatBlt(dc, (int16_t)(st.ds_2014.bmHeight - half), 0, half, st.ds_2014.bmHeight, BLACKNESS);
+            fill = (int16_t)(fill - 2);
+        }
+        if (fill)
+            PatBlt(dc, 0, 0, half, st.slot[slot].size, BLACKNESS);
+    }
     draw_preview(slot);
 }
 
@@ -257,6 +338,18 @@ static ATOM register_preview(int null_brush)
     return RegisterClass(&wc);
 }
 
+/* The height of "Test" in the dialogs' font: a list item's. */
+static int16_t text_height(HWND dlg)
+{
+    HDC dc = GetDC(dlg);
+    HFONT old = SelectObject(dc, st.font[0]);
+    int16_t h = (int16_t)HIWORD(GetTextExtent(dc, "Test", 4));
+
+    SelectObject(dc, old);
+    ReleaseDC(dlg, dc);
+    return h;
+}
+
 /* 10:1a80: the saved game's details (i 0: " NEW GAME"). */
 static void restore_show(HWND dlg, int16_t i)
 {
@@ -272,7 +365,7 @@ static void restore_show(HWND dlg, int16_t i)
     LoadString(lang_module(), 0x47d, text, sizeof text);
     SetWindowText(GetDlgItem(dlg, 330), text);
     st.ds_1f8c = -1;
-    show_ship(-1, 0);
+    show_ship(-1, 0, 0);
 }
 
 /* 10:1438: centres the dialog, lists " NEW GAME" and the saved games
@@ -285,18 +378,12 @@ static void restore_init(HWND dlg)
     struct _find_t ff;
     char name[0x14 + 0x80], pattern[160];
     HWND combo = GetDlgItem(dlg, ID_COMBO);
-    HFONT old;
-    HDC dc;
     int16_t item_h, count = 1, x, y, i;
     uint16_t r;
 
     GetClientRect(dlg, &client);
     GetWindowRect(dlg, &win);
-    dc = GetDC(dlg);
-    old = SelectObject(dc, st.font[0]);
-    item_h = (int16_t)HIWORD(GetTextExtent(dc, "Test", 4));
-    SelectObject(dc, old);
-    ReleaseDC(dlg, dc);
+    item_h = text_height(dlg);
     ClientToScreen(dlg, &org);
     x = (int16_t)(GetSystemMetrics(SM_CXSCREEN) / 2 + (win.left - win.right) / 2);
     y = (int16_t)(GetSystemMetrics(SM_CYSCREEN) / 2 + (win.top - win.bottom) / 2);
@@ -387,6 +474,311 @@ static BOOL restore_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
     return 0;
 }
 
+/* 9:298c: sound effect n (9:0c42, which plays nothing while the sound
+ * set-up of ordinal 7 has not run). */
+static void sound_effect(int16_t n)
+{
+    (void)n;
+    not_ported("ispace dialog: sound effect (9:298c)");
+}
+
+/* 10:611c: ship i may be played.  The registered flag (DS:01ac) is
+ * worked out once: the CD of WIN.INI CDDrive, else the key and the
+ * registered name in INSPACE.EXE (ordinal 24).  Unregistered, or in the
+ * mode 3 version (DS:01aa), some bodies are not offered. */
+static int ship_allowed(int16_t i)
+{
+    static const int16_t full_only[] = {
+        178, 310, 320, 400, 440, 450, 520, 550, 560, 590, 600, 604, 605, 710, 720, 730, 750, 890, 900, 930, 950
+    };
+    int16_t *registered = ispace_ds_01ac(), id;
+    char drive[0x50], name[0x3e], key[10];
+    size_t k;
+
+    if (*registered == -1) {
+        memset(name, 0, sizeof name);
+        GetProfileString(APP, "CDDrive", "", drive, 0x28);
+        if (drive[0] && ispace_check(drive, key, 21) == 0)
+            return 1;
+        *registered = ispace_check(name, key, 2) ? 0 : ispace_check(name, key, 10);
+    }
+    if (*registered && st.ds_01aa != 3)
+        return 1;
+    if (st.ds_01aa == 3 && i != 1)
+        return 0;
+    if (!body_of(i))
+        return 1;
+    id = body_image(body_of(i));
+    for (k = 0; k < sizeof full_only / sizeof full_only[0]; k++)
+        if (id == full_only[k])
+            return 0;
+    return 1;
+}
+
+/* 10:41cc: the name of team type (INI [Teams] Team<type + 1>). */
+static void team_name(int16_t type, char *out)
+{
+    char section[0x28], key[0x28], num[8];
+
+    LoadString(lang_module(), 0x8e7, key, sizeof key);
+    lstrcpy(section, key);
+    lstrcat(section, "s");
+    SDL_snprintf(num, sizeof num, "%d", type + 1);
+    lstrcat(key, num);
+    GetPrivateProfileString(section, key, "", out, NAME_SIZE, INI);
+}
+
+static void show_team(HWND dlg, int16_t i)
+{
+    char text[0x24];
+
+    team_name((signed char)ship_rec(i)[3], text);
+    SetWindowText(GetDlgItem(dlg, ID_TEAM), text);
+}
+
+static void add_strings(HWND combo, int16_t first, int n)
+{
+    char text[0x24];
+    int k;
+
+    for (k = 0; k < n; k++) {
+        LoadString(lang_module(), (UINT)(first + k), text, 0x1e);
+        combo_add_string(combo, text);
+    }
+}
+
+/* The drives C-Z with their volume labels ("C: LABEL"); the one of INI
+ * Drive is picked.  Returns how many. */
+static int16_t list_drives(HWND combo, int16_t *pick)
+{
+    struct _find_t ff;
+    char want[0xa], pattern[8], item[0x24];
+    int16_t saved = _getdrive(), d, count = 0, k;
+
+    SetErrorMode(1);
+    GetPrivateProfileString(APP, "Drive", "C", want, sizeof want, INI);
+    *pick = 0;
+    for (d = 3; d <= 26; d++) {
+        if (_chdrive(d))
+            continue;
+        lstrcpy(pattern, "A:\\*.*");
+        pattern[0] = (char)(pattern[0] + d - 1);
+        memset(&ff, 0, sizeof ff);
+        if (_dos_findfirst(pattern, _A_VOLID, &ff))
+            lstrcpy(ff.name, "Unknown_HD");
+        count++;
+        if (want[0] == pattern[0])
+            *pick = (int16_t)(count - 1);
+        lstrcpy(item, "C: ");
+        item[0] = (char)(item[0] + d - 3);
+        if (lstrlen(ff.name) > 7 && ff.name[8] == '.')
+            for (k = 8; lstrlen(ff.name) > k; k++)
+                ff.name[k] = ff.name[k + 1];
+        lstrcat(item, ff.name);
+        combo_add_string(combo, item);
+    }
+    _chdrive(saved);
+    return count;
+}
+
+/* MainShip, unless it may not be played (then TRANSFORMER, written
+ * back); the mode 1 version always plays TRANSFORMER. */
+static void ini_main_ship(char *name)
+{
+    int16_t i;
+
+    GetPrivateProfileString(APP, "MainShip", "EAGLE", name, NAME_SIZE, INI);
+    if (st.ds_01aa) {
+        lstrcpy(name, "TRANSFORMER");
+        return;
+    }
+    for (i = 0; i < st.ship_count; i++) {
+        if (lstrcmp((LPCSTR)ship_rec(i) + 0xa, name))
+            continue;
+        if (ship_rec(i)[3] == 7 || !ship_allowed(i)) {
+            lstrcpy(name, "TRANSFORMER");
+            WritePrivateProfileString(APP, "MainShip", name, INI);
+            return;
+        }
+    }
+}
+
+/* 10:1e7c: zoom levels, the ships that may be played, the drives, play
+ * modes and the pilot's name from the INI; the preview at the bottom
+ * right; the dialog centred. */
+static void newgame_init(HWND dlg)
+{
+    RECT client, win, r = {0, 0, 0, 0};
+    POINT org = {0, 0};
+    HWND c;
+    char name[NAME_SIZE];
+    int16_t item_h, x, y, i, n, pick;
+
+    GetClientRect(dlg, &client);
+    GetWindowRect(dlg, &win);
+    item_h = text_height(dlg);
+    ClientToScreen(dlg, &org);
+    x = (int16_t)(GetSystemMetrics(SM_CXSCREEN) / 2 + (win.left - win.right) / 2);
+    y = (int16_t)(GetSystemMetrics(SM_CYSCREEN) / 2 + (win.top - win.bottom) / 2);
+    load_ships();
+    set_fonts(dlg);
+    add_strings(GetDlgItem(dlg, ID_ZOOM), 0x8b6, 3);
+    SendMessage(GetDlgItem(dlg, ID_ZOOM), CB_SETCURSEL, (WPARAM)(2 - GetPrivateProfileInt(APP, "SetSize", 1, INI)), 0);
+    for (i = 0; i < st.ship_count; i++)
+        if (ship_rec(i)[0xa] && ship_rec(i)[3] != 7 && ship_allowed(i))
+            combo_add_string(GetDlgItem(dlg, ID_SHIP), (LPCSTR)ship_rec(i) + 0xa);
+    n = list_drives(GetDlgItem(dlg, ID_DRIVE), &pick);
+    c = GetDlgItem(dlg, ID_DRIVE);
+    GetWindowRect(c, &r);
+    MoveWindow(c, (int16_t)(r.left - org.x), (int16_t)(r.top - org.y), (int16_t)(r.right - r.left),
+               (int16_t)(item_h * n + 0x1e), 1);
+    c = GetDlgItem(dlg, ID_PLAY);
+    GetWindowRect(c, &r);
+    MoveWindow(c, (int16_t)(r.left - org.x), (int16_t)(r.top - org.y), (int16_t)(r.right - r.left),
+               (int16_t)((item_h + 0xf) * 2), 1);
+    if (!st.ds_1f7a)
+        add_strings(c, 0x8e3, 2);
+    if (register_preview(0))
+        st.preview[0] = CreateWindow("LevClass", NULL, WS_CHILD | WS_VISIBLE, (int16_t)(client.right - 0x68),
+                                     (int16_t)(client.bottom - 0x67), 0x60, 0x60, dlg, ID_PREVIEW, ispace_module(), NULL);
+    MoveWindow(dlg, x, y, (int16_t)(win.right - win.left), (int16_t)(win.bottom - win.top), 1);
+    SendMessage(GetDlgItem(dlg, ID_DRIVE), CB_SETCURSEL, (WPARAM)pick, 0);
+    GetPrivateProfileString(APP, "ThePlayer", "AutoPilot", st.player, NAME_SIZE, INI);
+    ini_main_ship(name);
+    if (!st.ds_1f7a) {
+        SendMessage(GetDlgItem(dlg, ID_PLAY), CB_SETCURSEL, (WPARAM)GetPrivateProfileInt(APP, "PlayMode", 0, INI), 0);
+        SetWindowText(GetDlgItem(dlg, ID_PILOT), st.player);
+    }
+    i = combo_find_string(GetDlgItem(dlg, ID_SHIP), -1, name);
+    SendMessage(GetDlgItem(dlg, ID_SHIP), CB_SETCURSEL, (WPARAM)(i < 0 ? 0 : i), 0);
+    lstrcpy(st.ship_name, name);
+    for (i = 0; i < st.ship_count; i++)
+        if (!lstrcmp((LPCSTR)ship_rec(i) + 0xa, st.ship_name)) {
+            show_ship(i, 0, 0);
+            show_team(dlg, i);
+            break;
+        }
+    SetFocus(GetDlgItem(dlg, ID_SHIP));
+}
+
+/* 10:2978: a ship picked in the list (id 0x144 here; 0xa8 and 0x1b3 in
+ * dialogs not ported show it in slot 2 and 1). */
+static void ship_picked(HWND dlg, int16_t id, HWND combo)
+{
+    int16_t sel = (int16_t)SendMessage(combo, CB_GETCURSEL, 0, 0), slot, i, found = 0;
+
+    if (sel == -1)
+        return;
+    combo_get_text(combo, sel, st.ship_name, NAME_SIZE);
+    slot = id == 0xa8 ? 2 : id == 0x1b3 ? 1 : 0;
+    for (i = 0; i < st.ship_count; i++) {
+        if (lstrcmp((LPCSTR)ship_rec(i) + 0xa, st.ship_name))
+            continue;
+        show_ship(i, slot, 0);
+        found = 1;
+        if (!st.ds_1f78 && slot != 2)
+            show_team(dlg, i);
+    }
+    if (!found)
+        show_ship(-1, slot, 0);
+    st.ds_0cec = sel;
+}
+
+/* A message box of language strings first..first + n - 1. */
+static int16_t ask(HWND dlg, UINT first, int n, int16_t size, UINT type)
+{
+    char text[0xfa], part[0xc8];
+    int k;
+
+    text[0] = 0;
+    for (k = 0; k < n; k++) {
+        LoadString(lang_module(), first + (UINT)k, part, size);
+        SDL_strlcat(text, part, sizeof text);
+    }
+    return MessageBox(dlg, text, APP, type);
+}
+
+static void write_int(LPCSTR key, int16_t v)
+{
+    char num[8];
+
+    SDL_snprintf(num, sizeof num, "%d", v);
+    WritePrivateProfileString(APP, key, num, INI);
+}
+
+/* 10:250c (ok 1): the choices go into the INI; the first time Command
+ * mode is picked (and the tenth) it asks to be sure.  Returns 0 while
+ * the dialog stays. */
+static int newgame_end(HWND dlg, int ok)
+{
+    char drive[0x24] = "";
+    int16_t play, n;
+
+    if (ok) {
+        if (st.ds_01aa && lstrcmp(st.ship_name, "TRANSFORMER")) {
+            ask(dlg, 0x916, 2, 0x8c, MB_ICONEXCLAMATION);
+            return 0;
+        }
+        WritePrivateProfileString(APP, "MainShip", st.ship_name, INI);
+        combo_get_text(GetDlgItem(dlg, ID_DRIVE), (int16_t)SendMessage(GetDlgItem(dlg, ID_DRIVE), CB_GETCURSEL, 0, 0),
+                       drive, sizeof drive);
+        drive[1] = 0;
+        WritePrivateProfileString(APP, "Drive", drive, INI);
+    }
+    if (ok && !st.ds_1f7a) {
+        n = (int16_t)(2 - SendMessage(GetDlgItem(dlg, ID_ZOOM), CB_GETCURSEL, 0, 0));
+        write_int("Size", n);
+        write_int("SetSize", n);
+        GetWindowText(GetDlgItem(dlg, ID_PILOT), st.player, NAME_SIZE);
+        WritePrivateProfileString(APP, "ThePlayer", st.player, INI);
+        play = (int16_t)SendMessage(GetDlgItem(dlg, ID_PLAY), CB_GETCURSEL, 0, 0);
+        write_int("PlayMode", play);
+        if (play) {
+            sound_effect(0x6e);
+            sound_effect(0x2c);
+            n = GetPrivateProfileInt(APP, "StratAsk", 0, INI);
+            if (n == 0 || n == 10) {
+                if (ask(dlg, 0xb22, 4, 0xc8, MB_YESNO | MB_ICONEXCLAMATION) != IDYES)
+                    return 1;
+                write_int("StratAsk", (int16_t)(n + 1));
+            }
+        }
+    }
+    free_slot(0);
+    if (st.preview[0]) {
+        DestroyWindow(st.preview[0]);
+        st.preview[0] = 0;
+    }
+    UnregisterClass("LevClass", ispace_module());
+    free_ships();
+    st.ds_1f7a = 0;
+    EndDialog(dlg, (int16_t)ok);
+    return 1;
+}
+
+/* 10:0f26 */
+static BOOL newgame_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
+{
+    if (msg == WM_INITDIALOG) {
+        newgame_init(h);
+        return 0;
+    }
+    if (msg != WM_COMMAND)
+        return 0;
+    switch (wp) {
+    case IDOK:
+        return newgame_end(h, 1) != 0;
+    case ID_SHIP:
+        if (HIWORD(lp) == CBN_SELCHANGE)
+            ship_picked(h, (int16_t)wp, (HWND)LOWORD(lp));
+        return 0;
+    case ID_CANCEL:
+        newgame_end(h, 0);
+        return 1;
+    }
+    return 0;
+}
+
 /* 10:109a: the exit question (mode 5: leave the game, 7: back to the
  * intro); Save & Exit only for game modes 1-3 while someone plays. */
 static void exit_init(HWND h)
@@ -470,12 +862,12 @@ static int16_t dialogs(HWND owner, int16_t dc, HPALETTE pal, int16_t mode)
         r = run(owner, 0x10b, restore_proc, "");
         if (r == 1) {
             st.ds_1f7a = 0;
-            r = run(owner, 0x141, NULL, "ispace dialog: New Game (10:0f26)");
+            r = run(owner, 0x141, newgame_proc, "");
         }
         break;
     case 4:
         st.ds_1f7a = 1;
-        r = run(owner, 0x24d, NULL, "ispace dialog: New Game (10:0f26)");
+        r = run(owner, 0x24d, newgame_proc, "");
         break;
     case 6:
         r = run(owner, 0x11e, NULL, "ispace dialog: 10:0f9c");

@@ -75,6 +75,7 @@ static int16_t run(int ordinal, Args *a)
     case 6: return (int16_t)ispace_make_mask(w[0], w[1], w[2]);
     case 12: return ispace_smooth_image(w[0], w[1], 0, w[3], w[4], w[5], w[6], w[7], w[8],
                                         (char)w[9], (char)w[10]);
+    case 1000: return (int16_t)ispace_ship_image(w[0], w[1], a->s[2], w[3], w[4], w[5]);
     default:
         fprintf(stderr, "port_calls: ordinal %d not supported\n", ordinal);
         exit(2);

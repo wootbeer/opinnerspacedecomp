@@ -6,7 +6,8 @@ returned bitmaps pixel for pixel, palettes entry for entry.
 usage: oracle.py SCRIPT [--port PATH] [--data DIR] [--show N]
   SCRIPT  one call per line: ORDINAL ARG...; ARG is a number, "text",
           @K (the result of call K, counted from 0) or DC (a screen DC);
-          '#' starts a comment line
+          '#' starts a comment line.  Pseudo-ordinals name routines the
+          DLL does not export (INTERNAL).
   --port  the port_calls executable (default build/dll_oracle/port_calls)
   --data  the game's files (default data/)
   --show  differences listed per call (default 5)
@@ -22,7 +23,10 @@ from emu import IspaceEmu, ROOT  # noqa: E402
 
 # Argument kinds per ordinal, in the DLL's (Pascal) order: w word,
 # s far string, b byte (passed as a word).
-ORDINALS = {1: 'wwswww', 3: 's', 4: 'wwwwwww', 5: '', 6: 'www', 12: 'wwswwwwwwbb'}
+ORDINALS = {1: 'wwswww', 3: 's', 4: 'wwwwwww', 5: '', 6: 'www', 12: 'wwswwwwwwbb', 1000: 'wwswww'}
+# Pseudo-ordinal -> (segment, offset) of a C-convention routine: 1000 is
+# 5:0000, the ship picture of the dialogs (pal, id, name, a, b, mode).
+INTERNAL = {1000: (5, 0x0000)}
 
 
 def parse_script(path):
@@ -42,14 +46,17 @@ def run_emu(calls, data_dir):
         for kind, a in zip(ORDINALS[ordinal], args):
             if kind == 's':
                 fp = e.far_string(a)
-                words += [fp >> 16, fp & 0xffff]
+                words += [fp >> 16, fp & 0xffff] if ordinal not in INTERNAL else [fp & 0xffff, fp >> 16]
             elif a == 'DC':
                 words.append(e.new_gdi('dc', bmp=None, pal=None, bk=0xffffff))
             elif a.startswith('@'):
                 words.append(results[int(a[1:])])
             else:
                 words.append(int(a, 0) & (0xff if kind == 'b' else 0xffff))
-        r = e.call_ordinal(ordinal, words) & 0xffff
+        if ordinal in INTERNAL:
+            r = e.call(*INTERNAL[ordinal], words[::-1]) & 0xffff
+        else:
+            r = e.call_ordinal(ordinal, words) & 0xffff
         results.append(r)
         b = e.bitmap(r)
         pals = {i: e.palette(h) for i, h in enumerate(results) if e.palette(h)}

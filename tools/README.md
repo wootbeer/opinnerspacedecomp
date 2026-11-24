@@ -94,8 +94,14 @@ python3 -I tools/dll_oracle/oracle.py tools/dll_oracle/smooth.txt
 - `oracle.py SCRIPT`: runs both and lists each call as same or differs.
   A script line is `ORDINAL ARG...`; an argument is a number, `"text"`,
   `@K` (the result of call K, from 0) or `DC` (a screen DC). Ordinals 1,
-  3, 4, 5, 6 and 12 are supported; add others to `ORDINALS` (oracle.py)
+  3, 4, 5, 6 and 12 are supported, and pseudo-ordinal 1000 for 5:0000
+  (the dialogs' ship picture, a C-convention routine the DLL does not
+  export: `INTERNAL` in oracle.py); add others to `ORDINALS` (oracle.py)
   and `run` (port_calls.c).
+- `ships.py OUT`: writes a script from the user's `SHIPS/MASTER.SHP` and
+  `MASTER.BOD` (so it is not kept in git): smooth.txt's palette set-up,
+  then 5:0000 for every ship as the New Game dialog shows it, every tenth
+  also in modes 1 and 2. All 142 calls agree.
 - `smooth.txt`: the palette set-up up to the title and ordinal 12 on 21
   images of IGRAPHIC.DLL. All agree. (Image 200, taller than wide, differs
   in 37 pixels of its top rows: the DLL reads past its pixels there, see

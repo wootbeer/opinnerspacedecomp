@@ -5,9 +5,10 @@
  * Ported so far: images from resources, the colour sets of the caller,
  * colours left as they are (mode 3), added to the palette (mode 2) or put
  * in the palette as ramps (mode 0), and ordinal 2's calibration strip
- * (5:17c2).  The branches that keep an image's own colours, 5:075e,
- * 6:7fc8, images from files (5:1d74) and ordinal 2's other surfaces log
- * themselves once and give no bitmap. */
+ * (5:17c2), and 5:0000, the dialogs' ship pictures.  The branches that
+ * keep an image's own colours, 5:075e, 6:7fc8, images from files
+ * (5:1d74) and ordinal 2's other surfaces log themselves once and give
+ * no bitmap. */
 #include <stdlib.h>
 #include <string.h>
 
@@ -25,7 +26,7 @@ const int16_t ispace_ramp_area[2][3] = {{0x2e4, 0x354, 0x398}, {0x28, 0x14c, 0x1
 
 static struct {
     int16_t height;                     /* DS:1c72: height of the last image */
-    int16_t ds_0024;                    /* set by 5:0000, not ported: always 0 here */
+    int16_t ds_0024;                    /* ramp shift of a ship picture (5:0000) */
     int16_t ds_1ea6;                    /* set by routines not ported: always 0 here */
     IspaceImgFlags f;
 } st;
@@ -379,6 +380,19 @@ int16_t ispace_load_image(int16_t pal, int16_t id, char *name, int16_t dc, int16
     st.ds_0024 = 0;
     st.f.ds_1ea4 = 0;
     return (int16_t)bm;
+}
+
+/* 5:0000: mode 0-2 shifts the ramps by DS:0024 (as bytes); with a mode
+ * a is less 150, which keeps the shift in ordinal 1. */
+HBITMAP ispace_ship_image(int16_t pal, int16_t id, char *name, int16_t a, int16_t b, int16_t mode)
+{
+    static const int16_t shift[3] = {0, 60, -12};
+
+    if (mode)
+        a = (int16_t)(a - 150);
+    if (mode >= 0 && mode < 3)
+        st.ds_0024 = shift[mode];
+    return (HBITMAP)ispace_load_image(pal, id, name, (int16_t)ispace_dc(), a, (int16_t)(b - 150));
 }
 
 int16_t ispace_image_height(void)

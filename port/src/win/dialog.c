@@ -117,6 +117,15 @@ static int16_t units(int v, int base, int div)
     return (int16_t)((v * base + div / 2) / div);
 }
 
+/* The focus moved by the dialog: an edit control gets all its text
+ * selected. */
+static void move_focus(HWND c)
+{
+    SetFocus(c);
+    if (SendMessage(c, WM_GETDLGCODE, 0, 0) & DLGC_HASSETSEL)
+        SendMessage(c, EM_SETSEL, 0, MAKELONG(0, -1));
+}
+
 static const char *const predefined[] = {"Button", "Edit", "Static", "ListBox", "ScrollBar", "ComboBox"};
 
 static HWND create_from(const uint8_t *res, uint32_t size, HWND owner, DLGPROC proc)
@@ -188,7 +197,7 @@ static HWND create_from(const uint8_t *res, uint32_t size, HWND owner, DLGPROC p
             first = c;
     }
     if (proc(h, WM_INITDIALOG, first, 0) && first)
-        SetFocus(first);
+        move_focus(first);
     if (style & WS_VISIBLE)
         ShowWindow(h, SW_SHOW);
     return h;
@@ -328,7 +337,7 @@ static int dialog_key(HWND dlg, const MSG *m, LRESULT code)
 
     switch (vk) {
     case VK_TAB:
-        SetFocus(next_control(dlg, GetFocus(), GetKeyState(VK_SHIFT) < 0 ? -1 : 1, 0));
+        move_focus(next_control(dlg, GetFocus(), GetKeyState(VK_SHIFT) < 0 ? -1 : 1, 0));
         return 1;
     case VK_LEFT:
     case VK_UP:
@@ -336,7 +345,7 @@ static int dialog_key(HWND dlg, const MSG *m, LRESULT code)
     case VK_DOWN:
         if (code & DLGC_WANTARROWS)
             return 0;
-        SetFocus(next_control(dlg, GetFocus(), vk == VK_LEFT || vk == VK_UP ? -1 : 1, 1));
+        move_focus(next_control(dlg, GetFocus(), vk == VK_LEFT || vk == VK_UP ? -1 : 1, 1));
         return 1;
     case VK_RETURN:
         if (code & (DLGC_DEFPUSHBUTTON | DLGC_UNDEFPUSHBUTTON)) {
@@ -365,7 +374,7 @@ static int dialog_char(HWND dlg, const MSG *m, LRESULT code)
     if (SendMessage(c, WM_GETDLGCODE, 0, 0) & (DLGC_DEFPUSHBUTTON | DLGC_UNDEFPUSHBUTTON))
         command(dlg, GetDlgCtrlID(c));
     else
-        SetFocus(c);
+        move_focus(c);
     return 1;
 }
 

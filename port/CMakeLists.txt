@@ -16,6 +16,7 @@ add_executable(inspace
     src/win/dgroup.c
     src/win/dialog.c
     src/win/draw.c
+    src/win/edit.c
     src/win/gdi.c
     src/win/handles.c
     src/win/input.c
@@ -23,6 +24,7 @@ add_executable(inspace
     src/win/ispace_dlg.c
     src/win/ispace_img.c
     src/win/ispace_pal.c
+    src/win/ispace_reg.c
     src/win/ispace_smooth.c
     src/win/kernel.c
     src/win/module.c

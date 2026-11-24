@@ -245,6 +245,15 @@ UINT GetWindowsDirectory(LPSTR buf, UINT size)
     return (UINT)strlen(buf);
 }
 
+UINT SetErrorMode(UINT mode)
+{
+    static UINT current;
+    UINT old = current;
+
+    current = mode;
+    return old;
+}
+
 DWORD GetVersion(void)
 {
     return 0x05000a03;      /* Windows 3.10 on DOS 5.0 */

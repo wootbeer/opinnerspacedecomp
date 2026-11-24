@@ -1,5 +1,5 @@
 /* The built-in control classes dialogs use: Button (push buttons),
- * Static (text), Edit and ComboBox (drop-down list), drawn in Windows
+ * Static (text) and ComboBox (drop-down list; Edit is in edit.c), drawn in Windows
  * 3.1's look into the screen.  Colours come from the parent's
  * WM_CTLCOLOR as in Windows; sizes Windows 3.1 derived from its own
  * fonts and bitmaps are approximations (port/NOTES-port.md). */
@@ -15,8 +15,6 @@
 #define SS_CENTER 1
 #define SS_RIGHT 2
 #define SS_NOPREFIX 0x80
-#define ES_MULTILINE 0x0004
-#define ES_READONLY 0x0800
 #define CBS_SORT 0x0100
 #define CB_GETCOUNT (WM_USER + 6)
 #define CB_RESETCONTENT (WM_USER + 11)
@@ -28,9 +26,8 @@
 #define CTLCOLOR_LISTBOX 2
 #define CTLCOLOR_BTN 3
 #define CTLCOLOR_STATIC 6
-#define DLGC_HASSETSEL 0x0008
 #define ARROW_W 17              /* SM_CXVSCROLL */
-#define MAX_ITEMS 64
+#define MAX_ITEMS 256
 #define LIST_CLASS "ComboLBox"
 
 typedef struct {
@@ -336,60 +333,6 @@ static LRESULT static_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
     return common(h, msg, wp, lp);
 }
 
-/* Edit controls: the text, word-wrapped when multi-line; a single-line
- * one takes typing at its end, with the caret drawn there while it has
- * the focus. */
-static LRESULT edit_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
-{
-    Wnd *w = wnd_get(h);
-    HFONT old;
-    HDC dc;
-    HBRUSH bg;
-    RECT r;
-    size_t n;
-    int x;
-
-    switch (msg) {
-    case WM_PAINT:
-        validate(h);
-        dc = ctl_dc(h, &old);
-        bg = ctl_color(h, dc, CTLCOLOR_EDIT);
-        GetClientRect(h, &r);
-        if (bg)
-            FillRect(dc, &r, bg);
-        SetBkMode(dc, TRANSPARENT);
-        r.left += 1;
-        if (w->style & ES_MULTILINE) {
-            wrapped(dc, &r, w->text, 0, 1);
-        } else {
-            x = label(dc, r.left, 1, w->text, (int)SDL_strlen(w->text), 1, 1);
-            if (GetFocus() == h && !(w->style & ES_READONLY))
-                fill(dc, r.left + x, 1, r.left + x + 1, r.bottom - 1, GetTextColor(dc));
-        }
-        ctl_release(h, dc, old);
-        return 0;
-    case WM_GETDLGCODE:
-        return DLGC_WANTCHARS | DLGC_HASSETSEL | DLGC_WANTARROWS;
-    case WM_LBUTTONDOWN:
-        SetFocus(h);
-        return 0;
-    case WM_CHAR:
-        n = SDL_strlen(w->text);
-        if (w->style & ES_READONLY)
-            return 0;
-        if (wp == VK_BACK && n)
-            w->text[n - 1] = 0;
-        else if (wp >= ' ' && n + 1 < sizeof w->text)
-            w->text[n] = (char)wp, w->text[n + 1] = 0;
-        else
-            return 0;
-        InvalidateRect(h, NULL, 1);
-        notify(h, 0x0300);      /* EN_CHANGE */
-        return 0;
-    }
-    return common(h, msg, wp, lp);
-}
-
 /* Combo boxes (drop-down lists).  The window is as high as the field;
  * the height it was made or moved with is the field and the list
  * together, as in Windows. */
@@ -469,6 +412,8 @@ static void combo_close(HWND h, int take)
     InvalidateRect(h, NULL, 0);
 }
 
+static void list_set_hot(HWND combo, int i);
+
 static void combo_open(HWND h)
 {
     Wnd *w = wnd_get(h);
@@ -487,6 +432,8 @@ static void combo_open(HWND h)
     c->top = 0;
     c->list = CreateWindow(LIST_CLASS, "", WS_POPUP | WS_BORDER, w->rect.left, w->rect.bottom,
                            (int16_t)(w->rect.right - w->rect.left), (int16_t)lh, h, 0, 0, NULL);
+    if (c->hot >= 0)
+        list_set_hot(h, c->hot);
     ShowWindow(c->list, SW_SHOW);
     SetCapture(c->list);
     InvalidateRect(h, NULL, 0);
@@ -506,6 +453,108 @@ static int combo_search(HWND h, int start, const char *s, int exact)
     return -1;
 }
 
+/* The open list: rows that fit, and a scroll bar on the right when the
+ * items do not (arrow buttons and a square thumb, Windows 3.1's look
+ * approximated). */
+static int list_rows(HWND combo)
+{
+    RECT r;
+
+    GetClientRect(ctl(combo)->list, &r);
+    return r.bottom / combo_item_h(combo);
+}
+
+static int list_has_bar(HWND combo)
+{
+    return ctl(combo)->count > list_rows(combo);
+}
+
+static void list_scroll(HWND combo, int top)
+{
+    Ctl *c = ctl(combo);
+    int rows = list_rows(combo);
+
+    if (top > c->count - rows)
+        top = c->count - rows;
+    c->top = top < 0 ? 0 : top;
+    InvalidateRect(c->list, NULL, 0);
+}
+
+static void list_set_hot(HWND combo, int i)
+{
+    Ctl *c = ctl(combo);
+    int rows = list_rows(combo);
+
+    c->hot = i < 0 ? 0 : i >= c->count ? c->count - 1 : i;
+    if (c->hot < c->top)
+        list_scroll(combo, c->hot);
+    else if (c->hot >= c->top + rows)
+        list_scroll(combo, c->hot - rows + 1);
+    InvalidateRect(c->list, NULL, 0);
+}
+
+static void list_key(HWND combo, int vk)
+{
+    Ctl *c = ctl(combo);
+    int rows = list_rows(combo);
+
+    switch (vk) {
+    case VK_DOWN: list_set_hot(combo, c->hot + 1); break;
+    case VK_UP: list_set_hot(combo, c->hot - 1); break;
+    case VK_NEXT: list_set_hot(combo, c->hot + rows - 1); break;
+    case VK_PRIOR: list_set_hot(combo, c->hot - rows + 1); break;
+    case VK_HOME: list_set_hot(combo, 0); break;
+    case VK_END: list_set_hot(combo, c->count - 1); break;
+    }
+}
+
+static void arrow(HDC dc, int l, int t, int up)
+{
+    int i;
+
+    for (i = 0; i < 4; i++) {
+        int y = up ? t + 6 + i : t + 9 - i;
+        fill(dc, l + 8 - i, y, l + 9 + i, y + 1, 0);
+    }
+}
+
+static int thumb_top(HWND combo, int height)
+{
+    Ctl *c = ctl(combo);
+    int range = c->count - list_rows(combo);
+
+    return ARROW_W + (height - 3 * ARROW_W) * c->top / (range > 0 ? range : 1);
+}
+
+static void list_bar(HWND combo, HDC dc, const RECT *r)
+{
+    int x = r->right - ARROW_W, t = thumb_top(combo, r->bottom);
+
+    fill(dc, x, 0, r->right, r->bottom, GetSysColor(COLOR_SCROLLBAR));
+    fill(dc, x, 0, x + 1, r->bottom, 0);
+    bevel(dc, x + 1, 0, r->right, ARROW_W, 1);
+    arrow(dc, x, 0, 1);
+    bevel(dc, x + 1, r->bottom - ARROW_W, r->right, r->bottom, 1);
+    arrow(dc, x, r->bottom - ARROW_W, 0);
+    bevel(dc, x + 1, t, r->right, t + ARROW_W, 1);
+}
+
+/* A click on the scroll bar at y: a line or a page up or down. */
+static void list_bar_click(HWND combo, int y, int height)
+{
+    Ctl *c = ctl(combo);
+    int rows = list_rows(combo), t = thumb_top(combo, height);
+
+    if (y < ARROW_W)
+        list_scroll(combo, c->top - 1);
+    else if (y >= height - ARROW_W)
+        list_scroll(combo, c->top + 1);
+    else if (y < t)
+        list_scroll(combo, c->top - rows);
+    else if (y >= t + ARROW_W)
+        list_scroll(combo, c->top + rows);
+}
+
 static void combo_key(HWND h, int vk)
 {
     Ctl *c = ctl(h);
@@ -521,11 +570,8 @@ static void combo_key(HWND h, int vk)
     if (c->list) {
         if (vk == VK_RETURN || vk == VK_ESCAPE)
             combo_close(h, vk == VK_RETURN);
-        else if (vk == VK_DOWN && c->hot + 1 < c->count)
-            c->hot++;
-        else if (vk == VK_UP && c->hot > 0)
-            c->hot--;
-        InvalidateRect(c->list, NULL, 0);
+        else
+            list_key(h, vk);
         return;
     }
     switch (vk) {
@@ -587,8 +633,7 @@ static LRESULT combo_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
         s[1] = 0;
         i = combo_search(h, c->list ? c->hot : c->sel, s, 0);
         if (c->list && i >= 0) {
-            c->hot = i;
-            InvalidateRect(c->list, NULL, 0);
+            list_set_hot(h, i);
         } else {
             combo_select(h, i, 1);
         }
@@ -672,7 +717,7 @@ static LRESULT list_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
     HFONT old;
     HDC dc;
     RECT r;
-    int i, ih, y;
+    int i, ih, y, w;
 
     switch (msg) {
     case WM_PAINT:
@@ -684,9 +729,12 @@ static LRESULT list_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
         ctl_color(combo, dc, CTLCOLOR_LISTBOX);
         fill(dc, 0, 0, r.right, r.bottom, GetSysColor(COLOR_WINDOW));
         SetBkMode(dc, TRANSPARENT);
-        for (i = c->top, y = 0; i < c->count && y < r.bottom; i++, y += ih) {
+        if (list_has_bar(combo))
+            list_bar(combo, dc, &r);
+        w = list_has_bar(combo) ? r.right - ARROW_W : r.right;
+        for (i = c->top, y = 0; i < c->count && y + ih <= r.bottom; i++, y += ih) {
             if (i == c->hot)
-                fill(dc, 0, y, r.right, y + ih, GetSysColor(COLOR_HIGHLIGHT));
+                fill(dc, 0, y, w, y + ih, GetSysColor(COLOR_HIGHLIGHT));
             SetTextColor(dc, GetSysColor(i == c->hot ? COLOR_HIGHLIGHTTEXT : COLOR_WINDOWTEXT));
             label(dc, 2, y, c->items[i], (int)SDL_strlen(c->items[i]), 1, 1);
         }
@@ -699,7 +747,14 @@ static LRESULT list_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
     case WM_LBUTTONUP:
         GetClientRect(h, &r);
         y = (int16_t)HIWORD(lp);
-        i = (int16_t)LOWORD(lp) >= 0 && (int16_t)LOWORD(lp) < r.right && y >= 0 && y < r.bottom
+        w = list_has_bar(combo) ? r.right - ARROW_W : r.right;
+        if (list_has_bar(combo) && (int16_t)LOWORD(lp) >= w && (int16_t)LOWORD(lp) < r.right && y >= 0 &&
+            y < r.bottom) {
+            if (msg == WM_LBUTTONDOWN)
+                list_bar_click(combo, y, r.bottom);
+            return 0;
+        }
+        i = (int16_t)LOWORD(lp) >= 0 && (int16_t)LOWORD(lp) < w && y >= 0 && y < r.bottom
                 ? c->top + y / combo_item_h(combo) : -1;
         if (i >= 0 && i < c->count && i != c->hot && (msg != WM_MOUSEMOVE || wp & MK_LBUTTON)) {
             c->hot = i;

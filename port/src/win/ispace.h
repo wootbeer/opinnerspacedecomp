@@ -1,6 +1,6 @@
 /* ISPACE.DLL internals shared by its native modules: ispace.c (ordinal
- * table, bitmaps), ispace_pal.c (palette manager) and ispace_img.c
- * (image loader). */
+ * table, bitmaps), ispace_pal.c (palette manager), ispace_img.c (image
+ * loader), ispace_dlg.c (dialogs) and ispace_reg.c (copy checks). */
 #ifndef ISPACE_H
 #define ISPACE_H
 
@@ -81,6 +81,21 @@ int16_t ispace_image_height(void);        /* ordinal 5 (6:00b0) */
 /* Ordinal 12 (6:00c4): the image smoothed at twice its size. */
 int16_t ispace_smooth_image(int16_t pal, int16_t id, int32_t name, int16_t dc, int16_t w,
                             int16_t h, int16_t g, int16_t c, int16_t i, char a, char b);
+
+/* DS:01ac: set by palette mode 0, read by the New Game dialog as its
+ * registered flag (-1: not known yet). */
+int16_t *ispace_ds_01ac(void);
+
+/* Ordinal 24 (10:48d2): copy checks (ispace_reg.c). */
+int16_t ispace_check(char *a, char *b, int16_t mode);
+
+/* 5:0000: a ship's picture, image id (or the file name) with colour sets
+ * a and b put in the palette at the slot's ramp (mode 0-2). */
+HBITMAP ispace_ship_image(int16_t pal, int16_t id, char *name, int16_t a, int16_t b, int16_t mode);
+
+/* Ordinal 36 (10:2e1a): StretchBlt doubling or mirroring (ispace.c). */
+int16_t ispace_blit_double(HDC dst, int16_t x, int16_t y, int16_t w, int16_t h, HDC src, int16_t xs,
+                           int16_t ys, int16_t ws, int16_t hs, int32_t rop);
 
 /* Ordinal 10 (9:145e): the game's dialogs (ispace_dlg.c). */
 int16_t ispace_dialog(int16_t hwnd, int16_t dc, int16_t pal, int16_t v1, int16_t v0, int16_t w6,

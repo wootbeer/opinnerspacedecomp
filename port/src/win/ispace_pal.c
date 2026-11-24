@@ -30,7 +30,8 @@ static struct {
     Slot slot[SLOTS];
     int16_t size;                       /* DS:1e98: SIZEPALETTE */
     int16_t bits;                       /* DS:1e9a: bits per pixel (or planes) */
-    int16_t ds_01ac;                    /* first palette passed to mode 0 with w2 set */
+    int16_t ds_01ac;                    /* first palette passed to mode 0 with w2 set; also
+                                         * the New Game dialog's registered flag (10:611c) */
     int16_t users;                      /* DS:1f3c: palettes sharing the two bitmaps below */
     HDC shape_dc;                       /* DS:0184 */
     HBITMAP shape_bm, shape_old;        /* DS:0186, DS:1f3e */
@@ -509,4 +510,9 @@ int16_t ispace_palette(int16_t pal, int16_t w2, int16_t w3, int16_t w4, int16_t 
         break;
     }
     return 0;
+}
+
+int16_t *ispace_ds_01ac(void)
+{
+    return &st.ds_01ac;
 }

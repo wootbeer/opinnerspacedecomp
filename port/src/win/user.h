@@ -33,6 +33,7 @@
 #define VK_END 0x23
 #define VK_PRIOR 0x21
 #define VK_NEXT 0x22
+#define COLOR_SCROLLBAR 0
 #define COLOR_ACTIVECAPTION 2
 #define COLOR_WINDOWFRAME 6
 #define COLOR_CAPTIONTEXT 9
@@ -100,8 +101,11 @@ HWND wnd_at(int x, int y);
 void wnd_frame(DWORD style, int dialog, RECT *client, const RECT *rect);
 void wnd_send_click(HWND h, UINT msg, int x, int y, WPARAM keys);
 
-/* Built-in window classes (controls.c), registered at start-up. */
+/* Built-in window classes (controls.c, edit.c), registered at start-up. */
 void controls_register(void);
+LRESULT edit_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp);
+#define EM_SETSEL (WM_USER + 1)
+#define DLGC_HASSETSEL 0x0008
 /* Combo box and edit contents for native callers (the message forms
  * take far pointers in lParam). */
 int16_t combo_add_string(HWND combo, LPCSTR s);

@@ -170,9 +170,10 @@ Native versions of the DLL's routines, written from its disassembly
   (DS:1eaa, DS:1eac, read by ordinal 12). Sets 4 and -1 put colours 1-15
   in one after the other from entry 230. Mode 1 and the 16-colour palette
   of the image (DS:1178, DS:1eae, 5:39f6, 5:3a68) are not modelled; no
-  ported routine reads them. Ordinal 1 reaches mode 0 only for
-  recolouring (c < -100), id -2 and id 0x28a, which the game does not use
-  so far; that part of ordinal 1 is not checked against the DLL.
+  ported routine reads them. Ordinal 1 reaches mode 0 for
+  recolouring (c < -100: the dialogs' ship pictures, 5:0000, checked
+  against the DLL with the oracle), id -2 and id 0x28a (not used so
+  far, not checked).
 - **Ordinal 12 (6:00c4, 7:12d8; ispace_smooth.c).** The title's logo and
   the "Enhance" ship pictures (seg15b). The image (16 colours, colour 15
   the background) is loaded with mode 0 and drawn at twice its size,
@@ -272,12 +273,29 @@ Native versions of the DLL's routines, written from its disassembly
   would not fit]. Frame 4 pixels, caption 19 (title in Liberation Sans
   Bold standing in for the System font), push buttons with a 1-pixel
   highlight and 2-pixel shadow, combo box field the font height + 6 with
-  a 17-pixel arrow button, drop-down list of whole items. Not modelled:
-  the dotted focus rectangle (drawn solid), the edit caret's blinking and
-  selection, list scroll bars, icons in statics, dithering of brush
-  colours that are not in the palette (stock DKGRAY_BRUSH shows black, so
-  the preview's dark bevel is black). At 14 pixels some glyphs lose
+  a 17-pixel arrow button, drop-down list of whole items with a scroll
+  bar when they do not fit (arrow buttons, a square thumb; clicks on it
+  scroll a line or a page, the thumb is not dragged). The focus rectangle
+  inverts every other pixel (those whose coordinates add up to an even
+  number [uncertain: the phase of Windows' gray pattern]). Stock
+  DKGRAY_BRUSH is a checkerboard of black and dark gray (entry 248), as
+  an 8-bit display dithers RGB(64, 64, 64) [uncertain: which colour is at
+  the origin]; other RGB brushes are not dithered. Not modelled: list
+  scroll bars elsewhere, icons in statics. At 14 pixels some glyphs lose
   detail (the colon's upper dot), see "Text".
+- **Edit controls** (edit.c): single-line ones are edited as in Windows
+  3.1: caret one pixel wide [uncertain] and a line high, inverted,
+  blinking every 530 ms; selection with Shift and the arrows, Home, End,
+  or the mouse, shown only while focused; typing replaces it; Delete,
+  Backspace; EM_GETSEL/EM_SETSEL/EM_LIMITTEXT (default 30000, and the
+  window text's 255); EN_UPDATE, EN_CHANGE, EN_MAXTEXT (with a beep),
+  EN_SETFOCUS, EN_KILLFOCUS; scrolled sideways one character at a time
+  to keep the caret in view [uncertain: Windows scrolls further], also
+  without ES_AUTOHSCROLL. The dialog selects all of an edit's text when
+  it gives it the focus (Tab, mnemonic, first control). Text starts at
+  (1, 1) inside the border. No clipboard, undo, double-click word
+  selection or multi-line editing (multi-line ones only show their
+  text).
 - **Uncertain:** CB_FINDSTRING with an empty string finds item 0 (the
   Restore Game dialog relies on it while INI Restore is unset).
 - **Messages with pointers** (CB_ADDSTRING, CB_GETLBTEXT, CB_FINDSTRING,
@@ -294,17 +312,76 @@ Native versions of the DLL's routines, written from its disassembly
   dialog fonts (9:29c0: Arial 14x6, regular and weight 730) and runs the
   mode's dialog from ENG_LANG.DLL. Ported: mode 1's Restore Game dialog
   (template 267; 10:0ec2 with 10:1438, 10:1a38, 10:1a80 for " NEW GAME",
-  10:1d36), its LevClass preview window (10:4250, 10:309c, 10:2c68,
-  10:2aac without a ship), the ship tables it loads (10:3f70, 10:406a,
-  freed by 10:4168), 10:602a (fonts for the controls), and modes 5/7, the
-  exit question (template 244; 10:103c, 10:109a). The language DLL handle
-  (DS:0690, which ordinal 7's 9:0174 loads) is loaded on first use.
+  10:1d36) and New Game dialog (template 321, or 589 "New Demo" for mode
+  4; 10:0f26 with 10:1e7c, 10:250c, 10:2978), their LevClass preview
+  window (10:4250, 10:309c, 10:2c68, 10:2aac, 10:2d3c), the ship tables
+  (10:3f70, 10:406a, freed by 10:4168), 10:602a (fonts for the
+  controls), and modes 5/7, the exit question (template 244; 10:103c,
+  10:109a). The language DLL handle (DS:0690, which ordinal 7's 9:0174
+  loads) is loaded on first use.
 - **Flow:** ESC on the title runs mode 1. OK with " NEW GAME" writes INI
-  `Restore= NEW GAME` and ends with 1; 10:42c6 then runs the New Game
-  dialog (template 321, 10:0f26), **not ported**: it answers 0, as if
-  cancelled, and the intro goes on (credits). Cancel ends with 0; a saved
-  game ends with 2 (its details, 10:1b13, are not ported). Modes other
-  than 1, 5, 7 and 15 log "not ported" and answer 0.
+  `Restore= NEW GAME` and ends with 1; then the New Game dialog. Cancel
+  ends with 0; a saved game ends with 2 (its details, 10:1b13, are not
+  ported). Modes other than 1, 4, 5, 7 and 15 log "not ported" and
+  answer 0.
+- **New Game dialog** (10:1e7c): zoom levels (strings 2230-2232, INI
+  SetSize, default 1, picks item 2 - SetSize); the ships of MASTER.SHP
+  with a name, not of type 7 and allowed (10:611c, below), sorted; the
+  drives C-Z that `_chdrive` accepts, as "C: LABEL" (volume label, or
+  "Unknown_HD"; INI Drive, default C, picks one); play modes ACTION and
+  COMMAND (strings 2275, 2276; INI PlayMode); the pilot (INI ThePlayer,
+  default "AutoPilot"); the ship of INI MainShip (default EAGLE), which
+  becomes TRANSFORMER, written back, when it is of type 7 or not
+  allowed, and is always TRANSFORMER in the limited version (word v0 of
+  ordinal 10, DS:01aa: the game passes 1 when unregistered, 3 for its
+  other mode); the team of the ship's type (INI [Teams] Team<type + 1>,
+  empty here). Picking a ship shows it and its team (10:2978).
+  - OK (10:250c): in the limited version any ship but TRANSFORMER gets
+    message 2326-2327 and the dialog stays. Otherwise INI MainShip,
+    Drive (the item's first letter), Size and SetSize (2 - item),
+    ThePlayer (the edit's first 19 characters), PlayMode; with COMMAND,
+    sound effects 0x6e and 0x2c (9:298c; no sound yet) and, while INI
+    StratAsk is 0 or 10, question 2850-2853: No keeps the dialog, Yes
+    writes StratAsk + 1. Mode 4's dialog writes only MainShip and Drive.
+    The dialog ends with 1 (OK) or 0 (Cancel).
+  - The preview (10:2aac, 5:0000): the body's image (MASTER.BOD +0x21,
+    or the file +0x23 when negative) with the ship's colour sets (+7,
+    +8) put in the palette as one-step ramps from entry 170 (colours
+    0-9) and 180 (10-14) (ordinal 1 recolouring, 5:26a2 mode 0; modes
+    1 and 2 of 5:0000 shift them by 60 and -12 bytes), drawn at twice its
+    height in the middle of the 96-pixel window (10:2d3c: ordinal 36 when
+    BadVideo is set, as here, else StretchBlt). Verified against the DLL
+    with the oracle (tools/dll_oracle/ships.py): every ship of MASTER.SHP
+    in mode 0 and some in modes 1 and 2, bitmaps and palettes identical.
+  - **Quirk kept:** Esc does nothing in the Restore and New Game
+    dialogs: their Cancel buttons are id 333, not IDCANCEL, which Esc
+    sends. Alt+C (the button's mnemonic) cancels.
+  - **Quirk kept:** the TEAM text (a static 96 units wide) runs under
+    the preview window; setting it repaints its rectangle in the dialog
+    colour over the preview (Windows paints overlapping siblings that
+    way too), leaving a white patch at the preview's left edge after a
+    ship is picked [uncertain: depends on the dialog units, which are
+    uncertain].
+- **Registration (10:611c, ordinal 24 = 10:48d2, ispace_reg.c).** The
+  dialog offers all ships only to a registered copy; the game asks
+  ordinal 24 the same (10:885e, 10:946a). Ported modes: 21 (a CD in the
+  drive of WIN.INI CDDrive: the port has no CD drive, so 1), 2 (10:4f9c:
+  the key, resource 5500/110 of <LocalPath>\INSPACE.EXE, against the
+  serial number of its disk (10:4440, int 21h 440Dh through DPMI: none
+  in the port, 0, as when the call fails), else WIN.INI [windows] PDev
+  less SYSTEM.INI [386Enh] vidsp against key % 653 + 654 (10:51b6)), 10
+  (10:4c68: the registered name, resource 5000/143, xor "*2-"). With the
+  user's files the key is 0x1234 and nothing sets PDev, so the copy is
+  unregistered: the title says "limited inner space" and counts the
+  demo days, the New Game dialog forces TRANSFORMER and leaves out the
+  ships whose bodies are images 178, 310, 320, 400, 440, 450, 520, 550,
+  560, 590, 600, 604, 605, 710, 720, 730, 750, 890, 900, 930 and 950.
+  This is the original's behaviour with these files; before, a stub of
+  ordinal 24 answered "registered". WIN.INI (settings folder) [windows]
+  PDev=743 makes this copy registered, as the original on Windows NT
+  [inferred: what the installer writes there]. The flag is cached in
+  DS:01ac, which palette mode 0 also writes (a palette handle) when its
+  second word is set; the game never sets it.
 - **Not modelled:** the date of mode 15 is stored but not used yet;
   LocalPath and ShipPath are read from the INI when used (the DLL reads
   LocalPath once, in 10:4b1c).
@@ -318,5 +395,15 @@ Native versions of the DLL's routines, written from its disassembly
     palette passed is not one of the manager's; the port uses no palette
     (ordinal 36: slot 0).
   - Ordinal 10 modes 10 and 13 return whatever AX holds; the port 0.
+  - A ship whose body index is outside MASTER.BOD makes the DLL read
+    past the table; the port shows no picture and lets it be played. A
+    failed read leaves no ships (the DLL keeps the count).
+  - 10:2d3c divides by the source width when the destination is
+    mirrored; a width of 0 takes the StretchBlt path.
+  - 10:250c builds its messages in fixed buffers (150 and 250 bytes)
+    with lstrcat; the port bounds them (the shipped strings fit).
+  - 10:250c writes the drive's first letter from an uninitialised buffer
+    when the drive list is empty; the port writes an empty Drive (the
+    port always lists C).
 - **Quirk kept:** a ship file's length is divided as its low word,
   sign-extended (files of 32 KB or more give no records).

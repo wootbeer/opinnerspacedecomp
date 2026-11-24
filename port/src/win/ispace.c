@@ -2,7 +2,8 @@
  * through the pointers fetched in fn_10_6656.  Native versions of its
  * routines, written from the DLL's code; those not done yet are stubs.
  * The palette manager is in ispace_pal.c, the image loader in
- * ispace_img.c. */
+ * ispace_img.c, the dialogs in ispace_dlg.c, the copy checks in
+ * ispace_reg.c. */
 
 #include <stdlib.h>
 #include <string.h>
@@ -129,7 +130,7 @@ static HBITMAP double_mirror(HPALETTE pal, HBITMAP bm, int doubled, int xdir, in
  * blitted; a mirrored width that is not a multiple of the source's is
  * stretched from the mirrored copy at the source's size.  Returns what
  * the DLL leaves in AX: the last DeleteObject's result. */
-static int16_t ispace_blit_double(HDC dst, int16_t x, int16_t y, int16_t w, int16_t h, HDC src,
+int16_t ispace_blit_double(HDC dst, int16_t x, int16_t y, int16_t w, int16_t h, HDC src,
                                   int16_t xs, int16_t ys, int16_t ws, int16_t hs, int32_t rop)
 {
     int16_t out_w = w, out_h = h;
@@ -184,7 +185,6 @@ static void ispace_14(int16_t a, int16_t b, int16_t c, int16_t d, int16_t e) { (
 static int16_t ispace_15(int16_t a, int16_t b, int16_t c, int16_t d, int16_t e, int16_t f, int16_t g, int16_t h, int16_t i) { (void)a; (void)b; (void)c; (void)d; (void)e; (void)f; (void)g; (void)h; (void)i; STUB(); return 0; }
 static void ispace_17(int16_t a, int16_t b, int32_t c, int16_t d, int16_t e, int16_t f, int16_t g, char h, char i, int16_t j, int16_t k, char l, char m) { (void)a; (void)b; (void)c; (void)d; (void)e; (void)f; (void)g; (void)h; (void)i; (void)j; (void)k; (void)l; (void)m; STUB(); }
 static int16_t ispace_18(int16_t a, int16_t b, int16_t c, int16_t d, int16_t e, int16_t f) { (void)a; (void)b; (void)c; (void)d; (void)e; (void)f; STUB(); return 0; }
-static int16_t ispace_24(char *a, char *b, int16_t c) { (void)a; (void)b; (void)c; STUB(); return 0; }
 static int16_t ispace_29(int16_t *a, int16_t *b, int16_t *c, int16_t *d, int16_t *e, int16_t *f, int16_t *g, int16_t *h, int16_t i, int16_t j, int16_t k, int16_t l, int16_t *m, int16_t *n) { (void)a; (void)b; (void)c; (void)d; (void)e; (void)f; (void)g; (void)h; (void)i; (void)j; (void)k; (void)l; (void)m; (void)n; STUB(); return 0; }
 static HBITMAP ispace_32(int16_t a, int16_t b, RECT *c, HGLOBAL d, int16_t e, int32_t f, int16_t g, int32_t h, int16_t i, int16_t j, int16_t k, int16_t l, int16_t m, int16_t n) { (void)a; (void)b; (void)c; (void)d; (void)e; (void)f; (void)g; (void)h; (void)i; (void)j; (void)k; (void)l; (void)m; (void)n; STUB(); return 0; }
 static void ispace_33(int16_t a, int16_t b, int32_t c, int16_t d, int32_t e, int16_t f, int16_t g, int32_t h) { (void)a; (void)b; (void)c; (void)d; (void)e; (void)f; (void)g; (void)h; STUB(); }
@@ -210,7 +210,7 @@ FARPROC ispace_proc(int ordinal)
     case 15: return PROC(ispace_15);
     case 17: return PROC(ispace_17);
     case 18: return PROC(ispace_18);
-    case 24: return PROC(ispace_24);
+    case 24: return PROC(ispace_check);
     case 29: return PROC(ispace_29);
     case 32: return PROC(ispace_32);
     case 33: return PROC(ispace_33);

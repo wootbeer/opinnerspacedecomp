@@ -217,6 +217,22 @@ uint16_t _dos_findnext(struct _find_t *ft)
     return find_step(ft);
 }
 
+/* Drives: DOS paths reach only drive C (kernel.c). */
+static int16_t current_drive = 3;
+
+int16_t _getdrive(void)
+{
+    return current_drive;
+}
+
+int16_t _chdrive(int16_t drive)
+{
+    if (drive != 3)
+        return -1;
+    current_drive = drive;
+    return 0;
+}
+
 int16_t stat(const char *path, struct stat *st)
 {
     char host[1024];

@@ -166,21 +166,31 @@ int16_t FrameRect(HDC hd, const RECT *r, HBRUSH brush)
     return 1;
 }
 
+/* Inverts every other pixel of the logical rectangle, those whose
+ * coordinates add up to an even number [uncertain: the phase of
+ * Windows 3.1's gray pattern]. */
+static void invert_dots(Dc *d, int l, int t, int r, int b)
+{
+    Bmp *bm = dc_bmp(d);
+    int x, y;
+
+    for (y = t; bm && y < b; y++)
+        for (x = l; x < r; x++)
+            if (!((x + y) & 1) && gdi_drawable(d, DX(d, x), DY(d, y)))
+                bm->px[(size_t)DY(d, y) * bm->w + DX(d, x)] ^= bm->mono ? 1 : 0xff;
+}
+
+/* The focus rectangle: a dotted frame, inverted. */
 void DrawFocusRect(HDC hd, const RECT *r)
 {
     Dc *d = dc_get(hd);
-    RECT e;
 
     if (!d)
         return;
-    SetRect(&e, r->left, r->top, r->right, r->top + 1);
-    draw_fill(d, &e, GetStockObject(BLACK_BRUSH), DSTINVERT);
-    SetRect(&e, r->left, r->bottom - 1, r->right, r->bottom);
-    draw_fill(d, &e, GetStockObject(BLACK_BRUSH), DSTINVERT);
-    SetRect(&e, r->left, r->top + 1, r->left + 1, r->bottom - 1);
-    draw_fill(d, &e, GetStockObject(BLACK_BRUSH), DSTINVERT);
-    SetRect(&e, r->right - 1, r->top + 1, r->right, r->bottom - 1);
-    draw_fill(d, &e, GetStockObject(BLACK_BRUSH), DSTINVERT);
+    invert_dots(d, r->left, r->top, r->right, r->top + 1);
+    invert_dots(d, r->left, r->bottom - 1, r->right, r->bottom);
+    invert_dots(d, r->left, r->top + 1, r->left + 1, r->bottom - 1);
+    invert_dots(d, r->right - 1, r->top + 1, r->right, r->bottom - 1);
 }
 
 static void put(Dc *d, int x, int y, uint8_t v)

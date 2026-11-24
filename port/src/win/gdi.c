@@ -80,6 +80,23 @@ static HGDIOBJ new_brush(COLORREF c, int null)
     return handle_new(H_BRUSH, b);
 }
 
+/* DKGRAY_BRUSH: RGB(64, 64, 64) is not a static colour, so the 8-bit
+ * display dithers it from black and dark gray (entry 248), half each, in
+ * a checkerboard [uncertain: which of the two is at the origin]. */
+static HGDIOBJ new_dark_gray(void)
+{
+    HGDIOBJ h = new_brush(RGB(64, 64, 64), 0);
+    Brush *b = handle_get(h, H_BRUSH);
+    int i;
+
+    if (!b)
+        return h;
+    b->has_pattern = 1;
+    for (i = 0; i < 64; i++)
+        b->pattern[i] = (uint8_t)((i / 8 + i % 8) & 1 ? 0 : 248);
+    return h;
+}
+
 static HGDIOBJ new_pen(COLORREF c, int null)
 {
     Pen *p = calloc(1, sizeof *p);
@@ -118,7 +135,7 @@ void gdi_init(void)
     stock[WHITE_BRUSH] = new_brush(RGB(255, 255, 255), 0);
     stock[LTGRAY_BRUSH] = new_brush(RGB(192, 192, 192), 0);
     stock[GRAY_BRUSH] = new_brush(RGB(128, 128, 128), 0);
-    stock[DKGRAY_BRUSH] = new_brush(RGB(64, 64, 64), 0);
+    stock[DKGRAY_BRUSH] = new_dark_gray();
     stock[BLACK_BRUSH] = new_brush(RGB(0, 0, 0), 0);
     stock[NULL_BRUSH] = new_brush(0, 1);
     stock[WHITE_PEN] = new_pen(RGB(255, 255, 255), 0);
