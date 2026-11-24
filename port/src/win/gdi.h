@@ -30,6 +30,7 @@ typedef struct {
 
 typedef struct {
     int16_t height, width, weight;
+    int italic;
     char face[32];
 } Font;
 
@@ -52,6 +53,10 @@ typedef struct {
     RECT clip;              /* in bitmap pixels */
     POINT pos;              /* current position */
 } Dc;
+
+/* Logical coordinates to pixels of the DC's bitmap. */
+#define DX(dc, px) ((px) - (dc)->org.x + (dc)->ox)
+#define DY(dc, py) ((py) - (dc)->org.y + (dc)->oy)
 
 Dc *dc_get(HDC h);
 Bmp *dc_bmp(const Dc *d);

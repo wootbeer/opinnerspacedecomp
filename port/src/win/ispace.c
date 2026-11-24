@@ -4,6 +4,9 @@
  * The palette manager is in ispace_pal.c, the image loader in
  * ispace_img.c. */
 
+#include <stdlib.h>
+#include <string.h>
+
 #include "gdi.h"
 #include "ispace.h"
 #include "ne.h"
@@ -71,6 +74,109 @@ HBITMAP ispace_make_mask(int16_t pal, int16_t bm, int16_t dc)
     return mask;
 }
 
+/* 5:0062 (with 5:0106): a copy of bitmap bm, doubled in both directions
+ * when doubled is set and mirrored where xdir or ydir is -1, made as the
+ * DLL makes it in an 8-bit DIB (rows bottom-up, padded to 4 bytes).  A
+ * doubled and mirrored copy is one column off: each pixel's right half
+ * goes one column right of its place, the first column stays 0 and the
+ * last spills into the row padding or the next row (the DLL's
+ * allocation had room for it; here the buffer has a spare row). */
+static HBITMAP double_mirror(HPALETTE pal, HBITMAP bm, int doubled, int xdir, int ydir)
+{
+    Bmp *b = handle_get(bm, H_BITMAP), *ob;
+    int f = doubled ? 2 : 1, w, h, dw, dh, i, j;
+    long stride, base;
+    uint8_t *buf;
+    HBITMAP out;
+
+    if (!pal || ispace_pal_slot(pal) < 0 || !b)
+        return 0;
+    w = b->w;
+    h = b->h;
+    dw = w * f;
+    dh = h * f;
+    stride = (dw + 3) & ~3;
+    buf = calloc((size_t)stride * (dh + 1), 1);
+    if (!buf)
+        return 0;
+    base = ydir == -1 ? (h - 1) * stride * f : 0;
+    if (xdir == -1)
+        base += dw - 1;
+    for (j = 0; j < h; j++) {
+        const uint8_t *row = b->px + (size_t)(h - 1 - j) * w;
+        for (i = 0; i < w; i++) {
+            long o = base + (long)i * xdir * f;
+            buf[o] = row[i];
+            if (doubled) {
+                buf[o + stride + 1] = row[i];
+                buf[o + stride] = row[i];
+                buf[o + 1] = row[i];
+            }
+        }
+        base += stride * ydir * f;
+    }
+    out = gdi_new_bitmap(dw, dh, 0);
+    ob = handle_get(out, H_BITMAP);
+    for (j = 0; ob && j < dh; j++)
+        memcpy(ob->px + (size_t)j * dw, buf + (dh - 1 - j) * stride, (size_t)dw);
+    free(buf);
+    return out;
+}
+
+/* Ordinal 36 (10:2e1a): StretchBlt for a destination twice the source,
+ * or mirrored (negative width or height).  The source rectangle is
+ * copied, doubled when either side is twice the source's, mirrored, and
+ * blitted; a mirrored width that is not a multiple of the source's is
+ * stretched from the mirrored copy at the source's size.  Returns what
+ * the DLL leaves in AX: the last DeleteObject's result. */
+static int16_t ispace_blit_double(HDC dst, int16_t x, int16_t y, int16_t w, int16_t h, HDC src,
+                                  int16_t xs, int16_t ys, int16_t ws, int16_t hs, int32_t rop)
+{
+    int16_t out_w = w, out_h = h;
+    HPALETTE pal = ispace_pal_handle(0), old_pal = 0;
+    HBITMAP bm, copy, old;
+    HDC mdc;
+    int doubled;
+
+    if (ws == 0)
+        return 0;   /* the DLL divides by ws */
+    if ((w < 0 || h < 0) && w % ws != 0) {
+        w = w < 0 ? -ws : ws;
+        h = h < 0 ? -hs : hs;
+    }
+    mdc = CreateCompatibleDC(src);
+    bm = CreateCompatibleBitmap(src, ws, hs);
+    if (pal)
+        old_pal = SelectPalette(mdc, pal, 0);
+    old = SelectObject(mdc, bm);
+    BitBlt(mdc, 0, 0, ws, hs, src, xs, ys, SRCCOPY);
+    SelectObject(mdc, old);
+    if (pal)
+        SelectPalette(mdc, old_pal, 0);
+    DeleteDC(mdc);
+    doubled = 2 * abs(ws) == abs(w) || 2 * abs(hs) == abs(h);
+    if (h < 0)
+        y = (int16_t)(y + out_h + 1);
+    if (w < 0)
+        x = (int16_t)(x + out_w + 1);
+    copy = double_mirror(pal, bm, doubled, w < 0 ? -1 : 1, h < 0 ? -1 : 1);
+    mdc = CreateCompatibleDC(dst);
+    if (pal)
+        old_pal = SelectPalette(mdc, pal, 0);
+    old = SelectObject(mdc, copy);
+    if (out_w != w)
+        StretchBlt(dst, x, y, (int16_t)abs(out_w), (int16_t)abs(out_h), mdc, 0, 0, (int16_t)abs(w),
+                   (int16_t)abs(h), rop);
+    else
+        BitBlt(dst, x, y, (int16_t)abs(w), (int16_t)abs(h), mdc, 0, 0, rop);
+    SelectObject(mdc, old);
+    if (pal)
+        SelectPalette(mdc, old_pal, 0);
+    DeleteDC(mdc);
+    DeleteObject(copy);
+    return (int16_t)DeleteObject(bm);
+}
+
 static int16_t ispace_7(int32_t a, int16_t b) { (void)a; (void)b; STUB(); return 1; }
 static int16_t ispace_8(POINT a, int16_t b, int16_t c, int32_t d) { (void)a; (void)b; (void)c; (void)d; STUB(); return 0; }
 static int16_t ispace_9(int16_t a, POINT b, int16_t c, int32_t d, int32_t e, DWORD f, LPCSTR g) { (void)a; (void)b; (void)c; (void)d; (void)e; (void)f; (void)g; STUB(); return 0; }
@@ -86,7 +192,6 @@ static HBITMAP ispace_32(int16_t a, int16_t b, RECT *c, HGLOBAL d, int16_t e, in
 static void ispace_33(int16_t a, int16_t b, int32_t c, int16_t d, int32_t e, int16_t f, int16_t g, int32_t h) { (void)a; (void)b; (void)c; (void)d; (void)e; (void)f; (void)g; (void)h; STUB(); }
 static void ispace_34(int16_t a, int16_t b, int16_t c, int16_t d, int16_t e, int16_t f) { (void)a; (void)b; (void)c; (void)d; (void)e; (void)f; STUB(); }
 static void ispace_35(int16_t a, int16_t b, int16_t c, int16_t d, int16_t e, int16_t f) { (void)a; (void)b; (void)c; (void)d; (void)e; (void)f; STUB(); }
-static int16_t ispace_36(int16_t a, int16_t b, int16_t c, int16_t d, int16_t e, int16_t f, int16_t g, int16_t h, int16_t i, int16_t j, int32_t k) { (void)a; (void)b; (void)c; (void)d; (void)e; (void)f; (void)g; (void)h; (void)i; (void)j; (void)k; STUB(); return 0; }
 static int16_t ispace_41(int16_t a, int32_t b) { (void)a; (void)b; STUB(); return 0; }
 
 FARPROC ispace_proc(int ordinal)
@@ -113,7 +218,7 @@ FARPROC ispace_proc(int ordinal)
     case 33: return PROC(ispace_33);
     case 34: return PROC(ispace_34);
     case 35: return PROC(ispace_35);
-    case 36: return PROC(ispace_36);
+    case 36: return PROC(ispace_blit_double);
     case 41: return PROC(ispace_41);
     default: return NULL;
     }

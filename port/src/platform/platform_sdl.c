@@ -98,6 +98,15 @@ const char *platform_data_dir(void)
     return env ? env : "data";
 }
 
+const void *platform_asset(const char *name, size_t *size)
+{
+    const char *base = SDL_GetBasePath();
+    char path[512];
+
+    SDL_snprintf(path, sizeof path, "%s%s", base ? base : "", name);
+    return SDL_LoadFile(path, size);
+}
+
 const char *platform_pref_dir(void)
 {
     static char *dir;

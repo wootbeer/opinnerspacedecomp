@@ -1,13 +1,9 @@
-/* USER and GDI calls not implemented yet: text, menus, dialogs, scroll
+/* USER and GDI calls not implemented yet: icons, menus, dialogs, scroll
  * bars, help.  Each logs its name once and returns a neutral value. */
 #include <string.h>
 
 #include "winrt.h"
 
-BOOL TextOut(HDC dc, int16_t x, int16_t y, LPCSTR s, int16_t n) { (void)dc; (void)x; (void)y; (void)s; (void)n; STUB(); return 1; }
-BOOL ExtTextOut(HDC dc, int16_t x, int16_t y, UINT f, const RECT *r, LPCSTR s, UINT n, int16_t *dx) { (void)dc; (void)x; (void)y; (void)f; (void)r; (void)s; (void)n; (void)dx; STUB(); return 1; }
-DWORD GetTextExtent(HDC dc, LPCSTR s, int16_t n) { (void)dc; (void)s; STUB(); return MAKELONG(n * 7, 14); }
-BOOL GetTextMetrics(HDC dc, TEXTMETRIC *tm) { (void)dc; STUB(); memset(tm, 0, sizeof *tm); tm->tmHeight = 14; tm->tmAscent = 11; tm->tmDescent = 3; tm->tmAveCharWidth = 6; tm->tmMaxCharWidth = 13; return 1; }
 BOOL DrawIcon(HDC dc, int16_t x, int16_t y, HICON i) { (void)dc; (void)x; (void)y; (void)i; STUB(); return 1; }
 
 HMENU LoadMenu(HINSTANCE h, LPCSTR name) { (void)h; (void)name; STUB(); return handle_new(H_MENU, NULL); }

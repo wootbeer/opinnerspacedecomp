@@ -609,7 +609,6 @@ HFONT CreateFont(int16_t height, int16_t width, int16_t esc, int16_t orient, int
 
     (void)esc;
     (void)orient;
-    (void)italic;
     (void)underline;
     (void)strike;
     (void)charset;
@@ -622,6 +621,7 @@ HFONT CreateFont(int16_t height, int16_t width, int16_t esc, int16_t orient, int
     f->height = height;
     f->width = width;
     f->weight = weight;
+    f->italic = italic != 0;
     strncpy(f->face, face ? face : "", sizeof f->face - 1);
     return handle_new(H_FONT, f);
 }

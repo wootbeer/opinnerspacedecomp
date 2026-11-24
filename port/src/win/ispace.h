@@ -19,6 +19,7 @@ int16_t ispace_palette(int16_t pal, int16_t w2, int16_t w3, int16_t w4, int16_t 
 
 /* The slot (0-2) of one of the manager's palettes, or -1. */
 int ispace_pal_slot(HPALETTE pal);
+HPALETTE ispace_pal_handle(int slot);    /* DS:1cd6 */
 int ispace_pal_fixed(int slot);           /* DS:1e92 of the slot */
 int ispace_pal_bits(void);                /* DS:1e9a: bits per pixel of the display */
 /* The DC the DLL's routines last worked on (DS:1a32). */

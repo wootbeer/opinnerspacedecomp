@@ -104,9 +104,6 @@ void draw_fill(Dc *d, const RECT *r, HBRUSH brush, DWORD rop)
     d->brush = old;
 }
 
-#define DX(dc, px) ((px) - (dc)->org.x + (dc)->ox)
-#define DY(dc, py) ((py) - (dc)->org.y + (dc)->oy)
-
 BOOL BitBlt(HDC hd, int16_t x, int16_t y, int16_t w, int16_t h, HDC hs, int16_t sx, int16_t sy, DWORD rop)
 {
     Dc *d = dc_get(hd), *s = dc_get(hs);

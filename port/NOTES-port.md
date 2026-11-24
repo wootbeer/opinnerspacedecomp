@@ -147,3 +147,54 @@ Native versions of the DLL's routines, written from its disassembly
   entry of the DC's logical palette (squared RGB distance, first one on a
   tie). Windows 3.1's exact metric and tie rule are not verified; images
   loaded in mode 3 (all 16-colour game images so far) depend on it.
+- **Ordinal 36 (10:2e1a, 2x / mirrored blit).** Used by fn_10_9962 when
+  BadVideo is set (the default) for exact 2x stretches and negative sizes.
+  It copies the source rectangle, makes a doubled and/or mirrored copy
+  through an 8-bit DIB (5:0062, 5:0106; GetDIBits and back is the identity
+  on palette indices, so the port works on the indices) and blits it. The
+  palette it selects is slot DS:1f92's, which only 10:42c6 (from ordinal
+  10's 9:1508, not ported) changes; the port uses slot 0.
+  - **Quirk kept:** a copy both doubled and mirrored horizontally is one
+    column off (each pixel's right half lands one column right, column 0
+    stays black, the last column spills into the row padding or the next
+    row). Nothing seen so far draws one.
+  - **Fixed silently:** a source width of 0 (divide by zero in the DLL)
+    draws nothing; the spill past the last row goes into a spare row.
+- **Ordinal 12 (6:00c4 → 7:12d8), not ported.** The title (fn_15_6cdc
+  state 0) draws image 300 doubled with ordinal 36, then, on a machine the
+  calibration rates fast and with Enhance on, replaces it two rows at a
+  time in random order with ordinal 12's 276x276 bitmap. With the stub
+  returning 0 the logo dissolves to black. 6:00c4 stores the DC in DS:1a32,
+  returns 0 if either byte argument is 0xff and passes the rest to 7:12d8.
+  7:12d8 is one 15 KB function (about 5200 instructions): it loads the
+  image with 5:1b8e (ported), recolours it with 6:7fc8 when DS:1ea8 is set,
+  allocates five work buffers, computes weighted colour sums and square
+  roots per colour-table entry (6:7f52 [inferred] square root), builds the
+  image at the size given (negative sizes are multiples of the image
+  height: -2 gives 2h x 2h), turns it into a bitmap (5:2080, ported) and
+  ends with StretchBlt. Other callees: 3:00fe/0130/01ca (long multiply,
+  divide, shift), 5:22e6/23a4/24be (DIB headers), 5:3a68, 5:4b40 (150
+  instructions), 5:66ea (500), 5:6b72 (400), 5:6f58 (70), 9:360a, 5:4378
+  (ported). Porting it is a step of its own.
+
+## Text (port/src/win/text.c)
+
+- **Fonts.** Liberation Sans for Arial (and every other face, including
+  "Small Fonts" and the stock font), Liberation Serif for Times New Roman;
+  bold for weights above 550 (the game asks for 0, 500, 520, 600, 730 and
+  800; Windows picks the nearer of the regular and bold faces), italic from
+  the italic file. The stock font (height 0) is drawn 16 pixels high
+  [uncertain].
+- **Metrics** follow Windows' TrueType rules: a positive height is the cell
+  (win ascent + descent scaled to it), a negative one the em; a width sets
+  the average character width. The average width is the old OS/2
+  definition (weighted a-z and space): Liberation's own xAvgCharWidth is
+  computed over all glyphs (1187 units against Arial's 904); the weighted
+  one gives 904 for Sans, 980 for Sans Bold (Arial Bold: 983). Advances are
+  the unhinted widths rounded; `GetTextExtent` and drawing use the same
+  ones. No kerning (Windows 3.1 had none).
+- **Uncertain, not pixel-exact:** Windows 3.1 hinted Arial and used its
+  hdmx widths; the port rasterises unhinted outlines and inks a pixel at
+  50% coverage, so glyph shapes and some advances differ by a pixel from
+  the original. tmFirstChar/LastChar/DefaultChar are guesses (the game
+  reads only tmHeight and tmExternalLeading).

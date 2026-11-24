@@ -22,6 +22,23 @@ can work on.
 - `src/win/` – native versions of the Windows calls the game makes, one
   module per area, each doing only what this game needs; status in
   `RUNTIME.md`.
+- `third_party/` – code and data from elsewhere, each with its licence:
+  - `stb/stb_truetype.h` (v1.28, public domain or MIT, licence at its end):
+    the TrueType rasteriser for text.
+  - `liberation/` (Liberation Fonts 2.1.5, SIL Open Font License 1.1,
+    `LICENSE`): Sans Regular, Bold, Bold Italic and Serif Italic. The game
+    asks for Windows' Arial and Times New Roman; Liberation Sans and Serif
+    have the same metrics.
+
+## Fonts
+
+The game draws all its text with TrueType fonts made by `CreateFont` at
+many heights and widths. `src/win/text.c` maps Arial (and any other face)
+to Liberation Sans and Times New Roman to Liberation Serif, picks bold for
+weights above 550, and rasterises each size on first use, one bit per pixel
+as Windows 3.1 drew it. The build copies the font files to `fonts/` next
+to the executable, where the game loads them at start (a missing style
+falls back to the family's regular one).
 
 ## Building
 

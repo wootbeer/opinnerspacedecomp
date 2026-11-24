@@ -127,6 +127,11 @@ int ispace_pal_slot(HPALETTE pal)
     return -1;
 }
 
+HPALETTE ispace_pal_handle(int slot)
+{
+    return st.slot[slot].pal;
+}
+
 int ispace_pal_fixed(int slot)
 {
     return st.slot[slot].fixed;
