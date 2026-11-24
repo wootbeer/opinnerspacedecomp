@@ -208,13 +208,6 @@ int16_t LoadString(HINSTANCE h, UINT id, LPSTR buf, int16_t size)
     return (int16_t)n;
 }
 
-HICON LoadIcon(HINSTANCE h, LPCSTR name)
-{
-    (void)h;
-    (void)name;
-    return handle_new(H_ICON, NULL);
-}
-
 HCURSOR LoadCursor(HINSTANCE h, LPCSTR name)
 {
     static HCURSOR arrow;
@@ -224,22 +217,6 @@ HCURSOR LoadCursor(HINSTANCE h, LPCSTR name)
     if (!arrow)
         arrow = handle_new(H_CURSOR, NULL);
     return arrow;
-}
-
-BOOL DestroyIcon(HICON h)
-{
-    if (handle_type(h) == H_ICON)
-        handle_free(h);
-    return 1;
-}
-
-HICON ExtractIcon(HINSTANCE h, LPCSTR file, UINT index)
-{
-    (void)h;
-    (void)file;
-    (void)index;
-    STUB();
-    return 0;
 }
 
 /* Accelerators: the table as stored (BYTE flags, WORD key, WORD command;

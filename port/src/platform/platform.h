@@ -15,8 +15,9 @@ typedef struct {
 } PlatformDate;
 void platform_date(PlatformDate *out);
 
-/* Folder roots the game may explore (drives on Windows, granted folders on
- * Android). Returns the number written to roots, at most max. */
+/* Folder roots the game may explore: on Windows its drives ("C:/"), on
+ * Linux the user's home, on Android (later) the folders the user granted.
+ * Returns the number written to roots, at most max. */
 int platform_folder_roots(char roots[][260], int max);
 
 /* Directory listing: calls fn for every entry of path matching pattern
@@ -25,6 +26,7 @@ typedef struct {
     const char *name;
     uint32_t size;
     int is_dir;
+    int hidden;             /* Windows: hidden or system; elsewhere: a dot name */
 } PlatformDirEntry;
 typedef void (*PlatformDirFn)(const PlatformDirEntry *entry, void *user);
 int platform_list_dir(const char *path, const char *pattern,

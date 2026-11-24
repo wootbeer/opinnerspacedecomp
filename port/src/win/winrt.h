@@ -34,11 +34,23 @@ void *handle_get(uint16_t h, int type);
 int handle_type(uint16_t h);
 void handle_free(uint16_t h);
 
-/* DOS paths (C:\SPACE\...) to host paths: the game folder is the data
- * folder, the Windows folder is the writable settings folder. */
+/* DOS drives and 8.3 names over host folders (dosfs.c).  C:\SPACE is the
+ * data folder, C:\WINDOWS the writable settings folder; other paths are
+ * in the drives' folders.  dos_to_host gives 0 for a drive without one. */
 #define GAME_DIR "C:\\SPACE\\"
 #define WIN_DIR "C:\\WINDOWS"
+#define _A_HIDDEN 0x02
+typedef struct {
+    char name[13];          /* 8.3, upper case */
+    uint8_t attrib;         /* _A_SUBDIR, _A_HIDDEN */
+    uint32_t size;
+} DosEntry;
 int dos_to_host(const char *dos, char *out, size_t size);
+int dos_drive_exists(int letter);
+/* The entries of a directory (malloc'd, to free), or -1. */
+int dos_list(const char *dos_dir, DosEntry **out);
+/* DOS wildcard match of an 8.3 name ("*.EXE", "*.*"). */
+int dos_match(const char *name, const char *pattern);
 
 /* Port settings (INSPACE.INI [Port]; profile.c): 1 when name=1. */
 int port_option(const char *name);

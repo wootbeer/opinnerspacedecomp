@@ -562,6 +562,7 @@ class FileTranslator:
             self.rewrite_field(node, scope)
         if isinstance(node, c_ast.FuncCall):
             self.rewrite_call(node, scope, parent)
+            self.rewrite_lparam_ptr(node, scope)
         if isinstance(node, c_ast.Assignment) and node.op == '=':
             self.rewrite_getproc(node, scope)
             self.rewrite_fnptr_store(node, scope)
@@ -697,6 +698,28 @@ class FileTranslator:
             if isinstance(r, c_ast.BinaryOp) and r.op == '<<' and self.m.tb.const_eval(r.right) == 8:
                 return a.left.expr, r.left
         return None
+
+    MESSAGE_CALLS = ('SendMessage', 'PostMessage', 'SendDlgItemMessage', 'DefWindowProc')
+
+    def rewrite_lparam_ptr(self, node, scope):
+        """A pointer passed as a message's lParam through a (LONG) cast:
+        natively the cast would cut it to 32 bits, so it becomes (LPARAM)."""
+        if not (isinstance(node.name, c_ast.ID) and node.name.name in self.MESSAGE_CALLS and node.args):
+            return
+        a = node.args.exprs[-1]
+        if not isinstance(a, c_ast.Cast):
+            return
+        try:
+            tt = self.m.tb.build(a.to_type, scope)
+        except Exception:
+            return
+        at = self.typeof(a.expr, scope)
+        is_long = getattr(tt, 'name', None) in ('LONG', 'long')
+        is_ptr = at is not None and (isinstance(at.t, Ptr) or getattr(at.t, 'name', None) in ('LPSTR', 'LPCSTR'))
+        if is_long and is_ptr:
+            self.ed.add(self.node_start(a), self.node_start(a.expr), '(LPARAM)')
+            self.note(node, 'call to %s: pointer cast to LONG -> LPARAM' % node.name.name)
+            self.counts['lparam pointer'] += 1
 
     def rewrite_call(self, node, scope, parent=None):
         ct = self.callee_type(node, scope)

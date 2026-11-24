@@ -102,9 +102,13 @@ HWND wnd_at(int x, int y);
 void wnd_frame(DWORD style, int dialog, RECT *client, const RECT *rect);
 void wnd_send_click(HWND h, UINT msg, int x, int y, WPARAM keys);
 
-/* Built-in window classes (controls.c, edit.c), registered at start-up. */
+/* Built-in window classes (controls.c, edit.c, listbox.c), registered
+ * at start-up, and the 3-D drawing they share (controls.c). */
 void controls_register(void);
 LRESULT edit_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp);
+LRESULT listbox_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp);
+void ctl_fill(HDC dc, int l, int t, int r, int b, COLORREF c);
+void ctl_bevel(HDC dc, int l, int t, int r, int b, int thin);   /* raised face */
 #define EM_SETSEL (WM_USER + 1)
 #define DLGC_HASSETSEL 0x0008
 /* Combo box and edit contents for native callers (the message forms

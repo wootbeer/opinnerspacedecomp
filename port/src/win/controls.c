@@ -11,6 +11,7 @@
 
 #define BS_TYPE 0x0f
 #define BS_DEFPUSHBUTTON 1
+#define BS_GROUPBOX 7
 #define SS_TYPE 0x0f
 #define SS_CENTER 1
 #define SS_RIGHT 2
@@ -18,6 +19,7 @@
 #define CBS_SORT 0x0100
 #define CB_GETCOUNT (WM_USER + 6)
 #define CB_RESETCONTENT (WM_USER + 11)
+#define CB_FINDSTRING (WM_USER + 12)
 #define CB_SHOWDROPDOWN (WM_USER + 15)
 #define CB_GETDROPPEDSTATE (WM_USER + 23)
 #define CBN_DROPDOWN 7
@@ -85,7 +87,7 @@ static void notify(HWND h, int code)
     SendMessage(GetParent(h), WM_COMMAND, (WPARAM)GetDlgCtrlID(h), MAKELONG(h, code));
 }
 
-static void fill(HDC dc, int l, int t, int r, int b, COLORREF c)
+void ctl_fill(HDC dc, int l, int t, int r, int b, COLORREF c)
 {
     HBRUSH br = CreateSolidBrush(c);
     RECT rc;
@@ -97,16 +99,16 @@ static void fill(HDC dc, int l, int t, int r, int b, COLORREF c)
 
 /* A raised 3-D face: highlight on the top and left, two lines of
  * shadow on the bottom and right (one when thin). */
-static void bevel(HDC dc, int l, int t, int r, int b, int thin)
+void ctl_bevel(HDC dc, int l, int t, int r, int b, int thin)
 {
-    fill(dc, l, t, r, b, GetSysColor(COLOR_BTNFACE));
-    fill(dc, l, t, r - 1, t + 1, GetSysColor(COLOR_BTNHIGHLIGHT));
-    fill(dc, l, t, l + 1, b - 1, GetSysColor(COLOR_BTNHIGHLIGHT));
-    fill(dc, l, b - 1, r, b, GetSysColor(COLOR_BTNSHADOW));
-    fill(dc, r - 1, t, r, b, GetSysColor(COLOR_BTNSHADOW));
+    ctl_fill(dc, l, t, r, b, GetSysColor(COLOR_BTNFACE));
+    ctl_fill(dc, l, t, r - 1, t + 1, GetSysColor(COLOR_BTNHIGHLIGHT));
+    ctl_fill(dc, l, t, l + 1, b - 1, GetSysColor(COLOR_BTNHIGHLIGHT));
+    ctl_fill(dc, l, b - 1, r, b, GetSysColor(COLOR_BTNSHADOW));
+    ctl_fill(dc, r - 1, t, r, b, GetSysColor(COLOR_BTNSHADOW));
     if (!thin) {
-        fill(dc, l + 1, b - 2, r - 1, b - 1, GetSysColor(COLOR_BTNSHADOW));
-        fill(dc, r - 2, t + 1, r - 1, b - 1, GetSysColor(COLOR_BTNSHADOW));
+        ctl_fill(dc, l + 1, b - 2, r - 1, b - 1, GetSysColor(COLOR_BTNSHADOW));
+        ctl_fill(dc, r - 2, t + 1, r - 1, b - 1, GetSysColor(COLOR_BTNSHADOW));
     }
 }
 
@@ -125,7 +127,7 @@ static int label(HDC dc, int x, int y, const char *s, int n, int noprefix, int d
             if (s[i] != '&') {
                 cw = LOWORD(GetTextExtent(dc, s + i, 1));
                 if (draw)
-                    fill(dc, x + w, y + tm.tmAscent + 1, x + w + cw, y + tm.tmAscent + 2, GetTextColor(dc));
+                    ctl_fill(dc, x + w, y + tm.tmAscent + 1, x + w + cw, y + tm.tmAscent + 2, GetTextColor(dc));
             }
         }
         cw = LOWORD(GetTextExtent(dc, s + i, 1));
@@ -207,22 +209,22 @@ static void button_paint(HWND h)
     ht = r.bottom;
     if (bg)
         FillRect(dc, &r, bg);
-    fill(dc, 1, 0, wd - 1, 1, 0);
-    fill(dc, 1, ht - 1, wd - 1, ht, 0);
-    fill(dc, 0, 1, 1, ht - 1, 0);
-    fill(dc, wd - 1, 1, wd, ht - 1, 0);
+    ctl_fill(dc, 1, 0, wd - 1, 1, 0);
+    ctl_fill(dc, 1, ht - 1, wd - 1, ht, 0);
+    ctl_fill(dc, 0, 1, 1, ht - 1, 0);
+    ctl_fill(dc, wd - 1, 1, wd, ht - 1, 0);
     if (def) {
-        fill(dc, 1, 1, wd - 1, 2, 0);
-        fill(dc, 1, ht - 2, wd - 1, ht - 1, 0);
-        fill(dc, 1, 1, 2, ht - 1, 0);
-        fill(dc, wd - 2, 1, wd - 1, ht - 1, 0);
+        ctl_fill(dc, 1, 1, wd - 1, 2, 0);
+        ctl_fill(dc, 1, ht - 2, wd - 1, ht - 1, 0);
+        ctl_fill(dc, 1, 1, 2, ht - 1, 0);
+        ctl_fill(dc, wd - 2, 1, wd - 1, ht - 1, 0);
     }
     if (c->pressed) {
-        fill(dc, 1 + def, 1 + def, wd - 1 - def, ht - 1 - def, GetSysColor(COLOR_BTNFACE));
-        fill(dc, 1 + def, 1 + def, wd - 1 - def, 2 + def, GetSysColor(COLOR_BTNSHADOW));
-        fill(dc, 1 + def, 1 + def, 2 + def, ht - 1 - def, GetSysColor(COLOR_BTNSHADOW));
+        ctl_fill(dc, 1 + def, 1 + def, wd - 1 - def, ht - 1 - def, GetSysColor(COLOR_BTNFACE));
+        ctl_fill(dc, 1 + def, 1 + def, wd - 1 - def, 2 + def, GetSysColor(COLOR_BTNSHADOW));
+        ctl_fill(dc, 1 + def, 1 + def, 2 + def, ht - 1 - def, GetSysColor(COLOR_BTNSHADOW));
     } else {
-        bevel(dc, 1 + def, 1 + def, wd - 1 - def, ht - 1 - def, 0);
+        ctl_bevel(dc, 1 + def, 1 + def, wd - 1 - def, ht - 1 - def, 0);
     }
     GetTextMetrics(dc, &tm);
     SetBkMode(dc, TRANSPARENT);
@@ -235,6 +237,36 @@ static void button_paint(HWND h)
         SetRect(&r, (int16_t)(tx - 2), (int16_t)ty, (int16_t)(tx + tw + 2), (int16_t)(ty + tm.tmHeight));
         DrawFocusRect(dc, &r);
     }
+    ctl_release(h, dc, old);
+}
+
+/* Group boxes: a frame from half the text's height down, the text
+ * on the control's background at its top left. */
+static void group_paint(HWND h)
+{
+    Wnd *w = wnd_get(h);
+    HFONT old;
+    HDC dc = ctl_dc(h, &old);
+    HBRUSH bg = ctl_color(h, dc, CTLCOLOR_BTN);
+    COLORREF frame = GetSysColor(COLOR_WINDOWFRAME);
+    TEXTMETRIC tm;
+    RECT r;
+    int y, tw;
+
+    GetClientRect(h, &r);
+    GetTextMetrics(dc, &tm);
+    y = tm.tmHeight / 2;
+    ctl_fill(dc, 0, y, r.right, y + 1, frame);
+    ctl_fill(dc, 0, r.bottom - 1, r.right, r.bottom, frame);
+    ctl_fill(dc, 0, y, 1, r.bottom, frame);
+    ctl_fill(dc, r.right - 1, y, r.right, r.bottom, frame);
+    tw = label(dc, 0, 0, w->text, (int)SDL_strlen(w->text), 0, 0);
+    SetRect(&r, 8, 0, (int16_t)(10 + tw), (int16_t)tm.tmHeight);
+    if (bg)
+        FillRect(dc, &r, bg);
+    SetBkMode(dc, TRANSPARENT);
+    SetTextColor(dc, GetSysColor(COLOR_WINDOWTEXT));
+    label(dc, 9, 0, w->text, (int)SDL_strlen(w->text), 0, 1);
     ctl_release(h, dc, old);
 }
 
@@ -255,6 +287,18 @@ static LRESULT button_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
     POINT p;
     RECT r;
 
+    if ((w->style & BS_TYPE) == BS_GROUPBOX) {
+        if (msg == WM_PAINT) {
+            validate(h);
+            group_paint(h);
+            return 0;
+        }
+        if (msg == WM_GETDLGCODE)
+            return DLGC_STATIC;
+        if (msg == WM_LBUTTONDOWN || msg == WM_LBUTTONDBLCLK)
+            return 0;
+        return common(h, msg, wp, lp);
+    }
     switch (msg) {
     case WM_PAINT:
         validate(h);
@@ -365,11 +409,11 @@ static void combo_paint(HWND h)
     ht = r.bottom;
     ax = wd - ARROW_W;
     ctl_color(h, dc, CTLCOLOR_EDIT);
-    fill(dc, 0, 0, wd, ht, 0);
-    fill(dc, 1, 1, ax, ht - 1, GetSysColor(COLOR_WINDOW));
+    ctl_fill(dc, 0, 0, wd, ht, 0);
+    ctl_fill(dc, 1, 1, ax, ht - 1, GetSysColor(COLOR_WINDOW));
     SetBkMode(dc, TRANSPARENT);
     if (GetFocus() == h && !c->list) {
-        fill(dc, 3, 3, ax - 2, ht - 3, GetSysColor(COLOR_HIGHLIGHT));
+        ctl_fill(dc, 3, 3, ax - 2, ht - 3, GetSysColor(COLOR_HIGHLIGHT));
         SetTextColor(dc, GetSysColor(COLOR_HIGHLIGHTTEXT));
     }
     if (c->sel >= 0 && c->sel < c->count)
@@ -378,10 +422,10 @@ static void combo_paint(HWND h)
         SetRect(&r, 3, 3, (int16_t)(ax - 2), (int16_t)(ht - 3));
         DrawFocusRect(dc, &r);
     }
-    bevel(dc, ax + 1, 1, wd - 1, ht - 1, 1);
+    ctl_bevel(dc, ax + 1, 1, wd - 1, ht - 1, 1);
     for (i = 0; i < 4; i++)
-        fill(dc, ax + 5 + i, ht / 2 - 3 + i, wd - 5 - i, ht / 2 - 2 + i, IsWindowEnabled(h) ? 0 : GetSysColor(COLOR_BTNSHADOW));
-    fill(dc, ax + 5, ht / 2 + 2, wd - 5, ht / 2 + 3, 0);
+        ctl_fill(dc, ax + 5 + i, ht / 2 - 3 + i, wd - 5 - i, ht / 2 - 2 + i, IsWindowEnabled(h) ? 0 : GetSysColor(COLOR_BTNSHADOW));
+    ctl_fill(dc, ax + 5, ht / 2 + 2, wd - 5, ht / 2 + 3, 0);
     ctl_release(h, dc, old);
 }
 
@@ -514,7 +558,7 @@ static void arrow(HDC dc, int l, int t, int up)
 
     for (i = 0; i < 4; i++) {
         int y = up ? t + 6 + i : t + 9 - i;
-        fill(dc, l + 8 - i, y, l + 9 + i, y + 1, 0);
+        ctl_fill(dc, l + 8 - i, y, l + 9 + i, y + 1, 0);
     }
 }
 
@@ -530,13 +574,13 @@ static void list_bar(HWND combo, HDC dc, const RECT *r)
 {
     int x = r->right - ARROW_W, t = thumb_top(combo, r->bottom);
 
-    fill(dc, x, 0, r->right, r->bottom, GetSysColor(COLOR_SCROLLBAR));
-    fill(dc, x, 0, x + 1, r->bottom, 0);
-    bevel(dc, x + 1, 0, r->right, ARROW_W, 1);
+    ctl_fill(dc, x, 0, r->right, r->bottom, GetSysColor(COLOR_SCROLLBAR));
+    ctl_fill(dc, x, 0, x + 1, r->bottom, 0);
+    ctl_bevel(dc, x + 1, 0, r->right, ARROW_W, 1);
     arrow(dc, x, 0, 1);
-    bevel(dc, x + 1, r->bottom - ARROW_W, r->right, r->bottom, 1);
+    ctl_bevel(dc, x + 1, r->bottom - ARROW_W, r->right, r->bottom, 1);
     arrow(dc, x, r->bottom - ARROW_W, 0);
-    bevel(dc, x + 1, t, r->right, t + ARROW_W, 1);
+    ctl_bevel(dc, x + 1, t, r->right, t + ARROW_W, 1);
 }
 
 /* A click on the scroll bar at y: a line or a page up or down. */
@@ -649,6 +693,12 @@ static LRESULT combo_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
         return c->sel;
     case CB_GETCOUNT:
         return c->count;
+    case CB_ADDSTRING:
+        return combo_add_string(h, (LPCSTR)lp);
+    case CB_GETLBTEXT:
+        return combo_get_text(h, (int16_t)wp, (LPSTR)lp, 256);
+    case CB_FINDSTRING:
+        return combo_find_string(h, (int16_t)wp, (LPCSTR)lp);
     case CB_RESETCONTENT:
         c->count = 0;
         c->sel = -1;
@@ -727,14 +777,14 @@ static LRESULT list_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
         old = c->font ? SelectObject(dc, c->font) : 0;
         GetClientRect(h, &r);
         ctl_color(combo, dc, CTLCOLOR_LISTBOX);
-        fill(dc, 0, 0, r.right, r.bottom, GetSysColor(COLOR_WINDOW));
+        ctl_fill(dc, 0, 0, r.right, r.bottom, GetSysColor(COLOR_WINDOW));
         SetBkMode(dc, TRANSPARENT);
         if (list_has_bar(combo))
             list_bar(combo, dc, &r);
         w = list_has_bar(combo) ? r.right - ARROW_W : r.right;
         for (i = c->top, y = 0; i < c->count && y + ih <= r.bottom; i++, y += ih) {
             if (i == c->hot)
-                fill(dc, 0, y, w, y + ih, GetSysColor(COLOR_HIGHLIGHT));
+                ctl_fill(dc, 0, y, w, y + ih, GetSysColor(COLOR_HIGHLIGHT));
             SetTextColor(dc, GetSysColor(i == c->hot ? COLOR_HIGHLIGHTTEXT : COLOR_WINDOWTEXT));
             label(dc, 2, y, c->items[i], (int)SDL_strlen(c->items[i]), 1, 1);
         }
@@ -776,7 +826,7 @@ void controls_register(void)
         WNDPROC proc;
     } cls[] = {
         {"Button", button_proc}, {"Static", static_proc}, {"Edit", edit_proc},
-        {"ComboBox", combo_proc}, {LIST_CLASS, list_proc},
+        {"ComboBox", combo_proc}, {LIST_CLASS, list_proc}, {"ListBox", listbox_proc},
     };
     WNDCLASS wc;
     size_t i;

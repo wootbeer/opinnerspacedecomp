@@ -84,6 +84,9 @@ cmake --build build/dll_oracle
 python3 -I tools/dll_oracle/oracle.py tools/dll_oracle/smooth.txt
 ```
 
+The build takes every file of `port/src/win/` and `port/src/game/`: run
+the first command again after files are added there.
+
 - `emu.py`: the emulated DLL (`IspaceEmu`: loading, relocations, import
   stand-ins, `call_ordinal`). The stand-ins model memory (GlobalSize in
   Windows' 32-byte units), resources of ISPACE.DLL, IGRAPHIC.DLL and

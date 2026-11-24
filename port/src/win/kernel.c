@@ -98,41 +98,6 @@ DWORD GlobalCompact(DWORD n)
     return 0x7fffffff;
 }
 
-/* DOS paths. */
-static int has_prefix(const char *s, const char *prefix)
-{
-    for (; *prefix; s++, prefix++)
-        if (toupper((unsigned char)*s) != *prefix)
-            return 0;
-    return 1;
-}
-
-int dos_to_host(const char *dos, char *out, size_t size)
-{
-    char tmp[1024];
-    const char *base, *rest;
-    char *p;
-
-    if (has_prefix(dos, "C:\\SPACE\\") || (has_prefix(dos, "C:\\SPACE") && !dos[8])) {
-        base = platform_data_dir();
-        rest = dos + (dos[8] ? 9 : 8);
-    } else if (has_prefix(dos, "C:\\WINDOWS\\") || (has_prefix(dos, "C:\\WINDOWS") && !dos[10])) {
-        base = platform_pref_dir();
-        rest = dos + (dos[10] ? 11 : 10);
-    } else if (dos[0] && dos[1] != ':' && dos[0] != '\\') {
-        base = platform_data_dir();
-        rest = dos;
-    } else {
-        return 0;
-    }
-    snprintf(tmp, sizeof tmp, "%s/%s", base, rest);
-    for (p = tmp; *p; p++)
-        if (*p == '\\')
-            *p = '/';
-    platform_find_path(tmp, out, (int)size);
-    return 1;
-}
-
 /* Files: DOS handles 5 and up. */
 #define MAX_FILES 32
 #define FILE_BASE 5

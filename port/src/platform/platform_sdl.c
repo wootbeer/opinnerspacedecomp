@@ -5,6 +5,9 @@
 #include <SDL3/SDL.h>
 #include <string.h>
 #include <time.h>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 uint32_t platform_time_ms(void)
 {
@@ -24,11 +27,26 @@ void platform_date(PlatformDate *out)
     out->second = t->tm_sec;
 }
 
+/* Windows: its drives from C: on, as "C:/"; elsewhere the user's home
+ * folder (it becomes drive C:, see port/README.md). */
 int platform_folder_roots(char roots[][260], int max)
 {
-    (void)roots;
-    (void)max;
-    return 0;
+#ifdef _WIN32
+    DWORD drives = GetLogicalDrives();
+    int n = 0, i;
+
+    for (i = 2; i < 26 && n < max; i++)
+        if (drives & (1u << i))
+            SDL_snprintf(roots[n++], 260, "%c:/", 'A' + i);
+    return n;
+#else
+    const char *home = SDL_GetUserFolder(SDL_FOLDER_HOME);
+
+    if (!home || max < 1)
+        return 0;
+    SDL_strlcpy(roots[0], home, 260);
+    return 1;
+#endif
 }
 
 /* DOS-style wildcard match ('*' and '?'), ignoring case. */
@@ -47,6 +65,23 @@ static int wild_match(const char *pat, const char *s)
             return 0;
     }
     return *s == 0;
+}
+
+static int is_hidden(const char *path, const char *name)
+{
+#ifdef _WIN32
+    wchar_t w[1024];
+    DWORD a;
+
+    (void)name;
+    if (!MultiByteToWideChar(CP_UTF8, 0, path, -1, w, 1024))
+        return 0;
+    a = GetFileAttributesW(w);
+    return a != INVALID_FILE_ATTRIBUTES && (a & (FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_SYSTEM));
+#else
+    (void)path;
+    return name[0] == '.';
+#endif
 }
 
 typedef struct {
@@ -72,6 +107,7 @@ static SDL_EnumerationResult SDLCALL list_one(void *userdata, const char *dirnam
     e.name = fname;
     e.size = (uint32_t)info.size;
     e.is_dir = info.type == SDL_PATHTYPE_DIRECTORY;
+    e.hidden = is_hidden(full, fname);
     c->fn(&e, c->user);
     c->count++;
     return SDL_ENUM_CONTINUE;

@@ -63,7 +63,8 @@ Command line:
 Game data (INSPACE.EXE and the other original files) is read from `data/`
 or the folder in `INSPACE_DATA`; it is not part of the repository. The game
 sees it as `C:\SPACE\`; `C:\WINDOWS\` (INSPACE.INI) is the platform's
-settings folder (SDL pref path).
+settings folder (SDL pref path). The rest of the game's drives are the
+user's folders: see "Drives and file names".
 
 Windows: `cmake -S port -B build-win -DCMAKE_TOOLCHAIN_FILE=<mingw.cmake>
 -DCMAKE_PREFIX_PATH=<SDL3 Windows install>`.
@@ -71,7 +72,7 @@ Windows: `cmake -S port -B build-win -DCMAKE_TOOLCHAIN_FILE=<mingw.cmake>
 ## Settings
 
 Port options live in INSPACE.INI (the settings folder) under `[Port]`;
-each is off unless set to 1.
+the switches are off unless set to 1.
 
 - `CopyCheck=1`: the original copy check (ISPACE.DLL ordinal 24, mode 2).
   Off, the port reports a registered copy. On, it checks the key in
@@ -80,6 +81,9 @@ each is off unless set to 1.
   "limited inner space" and the New Game dialog offers only TRANSFORMER
   and fewer ships. Off by default so that no files in the Windows folder
   are needed (Android has none).
+- `DriveC=<folder>` (any letter C-Z): the host folder the game sees as
+  that drive, an absolute path in the host's form. It replaces the
+  platform's choice for that letter ("Drives and file names").
 
 ## Quirks
 
@@ -87,14 +91,45 @@ Original behaviour is the default. Crashes and memory-safety bugs are fixed;
 bugs whose fix would change gameplay noticeably stay as in the original,
 with the fix available as a setting. Each is listed in `QUIRKS.md` (to come).
 
-## File-name case
+## Drives and file names
 
-C identifiers are case-sensitive everywhere, so names in code are not an
-issue. File names are: Windows ignores case, Linux and Android do not.
-- Source and include file names in `port/` are lowercase, and `#include`s
-  match them exactly.
-- The platform module opens data files case-insensitively (the original
-  files are uppercase; a user's copy may not be).
-- Folder scanning matches DOS-style patterns (`*.EXE`) case-insensitively;
-  name comparisons the game makes (it ran on uppercase DOS names) are
-  case-insensitive too. Names are shown upper-case where the original did.
+The Navigation window and the waves are made from the user's own folders
+and programs: every directory of the game's drive is a place to fly to,
+and every program in it an icon to capture. `src/win/dosfs.c` maps the
+game's DOS paths onto host folders:
+
+- **Drives.** On Windows the drives are the real ones (C: is C:\, D: is
+  D:\ ...). On Linux C: is the user's home folder and there are no
+  other drives. Android will use the folders the user grants (not done
+  yet; `platform_folder_roots`). INSPACE.INI `[Port] DriveC=` (any
+  letter) points a drive at any folder. The game asks for the drive in
+  its New Game dialog, which lists the drives that exist.
+- **Mounts.** `C:\SPACE` (the game's own folder, a race track in the
+  game) is always the data folder and `C:\WINDOWS` the settings folder,
+  whatever C: is. They are listed in C:\ and hide a host folder of the
+  same name.
+- **8.3 names.** The game was written for DOS names (8 characters, a
+  dot, 3 characters, upper case); its paths, buffers and saved games
+  assume them. It sees each host name as Windows 95 showed it to 16-bit
+  programs: a valid 8.3 name is upper-cased (`readme.txt` is
+  `README.TXT`); any other gets an alias of its first six allowed
+  characters (spaces and extra dots dropped; `+,;=[]` and non-ASCII
+  characters as `_`), `~1`, `~2`, ..., and the first three characters of
+  its last extension (`Program Files` is `PROGRA~1`, `notes.backup.html`
+  is `NOTESB~1.HTM`). Windows numbers aliases in the order the files were
+  made; the port numbers them in the order of the host names (byte
+  order), so they stay the same between runs. The game shows names in
+  lower case (its own choice, as File Manager did).
+- **Case.** Names are matched ignoring case, by alias or by host name;
+  names that do not exist yet (new files) are kept as given.
+- **Hidden files** (Windows: hidden or system attribute; elsewhere names
+  starting with a dot) are left out, as DOS left them out unless asked.
+- **Programs.** As in the original, the programs of a directory are its
+  `*.EXE` files (and `*.DLL` files count as icons too); the extension
+  decides, so Linux programs (ELF, no extension) are not icons. Icons
+  are read from Windows programs (16-bit NE and 32/64-bit PE,
+  `src/win/icon.c`); for a program without one the game draws its own
+  default.
+
+Source and include file names in `port/` are lowercase, and `#include`s
+match them exactly.

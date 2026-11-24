@@ -31,6 +31,13 @@
   - It drops the file-local typedefs, externs and prototypes, plus the stubs that only forced near calls in the 1994 build.
   - It maps the 16-bit types to `int16_t`/`int32_t`/... and replaces `@addr` tags with an address comment.
   - It rewrites accesses through other views onto the merged tables. Index shifts become `[i + q]`, fields are renamed by true offset, and `*(T *)&x` / `((T *)&x)[k]` aliases become the global or field they name.
+- **Message lParam.** `LPARAM` is pointer-sized (`intptr_t`), as in
+  Win32, so messages carry native pointers (LB_ADDSTRING, LB_GETTEXT,
+  CB_ADDSTRING, WM_DRAWITEM, ...). The translator turns a `(LONG)` cast of
+  a pointer passed as the lParam of SendMessage, PostMessage,
+  SendDlgItemMessage or DefWindowProc into `(LPARAM)` (17 sites, all in
+  seg06d; `lparam pointer` in translate-notes); the 16-bit pass still
+  types LPARAM as the 32-bit long it was.
 - **win16api.h** is generated from the MSVC 1.5x headers. It holds the API prototypes and constants the game uses, with fixed-width types. Standard C functions come from the host libc.
 - **16-bit arithmetic** (`tools/port_int16.py`, run on each generated file). It types every expression under the 1994 rules (16-bit int/unsigned, MSC conversions, literal types) and tracks the range of its native value. Natively an int16 expression equals the 1994 value modulo 2^16, so a cast is inserted only where the whole value is used and can differ: compare, `/ % >>`, condition, widening to long, a libc int parameter (`(int16_t)(a * b) < c`, `(uint16_t)i < u`, `u == 0xffff`). Stores to 16-bit variables, 16-bit parameters and array indexes need none. Reads through a view of the other signedness (`int` view of a HWND, `long` view of a DWORD) are marked by the translator and cast where it matters. Long arithmetic wraps with `-fwrapv`. Counts by kind and every site are in translate-notes; `python3 -I tools/port_int16_check.py` checks the result against a 1994 evaluator on random values.
 - **Names.** Confirmed names from `names/INSPACE.EXE.txt` replace `g_XXXX` / `fn_SS_OOOO` everywhere in the generated code (declarations, definitions, calls, uses). Names tagged `[inferred]` are only comments in game.h; where the decomp already used one as an identifier (`command_watch_ship`), the code goes back to the address name.
@@ -394,12 +401,10 @@ in ispace_room.h.
   text).
 - **Uncertain:** CB_FINDSTRING with an empty string finds item 0 (the
   Restore Game dialog relies on it while INI Restore is unset).
-- **Messages with pointers** (CB_ADDSTRING, CB_GETLBTEXT, CB_FINDSTRING,
-  WM_SETTEXT's text) cannot carry a native pointer in the 32-bit lParam:
-  the native DLL code calls `combo_*` (user.h), and WM_SETTEXT is sent
-  after SetWindowText has stored the text. The game's own dialogs
-  (seg06d, seg16) pass `(LPARAM)(LPSTR)buf` and need the far-pointer
-  step first.
+- **Messages with pointers** (CB_ADDSTRING, LB_GETTEXT, WM_DRAWITEM, ...)
+  carry native pointers in the pointer-sized lParam ("How it works").
+  The native DLL code calls `combo_*` (user.h) directly; WM_SETTEXT is
+  sent after SetWindowText has stored the text.
 
 ## ISPACE.DLL dialogs (port/src/win/ispace_dlg.c)
 
@@ -506,3 +511,61 @@ in ispace_room.h.
     port always lists C).
 - **Quirk kept:** a ship file's length is divided as its low word,
   sign-extended (files of 32 KB or more give no records).
+
+## Inner Space Navigation (seg06d; dosfs.c, listbox.c, icon.c)
+
+The directory picker is the game's own code (6:1c72 opens the IS_NAV
+window, 6:23d4 makes its controls, 6:37ca fills the directory tree,
+6:5318 and 6:5524 the program list and the description, 6:4368 the icon
+box, 6:301a enters the directory). It runs on the native list box,
+group box, icons and the drive mapping of port/README.md ("Drives and
+file names"). Enter (IDOK through IsDialogMessage) or a double click
+on a directory with programs leads to the wave's briefing.
+
+- **List boxes** (listbox.c):
+  - **Uncertain:** sorted insertion compares ignoring ASCII case
+    (Windows 3.1 used its language collation); LBN_SELCHANGE is sent when
+    the mouse button is released; a horizontal arrow click scrolls 8
+    pixels; the default column width of a multi-column list is 16
+    average characters (the game sets its own); an owner-drawn item's
+    rectangle is as wide as the horizontal extent when that is wider.
+  - Every change repaints the whole control, each item with
+    ODA_DRAWENTIRE, where Windows sends ODA_SELECT and ODA_FOCUS for the
+    items that changed; the game's handlers (6:47e8, 6:4e04, 6:4ea8) draw
+    the same pixels either way.
+  - Not modelled: multiple selection (the program list is
+    LBS_EXTENDEDSEL; it selects one item at a time), dragging the thumb.
+- **Group boxes** (controls.c): frame from half the text height,
+  text at 9 pixels on the control's background [uncertain: Windows 3.1's
+  offsets]. The navigation window shows them only for race tracks and
+  the duel arena.
+- **Icons** (icon.c):
+  - ExtractIcon returns the number of icon groups for index -1; for an
+    index, the icon, 0 when the program has none of that index, and 1
+    when the file is not a Windows program (NE or PE) or cannot be read,
+    as Windows documents it. The game counts a program without icons as
+    one icon and draws its own picture for it (9:0352).
+  - **Inferred:** of a group's images the 32x32 one is taken, else the
+    nearest size (larger first, scaled to 32x32); among those, the most
+    colours up to 256, else the fewest above. Colours go to the nearest of
+    the 20 static colours (plain RGB through the DC), as Windows 3.1 made
+    icons with the default palette; 16-colour icons are exact. 32-bit
+    images with alpha use it as the mask (Windows 3.1 had none); PNG
+    images are not read.
+  - Resource tables of the user's files are read with every offset
+    checked (they are not the game's files).
+- **Directory searches** (crt.c): DOS keeps a search in find_t's
+  reserved bytes; the port keeps a snapshot of the matches per search
+  (64, the oldest reused) and names it there. The game starts searches
+  it never finishes (6:4190 only asks whether a `*.exe` exists); with
+  the earlier 4 slots kept until a search ended, these could take the
+  slot of the tree's own search (DS:69f8).
+- **Not ported yet, met after Navigation:** ISPACE ordinal 1's branch
+  5:075e and ordinal 2's surfaces (6:011c, 6:78ba) (both log as stubs on
+  the way to the briefing). Ordinals 14 and 18 are stubs met before
+  Navigation, in the launch scene: 14 (5:50cc) blends the colour sets
+  of a palette's ranges (kind 2 or 3) by a percentage
+  through its thunk fn_10_993a (seg15b; the decomp's comment on 15:0000
+  calls it a sound pitch, which it is not); 18 (6:5e76, about 6.7 KB of
+  code) loads a sprite image, used by fn_10_7032 for the ship of the
+  launch and briefing scenes.

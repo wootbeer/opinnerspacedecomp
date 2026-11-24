@@ -4,6 +4,23 @@ seg06b.c:1130: view g_a191 read as g_a193 with the last index shifted by -2
 seg06b.c:1958: view g_a191 read as g_a193 with the last index shifted by -2
 seg06c.c:88: call to fn_06_1c0c: dropped 1 extra argument(s): 0
 seg06c.c:311: call to fn_10_6e76: two words -> long
+seg06d.c:590: call to SendMessage: pointer cast to LONG -> LPARAM
+seg06d.c:599: call to SendMessage: pointer cast to LONG -> LPARAM
+seg06d.c:797: call to SendMessage: pointer cast to LONG -> LPARAM
+seg06d.c:840: call to SendMessage: pointer cast to LONG -> LPARAM
+seg06d.c:894: call to SendMessage: pointer cast to LONG -> LPARAM
+seg06d.c:997: call to SendMessage: pointer cast to LONG -> LPARAM
+seg06d.c:1023: call to SendMessage: pointer cast to LONG -> LPARAM
+seg06d.c:1050: call to SendMessage: pointer cast to LONG -> LPARAM
+seg06d.c:1053: call to SendMessage: pointer cast to LONG -> LPARAM
+seg06d.c:1059: call to SendMessage: pointer cast to LONG -> LPARAM
+seg06d.c:1086: call to SendMessage: pointer cast to LONG -> LPARAM
+seg06d.c:1089: call to SendMessage: pointer cast to LONG -> LPARAM
+seg06d.c:1107: call to SendMessage: pointer cast to LONG -> LPARAM
+seg06d.c:1130: call to SendMessage: pointer cast to LONG -> LPARAM
+seg06d.c:1157: call to SendMessage: pointer cast to LONG -> LPARAM
+seg06d.c:1160: call to SendMessage: pointer cast to LONG -> LPARAM
+seg06d.c:1168: call to SendMessage: pointer cast to LONG -> LPARAM
 seg07.c:501: call to fn_08_1d54: packed word -> OBJREF
 seg07.c:542: call to fn_08_1d54: packed word -> OBJREF
 seg07.c:588: call to fn_08_1d54: packed word -> OBJREF
@@ -104,6 +121,7 @@ call adapted: 95
 call override: 4
 flat index: 4
 function cast dropped: 4
+lparam pointer: 17
 objref from word: 2
 signedness view: 664
 == table length (15)

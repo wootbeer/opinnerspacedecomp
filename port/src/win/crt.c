@@ -3,10 +3,10 @@
 #include <SDL3/SDL_filesystem.h>
 #include <ctype.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "winrt.h"
-#include "platform/platform.h"
 
 static uint32_t rand_seed = 1;
 
@@ -127,89 +127,84 @@ int16_t wsprintf(LPSTR out, LPCSTR fmt, ...)
     return (int16_t)(o - out);
 }
 
-/* Directory search: _dos_findfirst / _dos_findnext.  The match list is
- * kept here; find_t.reserved holds its slot. */
-#define MAX_FIND 4
-#define MAX_FOUND 1024
+/* Directory search: _dos_findfirst / _dos_findnext.  DOS keeps a
+ * search's state in find_t.reserved; here it names a snapshot of the
+ * matches (slot, generation, next entry).  The oldest snapshot is reused
+ * by a new search, and a search whose snapshot was reused ends. */
+#define MAX_FIND 64
 
 typedef struct {
-    int used, count, next;
-    struct {
-        char name[13];
-        char attrib;
-        int32_t size;
-    } e[MAX_FOUND];
+    uint32_t gen;
+    int count;
+    DosEntry *e;
 } Search;
 static Search searches[MAX_FIND];
+static uint32_t find_gen;
 
-typedef struct {
-    Search *s;
-    unsigned attr;
-} FindCtx;
-
-static void add_found(const PlatformDirEntry *e, void *user)
+static void put32(char *p, uint32_t v)
 {
-    FindCtx *c = user;
-    Search *s = c->s;
-    int i;
+    p[0] = (char)v;
+    p[1] = (char)(v >> 8);
+    p[2] = (char)(v >> 16);
+    p[3] = (char)(v >> 24);
+}
 
-    if (s->count >= MAX_FOUND || (e->is_dir && !(c->attr & _A_SUBDIR)))
-        return;
-    if (!strcmp(e->name, ".") || !strcmp(e->name, ".."))
-        return;
-    for (i = 0; i < 12 && e->name[i]; i++)
-        s->e[s->count].name[i] = (char)toupper((unsigned char)e->name[i]);
-    s->e[s->count].name[i] = 0;
-    s->e[s->count].attrib = e->is_dir ? _A_SUBDIR : 0;
-    s->e[s->count].size = (int32_t)e->size;
-    s->count++;
+static uint32_t get32(const char *p)
+{
+    const unsigned char *u = (const unsigned char *)p;
+
+    return u[0] | u[1] << 8 | (uint32_t)u[2] << 16 | (uint32_t)u[3] << 24;
 }
 
 static uint16_t find_step(struct _find_t *ft)
 {
-    int k = (unsigned char)ft->reserved[0];
+    unsigned k = (unsigned char)ft->reserved[0];
+    uint16_t next = (uint16_t)((unsigned char)ft->reserved[5] | (unsigned char)ft->reserved[6] << 8);
     Search *s;
 
-    if (k >= MAX_FIND)
+    if (k >= MAX_FIND || searches[k].gen != get32(ft->reserved + 1) || next >= searches[k].count)
         return 18;
     s = &searches[k];
-    if (!s->used || s->next >= s->count) {
-        s->used = 0;
-        return 18;
-    }
-    strcpy(ft->name, s->e[s->next].name);
-    ft->attrib = s->e[s->next].attrib;
-    ft->size = s->e[s->next].size;
+    strcpy(ft->name, s->e[next].name);
+    ft->attrib = (char)s->e[next].attrib;
+    ft->size = (int32_t)s->e[next].size;
     ft->wr_time = ft->wr_date = 0;
-    s->next++;
+    next++;
+    ft->reserved[5] = (char)next;
+    ft->reserved[6] = (char)(next >> 8);
     return 0;
 }
 
+/* Normal files always match; hidden, system files and directories only
+ * when attr asks for them. */
 uint16_t _dos_findfirst(const char *path, uint16_t attr, struct _find_t *ft)
 {
-    char dir[260], host[1024];
+    char dir[260];
     const char *slash = strrchr(path, '\\');
-    FindCtx c;
-    int k;
+    DosEntry *e;
+    Search *s;
+    int n, i, k, oldest = 0;
 
     if (attr & _A_VOLID || !slash)
         return 2;
-    for (k = 0; k < MAX_FIND && searches[k].used; k++)
-        ;
-    if (k == MAX_FIND)
-        k = 0;
     snprintf(dir, sizeof dir, "%.*s", (int)(slash - path + 1), path);
-    if (!dos_to_host(dir, host, sizeof host))
+    n = dos_list(dir, &e);
+    if (n < 0)
         return 3;
-    c.s = &searches[k];
-    c.attr = attr;
-    c.s->used = 1;
-    c.s->count = c.s->next = 0;
-    platform_list_dir(host, slash + 1, add_found, &c);
-    ft->reserved[0] = (char)k;
-    if (find_step(ft))
-        return 2;
-    return 0;
+    for (k = 1; k < MAX_FIND; k++)
+        if (searches[k].gen < searches[oldest].gen)
+            oldest = k;
+    s = &searches[oldest];
+    free(s->e);
+    s->e = e;
+    s->gen = ++find_gen;
+    for (i = s->count = 0; i < n; i++)
+        if (!(e[i].attrib & (_A_HIDDEN | _A_SYSTEM | _A_SUBDIR) & ~attr) && dos_match(e[i].name, slash + 1))
+            e[s->count++] = e[i];
+    ft->reserved[0] = (char)oldest;
+    put32(ft->reserved + 1, s->gen);
+    ft->reserved[5] = ft->reserved[6] = 0;
+    return find_step(ft) ? 2 : 0;
 }
 
 uint16_t _dos_findnext(struct _find_t *ft)
@@ -217,7 +212,7 @@ uint16_t _dos_findnext(struct _find_t *ft)
     return find_step(ft);
 }
 
-/* Drives: DOS paths reach only drive C (kernel.c). */
+/* Drives: C: and the others dosfs.c maps to host folders. */
 static int16_t current_drive = 3;
 
 int16_t _getdrive(void)
@@ -227,7 +222,7 @@ int16_t _getdrive(void)
 
 int16_t _chdrive(int16_t drive)
 {
-    if (drive != 3)
+    if (drive < 1 || drive > 26 || !dos_drive_exists('A' + drive - 1))
         return -1;
     current_drive = drive;
     return 0;

@@ -15,10 +15,12 @@ add_executable(inspace
     src/win/crt.c
     src/win/dgroup.c
     src/win/dialog.c
+    src/win/dosfs.c
     src/win/draw.c
     src/win/edit.c
     src/win/gdi.c
     src/win/handles.c
+    src/win/icon.c
     src/win/input.c
     src/win/ispace.c
     src/win/ispace_dlg.c
@@ -30,6 +32,7 @@ add_executable(inspace
     src/win/ispace_shape.c
     src/win/ispace_smooth.c
     src/win/kernel.c
+    src/win/listbox.c
     src/win/module.c
     src/win/ne.c
     src/win/profile.c

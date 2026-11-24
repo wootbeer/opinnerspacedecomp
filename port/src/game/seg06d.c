@@ -490,7 +490,7 @@ int16_t fn_06_420a(char *dir, char *mask)
     lstrcat(line, " ");
     lstrcat(line, "0");
     line[lstrlen(line) - 1] += flag;
-    SendMessage(GetDlgItem(g_0d1e, 0x6b), LB_ADDSTRING, 0, (LONG)(LPSTR)line);
+    SendMessage(GetDlgItem(g_0d1e, 0x6b), LB_ADDSTRING, 0, (LPARAM)(LPSTR)line);
     while (_dos_findnext(&ft) == 0) {
         n++;
         fn_06_4368(dir, ft.name);
@@ -499,7 +499,7 @@ int16_t fn_06_420a(char *dir, char *mask)
         lstrcat(line, " ");
         lstrcat(line, "0");
         line[lstrlen(line) - 1] += flag;
-        SendMessage(GetDlgItem(g_0d1e, 0x6b), LB_ADDSTRING, 0, (LONG)(LPSTR)line);
+        SendMessage(GetDlgItem(g_0d1e, 0x6b), LB_ADDSTRING, 0, (LPARAM)(LPSTR)line);
     }
     return n;
 }
@@ -697,7 +697,7 @@ int16_t fn_06_5cbc(int16_t i, char *s)
     int16_t k;
     int16_t d;
 
-    SendMessage(GetDlgItem(g_0d1e, 0x6b), 0x40a, i, (LONG)s);
+    SendMessage(GetDlgItem(g_0d1e, 0x6b), 0x40a, i, (LPARAM)s);
     d = s[lstrlen(s) - 1] - '0';
     for (k = 0; k < 2; k++)
         s[lstrlen(s) - 1] = 0;
@@ -740,7 +740,7 @@ void fn_06_49c0(DRAWITEMSTRUCT *dis)
     oldbmp = SelectObject(memdc, g_6aec[0]);
     CopyRect(&rc, &dis->rcItem);
     CopyRect(&rc2, &dis->rcItem);
-    SendMessage(dis->hwndItem, 0x40a, dis->itemID, (LONG)(LPSTR)buf);
+    SendMessage(dis->hwndItem, 0x40a, dis->itemID, (LPARAM)(LPSTR)buf);
     sx0 = 90;
     depth = buf[lstrlen(buf) - 3] - '0';
     x = depth * 16 - 6;
@@ -794,7 +794,7 @@ void fn_06_49c0(DRAWITEMSTRUCT *dis)
         } else if (depth > 1) {
             char buf2[80];
 
-            SendMessage(dis->hwndItem, 0x40a, dis->itemID + 1, (LONG)(LPSTR)buf2);
+            SendMessage(dis->hwndItem, 0x40a, dis->itemID + 1, (LPARAM)(LPSTR)buf2);
             d2 = buf2[lstrlen(buf2) - 3] - '0';
             if (d2 != depth)
                 flag1 = 1;
@@ -897,7 +897,7 @@ void fn_06_4e04(DRAWITEMSTRUCT *dis)
         if (dis->itemID == 0)
             x = 0;
         else {
-            SendMessage(dis->hwndItem, 0x40a, dis->itemID, (LONG)(LPSTR)buf);
+            SendMessage(dis->hwndItem, 0x40a, dis->itemID, (LPARAM)(LPSTR)buf);
             d = buf[lstrlen(buf) - 3] - '0';
             x = d * 16 - 6;
         }
@@ -923,7 +923,7 @@ void fn_06_4ea8(DRAWITEMSTRUCT *dis)
         if (dis->itemID == 0)
             x = 0;
         else {
-            SendMessage(dis->hwndItem, 0x40a, dis->itemID, (LONG)(LPSTR)buf);
+            SendMessage(dis->hwndItem, 0x40a, dis->itemID, (LPARAM)(LPSTR)buf);
             d = buf[lstrlen(buf) - 3] - '0';
             x = d * 16 - 6;
         }
@@ -950,16 +950,16 @@ void fn_06_511c(void)
     hwnd = GetDlgItem(g_0d1e, 0x65);
     SendMessage(hwnd, WM_SETREDRAW, 0, 0L);
     sel = (int16_t)SendMessage(hwnd, LB_GETCURSEL, 0, 0L);
-    SendMessage(hwnd, LB_GETTEXT, sel, (LONG)(LPSTR)buf);
+    SendMessage(hwnd, LB_GETTEXT, sel, (LPARAM)(LPSTR)buf);
     buf[lstrlen(buf) - 2] = '1';
     SendMessage(hwnd, LB_DELETESTRING, sel, 0L);
-    SendMessage(hwnd, LB_INSERTSTRING, sel, (LONG)(LPSTR)buf);
+    SendMessage(hwnd, LB_INSERTSTRING, sel, (LPARAM)(LPSTR)buf);
     SendMessage(hwnd, LB_SETCURSEL, sel, 0L);
     depth = buf[lstrlen(buf) - 3] - '0';
     count = (int16_t)SendMessage(hwnd, LB_GETCOUNT, 0, 0L);
     sel++;
     for (i = sel; i < count; i++) {
-        SendMessage(hwnd, LB_GETTEXT, sel, (LONG)(LPSTR)buf);
+        SendMessage(hwnd, LB_GETTEXT, sel, (LPARAM)(LPSTR)buf);
         d = buf[lstrlen(buf) - 3] - '0';
         if (d <= depth)
             break;
@@ -986,10 +986,10 @@ int16_t fn_06_4f46(void)
     hwnd = GetDlgItem(g_0d1e, 0x65);
     SendMessage(hwnd, WM_SETREDRAW, 0, 0L);
     sel = (int16_t)SendMessage(hwnd, LB_GETCURSEL, 0, 0L);
-    SendMessage(hwnd, LB_GETTEXT, sel, (LONG)(LPSTR)buf);
+    SendMessage(hwnd, LB_GETTEXT, sel, (LPARAM)(LPSTR)buf);
     buf[lstrlen(buf) - 2] = '2';
     SendMessage(hwnd, LB_DELETESTRING, sel, 0L);
-    SendMessage(hwnd, LB_INSERTSTRING, sel, (LONG)(LPSTR)buf);
+    SendMessage(hwnd, LB_INSERTSTRING, sel, (LPARAM)(LPSTR)buf);
     SendMessage(hwnd, LB_SETCURSEL, sel, 0L);
     depth = buf[lstrlen(buf) - 3] - '0';
     sel++;
@@ -1007,7 +1007,7 @@ int16_t fn_06_4f46(void)
                 b = fn_06_3f4c(buf);
                 lstrcpy(buf, g_69f8.name);
                 fn_06_4118(buf, depth + 1, a, b);
-                SendMessage(hwnd, LB_INSERTSTRING, sel, (LONG)(LPSTR)buf);
+                SendMessage(hwnd, LB_INSERTSTRING, sel, (LPARAM)(LPSTR)buf);
                 g_94b6++;
             }
         }
@@ -1030,7 +1030,7 @@ int16_t fn_06_5260(char *s)
         lstrcpy(s, "C:\\");
         d = s[lstrlen(s) - 2] - '0';
     } else {
-        SendMessage(GetDlgItem(g_0d1e, 0x65), 0x40a, sel, (LONG)s);
+        SendMessage(GetDlgItem(g_0d1e, 0x65), 0x40a, sel, (LPARAM)s);
         d = s[lstrlen(s) - 2] - '0';
         for (k = 0; k < 3; k++)
             s[lstrlen(s) - 1] = 0;
@@ -1057,10 +1057,10 @@ void fn_06_5318(void)
     int16_t found;
 
     SendMessage(GetDlgItem(g_0d1e, 0x6b), WM_SETREDRAW, 0, 0L);
-    SendMessage(GetDlgItem(g_0d1e, 0x6b), LB_RESETCONTENT, 0, (LONG)(LPSTR)"");
+    SendMessage(GetDlgItem(g_0d1e, 0x6b), LB_RESETCONTENT, 0, (LPARAM)(LPSTR)"");
     r = fn_06_5260(path);
     sel = (int16_t)SendMessage(GetDlgItem(g_0d1e, 0x65), LB_GETCURSEL, 0, 0L);
-    SendMessage(GetDlgItem(g_0d1e, 0x65), LB_GETTEXT, sel, (LONG)(LPSTR)buf);
+    SendMessage(GetDlgItem(g_0d1e, 0x65), LB_GETTEXT, sel, (LPARAM)(LPSTR)buf);
     depth = buf[lstrlen(buf) - 3] - '0';
     if (depth > 1 && sel != 0) {
         d = depth;
@@ -1068,7 +1068,7 @@ void fn_06_5318(void)
         for (lvl = 1; lvl < d; lvl++) {
             found = 0;
             do {
-                SendMessage(GetDlgItem(g_0d1e, 0x65), LB_GETTEXT, i, (LONG)(LPSTR)buf);
+                SendMessage(GetDlgItem(g_0d1e, 0x65), LB_GETTEXT, i, (LPARAM)(LPSTR)buf);
                 dd = buf[lstrlen(buf) - 3] - '0';
                 if ((int16_t)(depth - dd) == lvl) {
                     for (k = 0; k < 3; k++)

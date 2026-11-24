@@ -31,7 +31,7 @@ typedef uint32_t DWORD;
 typedef uint16_t UINT;
 typedef int32_t LONG;
 typedef uint16_t WPARAM;
-typedef int32_t LPARAM;
+typedef intptr_t LPARAM;           /* pointer-sized, as in Win32: messages carry pointers */
 typedef int32_t LRESULT;
 typedef uint32_t COLORREF;
 typedef int16_t HFILE;

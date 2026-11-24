@@ -1,10 +1,8 @@
-/* USER and GDI calls not implemented yet: icons, menus, scroll bars,
+/* USER and GDI calls not implemented yet: menus, scroll bars,
  * help.  Each logs its name once and returns a neutral value. */
 #include <string.h>
 
 #include "winrt.h"
-
-BOOL DrawIcon(HDC dc, int16_t x, int16_t y, HICON i) { (void)dc; (void)x; (void)y; (void)i; STUB(); return 1; }
 
 HMENU LoadMenu(HINSTANCE h, LPCSTR name) { (void)h; (void)name; STUB(); return handle_new(H_MENU, NULL); }
 BOOL DestroyMenu(HMENU m) { if (handle_type(m) == H_MENU) handle_free(m); return 1; }
