@@ -144,7 +144,7 @@ int16_t fn_18_1dd0(void)
     int16_t i;
 
     for (i = 15; i <= 20; i++) {
-        if ((g_9100[i] = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, 0x70L)) == 0)
+        if ((g_9100[i] = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, (int32_t)sizeof *g_1df8[0])) == 0)
             return 0;
         if ((g_1df8[i] = (REC_70 *)GlobalLock(g_9100[i])) == 0) {
             GlobalFree(g_9100[i]);
@@ -487,7 +487,7 @@ void fn_18_1eac(void)
     g_942e = g_9314 = g_9316 + 1;
     for (i = 15; i <= 20; i++) {
         GlobalUnlock(g_9100[i]);
-        g_9100[i] = GlobalReAlloc(g_9100[i], (int32_t)max(g_92ec[i], 1) * 0x70, GHND);
+        g_9100[i] = GlobalReAlloc(g_9100[i], (int32_t)max(g_92ec[i], 1) * (int32_t)sizeof *g_1df8[0], GHND);
         g_1df8[i] = (REC_70 *)GlobalLock(g_9100[i]);
     }
     g_1df8[17]->f_44 = 120;
@@ -2474,7 +2474,7 @@ void fn_18_66e0(void)
                     g_92ec[g_934a] = i + 1;
                     GlobalUnlock(g_9100[g_934a]);
                     g_9100[g_934a] = GlobalReAlloc(g_9100[g_934a],
-                        (int32_t)(g_92ec[g_934a] < 1 ? 1 : g_92ec[g_934a]) * 0x70,
+                        (int32_t)(g_92ec[g_934a] < 1 ? 1 : g_92ec[g_934a]) * (int32_t)sizeof *g_1df8[0],
                         GMEM_MOVEABLE | GMEM_ZEROINIT);
                     g_1df8[g_934a] = (REC_70 *)GlobalLock(g_9100[g_934a]);
                     g_1df8[g_934a][i].f_48 = 9;

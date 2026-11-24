@@ -760,10 +760,32 @@ def blit(e, dst, x, y, w, h, src, sx, sy, sw, sh, rop):
     return 1
 
 
+def cdiv(a, b):
+    """C division (truncating towards zero)."""
+    q = abs(a) // abs(b)
+    return q if (a < 0) == (b < 0) else -q
+
+
 @api(8, 'wlw')
 def Polygon(e, dc, points, n):
-    """Not drawn: only the palette manager's shape bitmap (mode 0) uses
-    it, and nothing compared reads that bitmap so far."""
+    """port/src/win/draw.c Polygon: rows filled between pairs of edge
+    crossings (alternate rule) with the brush, then the outline."""
+    d = e.obj(dc, 'dc')
+    pts = [tuple(map(s16, struct.unpack_from('<2H', e.rd(e.lin(points) + 4 * i, 4)))) for i in range(n)]
+    if not d or n < 2:
+        return 0
+    ys = [p[1] for p in pts]
+    for y in range(min(ys), max(ys)):
+        xs = []
+        for i in range(n):
+            (xa, ya), (xb, yb) = pts[i - 1], pts[i]
+            if (ya <= y < yb) or (yb <= y < ya):
+                xs.append(xa + cdiv((y - ya) * (xb - xa), yb - ya))
+        xs.sort()
+        for i in range(0, len(xs) - 1, 2):
+            blit(e, dc, xs[i], y, xs[i + 1] - xs[i], 1, None, 0, 0, 0, 0, 0xf00021)
+    for i in range(n):
+        line(e, d, *pts[i - 1], *pts[i])
     return 1
 
 
@@ -813,11 +835,15 @@ def put(e, d, x, y, v):
 
 @api(6, 'www')
 def LineTo(e, dc, x, y):
-    """port/src/win/draw.c line(): Bresenham, end point left out."""
     d = e.obj(dc, 'dc')
     x1, y1 = s16(x), s16(y)
     x0, y0 = d['pos']
     d['pos'] = (x1, y1)
+    return line(e, d, x0, y0, x1, y1)
+
+
+def line(e, d, x0, y0, x1, y1):
+    """port/src/win/draw.c line(): Bresenham, end point left out."""
     p = e.gdi.get(d['pen'])
     if not p or p.get('null'):
         return 1

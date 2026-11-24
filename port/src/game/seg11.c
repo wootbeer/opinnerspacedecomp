@@ -4076,7 +4076,7 @@ void fn_11_7c12(int16_t k, int16_t type, int16_t n)
         if (++s >= g_92ec[6]) {
             g_92ec[6] = s + 1;
             GlobalUnlock(g_9100[6]);
-            g_9100[6] = GlobalReAlloc(g_9100[6], (int32_t)(g_92ec[6] < 1 ? 1 : g_92ec[6]) * 0x70, 0x42);
+            g_9100[6] = GlobalReAlloc(g_9100[6], (int32_t)(g_92ec[6] < 1 ? 1 : g_92ec[6]) * (int32_t)sizeof *g_1df8[0], 0x42);
             g_1df8[6] = (REC_70 *)GlobalLock(g_9100[6]);
             g_1df8[6][s].f_18 = 1;
             g_1df8[6][s].f_44 = 20;

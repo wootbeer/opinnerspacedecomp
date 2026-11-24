@@ -5,8 +5,10 @@ returned bitmaps pixel for pixel, palettes entry for entry.
 
 usage: oracle.py SCRIPT [--port PATH] [--data DIR] [--show N]
   SCRIPT  one call per line: ORDINAL ARG...; ARG is a number, "text",
-          @K (the result of call K, counted from 0) or DC (a screen DC);
-          '#' starts a comment line.  Pseudo-ordinals name routines the
+          @K (the result of call K, counted from 0), DC (a screen DC),
+          MDC (a memory DC with a 640x480 bitmap) or DC@K (a memory DC
+          with call K's bitmap selected; the bitmap is compared after
+          the call); '#' starts a comment line.  Pseudo-ordinals name routines the
           DLL does not export (INTERNAL).
   --port  the port_calls executable (default build/dll_oracle/port_calls)
   --data  the game's files (default data/)
@@ -28,7 +30,7 @@ from emu import IspaceEmu, ROOT, new_bitmap, new_dc  # noqa: E402
 # far pointer to a word (the script gives its value; the words are
 # compared after the call).
 ORDINALS = {1: 'wwswww', 2: 'wwswwwwwwwbbbw', 3: 's', 4: 'wwwwwww', 5: '', 6: 'www', 12: 'wwswwwwwwbb', 1000: 'wwswww',
-            14: 'wwwww', 18: 'wwwwww', 29: 'ppppppppwwwwpp', 32: 'wwRwlwlwwwwww', 33: 'wwlwlwws', 34: 'wwwwww', 35: 'wwwwww'}
+            14: 'wwwww', 15: 'wwwwwwwww', 18: 'wwwwww', 29: 'ppppppppwwwwpp', 32: 'wwRwlwlwwwwww', 33: 'wwlwlwws', 34: 'wwwwww', 35: 'wwwwww'}
 # Ordinals that return nothing (AX is left over).
 VOID = {14}
 # Pseudo-ordinal -> (segment, offset) of a C-convention routine: 1000 is
@@ -57,7 +59,7 @@ def run_emu(calls, data_dir):
     e = IspaceEmu(data_dir)
     results, out = [], []
     for k, (ordinal, args) in enumerate(calls):
-        words, rect_block, mdc, ptrs = [], None, None, []
+        words, rect_block, mdc, ptrs, sdc = [], None, None, [], None
         for kind, a in script_args(ordinal, args):
             if kind == 'p':
                 h = e.galloc(2)
@@ -72,6 +74,10 @@ def run_emu(calls, data_dir):
                 words += [fp >> 16, fp & 0xffff] if ordinal not in INTERNAL else [fp & 0xffff, fp >> 16]
             elif a == 'DC':
                 words.append(new_dc(e))
+            elif a.startswith('DC@'):
+                sdc = new_dc(e)
+                e.obj(sdc, 'dc')['bmp'] = results[int(a[3:])]
+                words.append(sdc)
             elif a == 'MDC':
                 mdc = new_dc(e)
                 e.obj(mdc, 'dc')['bmp'] = new_bitmap(e, 640, 480)
@@ -99,7 +105,9 @@ def run_emu(calls, data_dir):
             n = e.blocks.get(e.word(e.ds * 16 + 0x1a36), [0, 0])[1] // 8
             rects = [struct.unpack('<4h', e.rd(lin + 8 * i, 8)) for i in range(n)]
         outs = [struct.unpack('<h', e.rd(q, 2))[0] for q in ptrs]
+        db = e.bitmap(e.obj(sdc, 'dc')['bmp']) if sdc else None
         out.append(dict(ret=r, bmp=(b['w'], b['h'], int(b['mono']), bytes(b['px'])) if b else None,
+                        dcbmp=(db['w'], db['h'], int(db['mono']), bytes(db['px'])) if db else None,
                         pals=pals, rects=rects, texts=e.texts, outs=outs))
         e.texts = []
     return out
@@ -112,18 +120,33 @@ def run_port(script, exe):
     for line in text.splitlines():
         p = line.split()
         if p[0] == 'call':
-            out.append(dict(ret=int(p[5]) & 0xffff, bmp=None, pals={}, rects=None, outs=[]))
+            out.append(dict(ret=int(p[5]) & 0xffff, bmp=None, dcbmp=None, pals={}, rects=None, outs=[]))
         elif p[0] == 'outs':
             out[-1]['outs'] = [int(x) for x in p[1:]]
         elif p[0] == 'rects':
             v = [int(x) for x in p[1:]]
             out[-1]['rects'] = [tuple(v[i:i + 4]) for i in range(0, len(v), 4)]
-        elif p[0] == 'bmp':
-            out[-1]['bmp'] = (int(p[1]), int(p[2]), int(p[3]), bytes.fromhex(p[4]))
+        elif p[0] in ('bmp', 'dcbmp'):
+            out[-1][p[0]] = (int(p[1]), int(p[2]), int(p[3]), bytes.fromhex(p[4]))
         elif p[0] == 'pal':
             rgb = bytes.fromhex(p[2])
             out[-1]['pals'][int(p[1][1:])] = [tuple(rgb[3 * i:3 * i + 3]) for i in range(256)]
     return out
+
+
+def compare_bitmaps(what, ob, pb, show):
+    if bool(ob) != bool(pb):
+        return ['%s returned: DLL %s, port %s' % (what, bool(ob), bool(pb))]
+    if not ob:
+        return []
+    (w, h, m, opx), (pw, ph, pm, ppx) = ob, pb
+    if (w, h, m) != (pw, ph, pm):
+        return ['%s: DLL %dx%d mono %d, port %dx%d mono %d' % (what, w, h, m, pw, ph, pm)]
+    bad = [i for i in range(len(opx)) if opx[i] != ppx[i]]
+    if not bad:
+        return []
+    return (['%s: %d of %d pixels differ' % (what, len(bad), len(opx))]
+            + ['  (%d,%d) DLL %d port %d' % (i % w, i // w, opx[i], ppx[i]) for i in bad[:show]])
 
 
 def compare(k, ordinal, o, p, show):
@@ -134,17 +157,8 @@ def compare(k, ordinal, o, p, show):
         diffs.append('result: DLL %d, port %d' % (o['ret'], p['ret']))
     if o['outs'] != p['outs']:
         diffs.append('words: DLL %s, port %s' % (o['outs'], p['outs']))
-    if bool(o['bmp']) != bool(p['bmp']):
-        diffs.append('bitmap returned: DLL %s, port %s' % (bool(o['bmp']), bool(p['bmp'])))
-    elif o['bmp']:
-        (w, h, m, opx), (pw, ph, pm, ppx) = o['bmp'], p['bmp']
-        if (w, h, m) != (pw, ph, pm):
-            diffs.append('bitmap: DLL %dx%d mono %d, port %dx%d mono %d' % (w, h, m, pw, ph, pm))
-        else:
-            bad = [i for i in range(len(opx)) if opx[i] != ppx[i]]
-            if bad:
-                diffs.append('bitmap: %d of %d pixels differ' % (len(bad), len(opx)))
-                diffs += ['  (%d,%d) DLL %d port %d' % (i % w, i // w, opx[i], ppx[i]) for i in bad[:show]]
+    diffs += compare_bitmaps('bitmap', o['bmp'], p['bmp'], show)
+    diffs += compare_bitmaps('DC bitmap', o['dcbmp'], p['dcbmp'], show)
     if o.get('rects') is not None or p.get('rects') is not None:
         orr, prr = o.get('rects') or [], p.get('rects') or []
         n = min(len(orr), len(prr))

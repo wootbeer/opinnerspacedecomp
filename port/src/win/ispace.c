@@ -5,7 +5,7 @@
  * ispace_img.c, the dialogs in ispace_dlg.c, the copy checks in
  * ispace_reg.c, the rooms in ispace_room.c and ispace_shape.c, the
  * panel helpers in ispace_panel.c, ordinal 2's surfaces in
- * ispace_surface.c. */
+ * ispace_surface.c, ordinal 15 in ispace_cut.c. */
 
 #include <stdlib.h>
 #include <string.h>
@@ -183,7 +183,6 @@ int16_t ispace_blit_double(HDC dst, int16_t x, int16_t y, int16_t w, int16_t h, 
 static int16_t ispace_7(int32_t a, int16_t b) { (void)a; (void)b; STUB(); return 1; }
 static int16_t ispace_8(POINT a, int16_t b, int16_t c, int32_t d) { (void)a; (void)b; (void)c; (void)d; STUB(); return 0; }
 static int16_t ispace_9(int16_t a, POINT b, int16_t c, int32_t d, int32_t e, DWORD f, LPCSTR g) { (void)a; (void)b; (void)c; (void)d; (void)e; (void)f; (void)g; STUB(); return 0; }
-static int16_t ispace_15(int16_t a, int16_t b, int16_t c, int16_t d, int16_t e, int16_t f, int16_t g, int16_t h, int16_t i) { (void)a; (void)b; (void)c; (void)d; (void)e; (void)f; (void)g; (void)h; (void)i; STUB(); return 0; }
 static void ispace_17(int16_t a, int16_t b, int32_t c, int16_t d, int16_t e, int16_t f, int16_t g, char h, char i, int16_t j, int16_t k, char l, char m) { (void)a; (void)b; (void)c; (void)d; (void)e; (void)f; (void)g; (void)h; (void)i; (void)j; (void)k; (void)l; (void)m; STUB(); }
 static int16_t ispace_41(int16_t a, int32_t b) { (void)a; (void)b; STUB(); return 0; }
 
@@ -202,7 +201,7 @@ FARPROC ispace_proc(int ordinal)
     case 10: return PROC(ispace_dialog);
     case 12: return PROC(ispace_smooth_image);
     case 14: return PROC(ispace_pal_scale);
-    case 15: return PROC(ispace_15);
+    case 15: return PROC(ispace_cut);
     case 17: return PROC(ispace_17);
     case 18: return PROC(ispace_sprite_sheet);
     case 24: return PROC(ispace_check);

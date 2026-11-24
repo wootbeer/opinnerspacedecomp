@@ -1020,7 +1020,7 @@ done:
     g_92ec[g_9324] = g_9406[g_9324] = n;
     GlobalUnlock(g_9100[g_9324]);
     g_9100[g_9324] = GlobalReAlloc(g_9100[g_9324],
-        (int32_t)(g_92ec[g_9324] < 1 ? 1 : g_92ec[g_9324]) * 0x70, GHND);
+        (int32_t)(g_92ec[g_9324] < 1 ? 1 : g_92ec[g_9324]) * (int32_t)sizeof *g_1df8[0], GHND);
     g_1df8[g_9324] = (REC_70 *)GlobalLock(g_9100[g_9324]);
     if (arg == -1) {
         for (i = 0; i < n; i++) {

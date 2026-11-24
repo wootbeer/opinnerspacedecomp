@@ -1049,7 +1049,7 @@ void fn_09_4896(void)
         if (total > g_92ec[8]) {
             g_92ec[8] = g_9406[8] = total;
             GlobalUnlock(g_9100[8]);
-            g_9100[8] = GlobalReAlloc(g_9100[8], (int32_t)(g_92ec[8] < 1 ? 1 : g_92ec[8]) * 0x70, 0x42);
+            g_9100[8] = GlobalReAlloc(g_9100[8], (int32_t)(g_92ec[8] < 1 ? 1 : g_92ec[8]) * (int32_t)sizeof *g_1df8[0], 0x42);
             g_1df8[8] = (REC_70 *)GlobalLock(g_9100[8]);
         }
         k = c176 = c174 = m = cnt = 0;
@@ -2010,7 +2010,7 @@ void fn_09_22b4(int16_t a)
     }
     for (i = 0; i <= g_9324; i++) {
         GlobalUnlock(g_9100[i]);
-        g_9100[i] = GlobalReAlloc(g_9100[i], (int32_t)(g_92ec[i] < 1 ? 1 : g_92ec[i]) * 0x70, 0x42);
+        g_9100[i] = GlobalReAlloc(g_9100[i], (int32_t)(g_92ec[i] < 1 ? 1 : g_92ec[i]) * (int32_t)sizeof *g_1df8[0], 0x42);
         g_1df8[i] = (REC_70 *)GlobalLock(g_9100[i]);
     }
     fn_10_740c();

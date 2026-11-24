@@ -143,6 +143,11 @@ HBITMAP ispace_alphabet(void)
     return st.alphabet;
 }
 
+HDC ispace_shape_dc(void)
+{
+    return st.shape_dc;
+}
+
 int ispace_pal_kind(int slot)
 {
     return st.slot[slot].kind;
@@ -194,9 +199,10 @@ static int is_black(const PALETTEENTRY *e)
     return !e->peRed && !e->peGreen && !e->peBlue;
 }
 
-/* The 450x90 monochrome bitmap of three white bars and three white
- * shapes made with the first palette [inferred: its use is in parts of
- * the DLL not ported yet]. */
+/* The 450x90 monochrome bitmap made with the first palette: five 90x90
+ * masks, white right of a line through the centre, the line upright and
+ * turned clockwise in four steps to level (white below it).  Ordinal 15
+ * cuts with them (ispace_cut.c). */
 static void make_shapes(HDC screen)
 {
     static const POINT p1[3] = {{180, 89}, {269, 89}, {269, 0}};

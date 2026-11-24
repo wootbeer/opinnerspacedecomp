@@ -4,8 +4,10 @@
  * other half of oracle.py (tools/README.md); not part of the game.
  *
  * Script lines: ORDINAL ARG...; an ARG is a number, "text", @K (the
- * result of call K, from 0) or DC (a screen DC).  Ordinal 29's words
- * are passed by pointer and printed after the call ("outs"). */
+ * result of call K, from 0), DC (a screen DC), MDC (a memory DC with a
+ * 640x480 bitmap) or DC@K (a memory DC with call K's bitmap, printed
+ * after the call: "dcbmp").  Ordinal 29's words are passed by pointer
+ * and printed after the call ("outs"). */
 #include <SDL3/SDL.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,6 +23,7 @@
 static int16_t results[MAX_CALLS];
 static int ncalls;
 static HBITMAP mdc_bitmap;      /* the bitmap of the last MDC argument */
+static HBITMAP dc_bitmap;       /* the bitmap of a DC@K argument of this call */
 static RECT *rects;             /* ordinal 32's rectangles */
 static HGLOBAL rect_block;
 
@@ -65,6 +68,12 @@ static int parse(char *line, int *ordinal, Args *a)
             SelectObject(dc, mdc_bitmap);
             a->w[k] = (int16_t)dc;
             p += 3;
+        } else if (!strncmp(p, "DC@", 3)) {
+            HDC dc = CreateCompatibleDC(0);
+            long i = strtol(p + 3, &p, 10);
+            dc_bitmap = (HBITMAP)(i >= 0 && i < ncalls ? results[i] : 0);
+            SelectObject(dc, dc_bitmap);
+            a->w[k] = (int16_t)dc;
         } else if (!strncmp(p, "DC", 2)) {
             a->w[k] = (int16_t)GetDC(0);
             p += 2;
@@ -93,6 +102,7 @@ static int16_t run(int ordinal, Args *a)
     case 14:
         ispace_pal_scale(w[0], w[1], w[2], w[3], w[4]);
         return 0;
+    case 15: return ispace_cut(w[0], w[1], w[2], w[3], w[4], w[5], w[6], w[7], w[8]);
     case 18: return ispace_sprite_sheet(w[0], w[1], w[2], w[3], w[4], w[5]);
     case 29:
         return ispace_collide(&w[0], &w[1], &w[2], &w[3], &w[4], &w[5], &w[6], &w[7], w[8], w[9],
@@ -154,6 +164,10 @@ static void report(int k, int ordinal, const Args *a)
         printf("bmp %d %d %d ", b->w, b->h, b->mono);
         hex(b->px, (size_t)b->w * (size_t)b->h);
     }
+    if (dc_bitmap && (b = handle_get(dc_bitmap, H_BITMAP)) != NULL) {
+        printf("dcbmp %d %d %d ", b->w, b->h, b->mono);
+        hex(b->px, (size_t)b->w * (size_t)b->h);
+    }
     for (i = 0; i <= k; i++) {
         Pal *p = handle_get((uint16_t)results[i], H_PALETTE);
         uint8_t rgb[256 * 3];
@@ -184,6 +198,7 @@ int main(int argc, char **argv)
     if (!SDL_Init(SDL_INIT_VIDEO) || !video_open("port_calls", 640, 480) || !win_init())
         return 1;
     while (ncalls < MAX_CALLS && fgets(line, sizeof line, f)) {
+        dc_bitmap = 0;
         if (line[0] == '#' || !parse(line, &ordinal, &a))
             continue;
         results[ncalls] = run(ordinal, &a);

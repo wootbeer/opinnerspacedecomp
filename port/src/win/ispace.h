@@ -152,6 +152,7 @@ void ispace_letters(int16_t dc, int16_t pal, int32_t size, int16_t align, int32_
 void ispace_bevel(int16_t dc, int16_t x, int16_t y, int16_t w, int16_t h, int16_t kind);
 void ispace_gauge(int16_t dc, int16_t x, int16_t y, int16_t w, int16_t h, int16_t percent);
 HBITMAP ispace_alphabet(void);           /* DS:1ea2 */
+HDC ispace_shape_dc(void);               /* DS:0184: the masks of ordinal 15 (ispace_pal.c) */
 /* 6:7f52: three Newton steps towards the square root of sq from m. */
 int16_t ispace_newton_root(int32_t sq, int32_t m);
 
@@ -159,6 +160,11 @@ int16_t ispace_newton_root(int32_t sq, int32_t m);
  * (ispace_sprite.c). */
 int16_t ispace_sprite_sheet(int16_t pal, int16_t unused1, int16_t unused2, int16_t kind, int16_t n,
                             int16_t swap);
+
+/* Ordinal 15 (5:11a4): a side cut off a sprite sheet, mode 1 also the
+ * part cut from direction dir as a bitmap (ispace_cut.c). */
+int16_t ispace_cut(int16_t screen, int16_t sheet, int16_t side, int16_t size, int16_t offset,
+                   int16_t border, int16_t pal, int16_t dir, int16_t mode);
 
 /* Ordinal 29 (2:003c): two objects meeting (ispace_collide.c). */
 int16_t ispace_collide(int16_t *vx1, int16_t *vy1, int16_t *vx2, int16_t *vy2, int16_t *x1,

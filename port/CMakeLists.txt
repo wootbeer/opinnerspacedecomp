@@ -24,6 +24,7 @@ add_executable(inspace
     src/win/input.c
     src/win/ispace.c
     src/win/ispace_collide.c
+    src/win/ispace_cut.c
     src/win/ispace_dlg.c
     src/win/ispace_img.c
     src/win/ispace_panel.c

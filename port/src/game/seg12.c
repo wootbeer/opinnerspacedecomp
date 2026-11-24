@@ -708,7 +708,7 @@ void fn_12_2db6(int16_t type, int16_t idx, int16_t c, int16_t d, int16_t kind)
             g_92ec[g_9328] = n + 1;
             GlobalUnlock(g_9100[g_9328]);
             g_9100[g_9328] = GlobalReAlloc(g_9100[g_9328],
-                (int32_t)(g_92ec[g_9328] < 1 ? 1 : g_92ec[g_9328]) * 0x70, 0x42);
+                (int32_t)(g_92ec[g_9328] < 1 ? 1 : g_92ec[g_9328]) * (int32_t)sizeof *g_1df8[0], 0x42);
             g_1df8[g_9328] = (REC_70 *)GlobalLock(g_9100[g_9328]);
             g_1df8[g_9328][n].f_44 = 0x78;
             g_1df8[g_9328][n].f_42 = 0x64;

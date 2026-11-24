@@ -229,6 +229,19 @@ the overrides; `src/inspace/` is unchanged.
   setting the records up: the wave's set-up (9:6624) sets the links to
   -1 for the records counted then (g_92ec, from 9:22b4); which routine
   made these three is not found yet.]
+- **Object record blocks (REC_70).** Not a 1994 bug but the native
+  layout: the records hold far function pointers and are 124 bytes here,
+  0x70 in 1994, yet their blocks were allocated and grown as counts of
+  0x70 (6:1b62, 18:1dd0, and the GlobalReAlloc calls of 7:2768, 7:570a,
+  7:5090, 9:4896, 9:22b4, 11:7c12, 12:2db6, 13:1318, 14:0000, 18:1eac,
+  18:66e0). Growing with GMEM_ZEROINIT cleared from the 1994 end of the
+  last record, inside the native records: summoning a ship (13:ae68 ->
+  14:0000) after the ship count had shrunk cleared the function pointers
+  of ship 1, and the radar (11:33cc) called a null pointer (found with
+  the secret codes in a wave, AddressSanitizer and a watchpoint). The
+  blocks are now sized in native records (`sizeof *g_1df8[0]`), so the
+  zeroed part is exactly the 1994 one. [uncertain: the rocks of mass 0
+  and link 0 of the tether fix above may have been this as well.]
 - **Empty directory paths (6:4368, 6:420a, 6:4190, 6:4748).**
   `path[lstrlen(path) - 1]` read the byte before the buffer when the path
   was empty; that byte was almost never `\`, so a `\` was appended. The
@@ -762,6 +775,50 @@ on a directory with programs leads to the wave's briefing.
     and the 16 calls of a flight in a wave: all identical (results and
     every word).
 
+## ISPACE.DLL ordinal 15 (5:11a4; port/src/win/ispace_cut.c)
+
+A side cut off a ship's sprite sheet. 8:2cd8 calls it (through 10:7370)
+when a ship whose class has two halves (class word +28 = 3) loses one
+(8:45e0, the ships' damage routine: component 3, the damage display's
+Wings/Cloak [inferred], below 50 for one half, 0 for both), and again with mode 0
+when a damaged ship's sheet is made anew (14:0000, 10:9a2a, 18:07b2
+after the Demon sub-game; DS:92e4 set: no piece). Words: the screen DC
+(not read), the DC holding the sheet (ordinal 2's layout: 16 cells of
+size x size, border pixels around and between them, one per direction),
+side (which half goes), size, an offset, border, palette, direction and
+mode.
+
+- **Masks.** DS:0184 (ispace_pal.c, made with the first palette) holds
+  five 90x90 monochrome masks, white right of a line through the centre,
+  the line upright and turned clockwise in four steps to level. Per mask
+  k the part laid over a cell starts (45 - size/2) in, moved by the
+  offset times -cos and sin of k x 22.5 degrees (DS:001a, DS:0010, x 128,
+  16-bit product shifted right 7), and runs to the mask's last column
+  but one and last row but one, at most size x size.
+- **Cut.** Every cell of the sheet is ANDed (SRCAND, monochrome source:
+  white keeps, black clears) with the part of its direction's mask
+  (5:12b0: directions 0-4 masks 0-4, then back down and up again),
+  mirrored as the direction goes round: side 1 as is for 0-4, left-right
+  for 5-8, both for 9-11, upside down for 12-15; side 0 turned half round
+  from that, except directions 8 and 12, which take the mask as it is
+  (masks 0 and 4 are symmetric that way, so the halves still fit).
+- **Mode 1** first copies the cell of direction dir into a new size x
+  size bitmap and clears it with the same part (DSna: what the sheet
+  loses), and returns it: the piece flying off. Mode 0 returns -1.
+- **Fixed silently:** mode 1 with a direction outside 0-15 (the game
+  passes 0-15) reads two other locals of the DLL as the mask's place; the
+  port then makes no piece (returns 0) and still cuts the sheet.
+- **Verified** with the oracle (tools/dll_oracle/damage.txt, 194 calls):
+  both sides, both modes, every direction on fresh surfaces of three
+  sizes (12, 23 and 145: the part then starts before the mask), large
+  and negative offsets, no palette, and the calls of waves (the player's
+  TRANSFORMER, size 33, border 5, losing a wing to the enemies of the
+  secret codes 3, 4 and F5): the sheet and the piece identical. The
+  masks' polygons are filled by the port's Polygon (the emulated DLL's
+  stand-in draws them the same way), so Windows' own polygon edges are
+  not checked [uncertain: GDI's fill rule for these edges may differ by
+  a pixel].
+
 ## ISPACE.DLL surfaces (ordinal 2, 6:011c; port/src/win/ispace_surface.c)
 
 The pictures of the wave's ships and objects: the game calls ordinal 2
@@ -820,7 +877,16 @@ not read on the 8-bit path.
   no bitmap.
 - **Not ported:** fixed palettes, images with VGA colours (6:7fc8),
   displays of fewer than 8 bits (log, no bitmap); n != 0 (6:78ba, which
-  sets colour sets up and calls 6:5538; logs, no bitmap; not met yet);
+  sets colour sets up and calls 6:5538; logs, no bitmap). n is set from
+  INSPACE.INI `Quick` (6:0b3e reads it, nothing writes it): with 2 the
+  ships (14:11a8), the wave's other objects (10:533a) and 10:18b0's
+  picture are made so; with 1 the objects and 10:18b0's picture, and the
+  ships other than the player's, while DS:1e68 is set in a wave
+  [uncertain: what DS:1e68 counts]. 6:5538 is a quick drawing: the image (mode 3,
+  with DS:015c set so 5:26a2 fills DS:1484, each colour's palette entry)
+  turned to 16 angles pixel by pixel (DS:011a, DS:013a), no shading,
+  single gaps closed at angles 2, 6, 10, 14; that loader branch is not
+  ported either;
   the per-row callback 9:360a (sound, stubs).
 - **Verified** with the oracle (tools/dll_oracle/surfaces.txt): the
   three calls of a wave (images 180, 60 with m 1, 370) after the

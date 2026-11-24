@@ -2353,7 +2353,7 @@ void fn_13_1318(int16_t type, int16_t n, int16_t t, int16_t k)
         if (g_92ec[5] <= i) {
             g_92ec[5] = i + 1;
             GlobalUnlock(g_9100[5]);
-            g_9100[5] = GlobalReAlloc(g_9100[5], (int32_t)max(g_92ec[5], 1) * 0x70, GHND);
+            g_9100[5] = GlobalReAlloc(g_9100[5], (int32_t)max(g_92ec[5], 1) * (int32_t)sizeof *g_1df8[0], GHND);
             g_1df8[5] = (REC_70 *)GlobalLock(g_9100[5]);
             g_1df8[5][i].f_44 = 120;
             g_1df8[5][i].f_42 = 100;

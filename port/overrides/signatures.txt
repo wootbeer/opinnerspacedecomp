@@ -131,3 +131,24 @@ fix seg08.c fn_08_1e32: g_1df8[g_65cc[bi].f04][g_65cc[bi].f06].f36 = -1; => if (
 fix seg08.c fn_08_1e32: f1 = (int)((long)u * 100 / ((long)m1 * 100 / m2 + 100)); => f1 = m2 && (long)m1 * 100 / m2 + 100 ? (int)((long)u * 100 / ((long)m1 * 100 / m2 + 100)) : 0;
 fix seg08.c fn_08_1e32: f1 += force / m1; => f1 += m1 ? force / m1 : 0;
 fix seg08.c fn_08_1e32: f2 += force / m2; => f2 += m2 ? force / m2 : 0;
+
+# Object records (REC_70) are 124 bytes natively, not 0x70: they hold far
+# function pointers.  Their blocks were sized as counts of 0x70, so a
+# block grown with GMEM_ZEROINIT was cleared from the 1994 end of its
+# last record, inside the native records: the tail of a ship's record
+# (its function pointers) became 0 when a ship was summoned after the
+# count had shrunk, and the radar called a null pointer (14:0000 through
+# 13:ae68).  The blocks are sized in native records.
+fix seg06c.c fn_06_1b62: GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, 0x460L) => GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, 10 * (long)sizeof *g_1df8[0])
+fix seg18.c fn_18_1dd0: GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, 0x70L) => GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, (long)sizeof *g_1df8[0])
+fix seg07.c fn_07_2768: (long)max(g_92ee, 1) * 0x70 => (long)max(g_92ee, 1) * (long)sizeof *g_1df8[0]
+fix seg07.c fn_07_570a: (long)max(g_92ec[g_9328], 1) * 0x70 => (long)max(g_92ec[g_9328], 1) * (long)sizeof *g_1df8[0]
+fix seg07.c fn_07_5090: (long)max(g_92ec[g_934a], 1) * 0x70 => (long)max(g_92ec[g_934a], 1) * (long)sizeof *g_1df8[0]
+fix seg09b.c fn_09_4896: (long)(g_92fc < 1 ? 1 : g_92fc) * 0x70 => (long)(g_92fc < 1 ? 1 : g_92fc) * (long)sizeof *g_1df8[0]
+fix seg09b.c fn_09_22b4: (long)(g_92ec[i] < 1 ? 1 : g_92ec[i]) * 0x70 => (long)(g_92ec[i] < 1 ? 1 : g_92ec[i]) * (long)sizeof *g_1df8[0]
+fix seg11.c fn_11_7c12: (long)(g_92f8 < 1 ? 1 : g_92f8) * 0x70 => (long)(g_92f8 < 1 ? 1 : g_92f8) * (long)sizeof *g_1df8[0]
+fix seg12.c fn_12_2db6: (long)(g_92ec[g_9328] < 1 ? 1 : g_92ec[g_9328]) * 0x70 => (long)(g_92ec[g_9328] < 1 ? 1 : g_92ec[g_9328]) * (long)sizeof *g_1df8[0]
+fix seg13.c fn_13_1318: (long)max(g_92f6, 1) * 0x70 => (long)max(g_92f6, 1) * (long)sizeof *g_1df8[0]
+fix seg14.c fn_14_0000: (long)(g_92ec[g_9324] < 1 ? 1 : g_92ec[g_9324]) * 0x70 => (long)(g_92ec[g_9324] < 1 ? 1 : g_92ec[g_9324]) * (long)sizeof *g_1df8[0]
+fix seg18.c fn_18_1eac: (long)max(g_92ec[i], 1) * 0x70 => (long)max(g_92ec[i], 1) * (long)sizeof *g_1df8[0]
+fix seg18.c fn_18_66e0: (long)(g_92ec[g_934a] < 1 ? 1 : g_92ec[g_934a]) * 0x70 => (long)(g_92ec[g_934a] < 1 ? 1 : g_92ec[g_934a]) * (long)sizeof *g_1df8[0]

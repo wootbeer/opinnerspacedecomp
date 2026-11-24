@@ -92,8 +92,8 @@ the first command again after files are added there.
   Windows' 32-byte units), resources of ISPACE.DLL, IGRAPHIC.DLL and
   ENG_LANG.DLL, palettes and 8-bit bitmaps with their pixels, and GDI
   drawing as the port does it (port/src/win/draw.c: any ROP3, brushes
-  and stock objects, pattern brushes, lines, pixels); a call without one
-  stops the run with its name. Colour matching (`CreateDIBitmap` with RGB
+  and stock objects, pattern brushes, lines, polygons, pixels); a call
+  without one stops the run with its name. Colour matching (`CreateDIBitmap` with RGB
   colours, `LoadBitmap`, RGB brushes and pens) follows the port's rule,
   so it is not checked. `TextOut` is recorded, not drawn. The machine
   (`GetWinFlags`, the wave device, INI files) answers as the port's.
@@ -101,13 +101,15 @@ the first command again after files are added there.
   prints the results (built from the port's sources without `main.c`).
 - `oracle.py SCRIPT`: runs both and lists each call as same or differs.
   A script line is `ORDINAL ARG...`; an argument is a number, `"text"`,
-  `@K` (the result of call K, from 0), `DC` (a screen DC) or `MDC` (a
-  memory DC with a 640x480 bitmap, which is compared after the call).
+  `@K` (the result of call K, from 0), `DC` (a screen DC), `MDC` (a
+  memory DC with a 640x480 bitmap, which is compared after the call) or
+  `DC@K` (a memory DC with call K's bitmap selected, which is compared
+  after the call as well: a sprite sheet a call changes).
   Ordinal 29's word pointers are given as their values; the words are
   compared after the call. Results of routines that return nothing
   (`VOID`, ordinal 14) are not compared. A call that stops the emulation
   (a Windows call without a stand-in) is reported with its number.
-  Ordinals 1-6, 12, 14, 18, 29 and 32-35 are supported, and pseudo-ordinal
+  Ordinals 1-6, 12, 14, 15, 18, 29 and 32-35 are supported, and pseudo-ordinal
   1000 for 5:0000 (the dialogs' ship picture, a C-convention routine the
   DLL does not export: `INTERNAL` in oracle.py); add others to
   `ORDINALS` (oracle.py) and `run` (port_calls.c). Ordinal 32's script
@@ -133,6 +135,13 @@ the first command again after files are added there.
   and 16 angles, j 0 and 1, frames, colour sets, borders, 18:08bc's
   calls) and ordinal 12 after them. All agree. j 2 is left out: the DLL
   reads past its planes there (port/NOTES-port.md).
+- `damage.txt`: surfaces.txt's set-up up to the wave's surfaces, then
+  ordinal 15 on fresh surfaces (`DC@K`): both sides, modes 1 and 0,
+  every direction, three sizes, odd offsets, no palette, and the two
+  calls of waves (captured) one after the other on one sheet. All 194
+  calls agree. The
+  stand-in for `Polygon` fills as the port's draw.c does (the masks of
+  DS:0184 are polygons).
 - `panel.txt`: the same set-up, then ordinals 33-35 on a memory DC. All
   agree. (Image 200, taller than wide, differs
   in 37 pixels of its top rows: the DLL reads past its pixels there, see

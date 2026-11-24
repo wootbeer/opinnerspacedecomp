@@ -296,7 +296,7 @@ int16_t fn_06_1b62(void)
     int16_t i;
 
     for (i = 0; i <= 14; i++) {
-        if ((g_9100[i] = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, 0x460L)) == 0)
+        if ((g_9100[i] = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, 10 * (int32_t)sizeof *g_1df8[0])) == 0)
             return 0;
         if ((g_1df8[i] = GlobalLock(g_9100[i])) == 0) {
             GlobalFree(g_9100[i]);

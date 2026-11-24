@@ -1093,7 +1093,7 @@ void fn_07_2768(int16_t n)
         if (!found) {
             g_92ec[1] = j + 1;
             GlobalUnlock(g_9100[1]);
-            g_9100[1] = GlobalReAlloc(g_9100[1], (int32_t)max(g_92ec[1], 1) * 0x70, 0x42);
+            g_9100[1] = GlobalReAlloc(g_9100[1], (int32_t)max(g_92ec[1], 1) * (int32_t)sizeof *g_1df8[0], 0x42);
             g_1df8[1] = (REC_70 *)GlobalLock(g_9100[1]);
             g_1df8[1][j].f_22 = 20 << g_9156 >> 1;
             g_1df8[1][j].f_20 = 0xa0;
@@ -1330,7 +1330,7 @@ int16_t fn_07_570a(int16_t type, int16_t idx, int16_t amount)
                 g_92ec[g_9328] = n + 1;
                 GlobalUnlock(g_9100[g_9328]);
                 g_9100[g_9328] = GlobalReAlloc(g_9100[g_9328],
-                                               (int32_t)max(g_92ec[g_9328], 1) * 0x70, GHND);
+                                               (int32_t)max(g_92ec[g_9328], 1) * (int32_t)sizeof *g_1df8[0], GHND);
                 g_1df8[g_9328] = (REC_70 *)GlobalLock(g_9100[g_9328]);
                 g_1df8[g_9328][n].f_44 = 120;
                 g_1df8[g_9328][n].f_42 = 100;
@@ -1416,7 +1416,7 @@ int16_t fn_07_5090(int16_t type, int16_t idx, int16_t amount)
                             g_92ec[g_934a] = n + 1;
                             GlobalUnlock(g_9100[g_934a]);
                             g_9100[g_934a] = GlobalReAlloc(g_9100[g_934a],
-                                                           (int32_t)max(g_92ec[g_934a], 1) * 0x70,
+                                                           (int32_t)max(g_92ec[g_934a], 1) * (int32_t)sizeof *g_1df8[0],
                                                            GHND);
                             g_1df8[g_934a] = (REC_70 *)GlobalLock(g_9100[g_934a]);
                             g_1df8[g_934a][n].f_48 = 9;
