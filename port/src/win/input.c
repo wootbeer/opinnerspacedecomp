@@ -8,11 +8,11 @@
 #include "platform/platform.h"
 #include "video.h"
 
-#define FRAME_MS 16
+#define TICK_MS 16
 
 static BYTE keys[256];
 static POINT cursor;
-static uint32_t last_frame;
+static uint32_t last_tick;
 static int alt_alone;           /* Alt or F10 pressed with no other key since */
 static int menu_key_tapped;     /* ... and released */
 static int eaten_key;           /* a held key whose release the menu loop took */
@@ -184,6 +184,10 @@ void win_pump(void)
         case SDL_EVENT_MOUSE_BUTTON_UP:
             on_button(&ev.button);
             break;
+        case SDL_EVENT_WINDOW_EXPOSED:
+        case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+            video_expose();
+            break;
         default:
             break;
         }
@@ -192,9 +196,9 @@ void win_pump(void)
     wavemix_notify();
     mci_notify();
     now = platform_time_ms();
-    if (now - last_frame >= FRAME_MS) {
-        last_frame = now;
-        app_frame();
+    if (now - last_tick >= TICK_MS) {
+        last_tick = now;
+        app_tick();
     }
 }
 

@@ -4,7 +4,6 @@
  * where a later popup lies (wnd_occluders). */
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_stdinc.h>
-#include <SDL3/SDL_timer.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -281,6 +280,7 @@ static int restore_under(Wnd *w)
     for (y = w->rect.top; y < w->rect.bottom; y++)
         memcpy(fb->pixels + (size_t)y * (size_t)fb->width + w->rect.left, w->saved + (size_t)(y - w->rect.top) * (size_t)cw,
                (size_t)cw);
+    fb->drawn = 1;
     free(w->saved);
     w->saved = NULL;
     return 1;
@@ -1225,28 +1225,70 @@ static int next_message(MSG *m, int remove)
     return 0;
 }
 
-/* The game polls with PeekMessage and does a step of its frame whenever
- * no message is waiting (2:0000).  On a 1994 machine that idle loop ran
- * as fast as the processor allowed; the game measures its rate
- * (Calibrate, 15:5e22) and counts frame steps in idle calls.  The port
- * answers "no message" once a millisecond, as one fixed machine
+/* Time and waiting.  The game polls with PeekMessage and does a step of
+ * its frame whenever no message is waiting (2:0000).  On a 1994 machine
+ * that idle loop ran as fast as the processor allowed; the game measures
+ * its rate (Calibrate, 15:5e22), counts frame steps in idle calls and
+ * times its frames with timeGetTime (NOTES-port.md "Game speed").  The
+ * port answers "no message" once a millisecond, as one fixed machine
  * (Calibrate about 2300, the help file's "very fast" class) whatever the
- * host's speed; calls owed after a long sleep are caught up, at most
- * IDLE_BURST of them. */
+ * host's speed: at the start of each millisecond of the clock the game
+ * reads, sleeping in between, so a frame's time read is the millisecond
+ * it is due.  Calls owed after a long step are made at once, at most
+ * IDLE_BURST of them.  Whenever the game waits, what it drew is shown. */
+#define MS 1000000u                 /* platform_time_ns() per millisecond */
 #define IDLE_BURST 50
+
+static int clock_reads;             /* since the last message call */
+
+static void wait_next_ms(void)
+{
+    platform_sleep_until((platform_time_ns() / MS + 1) * MS);
+}
 
 static void pace_idle(void)
 {
-    static uint32_t next;           /* the millisecond of the next idle call */
+    static uint64_t next;           /* when the next idle call is due */
+    uint64_t now = platform_time_ns();
+
+    video_show();
+    if (now > next + IDLE_BURST * MS)
+        next = (now / MS - IDLE_BURST) * MS;
+    platform_sleep_until(next);
+    next += MS;
+}
+
+/* The game also waits by reading the clock in a loop (2:0d78's 450 ms
+ * before the exit question, the title logo's 40 ms steps in 15:7cda,
+ * ...), drawing in between.  A step of the game reads it a few times,
+ * such a loop millions of times a second: after CLOCK_POLLS reads
+ * without a message call, a read that finds the same millisecond as the
+ * one before shows what was drawn and sleeps until the next. */
+#define CLOCK_POLLS 1000
+
+static uint32_t clock_read(void)
+{
+    static uint32_t last;
     uint32_t now = platform_time_ms();
 
-    if ((int32_t)(now - next) > IDLE_BURST)
-        next = now - IDLE_BURST;
-    while ((int32_t)(next - now) > 0) {
-        SDL_Delay(1);
+    if (clock_reads < CLOCK_POLLS)
+        clock_reads++;
+    else if (now == last) {
+        video_show();
+        wait_next_ms();
         now = platform_time_ms();
     }
-    next++;
+    return last = now;
+}
+
+DWORD GetCurrentTime(void)
+{
+    return clock_read();
+}
+
+DWORD timeGetTime(void)
+{
+    return clock_read();
 }
 
 BOOL PeekMessage(MSG *m, HWND h, UINT lo, UINT hi, UINT flags)
@@ -1254,6 +1296,7 @@ BOOL PeekMessage(MSG *m, HWND h, UINT lo, UINT hi, UINT flags)
     (void)h;
     (void)lo;
     (void)hi;
+    clock_reads = 0;
     win_pump();
     if (next_message(m, flags & PM_REMOVE))
         return 1;
@@ -1266,11 +1309,13 @@ BOOL GetMessage(MSG *m, HWND h, UINT lo, UINT hi)
     (void)h;
     (void)lo;
     (void)hi;
+    clock_reads = 0;
     for (;;) {
         win_pump();
         if (next_message(m, 1))
             return m->message != WM_QUIT;
-        SDL_Delay(1);
+        video_show();
+        wait_next_ms();
     }
 }
 

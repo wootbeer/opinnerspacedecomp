@@ -17,7 +17,8 @@ int win_run(const char *cmdline);
 #define WIN_KEYS 4
 int win_key_names(const char *spec, uint32_t keys[WIN_KEYS]);
 
-/* Called about 60 times a second while the game runs (main.c). */
-void app_frame(void);
+/* The test clock of --frames, --keys, --mouse and --pad: called about
+ * 60 times a second while the game runs (main.c). */
+void app_tick(void);
 
 #endif

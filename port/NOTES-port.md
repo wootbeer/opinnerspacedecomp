@@ -112,16 +112,50 @@
    - Views a few bytes below a global of the same shape are rewritten onto it with a shifted index (`g_a191[i]` = `g_a193[i - 2]`, `g_9f39` above).
    - seg10.c:1668 passes the record's position, read through a long/POINT union in the decomp, as the POINT (`call` override, written in port terms).
 
-## Game speed (Calibrate)
+## Game speed (Calibrate, frame pacing)
 
 The game is paced by real time, not by the processor (help file, "Play
-Speed": "calibrated for 36 frames/second"). Its main loop (2:0000) polls
-with PeekMessage and, whenever no message waits, runs one idle step
-(2:1c08, 7:0000); the step counts idle calls and does a frame only
-every g_9004-th (outside waves) or g_8f76-th (in waves) call, and 7:2206
-and 7:0000 rescale those counts every 250 ms and every second towards 72
-frames a second outside waves and FrameRateSet (INI, default 36) in
-waves, with timeGetTime forcing or skipping wave frames 27-28 ms apart.
+Speed": "calibrated for 36 frames/second"). Its main loop (WinMain,
+2:0000) polls with PeekMessage and, whenever no message waits, runs one
+idle step (2:1c08, 7:0000). The step counts idle calls (g_9144) and does
+a frame when the count reaches a divisor: g_9004 outside waves, g_8f76
+in waves. After each frame the divisor is rescaled (7:2206 outside
+waves, the end of 7:0000's wave block in waves): every 250 ms
+(GetCurrentTime) by frames counted / target when more than one frame
+away from a quarter of the target, and every second by frames / target
+when within 9 of it. The target is 72 frames a second outside waves (32
+or the ship's own in the launch scene) and FrameRateSet in waves.
+
+The counting is gated by the clock when MMSYSTEM's timer has a period
+under 3 ms (6:12b6: timeGetDevCaps, g_912e; Windows 3.1's has 1 ms). In
+waves (and in state 6 while g_952c is set and g_9530 is 1) the step
+reads timeGetTime (g_2214) and compares it with the read of the last
+frame's step (g_2218): with g_05c4 = 1000 / FrameRateSet rounded to the
+nearest millisecond and g_05c8 = g_05c4 - 1 (6:0b3e at start-up, 10:7e1c
+on Alt + and Alt -), a frame is held back while fewer than g_05c8 ms
+have passed, and forced once more than g_05c4 have. State 0 (g_90f4: the
+title among others) uses 13 and 14 ms. So frames are a whole number of
+milliseconds apart, between g_05c8 and g_05c4 + 1 (27 to 29 at 36):
+g_05c8 or g_05c4 when the divisor is reached within the window, one more
+than g_05c4 when it is not. Time is not made up: the next frame counts from the
+step that started this one, so a frame that takes longer than the window
+is followed at once by the next and the time over is lost. [arithmetic
+of 7:0000, 7:2206, 6:0b3e, 10:7e1c]
+
+What that gives on a fast machine (the port's measurements, the same
+arithmetic): at 36 the divisor starts high (GameSpeed / 28, 82 at
+Calibrate 2300; the wave's first frame rescales it by the launch scene's
+leftover count, 173 seen) and the per-second rescale lowers it by about
+3% a second, so a wave runs at 29 ms (34.5 frames a second) for its
+first 45 seconds or so, then at 28 ms (35.7; B shows "36 SET, 35
+ACTUAL"); 36 exactly would take alternating 27 and 28 ms frames, which
+the counting does not reach. At 4: 251 ms (3.98); at 104: mostly 9 ms,
+some 11 (110); at 1200 (no limit) the divisor is 0 and every idle step
+is a frame. The title runs at 13 ms (77). On Windows 3.1, GetCurrentTime
+advanced in 55 ms ticks, so the 250 ms and one-second windows were 275
+and 1045 ms; the frame times are set by timeGetTime alone [inferred:
+MMSYSTEM's timeGetTime counted milliseconds on Windows 3.1, which is
+what the game checks for; not measured on a 1994 machine].
 
 Calibrate (15:5e22, the counting digits at start-up) is the number of
 idle calls in one second times 2.3, written to the INI by 6:0a6c. It
@@ -141,22 +175,23 @@ select every slow-machine branch), the frame-divisor arithmetic
 busy loop takes a whole processor core.
 
 **Port's choice:** PeekMessage (user.c) answers "no message" once a
-millisecond (calls owed after a long sleep are caught up, at most 50),
+millisecond, at the start of each millisecond of the clock the game
+reads (calls owed after a long step are made at once, at most 50),
 sleeping in between: the game sees one fixed machine whatever the host,
 Calibrate is 2300 (+-20), the "very fast" class, so every speed-dependent
 choice is the fast machine's: thrust divisor 10, the fast animation
-steps, the enhanced title. Frames per second are what the original
-gives on a fast machine (36 in waves, shown with B: "36 SET, 35
-ACTUAL"). [uncertain: which machine the designers had in mind; the
-help file's top class]
+steps, the enhanced title. Frames per second are what the arithmetic
+above gives on that machine. [uncertain: which machine the designers had
+in mind; the help file's top class]
 
 Every use of the calibrated value (g_8ffc) outside start-up, all at
 2300 in the port:
 
 - 6:0a6c (start-up): frame divisor g_9004, thrust divisor g_9006 (10
   from 380 up), in-wave divisor g_8f76 via GameSpeed. The divisors are
-  rescaled by time within a second, so only g_9006 lasts. g_9008 is
-  derived from GameSpeed and then overwritten with 4.
+  rescaled by time (g_9004 within seconds, g_8f76 over 45 seconds or
+  so, see above), so only g_9006 lasts. g_9008 is derived from
+  GameSpeed and then overwritten with 4.
 - 15:80da: title logo pieces all at once (from 1400) or one per frame.
 - 15:7cda (title logo zoom): steps 3, or 6 below 800.
 - 15:7cda: logo reveal step 2 (above 900 with Detail > 1) or 4.
@@ -183,13 +218,75 @@ a higher rate is a faster game, not a smoother one. Detail (INI, 1-3)
 and GameSpeed (INI, overrides Calibrate for the in-wave divisor) are
 the other two.
 
+**Frame pacing in the port** (user.c). Each idle call is due at the
+start of a millisecond of the platform clock (`platform_time_ns`; SDL
+sleeps on a high-resolution waitable timer on Windows 10 and later,
+nanosleep on Linux and Android), and GetCurrentTime and timeGetTime are
+that clock's milliseconds, so the read that decides a frame is the
+millisecond the arithmetic above wants: frames start a whole number of
+milliseconds apart, to within the host's sleep precision, and the port
+sleeps rather than spins in between. Measured on the Linux test host in
+a wave at 36: 99.4% of frames start exactly 29 ms apart (sd 0.15 ms);
+before, with SDL_Delay(1) loops on the millisecond clock, 28-30 ms (sd
+0.83). The work of 1000 idle steps a second is the model machine's and
+stays.
+
+**Showing frames** (video.c). The game draws into the framebuffer (GDI
+marks it drawn: draw.c, text.c, icon.c, the palette calls, the
+CS_SAVEBITS restore). When the game next waits (an idle call, GetMessage
+waiting, a loop reading the clock) what it drew is finished and is shown
+at once, under a millisecond after the frame's step, unless the last
+picture went out less than half a display refresh ago; then as soon as
+that has passed (state 0's 77 frames a second, rates above the refresh,
+no limit), so every refresh gets the newest. Before, the screen was
+shown every 16 ms whatever the game did: a frame waited 0-16 ms to be
+seen, and 29 ms frames were seen 16 and 32 ms apart in turn. There is
+no vsync (`SDL_SetRenderVSync` 0): a present that waits for the refresh
+holds up the game's one thread, and as physics go by frames every rate
+above the refresh would be slowed to it. A 28 or 29 ms frame lasts 1.7
+refreshes of a 60 Hz display, so frames are seen for 2 and 1 refreshes
+in turn (2.5 at 90 Hz, 3.4 at 120 Hz, 4.0 at 144 Hz); that judder is the
+rate's, not the pacing's, and only interpolation (not done: the frames
+are the game's), a display at a multiple of the rate or a
+variable-refresh display in fullscreen remove it. Compositors (the
+Windows desktop in a window, Wayland, gamescope on the Steam Deck) do
+not tear; a "present on vsync" option would only matter in exclusive
+fullscreen, which the port does not use, and is not offered.
+
+**The game's clock-reading waits** (user.c). The game also waits by
+reading the clock in a loop, drawing in between (2:0d78's 450 ms before
+the exit question, the title logo's 40 ms steps in 15:7cda, pauses of
+0.4-2 s in 10:0000, 15:0000, 15:0cb0, 15:10be, 15:1328, 15:4c76,
+16:0cfe, 16:6928); in 1994 the drawing was on the screen at once. After
+1000 clock reads without a message call (a game step makes a few), a
+read that finds the same millisecond as the last shows what was drawn
+and sleeps until the next millisecond. Before, these loops took a whole
+core and what they drew was seen only after them.
+
+The test clock of `--frames`, `--keys`, `--mouse`, `--pad` and
+`--shots` is apart from all this: it ticks in `win_pump` when 16 ms have
+passed, as before, so scripts reach the same screens.
+
+`--frame-stats` (video.c) logs every 5 seconds the pictures the game
+finished, their rate and the time between them (median, 95th and 99th
+percentile, longest) and the processor time used. A picture is what one
+step of the game drew, so a frame that draws nothing is not counted
+(some stretches of a wave draw every other frame), and at high rates the
+redraws the game makes between frames when its divisor runs ahead of the
+clock (11:1bcc, 11:0894 and 11:3396 in 7:0000) count too (about 125
+pictures a second for 110 frames at 104). The game's own count is what B
+shows (ACTUAL, g_059a).
+
+Sound is mixed on SDL's audio thread at the device's pace and does not
+depend on the frame pacing.
+
 **Alternative for the user to decide:** a slower model machine (for
 example 500 idle calls a second, Calibrate about 1150: the 800-1300
 class) would take the medium branches (animation steps of 3 rather than 5
 in the launch scene's ship rise, 15:374c; the title's logo pieces drawn
 one per frame, 15:80da). Frames per second and the gameplay constants
 would not change (all are above 380 and paced by time). The rate is
-one constant (`pace_idle`, user.c).
+one constant (the idle call's period in `pace_idle`, user.c).
 
 ## Silent fixes in the game code (`fix` entries in overrides/signatures.txt)
 

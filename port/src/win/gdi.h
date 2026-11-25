@@ -64,6 +64,8 @@ typedef struct {
 
 Dc *dc_get(HDC h);
 Bmp *dc_bmp(const Dc *d);
+/* The bitmap d draws into; drawing on the screen marks it changed. */
+Bmp *dc_target(const Dc *d);
 HBITMAP gdi_new_bitmap(int w, int h, int mono);
 HBITMAP gdi_bitmap_from_dib(const uint8_t *dib, uint32_t size);
 HPALETTE gdi_new_palette(const PALETTEENTRY *e, int n);

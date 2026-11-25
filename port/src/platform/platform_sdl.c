@@ -10,9 +10,38 @@
 #include <windows.h>
 #endif
 
+uint64_t platform_time_ns(void)
+{
+    return SDL_GetTicksNS();
+}
+
 uint32_t platform_time_ms(void)
 {
-    return (uint32_t)SDL_GetTicks();
+    return (uint32_t)(SDL_GetTicksNS() / SDL_NS_PER_MS);
+}
+
+/* SDL sleeps on a high-resolution waitable timer on Windows 10 (1803)
+ * and later, with the system timer at 1 ms before (SDL_HINT_TIMER_RESOLUTION). */
+void platform_sleep_until(uint64_t t)
+{
+    uint64_t now = SDL_GetTicksNS();
+
+    if (t > now)
+        SDL_DelayNS(t - now);
+}
+
+uint64_t platform_cpu_ns(void)
+{
+#ifdef _WIN32
+    FILETIME created, ended, kernel, user;
+
+    if (!GetProcessTimes(GetCurrentProcess(), &created, &ended, &kernel, &user))
+        return 0;
+    return ((uint64_t)kernel.dwHighDateTime << 32 | kernel.dwLowDateTime) * 100 +
+           ((uint64_t)user.dwHighDateTime << 32 | user.dwLowDateTime) * 100;
+#else
+    return (uint64_t)clock() * (SDL_NS_PER_SECOND / CLOCKS_PER_SEC);
+#endif
 }
 
 void platform_date(PlatformDate *out)

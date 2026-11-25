@@ -33,6 +33,13 @@ Bmp *dc_bmp(const Dc *d)
     return handle_get(d->bmp, H_BITMAP);
 }
 
+Bmp *dc_target(const Dc *d)
+{
+    if (d->bmp == screen_bmp)
+        video_framebuffer()->drawn = 1;
+    return dc_bmp(d);
+}
+
 HBITMAP gdi_new_bitmap(int w, int h, int mono)
 {
     Bmp *b = calloc(1, sizeof *b);
@@ -572,6 +579,7 @@ UINT RealizePalette(HDC h)
         fb->palette[i].g = p->e[i].peGreen;
         fb->palette[i].b = p->e[i].peBlue;
     }
+    fb->drawn = 1;
     return (UINT)p->n;
 }
 
@@ -602,6 +610,7 @@ void AnimatePalette(HPALETTE pal, UINT start, UINT n, const PALETTEENTRY *e)
             fb->palette[start + i].r = d->peRed;
             fb->palette[start + i].g = d->peGreen;
             fb->palette[start + i].b = d->peBlue;
+            fb->drawn = 1;
         }
     }
 }

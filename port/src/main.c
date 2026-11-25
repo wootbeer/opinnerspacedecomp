@@ -333,9 +333,8 @@ static void save_shot(void)
     video_save_ppm(path);
 }
 
-void app_frame(void)
+void app_tick(void)
 {
-    video_present();
     if (dump_path && shot_every > 0 && frame_count % shot_every == 0)
         save_shot();
     if (++frame_count >= frame_limit && frame_limit >= 0)
@@ -357,6 +356,8 @@ int main(int argc, char **argv)
             dump_path = argv[++i];
         else if (!strcmp(argv[i], "--audio-dump") && i + 1 < argc)
             platform_audio_dump(argv[++i]);
+        else if (!strcmp(argv[i], "--frame-stats"))
+            video_frame_stats();
         else if (!strcmp(argv[i], "--shots") && i + 1 < argc)
             shot_every = SDL_atoi(argv[++i]);
         else if (!strcmp(argv[i], "--keys") && i + 1 < argc) {

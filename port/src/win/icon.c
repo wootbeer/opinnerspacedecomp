@@ -369,7 +369,7 @@ BOOL DestroyIcon(HICON h)
 BOOL DrawIcon(HDC hd, int16_t x, int16_t y, HICON h)
 {
     Dc *d = dc_get(hd);
-    Bmp *b = d ? dc_bmp(d) : NULL;
+    Bmp *b = d ? dc_target(d) : NULL;
     Icon *ic = handle_get(h, H_ICON);
     int i, j;
 

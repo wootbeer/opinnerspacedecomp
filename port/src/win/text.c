@@ -338,7 +338,7 @@ static POINT text_origin(Dc *d, const Face *f, int x, int y, int w)
 /* r (device pixels) filled with v, inside clip. */
 static void fill_box(Dc *d, RECT r, const RECT *clip, uint8_t v)
 {
-    Bmp *b = dc_bmp(d);
+    Bmp *b = dc_target(d);
     int x, y;
 
     IntersectRect(&r, &r, clip);
@@ -352,7 +352,7 @@ static void fill_box(Dc *d, RECT r, const RECT *clip, uint8_t v)
 static void draw_glyphs(Dc *d, Face *f, int x, int y, LPCSTR s, int n, const int16_t *dx,
                         const RECT *clip)
 {
-    Bmp *b = dc_bmp(d);
+    Bmp *b = dc_target(d);
     uint8_t v = gdi_pixel_of(d, d->text);
     int k, i, j;
 

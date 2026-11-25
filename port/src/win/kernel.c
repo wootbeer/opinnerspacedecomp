@@ -1,11 +1,11 @@
-/* KERNEL: global memory, files, DOS paths, time and system queries. */
+/* KERNEL: global memory, files, DOS paths and system queries (the clock:
+ * user.c). */
 #include <SDL3/SDL_stdinc.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
 
 #include "winrt.h"
-#include "platform/platform.h"
 
 /* Some records are larger natively than in 1994 (REC_70 holds far
  * function pointers, see NOTES-port.md), so every block gets slack.  A
@@ -200,17 +200,7 @@ int32_t _filelength(int16_t h)
     return (int32_t)len;
 }
 
-/* Time. */
-DWORD GetCurrentTime(void)
-{
-    return platform_time_ms();
-}
-
-DWORD timeGetTime(void)
-{
-    return platform_time_ms();
-}
-
+/* Time (GetCurrentTime and timeGetTime: user.c, with the game's pace). */
 UINT timeGetDevCaps(TIMECAPS *tc, UINT size)
 {
     (void)size;

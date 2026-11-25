@@ -55,7 +55,7 @@ static uint8_t convert(const Dc *d, const Bmp *db, const Dc *s, const Bmp *sb, u
 
 void draw_blit(Dc *d, int x, int y, int w, int h, Dc *s, int sx, int sy, int sw, int sh, DWORD rop)
 {
-    Bmp *db = dc_bmp(d), *sb = s ? dc_bmp(s) : NULL;
+    Bmp *db = dc_target(d), *sb = s ? dc_bmp(s) : NULL;
     const Brush *br = handle_get(d->brush, H_BRUSH);
     unsigned code = rop >> 16 & 0xff;
     int aw = abs(w), ah = abs(h), asw = abs(sw), ash = abs(sh);
@@ -184,7 +184,7 @@ int16_t FrameRect(HDC hd, const RECT *r, HBRUSH brush)
  * Windows 3.1's gray pattern]. */
 static void invert_dots(Dc *d, int l, int t, int r, int b)
 {
-    Bmp *bm = dc_bmp(d);
+    Bmp *bm = dc_target(d);
     int x, y;
 
     for (y = t; bm && y < b; y++)
@@ -208,7 +208,7 @@ void DrawFocusRect(HDC hd, const RECT *r)
 
 static void put(Dc *d, int x, int y, uint8_t v)
 {
-    Bmp *b = dc_bmp(d);
+    Bmp *b = dc_target(d);
 
     x = DX(d, x);
     y = DY(d, y);

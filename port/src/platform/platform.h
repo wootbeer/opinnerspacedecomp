@@ -6,8 +6,16 @@
 #include <stddef.h>
 #include <stdint.h>
 
-/* Milliseconds since an arbitrary start; wraps like timeGetTime(). */
+/* Nanoseconds since an arbitrary start. */
+uint64_t platform_time_ns(void);
+/* The same clock in milliseconds (platform_time_ns() / 1000000); wraps
+ * like timeGetTime(). */
 uint32_t platform_time_ms(void);
+/* Sleeps until platform_time_ns() reaches t (not at all if it has), as
+ * closely as the system's timers allow, without spinning. */
+void platform_sleep_until(uint64_t t);
+/* Processor time the program has used, in nanoseconds. */
+uint64_t platform_cpu_ns(void);
 
 /* Local date and time. */
 typedef struct {

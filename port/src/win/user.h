@@ -142,7 +142,7 @@ typedef struct {
 } Wnd;
 
 Wnd *wnd_get(HWND h);
-void win_pump(void);        /* SDL events, ended sounds and frame presentation */
+void win_pump(void);        /* SDL events, ended sounds and the test clock (app_tick) */
 int wnd_is_child(const Wnd *w);
 int wnd_visible(const Wnd *w);   /* shown, and its parents too */
 /* The windows above w's top-level window (popups made later), up to

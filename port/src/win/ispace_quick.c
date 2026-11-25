@@ -116,8 +116,8 @@ static int16_t quick_draw(int16_t pal, int16_t id, LPCSTR name, int16_t dc, int1
     IspaceEntries *e = ispace_image_entries();
     IspaceImgFlags *flags = ispace_img_flags();
     IspaceDib img, out = {NULL, 0};
-    Image im;
-    Sheet sh;
+    Image im = {0};
+    Sheet sh = {0};
     HBITMAP bm = 0;
 
     if (s < 0)

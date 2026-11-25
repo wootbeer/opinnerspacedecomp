@@ -14,6 +14,16 @@ Checks that need a person, real hardware or the original game. Items move to
       dialogs (table in README.md).
 - [ ] Steam Deck: built-in controls work as a gamepad.
 
+- [ ] Frame pacing: run with `--frame-stats` in a wave on Windows and the
+      Deck. Expect frame time p50 29.00 ms (28.00 after about 45 s), p99
+      within about 1 ms, and note the CPU %.
+- [ ] High rates (Alt+ up to 104) on the Deck under gamescope: if
+      `--frame-stats` shows the rate capped at the display refresh, the
+      present is blocking.
+- [ ] Windowed, maximised and fullscreen: no tearing; the window repaints
+      after resizing or uncovering it while a dialog or pause is up.
+- [ ] No audio gaps over long waves.
+
 ## Saves
 - [ ] A save made by the port loads in the original 1994 game (same layout,
       untested because the original can't run here).
@@ -39,6 +49,10 @@ Checks that need a person, real hardware or the original game. Items move to
 - [ ] Letters may differ by a pixel from real Windows Arial.
 
 ## Behaviour
+- [ ] Waves look smoother. At 36 a wave starts at 34.5 fps and settles at
+      35.7 after about 45 s; that is the 1994 game's own timing.
+- [ ] Title logo, briefing, landing and the exit-question delay now draw as
+      they happen instead of all at once afterwards.
 - [ ] One wave ended without explanation in windowed mode.
 - [ ] Rocks with mass 0 (possibly fixed with the record-size fix).
 - [ ] After pressing OK in Game Settings once (it writes `Quick=1`), ships

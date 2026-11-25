@@ -61,7 +61,10 @@ Run headless (tests): `SDL_VIDEO_DRIVER=offscreen build/inspace --frames 3 --dum
 
 Command line:
 
-- `--frames N`: run N frames (about 60 a second), then exit.
+- `--frames N`: run N frames, then exit. These frames are the test
+  clock of `--frames`, `--keys`, `--mouse`, `--pad` and `--shots`, about
+  60 a second of real time while the game polls for messages; they are
+  not the game's frames.
 - `--dump FILE`: save the last frame as a PPM picture.
 - `--keys "FRAME:KEY,..."`: press KEY at frame FRAME and release it two
   frames later. KEY is an SDL key name (`Escape`, `Return`, `Down`, `F4`,
@@ -72,6 +75,12 @@ Command line:
   time, so the frame a screen appears at varies a little between runs.
 - `--shots N` (with `--dump FILE`): also save every Nth frame as
   `FILE-NNNNN.ppm`.
+- `--frame-stats`: every 5 seconds, a log line on the pictures the game
+  finished and showed: frames a second, the time between them (median,
+  95th and 99th percentile, longest) and the processor time used, e.g.
+  `frame-stats: 34.5 fps over 5.0 s (173 frames, 173 shown), frame time
+  p50 29.00 p95 29.70 p99 29.95 max 30.02 ms, cpu 7%`. "shown" is less
+  than "frames" when the game draws faster than the display refreshes.
 - `--audio-dump FILE.wav`: also write everything played (the sound
   device's mix of effects and SoundFont music, 16-bit, at the device's
   rate) to FILE.wav. Without a sound device run with
@@ -182,11 +191,15 @@ nothing), so the port adds none.
 
 ## Game speed
 
-The game paces itself by real time (36 frames a second in waves) but
-measures the machine at start-up (INSPACE.INI `Calibrate`) and picks some
-animation steps from it. The port shows it one fixed fast machine
-(Calibrate about 2300) whatever the computer: see NOTES-port.md "Game
-speed".
+The game paces itself by real time (FrameRateSet, 36 frames a second by
+default, changed with Alt + and Alt - in a wave) but measures the
+machine at start-up (INSPACE.INI `Calibrate`) and picks some animation
+steps from it. The port shows it one fixed fast machine (Calibrate about
+2300) whatever the computer, keeps its clock to the millisecond, sleeps
+between frames and shows each frame as soon as the game has drawn it, no
+vsync. The game's own arithmetic makes 36 into 34.5 frames a second at
+the start of a wave and 35.7 after about 45 seconds, as on a fast 1994
+machine. See NOTES-port.md "Game speed" (and `--frame-stats`).
 
 ## Quirks
 

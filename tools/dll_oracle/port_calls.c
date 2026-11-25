@@ -46,7 +46,7 @@ static struct {
     SDL_Joystick *j;
 } vpad;
 
-void app_frame(void)
+void app_tick(void)
 {
 }
 
