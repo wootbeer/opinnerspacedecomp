@@ -87,6 +87,90 @@ static void inject_keys(void)
     }
 }
 
+/* --mouse "FRAME:X,Y[,ACTION];...": the mouse moved to framebuffer
+ * point (X, Y) at frame FRAME, then ACTION: move (the default), down, up,
+ * click (down, up two frames later), dclick (a double click's second
+ * press, then up), rdown, rup, rclick. */
+#define MAX_MOUSE 256
+static struct {
+    int frame, x, y;
+    int button, down;           /* button 0: move only */
+    int clicks;
+} mouse[MAX_MOUSE];
+static int mouse_count;
+
+static int add_mouse(int frame, int x, int y, int button, int down, int clicks)
+{
+    if (mouse_count == MAX_MOUSE)
+        return 0;
+    mouse[mouse_count].frame = frame;
+    mouse[mouse_count].x = x;
+    mouse[mouse_count].y = y;
+    mouse[mouse_count].button = button;
+    mouse[mouse_count].down = down;
+    mouse[mouse_count].clicks = clicks;
+    mouse_count++;
+    return 1;
+}
+
+static int parse_mouse(const char *spec)
+{
+    static const struct {
+        const char *name;
+        int button, down, up, clicks;   /* up: also released two frames later */
+    } actions[] = {
+        {"move", 0, 0, 0, 1}, {"down", SDL_BUTTON_LEFT, 1, 0, 1}, {"up", SDL_BUTTON_LEFT, 0, 0, 1},
+        {"click", SDL_BUTTON_LEFT, 1, 1, 1}, {"dclick", SDL_BUTTON_LEFT, 1, 1, 2},
+        {"rdown", SDL_BUTTON_RIGHT, 1, 0, 1}, {"rup", SDL_BUTTON_RIGHT, 0, 0, 1},
+        {"rclick", SDL_BUTTON_RIGHT, 1, 1, 1},
+    };
+    char buf[4096], *item, *save;
+
+    SDL_strlcpy(buf, spec, sizeof buf);
+    for (item = SDL_strtok_r(buf, ";", &save); item; item = SDL_strtok_r(NULL, ";", &save)) {
+        char action[16] = "move";
+        int frame, x, y, n = SDL_sscanf(item, "%d:%d,%d,%15s", &frame, &x, &y, action);
+        size_t i;
+        if (n < 3)
+            return 0;
+        for (i = 0; i < sizeof actions / sizeof actions[0] && SDL_strcmp(actions[i].name, action); i++)
+            ;
+        if (i == sizeof actions / sizeof actions[0] ||
+            !add_mouse(frame, x, y, actions[i].button, actions[i].down, actions[i].clicks) ||
+            (actions[i].up && !add_mouse(frame + 2, x, y, actions[i].button, 0, actions[i].clicks)))
+            return 0;
+    }
+    return 1;
+}
+
+static void inject_mouse(void)
+{
+    SDL_Event e;
+    float wx, wy;
+    int i;
+
+    for (i = 0; i < mouse_count; i++) {
+        if (mouse[i].frame != frame_count)
+            continue;
+        video_window_point(mouse[i].x, mouse[i].y, &wx, &wy);
+        SDL_zero(e);
+        e.type = SDL_EVENT_MOUSE_MOTION;
+        e.motion.x = wx;
+        e.motion.y = wy;
+        SDL_PushEvent(&e);
+        if (!mouse[i].button)
+            continue;
+        SDL_zero(e);
+        e.type = mouse[i].down ? SDL_EVENT_MOUSE_BUTTON_DOWN : SDL_EVENT_MOUSE_BUTTON_UP;
+        e.button.button = (Uint8)mouse[i].button;
+        e.button.down = mouse[i].down != 0;
+        e.button.clicks = (Uint8)mouse[i].clicks;
+        e.button.x = wx;
+        e.button.y = wy;
+        SDL_PushEvent(&e);
+    }
+}
+
 static void finish(int code)
 {
     if (dump_path)
@@ -112,6 +196,7 @@ void app_frame(void)
     if (++frame_count >= frame_limit && frame_limit >= 0)
         finish(0);
     inject_keys();
+    inject_mouse();
 }
 
 int main(int argc, char **argv)
@@ -129,6 +214,12 @@ int main(int argc, char **argv)
         else if (!strcmp(argv[i], "--keys") && i + 1 < argc) {
             if (!parse_keys(argv[++i])) {
                 fprintf(stderr, "--keys: FRAME:KEY[+KEY][/HOLD],... with SDL key names\n");
+                return 1;
+            }
+        }
+        else if (!strcmp(argv[i], "--mouse") && i + 1 < argc) {
+            if (!parse_mouse(argv[++i])) {
+                fprintf(stderr, "--mouse: FRAME:X,Y[,move|down|up|click|dclick|rdown|rup|rclick];...\n");
                 return 1;
             }
         }

@@ -37,9 +37,11 @@ add_executable(inspace
     src/win/ispace_surface.c
     src/win/kernel.c
     src/win/listbox.c
+    src/win/menu.c
     src/win/module.c
     src/win/ne.c
     src/win/profile.c
+    src/win/scrollbar.c
     src/win/startup.c
     src/win/stubs.c
     src/win/text.c

@@ -13,6 +13,13 @@
 #define WM_NCPAINT 0x0085
 #define WM_GETDLGCODE 0x0087
 #define WM_SYSCHAR 0x0106
+#define WM_NCACTIVATE 0x0086
+#define WM_NCMOUSEMOVE 0x00A0  /* WM_MOUSEMOVE .. WM_RBUTTONDBLCLK less 0x160 */
+#define WM_NCLBUTTONDOWN 0x00A1
+#define WM_INITMENU 0x0116
+#define WM_INITMENUPOPUP 0x0117
+#define WM_MENUSELECT 0x011F
+#define WM_RBUTTONDBLCLK 0x0206
 #define DM_GETDEFID (WM_USER + 0)
 
 #define WS_DISABLED 0x08000000L
@@ -25,6 +32,8 @@
 
 #define CS_VREDRAW 0x0001
 #define CS_HREDRAW 0x0002
+#define CS_SAVEBITS 0x0800
+#define SW_SHOWNA 8            /* shown, not activated */
 #define GW_HWNDNEXT 2
 #define GW_CHILD 5
 #define VK_BACK 0x08
@@ -35,11 +44,17 @@
 #define VK_NEXT 0x22
 #define COLOR_SCROLLBAR 0
 #define COLOR_ACTIVECAPTION 2
+#define COLOR_INACTIVECAPTION 3
+#define COLOR_MENU 4
 #define COLOR_WINDOWFRAME 6
+#define COLOR_MENUTEXT 7
 #define COLOR_CAPTIONTEXT 9
+#define COLOR_ACTIVEBORDER 10
+#define COLOR_INACTIVEBORDER 11
 #define COLOR_BTNFACE 15
 #define COLOR_BTNSHADOW 16
 #define COLOR_BTNTEXT 18
+#define COLOR_INACTIVECAPTIONTEXT 19
 #define COLOR_BTNHIGHLIGHT 20
 
 #define DLGC_WANTARROWS 0x0001
@@ -50,6 +65,20 @@
 #define DLGC_BUTTON 0x2000
 
 #define GWW_HINSTANCE (-6)
+
+/* Hit-test codes: where a point lies in a window. */
+#define HTNOWHERE 0
+#define HTCLIENT 1
+#define HTCAPTION 2
+#define HTSYSMENU 3
+#define HTMENU 5
+#define HTBORDER 18
+
+#define SC_SIZE 0xF000
+#define SC_MOVE 0xF010
+#define SC_MOUSEMENU 0xF090
+#define SC_KEYMENU 0xF100
+#define SC_TASKLIST 0xF130
 
 HWND GetWindow(HWND h, UINT cmd);
 WORD GetWindowWord(HWND h, int16_t index);
@@ -83,7 +112,8 @@ typedef struct {
     char cls[32];
     char text[256];
     void *data;             /* state of a built-in control (controls.c) */
-    uint8_t *saved;         /* the screen under a dialog while it is shown */
+    uint8_t *saved;         /* the screen under a CS_SAVEBITS window while it is shown */
+    HMENU sysmenu;          /* the window's own copy of the system menu (menu.c) */
     WORD words[8];
     LONG longs[4];
 } Wnd;
@@ -91,6 +121,7 @@ typedef struct {
 Wnd *wnd_get(HWND h);
 void win_pump(void);        /* SDL events and frame presentation */
 int wnd_is_child(const Wnd *w);
+int wnd_visible(const Wnd *w);   /* shown, and its parents too */
 /* The windows above w's top-level window (popups made later), up to
  * max of their rectangles; window DCs do not draw there. */
 int wnd_occluders(const Wnd *w, RECT *out, int max);
@@ -98,9 +129,24 @@ uint32_t wnd_zgen(void);    /* changes whenever the stacking or a rectangle does
 /* The deepest visible, enabled window under screen point (x, y). */
 HWND wnd_at(int x, int y);
 /* The client area of a window at rect: inside its border and caption
- * (DS_MODALFRAME counts for dialogs only). */
+ * (DS_MODALFRAME counts for dialogs only); a menu bar is not counted. */
 void wnd_frame(DWORD style, int dialog, RECT *client, const RECT *rect);
+/* Mouse input at screen (x, y) for window h: client messages, or the
+ * non-client ones (WM_NCMOUSEMOVE ...) outside its client area. */
 void wnd_send_click(HWND h, UINT msg, int x, int y, WPARAM keys);
+/* What part of w screen point (x, y) is on (HT...). */
+int wnd_hit(const Wnd *w, int x, int y);
+/* The window's frame changed (a menu bar came or went): the client area
+ * is worked out again, WM_SIZE and WM_MOVE are sent when it changed, and
+ * the frame is repainted. */
+void wnd_reframe(HWND h);
+/* Where w's caption and menu bar are, in window coordinates; empty when
+ * it has none. */
+void wnd_caption_rect(const Wnd *w, RECT *r);
+void wnd_menu_rect(const Wnd *w, RECT *r);
+/* The System font (Liberation Sans Bold standing in), made once. */
+HFONT wnd_system_font(void);
+HWND wnd_capture(void);
 
 /* Built-in window classes (controls.c, edit.c, listbox.c), registered
  * at start-up, and the 3-D drawing they share (controls.c). */
@@ -109,6 +155,9 @@ LRESULT edit_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp);
 LRESULT listbox_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp);
 void ctl_fill(HDC dc, int l, int t, int r, int b, COLORREF c);
 void ctl_bevel(HDC dc, int l, int t, int r, int b, int thin);   /* raised face */
+/* Text with '&' prefixes (unless noprefix): the next character is
+ * underlined.  Returns the width; draws only when draw is set. */
+int ctl_label(HDC dc, int x, int y, const char *s, int n, int noprefix, int draw);
 #define EM_SETSEL (WM_USER + 1)
 #define DLGC_HASSETSEL 0x0008
 /* Combo box and edit contents for native callers (the message forms
@@ -119,6 +168,29 @@ int16_t combo_get_text(HWND combo, int16_t i, LPSTR out, int16_t n);
 
 /* Where keyboard messages go: the focus window, else the active one. */
 HWND user_key_target(void);
+
+/* Key message lParam bits (input.c). */
+#define KF_ALT 0x20000000L      /* the context code: Alt held */
+#define KF_REPEAT 0x40000000L   /* the key was already down */
+#define KF_UP 0x80000000L       /* transition: the key was released */
+/* Alt or F10 was pressed and released with no other key between (the
+ * menu key); asking clears it. */
+int input_menu_key_tapped(void);
+
+/* Menus (menu.c).  A top-level window's menu bar is its id (GWW_ID), as
+ * in Windows. */
+#define MENU_BAR_H 18       /* SM_CYMENU */
+int menu_is(HMENU m);
+void menu_paint_bar(Wnd *w, HDC dc);
+void menu_paint_sysbox(Wnd *w, HDC dc, int pressed);
+/* WM_SYSCOMMAND SC_KEYMENU and SC_MOUSEMENU: the menu loop. */
+void menu_syscommand(HWND h, WPARAM cmd, LPARAM lp);
+/* A window goes: its menu bar and system menu go with it. */
+void menu_window_gone(Wnd *w);
+void menu_register(void);
+
+/* Scroll bar controls (scrollbar.c). */
+LRESULT scrollbar_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp);
 
 /* Dialogs (dialog.c). */
 #define DIALOG_CLASS "#32770"

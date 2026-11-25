@@ -12,6 +12,7 @@ int win_init(void)
     gdi_init();
     controls_register();
     dialog_register();
+    menu_register();
     if (!dos_to_host(GAME_DIR "INSPACE.EXE", exe, sizeof exe) || !dgroup_init(exe) || !module_init()) {
         fprintf(stderr, "cannot read INSPACE.EXE (%s)\n", exe);
         return 0;

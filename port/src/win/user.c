@@ -19,7 +19,12 @@
 #define SCREEN_W 640
 #define SCREEN_H 480
 #define CAPTION_H 19        /* SM_CYCAPTION less the line it shares with the frame */
-#define DLGFRAME 4
+#define FRAME 4             /* SM_CXDLGFRAME, SM_CXFRAME [inferred: border width 3, plus 1] */
+#define SYSBOX 18           /* SM_CXSIZE: the system menu box */
+#define NOTCH (FRAME + SYSBOX - 1)  /* the sizing border's marks, from each corner [uncertain] */
+#define MINTRACK_X 100      /* SM_CXMINTRACK, SM_CYMINTRACK [uncertain] */
+#define MINTRACK_Y 28
+#define CTLCOLOR_SCROLLBAR 5
 
 static struct {
     char name[32];
@@ -52,7 +57,9 @@ int wnd_is_child(const Wnd *w)
     return (w->style & WS_CHILD) != 0;
 }
 
-static int wnd_visible(const Wnd *w)
+static const WNDCLASS *find_class(LPCSTR name);
+
+int wnd_visible(const Wnd *w)
 {
     while (w && w->visible) {
         if (!wnd_is_child(w))
@@ -151,14 +158,67 @@ void wnd_frame(DWORD style, int dialog, RECT *client, const RECT *rect)
 {
     int b = 0, top = 0;
 
-    if ((dialog && style & DS_MODALFRAME) || (style & WS_CAPTION) == WS_DLGFRAME)
-        b = DLGFRAME;
+    if ((dialog && style & DS_MODALFRAME) || (style & WS_CAPTION) == WS_DLGFRAME || style & WS_THICKFRAME)
+        b = FRAME;
     else if (style & WS_BORDER)
         b = 1;
     if ((style & WS_CAPTION) == WS_CAPTION)
         top = CAPTION_H;
     SetRect(client, (int16_t)(rect->left + b), (int16_t)(rect->top + b + top),
             (int16_t)(rect->right - b), (int16_t)(rect->bottom - b));
+}
+
+/* The client area of w, inside its frame and menu bar. */
+static void frame_of(Wnd *w)
+{
+    wnd_frame(w->style, dialog_is(w->hwnd), &w->client, &w->rect);
+    if (!wnd_is_child(w) && menu_is(w->id))
+        w->client.top = (int16_t)(w->client.top + MENU_BAR_H);
+}
+
+static int has_caption(const Wnd *w)
+{
+    return (w->style & WS_CAPTION) == WS_CAPTION;
+}
+
+void wnd_caption_rect(const Wnd *w, RECT *r)
+{
+    int b = w->client.left - w->rect.left;
+
+    SetRect(r, 0, 0, 0, 0);
+    if (has_caption(w))
+        SetRect(r, (int16_t)b, (int16_t)b, (int16_t)(w->rect.right - w->rect.left - b), (int16_t)(b + CAPTION_H - 1));
+}
+
+void wnd_menu_rect(const Wnd *w, RECT *r)
+{
+    int b = w->client.left - w->rect.left, top = w->client.top - w->rect.top;
+
+    SetRect(r, 0, 0, 0, 0);
+    if (!wnd_is_child(w) && menu_is(w->id))
+        SetRect(r, (int16_t)b, (int16_t)(top - MENU_BAR_H), (int16_t)(w->rect.right - w->rect.left - b), (int16_t)top);
+}
+
+int wnd_hit(const Wnd *w, int x, int y)
+{
+    RECT r;
+    POINT p;
+
+    p.x = (int16_t)x;
+    p.y = (int16_t)y;
+    if (PtInRect(&w->client, p))
+        return HTCLIENT;
+    if (!PtInRect(&w->rect, p))
+        return HTNOWHERE;
+    p.x = (int16_t)(p.x - w->rect.left);
+    p.y = (int16_t)(p.y - w->rect.top);
+    wnd_menu_rect(w, &r);
+    if (PtInRect(&r, p))
+        return HTMENU;
+    wnd_caption_rect(w, &r);
+    if (PtInRect(&r, p))
+        return w->style & WS_SYSMENU && p.x < r.left + SYSBOX ? HTSYSMENU : HTCAPTION;
+    return HTBORDER;
 }
 
 static void offset_tree(HWND h, int dx, int dy)
@@ -192,16 +252,17 @@ static void invalidate(Wnd *w, const RECT *r, int erase)
     w->erase |= erase;
 }
 
-/* Dialogs keep the screen under them while shown and put it back when
- * they go (the dialog class has CS_SAVEBITS), so what lies under is not
- * repainted.  Drawing under a shown dialog is clipped, so what was saved
+/* Windows of a CS_SAVEBITS class (dialogs, menus) keep the screen under
+ * them while shown and put it back when they go, so what lies under is
+ * not repainted.  Drawing under a shown dialog is clipped, so what was saved
  * stays right unless the dialog moves. */
 static void save_under(Wnd *w)
 {
     Framebuffer *fb = video_framebuffer();
+    const WNDCLASS *wc = find_class(w->cls);
     int y, cw = w->rect.right - w->rect.left;
 
-    if (w->saved || wnd_is_child(w) || !dialog_is(w->hwnd) || w->rect.left < 0 || w->rect.top < 0
+    if (w->saved || wnd_is_child(w) || !wc || !(wc->style & CS_SAVEBITS) || w->rect.left < 0 || w->rect.top < 0
         || w->rect.right > fb->width || w->rect.bottom > fb->height || cw <= 0)
         return;
     w->saved = malloc((size_t)cw * (size_t)(w->rect.bottom - w->rect.top));
@@ -238,6 +299,26 @@ static void uncover(const RECT *r)
     }
 }
 
+/* A sizable or overlapped window's size is kept within the tracking
+ * sizes its WM_GETMINMAXINFO gives (DefWindowProc's WM_WINDOWPOSCHANGING,
+ * and CreateWindow). */
+static void track_limits(Wnd *w, int *cx, int *cy)
+{
+    MINMAXINFO mm;
+
+    if (wnd_is_child(w) || !(w->style & WS_THICKFRAME || !(w->style & WS_POPUP)))
+        return;
+    memset(&mm, 0, sizeof mm);
+    mm.ptMaxSize.x = mm.ptMaxTrackSize.x = SCREEN_W + 2 * FRAME;
+    mm.ptMaxSize.y = mm.ptMaxTrackSize.y = SCREEN_H + 2 * FRAME;
+    mm.ptMaxPosition.x = mm.ptMaxPosition.y = -FRAME;
+    mm.ptMinTrackSize.x = MINTRACK_X;
+    mm.ptMinTrackSize.y = MINTRACK_Y;
+    w->proc(w->hwnd, WM_GETMINMAXINFO, 0, (LPARAM)&mm);
+    *cx = SDL_clamp(*cx, mm.ptMinTrackSize.x, mm.ptMaxTrackSize.x);
+    *cy = SDL_clamp(*cy, mm.ptMinTrackSize.y, mm.ptMaxTrackSize.y);
+}
+
 /* Places w at (x, y) (relative to its parent's client area for a child)
  * with size cx x cy, moving its children along.  Returns 0 when nothing
  * changed. */
@@ -247,6 +328,7 @@ static int place(Wnd *w, int x, int y, int cx, int cy)
     RECT old = w->rect;
     int dx, dy;
 
+    track_limits(w, &cx, &cy);
     if (p) {
         x += p->client.left;
         y += p->client.top;
@@ -259,13 +341,32 @@ static int place(Wnd *w, int x, int y, int cx, int cy)
         offset_tree(w->hwnd, dx, dy);
     w->rect.right = (int16_t)(w->rect.left + cx);
     w->rect.bottom = (int16_t)(w->rect.top + cy);
-    wnd_frame(w->style, dialog_is(w->hwnd), &w->client, &w->rect);
+    frame_of(w);
     zgen++;
     free(w->saved);
     w->saved = NULL;
     if (wnd_visible(w))
         uncover(&old);
     return 1;
+}
+
+/* The active window goes (destroyed or hidden): its owner becomes
+ * active, else the topmost other visible top-level window, as in
+ * Windows. */
+static void activate_other(Wnd *gone)
+{
+    Wnd *o = wnd_get(gone->parent);
+    int i;
+
+    active = 0;
+    if (!o || !o->visible || o->style & WS_DISABLED)
+        for (o = NULL, i = MAX_WINDOWS - 1; i >= 0 && !o; i--) {
+            Wnd *c = wnd_get(windows[i]);
+            if (c && c != gone && !wnd_is_child(c) && c->visible && !(c->style & WS_DISABLED))
+                o = c;
+        }
+    if (o)
+        SetActiveWindow(o->hwnd);
 }
 
 /* Windows. */
@@ -323,14 +424,21 @@ BOOL DestroyWindow(HWND h)
 
     if (!w)
         return 0;
-    if (w->visible && !wnd_is_child(w) && !restore_under(w))
-        uncover(&w->rect);
+    if (w->visible && !wnd_is_child(w)) {
+        w->visible = 0;
+        if (!restore_under(w))
+            uncover(&w->rect);
+    }
     free(w->saved);
+    w->saved = NULL;
     zgen++;
+    if (active == h)
+        activate_other(w);
     for (i = 0; i < MAX_WINDOWS; i++)
         if (windows[i] && wnd_get(windows[i]) && wnd_get(windows[i])->parent == h)
             DestroyWindow(windows[i]);
     w->proc(h, WM_DESTROY, 0, 0);
+    menu_window_gone(w);
     for (i = 0; i < MAX_TIMERS; i++)
         if (timers[i].hwnd == h)
             timers[i].ms = 0;
@@ -368,10 +476,13 @@ BOOL ShowWindow(HWND h, int16_t cmd)
         if (!was)
             save_under(w);
         invalidate(w, &w->rect, 1);
-        if (!active && !wnd_is_child(w))
+        if (!wnd_is_child(w) && (cmd == SW_SHOW || cmd == SW_SHOWNORMAL || !active))
             SetActiveWindow(h);
-    } else if (was && !restore_under(w)) {
-        uncover(&w->rect);
+    } else if (was) {
+        if (!restore_under(w))
+            uncover(&w->rect);
+        if (active == h)
+            activate_other(w);
     }
     return (BOOL)was;
 }
@@ -456,6 +567,10 @@ HWND SetActiveWindow(HWND h)
     if (!wnd_get(h))
         return old;
     active = h;
+    if (old != h) {
+        SendMessage(old, WM_NCACTIVATE, 0, 0);
+        SendMessage(h, WM_NCACTIVATE, 1, 0);
+    }
     if (!f || top_level(f)->hwnd != h)
         SetFocus(h);
     return old;
@@ -491,6 +606,11 @@ HWND SetCapture(HWND h)
 void ReleaseCapture(void)
 {
     capture = 0;
+}
+
+HWND wnd_capture(void)
+{
+    return capture;
 }
 
 HWND GetParent(HWND h)
@@ -553,9 +673,15 @@ HWND wnd_at(int x, int y)
 void wnd_send_click(HWND h, UINT msg, int x, int y, WPARAM keys)
 {
     Wnd *w = wnd_get(capture ? capture : h);
+    int hit;
 
-    if (w)
+    if (!w)
+        return;
+    hit = capture ? HTCLIENT : wnd_hit(w, x, y);
+    if (hit == HTCLIENT)
         PostMessage(w->hwnd, msg, keys, MAKELONG(x - w->client.left, y - w->client.top));
+    else
+        PostMessage(w->hwnd, msg - (WM_MOUSEMOVE - WM_NCMOUSEMOVE), (WPARAM)hit, MAKELONG(x, y));
 }
 
 void GetClientRect(HWND h, RECT *r)
@@ -782,39 +908,118 @@ void EndPaint(HWND h, const PAINTSTRUCT *ps)
     ReleaseDC(h, ps->hdc);
 }
 
-/* The frame of a window with a border or caption: Windows 3.1's look
- * (black outline, caption in the active caption colour, centred title). */
+HFONT wnd_system_font(void)
+{
+    static HFONT font;
+
+    if (!font)
+        font = CreateFont(-12, 0, 0, 0, 700, 0, 0, 0, 0, 0, 0, 0, 0, "System");
+    return font;
+}
+
+/* The band of a sizing border (border colour, a mark across it SYSBOX
+ * pixels in from each corner) or of a dialog frame (caption colour). */
+static void paint_band(Wnd *w, HDC dc, int wd, int ht, int b, int on)
+{
+    int sizing = w->style & WS_THICKFRAME && !(dialog_is(w->hwnd) && w->style & DS_MODALFRAME);
+    COLORREF c = GetSysColor(sizing ? (on ? COLOR_ACTIVEBORDER : COLOR_INACTIVEBORDER)
+                                    : (on ? COLOR_ACTIVECAPTION : COLOR_INACTIVECAPTION));
+    COLORREF black = GetSysColor(COLOR_WINDOWFRAME);
+
+    ctl_fill(dc, 0, 0, wd, b, c);
+    ctl_fill(dc, 0, ht - b, wd, ht, c);
+    ctl_fill(dc, 0, b, b, ht - b, c);
+    ctl_fill(dc, wd - b, b, wd, ht - b, c);
+    if (!sizing)
+        return;
+    ctl_fill(dc, NOTCH, 0, NOTCH + 1, b, black);
+    ctl_fill(dc, wd - 1 - NOTCH, 0, wd - NOTCH, b, black);
+    ctl_fill(dc, NOTCH, ht - b, NOTCH + 1, ht, black);
+    ctl_fill(dc, wd - 1 - NOTCH, ht - b, wd - NOTCH, ht, black);
+    ctl_fill(dc, 0, NOTCH, b, NOTCH + 1, black);
+    ctl_fill(dc, 0, ht - 1 - NOTCH, b, ht - NOTCH, black);
+    ctl_fill(dc, wd - b, NOTCH, wd, NOTCH + 1, black);
+    ctl_fill(dc, wd - b, ht - 1 - NOTCH, wd, ht - NOTCH, black);
+}
+
+/* The caption: active or inactive colour, a black line under it, the
+ * system menu box on the left, the title centred in the rest. */
+static void paint_caption(Wnd *w, HDC dc, int on)
+{
+    HFONT old;
+    RECT r;
+    int left;
+
+    wnd_caption_rect(w, &r);
+    ctl_fill(dc, r.left, r.top, r.right, r.bottom, GetSysColor(on ? COLOR_ACTIVECAPTION : COLOR_INACTIVECAPTION));
+    ctl_fill(dc, r.left - 1, r.bottom, r.right + 1, r.bottom + 1, GetSysColor(COLOR_WINDOWFRAME));
+    left = r.left;
+    if (w->style & WS_SYSMENU) {
+        menu_paint_sysbox(w, dc, 0);
+        left += SYSBOX + 1;
+    }
+    old = SelectObject(dc, wnd_system_font());
+    SetBkMode(dc, TRANSPARENT);
+    SetTextColor(dc, GetSysColor(on ? COLOR_CAPTIONTEXT : COLOR_INACTIVECAPTIONTEXT));
+    SetTextAlign(dc, TA_CENTER);
+    TextOut(dc, (int16_t)((left + r.right) / 2), (int16_t)(r.top + 2), w->text, (int16_t)SDL_strlen(w->text));
+    SetTextAlign(dc, TA_LEFT);
+    SelectObject(dc, old);
+}
+
+/* The frame of a window: Windows 3.1's look (black outline, sizing
+ * border or dialog frame, caption, menu bar). */
 static void paint_frame(Wnd *w)
 {
     HDC dc = GetWindowDC(w->hwnd);
     int wd = w->rect.right - w->rect.left, ht = w->rect.bottom - w->rect.top;
-    int b = w->client.left - w->rect.left, top = w->client.top - w->rect.top;
+    int b = w->client.left - w->rect.left, on = w->hwnd == active;
     HBRUSH frame = CreateSolidBrush(GetSysColor(COLOR_WINDOWFRAME));
-    HBRUSH caption = CreateSolidBrush(GetSysColor(COLOR_ACTIVECAPTION));
     RECT r;
 
-    SetRect(&r, 0, 0, (int16_t)wd, (int16_t)ht);
-    FillRect(dc, &r, caption);
-    FrameRect(dc, &r, frame);
     if (b > 1) {
+        paint_band(w, dc, wd, ht, b, on);
         SetRect(&r, (int16_t)(b - 1), (int16_t)(b - 1), (int16_t)(wd - b + 1), (int16_t)(ht - b + 1));
         FrameRect(dc, &r, frame);
     }
-    if (top > b) {
-        HFONT font = CreateFont(-12, 0, 0, 0, 700, 0, 0, 0, 0, 0, 0, 0, 0, "System");
-        HFONT old = SelectObject(dc, font);
-        SetRect(&r, (int16_t)(b - 1), (int16_t)(top - 1), (int16_t)(wd - b + 1), (int16_t)top);
-        FillRect(dc, &r, frame);
-        SetBkMode(dc, TRANSPARENT);
-        SetTextColor(dc, GetSysColor(COLOR_CAPTIONTEXT));
-        SetTextAlign(dc, TA_CENTER);
-        TextOut(dc, (int16_t)(wd / 2), (int16_t)(b + 2), w->text, (int16_t)SDL_strlen(w->text));
-        SelectObject(dc, old);
-        DeleteObject(font);
+    if (b > 0) {
+        SetRect(&r, 0, 0, (int16_t)wd, (int16_t)ht);
+        FrameRect(dc, &r, frame);
     }
+    if (has_caption(w))
+        paint_caption(w, dc, on);
+    menu_paint_bar(w, dc);
     DeleteObject(frame);
-    DeleteObject(caption);
     ReleaseDC(w->hwnd, dc);
+}
+
+static int has_frame(const Wnd *w)
+{
+    return w->client.left != w->rect.left || w->client.top != w->rect.top;
+}
+
+void wnd_reframe(HWND h)
+{
+    Wnd *w = wnd_get(h);
+    RECT old;
+
+    if (!w)
+        return;
+    old = w->client;
+    frame_of(w);
+    if (old.left != w->client.left || old.top != w->client.top || old.right != w->client.right ||
+        old.bottom != w->client.bottom) {
+        zgen++;
+        if (wnd_visible(w))
+            invalidate_tree(w, &w->rect, 1);
+        if (old.right - old.left != w->client.right - w->client.left ||
+            old.bottom - old.top != w->client.bottom - w->client.top)
+            w->proc(h, WM_SIZE, 0, MAKELONG(w->client.right - w->client.left, w->client.bottom - w->client.top));
+        if (wnd_get(h) && (old.left != w->client.left || old.top != w->client.top))
+            w->proc(h, WM_MOVE, 0, MAKELONG(w->client.left, w->client.top));
+    }
+    if (wnd_get(h) && wnd_visible(w) && has_frame(w))
+        SendMessage(h, WM_NCPAINT, 0, 0);
 }
 
 /* The brush of a system colour, made once. */
@@ -833,13 +1038,41 @@ LRESULT DefWindowProc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
     PAINTSTRUCT ps;
     RECT r;
 
-    (void)lp;
+    if (!w)
+        return 0;
     switch (msg) {
     case WM_NCPAINT:
-        if (w && (w->client.left != w->rect.left || w->client.top != w->rect.top))
+        if (has_frame(w))
             paint_frame(w);
         return 0;
+    case WM_NCACTIVATE:
+        if (wnd_visible(w) && has_frame(w))
+            paint_frame(w);
+        return 1;
+    case WM_NCLBUTTONDOWN:
+        if (wp == HTMENU || wp == HTSYSMENU)
+            SendMessage(h, WM_SYSCOMMAND, SC_MOUSEMENU + (wp == HTSYSMENU ? HTSYSMENU : 0), lp);
+        return 0;
+    case WM_SYSKEYDOWN:
+        if (wp == VK_F4 && lp & KF_ALT)
+            PostMessage(top_level(w)->hwnd, WM_SYSCOMMAND, SC_CLOSE, 0);
+        return 0;
+    case WM_KEYUP:
+    case WM_SYSKEYUP:
+        if ((wp == VK_MENU || wp == VK_F10) && input_menu_key_tapped())
+            SendMessage(top_level(w)->hwnd, WM_SYSCOMMAND, SC_KEYMENU, 0);
+        return 0;
+    case WM_SYSCHAR:
+        if (!(lp & KF_ALT))
+            MessageBeep(0);
+        else if (wp == ' ' && wnd_is_child(w))
+            SendMessage(w->parent, msg, wp, lp);
+        else if (wp != '\t' && wp != 27)
+            SendMessage(h, WM_SYSCOMMAND, SC_KEYMENU, (LPARAM)wp);
+        return 0;
     case WM_CTLCOLOR:
+        if (HIWORD(lp) == CTLCOLOR_SCROLLBAR)
+            return sys_brush(COLOR_SCROLLBAR);
         SetTextColor(wp, GetSysColor(COLOR_WINDOWTEXT));
         SetBkColor(wp, GetSysColor(COLOR_WINDOW));
         return sys_brush(COLOR_WINDOW);
@@ -857,8 +1090,18 @@ LRESULT DefWindowProc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
         DestroyWindow(h);
         return 0;
     case WM_SYSCOMMAND:
-        if ((wp & 0xfff0) == SC_CLOSE)
+        switch (wp & 0xfff0) {
+        case SC_CLOSE:
             PostMessage(h, WM_CLOSE, 0, 0);
+            break;
+        case SC_KEYMENU:
+        case SC_MOUSEMENU:
+            menu_syscommand(top_level(w)->hwnd, wp, lp);
+            break;
+        default:
+            win_stub("DefWindowProc: WM_SYSCOMMAND move, size, minimize, maximize, restore, task list");
+            break;
+        }
         return 0;
     }
     return 0;

@@ -25,5 +25,7 @@ int  video_save_ppm(const char *path);
 
 /* Window pixel position to framebuffer position. */
 void video_map_point(float wx, float wy, int *x, int *y);
+/* Framebuffer position to window pixel position (test input). */
+void video_window_point(int x, int y, float *wx, float *wy);
 
 #endif

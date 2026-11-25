@@ -8,14 +8,12 @@
 #include "video.h"
 
 #define FRAME_MS 16
-#define KF_ALT 0x20000000L      /* lParam: the context code (Alt held) */
-#define KF_REPEAT 0x40000000L   /* lParam: the key was already down */
-#define KF_UP 0x80000000L       /* lParam: transition (key released) */
 
 static BYTE keys[256];
 static POINT cursor;
 static uint32_t last_frame;
-static int alt_alone;           /* Alt pressed with no other key since */
+static int alt_alone;           /* Alt or F10 pressed with no other key since */
+static int menu_key_tapped;     /* ... and released */
 
 /* SDL key to virtual-key code. */
 static const struct {
@@ -111,12 +109,14 @@ static void on_key(const SDL_KeyboardEvent *e)
         if (!(keys[vk] & 0x80))
             keys[vk] ^= 1;
         keys[vk] |= 0x80;
-        alt_alone = vk == VK_MENU ? !e->repeat || alt_alone : 0;
+        alt_alone = vk == VK_MENU || vk == VK_F10 ? !e->repeat || alt_alone : 0;
+        menu_key_tapped = 0;
         post_key(vk, 1, e->repeat);
     } else {
+        menu_key_tapped = alt_alone && (vk == VK_MENU || vk == VK_F10);
         post_key(vk, 0, 0);
         keys[vk] &= 0x7f;
-        if (vk == VK_MENU)
+        if (vk == VK_MENU || vk == VK_F10)
             alt_alone = 0;
     }
 }
@@ -134,8 +134,8 @@ static void on_mouse(UINT msg, float wx, float wy)
         wp |= MK_LBUTTON;
     if (keys[VK_RBUTTON] & 0x80)
         wp |= MK_RBUTTON;
-    if ((h = wnd_at(x, y)) != 0 || msg != WM_MOUSEMOVE)
-        wnd_send_click(h, msg, x, y, wp);
+    h = wnd_at(x, y);
+    wnd_send_click(h, msg, x, y, wp);
 }
 
 static void on_button(const SDL_MouseButtonEvent *e)
@@ -204,6 +204,14 @@ BOOL TranslateMessage(const MSG *m)
     if (!c)
         return 0;
     return PostMessage(m->hwnd, m->message == WM_KEYDOWN ? WM_CHAR : WM_SYSCHAR, (WPARAM)c, m->lParam);
+}
+
+int input_menu_key_tapped(void)
+{
+    int tapped = menu_key_tapped;
+
+    menu_key_tapped = 0;
+    return tapped;
 }
 
 int16_t GetKeyState(int16_t vk)

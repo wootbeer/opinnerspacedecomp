@@ -62,6 +62,12 @@ Command line:
   time, so the frame a screen appears at varies a little between runs.
 - `--shots N` (with `--dump FILE`): also save every Nth frame as
   `FILE-NNNNN.ppm`.
+- `--mouse "FRAME:X,Y[,ACTION];..."`: move the mouse to framebuffer point
+  (X, Y) at frame FRAME, then ACTION: `move` (the default), `down`, `up`,
+  `click` (down, up two frames later), `dclick` (a double click's second
+  press, then up), `rdown`, `rup`, `rclick`. Example:
+  `--mouse "4000:300,200,rclick;4100:320,255,click"` opens the game's
+  right-button menu in a wave and chooses Exit Game.
 
 Game data (INSPACE.EXE and the other original files) is read from `data/`
 or the folder in `INSPACE_DATA`; it is not part of the repository. The game

@@ -406,6 +406,7 @@ void dialog_register(void)
     WNDCLASS wc;
 
     memset(&wc, 0, sizeof wc);
+    wc.style = CS_SAVEBITS;
     wc.lpfnWndProc = dlg_wndproc;
     wc.hbrBackground = GetStockObject(WHITE_BRUSH);
     wc.lpszClassName = DIALOG_CLASS;

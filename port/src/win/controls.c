@@ -112,9 +112,7 @@ void ctl_bevel(HDC dc, int l, int t, int r, int b, int thin)
     }
 }
 
-/* Text with '&' prefixes (unless noprefix): the '&' is not drawn, the
- * next character is underlined.  Returns the width. */
-static int label(HDC dc, int x, int y, const char *s, int n, int noprefix, int draw)
+int ctl_label(HDC dc, int x, int y, const char *s, int n, int noprefix, int draw)
 {
     TEXTMETRIC tm;
     int w = 0, i;
@@ -149,15 +147,15 @@ static void wrapped(HDC dc, const RECT *r, const char *s, int align, int noprefi
         int n = 0, fit = 0, w;
         while (s[n] && s[n] != '\n') {
             n++;
-            if ((s[n] == ' ' || !s[n] || s[n] == '\n') && label(dc, 0, 0, s, n, noprefix, 0) <= width)
+            if ((s[n] == ' ' || !s[n] || s[n] == '\n') && ctl_label(dc, 0, 0, s, n, noprefix, 0) <= width)
                 fit = n;
-            else if (label(dc, 0, 0, s, n, noprefix, 0) > width)
+            else if (ctl_label(dc, 0, 0, s, n, noprefix, 0) > width)
                 break;
         }
         if (!fit)
             fit = n > 0 ? n : 1;
-        w = label(dc, 0, 0, s, fit, noprefix, 0);
-        label(dc, align == SS_RIGHT ? r->right - w : align == SS_CENTER ? r->left + (width - w) / 2 : r->left,
+        w = ctl_label(dc, 0, 0, s, fit, noprefix, 0);
+        ctl_label(dc, align == SS_RIGHT ? r->right - w : align == SS_CENTER ? r->left + (width - w) / 2 : r->left,
               y, s, fit, noprefix, 1);
         s += fit;
         while (*s == ' ')
@@ -229,10 +227,10 @@ static void button_paint(HWND h)
     GetTextMetrics(dc, &tm);
     SetBkMode(dc, TRANSPARENT);
     SetTextColor(dc, IsWindowEnabled(h) ? GetSysColor(COLOR_BTNTEXT) : GetSysColor(17));
-    tw = label(dc, 0, 0, w->text, (int)SDL_strlen(w->text), 0, 0);
+    tw = ctl_label(dc, 0, 0, w->text, (int)SDL_strlen(w->text), 0, 0);
     tx = (wd - tw) / 2 + c->pressed;
     ty = (ht - tm.tmHeight) / 2 + c->pressed;
-    label(dc, tx, ty, w->text, (int)SDL_strlen(w->text), 0, 1);
+    ctl_label(dc, tx, ty, w->text, (int)SDL_strlen(w->text), 0, 1);
     if (GetFocus() == h) {
         SetRect(&r, (int16_t)(tx - 2), (int16_t)ty, (int16_t)(tx + tw + 2), (int16_t)(ty + tm.tmHeight));
         DrawFocusRect(dc, &r);
@@ -260,13 +258,13 @@ static void group_paint(HWND h)
     ctl_fill(dc, 0, r.bottom - 1, r.right, r.bottom, frame);
     ctl_fill(dc, 0, y, 1, r.bottom, frame);
     ctl_fill(dc, r.right - 1, y, r.right, r.bottom, frame);
-    tw = label(dc, 0, 0, w->text, (int)SDL_strlen(w->text), 0, 0);
+    tw = ctl_label(dc, 0, 0, w->text, (int)SDL_strlen(w->text), 0, 0);
     SetRect(&r, 8, 0, (int16_t)(10 + tw), (int16_t)tm.tmHeight);
     if (bg)
         FillRect(dc, &r, bg);
     SetBkMode(dc, TRANSPARENT);
     SetTextColor(dc, GetSysColor(COLOR_WINDOWTEXT));
-    label(dc, 9, 0, w->text, (int)SDL_strlen(w->text), 0, 1);
+    ctl_label(dc, 9, 0, w->text, (int)SDL_strlen(w->text), 0, 1);
     ctl_release(h, dc, old);
 }
 
@@ -417,7 +415,7 @@ static void combo_paint(HWND h)
         SetTextColor(dc, GetSysColor(COLOR_HIGHLIGHTTEXT));
     }
     if (c->sel >= 0 && c->sel < c->count)
-        label(dc, 4, (ht - combo_item_h(h)) / 2, c->items[c->sel], (int)SDL_strlen(c->items[c->sel]), 1, 1);
+        ctl_label(dc, 4, (ht - combo_item_h(h)) / 2, c->items[c->sel], (int)SDL_strlen(c->items[c->sel]), 1, 1);
     if (GetFocus() == h && !c->list) {
         SetRect(&r, 3, 3, (int16_t)(ax - 2), (int16_t)(ht - 3));
         DrawFocusRect(dc, &r);
@@ -478,7 +476,7 @@ static void combo_open(HWND h)
                            (int16_t)(w->rect.right - w->rect.left), (int16_t)lh, h, 0, 0, NULL);
     if (c->hot >= 0)
         list_set_hot(h, c->hot);
-    ShowWindow(c->list, SW_SHOW);
+    ShowWindow(c->list, SW_SHOWNA);
     SetCapture(c->list);
     InvalidateRect(h, NULL, 0);
 }
@@ -786,7 +784,7 @@ static LRESULT list_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
             if (i == c->hot)
                 ctl_fill(dc, 0, y, w, y + ih, GetSysColor(COLOR_HIGHLIGHT));
             SetTextColor(dc, GetSysColor(i == c->hot ? COLOR_HIGHLIGHTTEXT : COLOR_WINDOWTEXT));
-            label(dc, 2, y, c->items[i], (int)SDL_strlen(c->items[i]), 1, 1);
+            ctl_label(dc, 2, y, c->items[i], (int)SDL_strlen(c->items[i]), 1, 1);
         }
         if (old)
             SelectObject(dc, old);
@@ -827,6 +825,7 @@ void controls_register(void)
     } cls[] = {
         {"Button", button_proc}, {"Static", static_proc}, {"Edit", edit_proc},
         {"ComboBox", combo_proc}, {LIST_CLASS, list_proc}, {"ListBox", listbox_proc},
+        {"ScrollBar", scrollbar_proc},
     };
     WNDCLASS wc;
     size_t i;

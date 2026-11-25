@@ -567,6 +567,119 @@ in ispace_room.h.
   The native DLL code calls `combo_*` (user.h) directly; WM_SETTEXT is
   sent after SetWindowText has stored the text.
 
+## Menus and scroll bars (port/src/win/menu.c, scrollbar.c)
+
+- **What the game has.** MENU resources of ENG_LANG.DLL (read at run
+  time): 101 (the menu bar: Game, Ship Cmds, Defenders, Watch, Help), 102
+  (the same with Strategy, when DS:9134 is set), 110 (Ship Factory's,
+  unused by INSPACE.EXE) and POPUPMENU (Options Menu, Game Options.., Exit
+  Game), the right-button menu in a wave (2:134c, TrackPopupMenu).
+  System menus: IS_ICON (7:6184) and IS_SMART (13:613a) append "1/2x
+  Scale" (0xf0, ModifyMenu checks it); the main window appends "&Main
+  Menus" (0x60, the menu bar on/off) when it is restored to a window
+  (2:0d78 SC_RESTORE, after a double click toggles full screen, 2:1046).
+  2:170e grays menu items by position after game-state changes. The game
+  handles none of WM_INITMENU, WM_INITMENUPOPUP, WM_MENUSELECT; menu and
+  accelerator commands arrive as WM_COMMAND (2:13b2) and WM_SYSCOMMAND
+  (2:0d78). One scroll bar: the radar zoom (11:3790, `scrollbar` child
+  200, range 100-500, position 600 - DS:0a6c), whose WM_VSCROLL 11:7798
+  handles: SB_LINEUP/DOWN 20 steps, SB_TOP/BOTTOM, SB_THUMBTRACK and
+  SB_THUMBPOSITION; page clicks do nothing. Created only when DS:094e is
+  0.
+- **INI `Menu`.** Both reads (6:0000, 6:0a6c) default to 0 and 6:033e
+  writes the current state back at exit, so a first run has no menu bar,
+  as the port's default is. The help file: "Turn on Game Menu ... Press
+  the 'Display..' button on the Game Settings dialog" (ordinal 10 mode 0,
+  not ported) or, windowed, the system menu's Main Menus.
+- **The menu bar** is the main window's id (GWW_ID), as in Windows: the
+  game turns it on and off with SetWindowWord + DrawMenuBar, which works
+  out the client area again (18 pixels less, WM_SIZE; the game lays out
+  again). A full-screen (WS_POPUP) window shows a bar too.
+- **Menu loop** (modal, as Windows 3.1's): the game's idle loop stops
+  while a menu is open (timers and painting go on). Mouse: a title opens
+  its popup (clicking it again closes the menu), moving over titles with
+  a popup open switches popups, release on an enabled item chooses it,
+  a click outside ends the menu. Keyboard: Alt or F10 tapped alone (no
+  other key between press and release; tracked in input.c as Windows
+  tracks it at its input queue) selects the first title, Alt+letter opens
+  the title with that mnemonic, Alt+Space the system menu; arrows, Enter,
+  Esc (first closes the popup, then the menu), letters, Alt/F10 released
+  end it. Grayed items can be selected, not chosen. Commands are posted
+  after the loop: WM_COMMAND (id, 0), WM_SYSCOMMAND (id, mouse position
+  or 0). Esc ends the menu on its key-down; its WM_KEYUP then reaches
+  the game window, and the game acts on key-ups (Esc there asks to leave
+  the wave), as it would under Windows [uncertain: not checked against
+  Windows 3.1].
+- **System menu**: Windows 3.1's (Restore, Move, Size, Minimize,
+  Maximize, Close Alt+F4, Switch To... Ctrl+Esc), a copy per window with
+  WS_SYSMENU made by GetSystemMenu; Restore always gray (no window is
+  minimized or maximized in the port), Size/Minimize/Maximize gray
+  without WS_THICKFRAME/MINIMIZEBOX/MAXIMIZEBOX. DefWindowProc's Move,
+  Size, Minimize, Maximize, Restore and Switch To log and do nothing.
+- **Look** [uncertain: sizes from Windows 3.1's metrics as far as known,
+  the rest approximated]: System font (Liberation Sans Bold, as in
+  captions); bar 18 pixels (SM_CYMENU) with a black line under it, titles
+  6 pixels each side; popups with a black border, items 18 high, a 14
+  pixel check mark column and right margin, separators 8 high with a
+  line in the middle, accelerator texts in a column 14 pixels after the
+  widest text; no drop shadow; selection in the highlight colours, gray
+  text for grayed items. System menu box 18 pixels (SM_CXSIZE), a bar
+  like a space bar, inverted while its menu is selected. Popups drop from
+  the bar's bottom line (the caption's for the system menu) and are kept
+  on the screen; they keep what they cover (CS_SAVEBITS) and are not
+  activated.
+- **Scroll bar** (vertical controls only; the game has no others):
+  arrows as long as SM_CYVSCROLL (17, at most half the bar) and the
+  thumb as long [uncertain: Windows 3.1 may scale both for a 14-pixel
+  wide bar], thumb top = arrow + (pos - min) * (length - 2 arrows -
+  thumb) / (max - min), rounded. A click is tracked in a loop of its own
+  until release (the game waits, as under Windows 3.1): arrows and page
+  areas send their code at once, again after 200 ms and every 50 ms
+  while held and under the mouse [uncertain: Windows 3.1's delays];
+  the thumb follows the mouse (SB_THUMBTRACK when the position changes,
+  SB_THUMBPOSITION at release); SB_ENDSCROLL last. A held page area is
+  inverted [uncertain]. The shaft is the parent's WM_CTLCOLOR
+  (CTLCOLOR_SCROLLBAR) brush, COLOR_SCROLLBAR by default. Not modelled:
+  the thumb snapping back when the mouse goes far from the bar, keyboard
+  (the game's bar has no WS_TABSTOP, so it never has the focus).
+- **Frames and activation** (user.c). Sizing borders (WS_THICKFRAME:
+  IS_NAV, IS_ICON, IS_SMART, IS_WATCH, the windowed main window) are 4
+  pixels (SM_CXFRAME [inferred: border width 3 plus 1]) in the border
+  colour, with black marks across them 21 pixels in from each corner
+  [uncertain]; captions are drawn in the inactive colours (white, black
+  text) when the window is not the active one, and repainted when
+  activation changes (WM_NCACTIVATE). ShowWindow with SW_SHOW or
+  SW_SHOWNORMAL activates a top-level window, and when the active window
+  is destroyed or hidden its owner (else the topmost other window) is
+  activated, as in Windows; dialogs are now the active window while
+  shown, which the game expects (2:11f8 excludes them from its pause
+  test). Sizable and overlapped windows are kept within the tracking
+  sizes their WM_GETMINMAXINFO gives when made, moved or sized
+  (DefWindowProc's WM_WINDOWPOSCHANGING in Windows): IS_ICON and
+  IS_SMART size themselves this way (their height from the number of
+  pilots, half size with 1/2x Scale); the Navigation window is at least
+  560x350; the windowed main window at least 600x400 in a wave, and
+  otherwise fixed at its current size [uncertain: at creation its
+  handler reads GetWindowRect of a window not yet made, 640x480 in the
+  port]. Defaults: minimum 100x28 (SM_CXMINTRACK, SM_CYMINTRACK
+  [uncertain]), maximum the screen plus the borders.
+- **The dark-blue patch** at the top right of waves (x 592-640) was the
+  IS_ICON pilot-icon window (INI `IconWnd`, default 1; `IconLeft`
+  defaults to the screen width - 48, so 2 pixels are off the screen as
+  in the original) drawn with an active caption, no system menu box, a
+  1-pixel border and 50x150 instead of its own size. It is now drawn as
+  Windows drew it: inactive (white) caption with the system menu box,
+  sizing border, sized for its pilots.
+- **Non-client mouse input.** Clicks and moves outside a window's
+  client area (no capture) are WM_NCxxx messages with the hit-test code
+  and screen coordinates, as in Windows; DefWindowProc opens menus for
+  HTMENU and HTSYSMENU (SC_MOUSEMENU). Before, such clicks reached the
+  window procedures as client messages with negative coordinates.
+- **Game code, noted, not changed:** 2:0d78's case 0x60 (Main Menus)
+  returns no value [sic]; the caller passes WM_SYSCOMMAND 0x60 to
+  DefWindowProc when the leftover value is nonzero, which ignores it, so
+  either way nothing more happens.
+
 ## ISPACE.DLL dialogs (port/src/win/ispace_dlg.c)
 
 - **Ordinal 10 (9:145e)** keeps some of its words for the dialogs by mode
