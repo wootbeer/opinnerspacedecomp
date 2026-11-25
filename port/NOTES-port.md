@@ -1127,26 +1127,71 @@ on.  The MIDI output's volume is the music's share of SoundVolume
 did not use the MIDI Mapper; the port always plays.
 
 ispace_music.c ports that logic onto mci.c (the sequencer calls the DLL
-makes), which plays through platform_music_* (play a .MID file from a
-time to a time, pause, stop, volume, "ended").  No platform plays MIDI
-yet: platform_music_open fails, as MCI did without a MIDI device, and
-the game runs without music.  Backends to choose from (not chosen):
+makes), which plays through platform_music_* (port/src/platform/: play
+a .MID file from a time to a time, pause, stop, volume, "ended").
+platform_music.c picks a backend each time a file is opened:
 
-- **Windows:** the system's MIDI output (midiOut through the MIDI
-  Mapper / Microsoft GS Wavetable Synth, or MCI's sequencer itself):
-  the 1994 sound on that machine, no extra files, small code.
-- **Android:** MediaPlayer on the user's own .MID file (its built-in
-  synthesizer, through Java, as Descent-GX does): seekTo, pause, volume
-  and the position for "ended at" (polled).
-- **Linux and other desktops:** a software synthesizer with a SoundFont
-  the user supplies, read at run time (TinySoundFont + TinyMidiLoader,
-  MIT, single headers, in third_party/ like stb_truetype): one code
-  path for every platform and the same sound everywhere, but needs a
-  .sf2 (a General MIDI one: GeneralUser GS or FluidR3 are free); or
-  FluidSynth (LGPL, a library dependency); or OPL3 FM emulation (e.g.
-  Nuked-OPL3, LGPL; or the MIT ymfm) with a General MIDI FM patch set,
-  close to what most 1994 Sound Blasters played, no SoundFont needed.
-- Recommendation: the OS synthesizer where there is one (Windows,
-  Android) and TinySoundFont with a user-supplied SoundFont elsewhere
-  (optional also on Windows/Android, INI [Port]), all behind
-  platform_music_*.
+- **TinySoundFont** (music_tsf.c) when INSPACE.INI `[Port] SoundFont=`
+  names a SoundFont (.sf2, a host path), on every platform: the file
+  played by TinySoundFont on the user's SoundFont, rendered into the SDL
+  audio device through a stream of its own, which SDL mixes with the
+  effects' (the dump, `--audio-dump`, is the device's mix). The
+  SoundFont is read once (a General MIDI one: FluidR3_GM, GeneralUser GS
+  ...); none is shipped. Its level (GAIN_DB, -14 dB) puts FluidR3_GM's
+  playing of the four files at about -20 dBFS RMS, peaks near -6 dBFS,
+  like the effects [chosen; the 1994 balance depended on the card].
+- **The system's synthesizer** otherwise: on Windows (music_win.c) the
+  file's messages sent to the MIDI Mapper (midiOut, normally the
+  Microsoft GS Wavetable Synth) at their times by a thread of ours. Not
+  MCI's sequencer: it would time the file itself, but its only volume,
+  midiOutSetVolume, is the whole program's on the GS synth (the effects
+  would follow the music volume); here the music volume scales each
+  channel's volume controller (by the square root: GM's level goes with
+  its square), the louder side for both. Untested on Windows so far
+  (it builds; the port is cross-compiled). Linux has none: without a
+  SoundFont there is no music, logged once ("no music: no SoundFont
+  set"). A SoundFont that does not load is logged once and Windows then
+  uses its own synthesizer.
+- **Android** (not built yet) will add a third, music_android.c, as
+  Descent-GX plays MIDI: the .MID file's path handed through JNI to the
+  activity's MediaPlayer (setDataSource + prepare on open; seekTo(from)
+  + start on play, from the current position for PLATFORM_MUSIC_HERE;
+  pause; setVolume(left, right) from the 0-0xffff volumes; reset on
+  close), "ended" by polling getCurrentPosition() >= to (or the
+  completion listener for the file's end) from platform_music_ended,
+  which mci_notify calls with the input events. MediaPlayer's synthesizer
+  sets the channels' state on seekTo itself [inferred]. Its timing is coarser (tens of ms)
+  and its synthesizer is Android's own (Sonivox); `[Port] SoundFont=`
+  would still pick TinySoundFont.
+
+TinySoundFont and the Windows backend share music_seq.c (TinyMidiLoader
+reads the file into timed messages): play starts by resetting the 16
+channels (controllers, sustain, bank 0, volume 100, pan 64, program 0,
+pitch bend centre) and sending every message before `from` except notes
+(programs, controllers and pitch bends as the file has set them by then;
+MCI's sequencer chased them too [inferred]), then the messages as they
+fall due; at `to` (0: the file's end) all notes end with their release
+and "ended" is set, which mci_notify posts as MM_MCINOTIFY. Pause ends
+the notes the same way; play from PLATFORM_MUSIC_HERE goes on from where
+it stopped (the channels chased again, held notes not restarted).
+TinySoundFont sends messages between blocks of 64 frames (1.5 ms at
+44.1 kHz) and counts time in rendered frames, so "ended" follows the
+sound; the Windows thread wakes at the next message's time by SDL's
+clock (1 ms timer resolution).
+
+- **Uncertain:** pieces 5 (ANTHEM.MID 200.0-216.6 s) and 8 (MAIN.MID
+  292.0-301.0 s) end past their file's end (200.8 s, 295.5 s): the port
+  ends them at the file's end, as if MCI clamped the end time rather
+  than failing the play [uncertain: MCI may have refused the play
+  (MCIERR_OUTOFRANGE) and the DLL then closed the music]. The file's
+  end is its last message (End of Track can be some ms later).
+- **Verified** (Linux, FluidR3_GM, dummy audio device and `--audio-dump`;
+  a scratch program driving platform_music_* as mci.c does): sections
+  are the file's messages from `from` to `to` (the dump matches an
+  offline rendering of the same section to -72 dB), loops restart at
+  the section's start with no gap, pause and resume, the volume per
+  side, a piece past the file's end, a new file; in the game the title
+  (piece 0), the demo's piece 7 going on with piece 2 when it ends (5.0 s
+  later in the dump), the wave's piece 1, the pause for dialogs, with
+  the effects mixed in; ASan and TSan runs clean. SDL's dummy device runs about 3% slower
+  than the wall clock, so "ended" comes that much later there.

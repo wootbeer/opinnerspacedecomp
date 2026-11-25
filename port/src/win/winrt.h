@@ -52,8 +52,10 @@ int dos_list(const char *dos_dir, DosEntry **out);
 /* DOS wildcard match of an 8.3 name ("*.EXE", "*.*"). */
 int dos_match(const char *name, const char *pattern);
 
-/* Port settings (INSPACE.INI [Port]; profile.c): 1 when name=1. */
+/* Port settings (INSPACE.INI [Port]; profile.c): 1 when name=1; a
+ * value and its length (0: not set). */
 int port_option(const char *name);
+int port_setting(const char *name, char *buf, int size);
 
 /* Modules and resources (module.c).  A resource name or type is a
  * string or MAKEINTRESOURCE(n). */

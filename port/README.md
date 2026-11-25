@@ -14,8 +14,10 @@ can work on.
 - `src/video.c` – 256-colour framebuffer shown through SDL3; frames can be
   saved (`--dump`) to compare with the original.
 - `src/platform/` – everything machine-specific the game needs (time, date,
-  folders and files to explore, data location, sound output, MIDI music). One implementation per
-  platform; game code never calls the OS directly.
+  folders and files to explore, data location, sound output, MIDI music):
+  `platform_sdl.c` on SDL3 for every platform, and the music backends
+  behind `platform_music.c` (`music_tsf.c` on a SoundFont, `music_win.c`
+  on Windows' MIDI output). Game code never calls the OS directly.
 
 - `src/game/` – the game logic, generated from the decomp (see
   `NOTES-port.md`).
@@ -29,6 +31,10 @@ can work on.
     `LICENSE`): Sans Regular, Bold, Bold Italic and Serif Italic. The game
     asks for Windows' Arial and Times New Roman; Liberation Sans and Serif
     have the same metrics.
+  - `tsf/` (TinySoundFont v0.9 `tsf.h`, MIT, and TinyMidiLoader v0.7
+    `tml.h`, zlib; licences in `LICENSE` and at the top of each header;
+    github.com/schellingb/TinySoundFont at commit a3621a1, 2026-11-17):
+    the MIDI music on a SoundFont (`[Port] SoundFont=`).
 
 ## Fonts
 
@@ -62,8 +68,9 @@ Command line:
   time, so the frame a screen appears at varies a little between runs.
 - `--shots N` (with `--dump FILE`): also save every Nth frame as
   `FILE-NNNNN.ppm`.
-- `--audio-dump FILE.wav`: also write everything played (16-bit
-  stereo, 11025 Hz) to FILE.wav. Without a sound device run with
+- `--audio-dump FILE.wav`: also write everything played (the sound
+  device's mix of effects and SoundFont music, 16-bit, at the device's
+  rate) to FILE.wav. Without a sound device run with
   `SDL_AUDIO_DRIVER=dummy`, which plays in real time into nothing.
 - `--mouse "FRAME:X,Y[,ACTION];..."`: move the mouse to framebuffer point
   (X, Y) at frame FRAME, then ACTION: `move` (the default), `down`, `up`,
@@ -96,6 +103,12 @@ the switches are off unless set to 1.
 - `DriveC=<folder>` (any letter C-Z): the host folder the game sees as
   that drive, an absolute path in the host's form. It replaces the
   platform's choice for that letter ("Drives and file names").
+- `SoundFont=<file>`: a SoundFont (.sf2, General MIDI, e.g. FluidR3_GM or
+  GeneralUser GS; none comes with the port), an absolute path in the
+  host's form. The music (the game's MAIN.MID, RACE.MID, ANTHEM.MID and
+  DEMON.MID) is then played on it, on every platform. Without it Windows
+  plays the music on its own MIDI synthesizer and Linux plays none
+  (NOTES-port.md "Music").
 
 ## Game speed
 

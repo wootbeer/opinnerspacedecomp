@@ -1,6 +1,7 @@
 /* Platform implementation on SDL3, shared by Windows, Linux and Android.
  * Folder roots are filled in when the game code needs them. */
 #include "platform/platform.h"
+#include "platform/sdl_audio.h"
 
 #include <SDL3/SDL.h>
 #include <string.h>
@@ -209,29 +210,68 @@ int platform_find_path(const char *path, char *out, int size)
 }
 
 static struct {
-    SDL_AudioStream *stream;
+    SDL_AudioDeviceID device;
+    int failed;                 /* no device: not tried again */
+    SDL_AudioStream *effects;   /* platform_audio_open's */
     PlatformAudioFn fn;
     void *user;
     SDL_IOStream *dump;
-    Uint32 dumped;          /* bytes of samples written to dump */
-    int rate;
+    Uint32 dumped;              /* bytes of samples written to dump */
+    SDL_AudioSpec dump_spec;
 } audio;
 
-static void write_wav_header(SDL_IOStream *io, int rate, Uint32 bytes)
+static void write_wav_header(SDL_IOStream *io, const SDL_AudioSpec *spec, Uint32 bytes)
 {
+    Uint16 frame = (Uint16)(spec->channels * 2);
+
     SDL_SeekIO(io, 0, SDL_IO_SEEK_SET);
     SDL_WriteIO(io, "RIFF", 4);
     SDL_WriteU32LE(io, 36 + bytes);
     SDL_WriteIO(io, "WAVEfmt ", 8);
     SDL_WriteU32LE(io, 16);
     SDL_WriteU16LE(io, 1);                      /* PCM */
-    SDL_WriteU16LE(io, 2);
-    SDL_WriteU32LE(io, (Uint32)rate);
-    SDL_WriteU32LE(io, (Uint32)rate * 4);
-    SDL_WriteU16LE(io, 4);
+    SDL_WriteU16LE(io, (Uint16)spec->channels);
+    SDL_WriteU32LE(io, (Uint32)spec->freq);
+    SDL_WriteU32LE(io, (Uint32)spec->freq * frame);
+    SDL_WriteU16LE(io, frame);
     SDL_WriteU16LE(io, 16);
     SDL_WriteIO(io, "data", 4);
     SDL_WriteU32LE(io, bytes);
+}
+
+/* The device's final mix, as 16-bit samples, to the dump. */
+static void SDLCALL dump_mix(void *userdata, const SDL_AudioSpec *spec, float *buffer, int buflen)
+{
+    Sint16 out[1024];
+    int n = buflen / (int)sizeof *buffer, i, k;
+
+    (void)userdata;
+    audio.dump_spec = *spec;
+    for (i = 0; i < n; i += k) {
+        for (k = 0; k < (int)SDL_arraysize(out) && i + k < n; k++)
+            out[k] = (Sint16)(SDL_clamp(buffer[i + k], -1.0f, 1.0f) * 32767.0f);
+        if (SDL_WriteIO(audio.dump, out, (size_t)k * 2) == (size_t)k * 2)
+            audio.dumped += (Uint32)k * 2;
+    }
+}
+
+SDL_AudioDeviceID platform_sdl_audio_device(void)
+{
+    SDL_AudioSpec spec = {SDL_AUDIO_S16, 2, 44100};
+
+    if (audio.device || audio.failed)
+        return audio.device;
+    if (!SDL_InitSubSystem(SDL_INIT_AUDIO) ||
+        !(audio.device = SDL_OpenAudioDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec))) {
+        SDL_Log("no sound: %s", SDL_GetError());
+        audio.failed = 1;
+        return 0;
+    }
+    if (audio.dump && SDL_GetAudioDeviceFormat(audio.device, &audio.dump_spec, NULL)) {
+        write_wav_header(audio.dump, &audio.dump_spec, 0);
+        SDL_SetAudioPostmixCallback(audio.device, dump_mix, NULL);
+    }
+    return audio.device;
 }
 
 static void SDLCALL audio_more(void *userdata, SDL_AudioStream *stream, int additional, int total)
@@ -244,49 +284,41 @@ static void SDLCALL audio_more(void *userdata, SDL_AudioStream *stream, int addi
         int frames = SDL_min(additional / 4 + (additional % 4 != 0), (int)(sizeof buf / 4));
         audio.fn(buf, frames, audio.user);
         SDL_PutAudioStreamData(stream, buf, frames * 4);
-        if (audio.dump && SDL_WriteIO(audio.dump, buf, (size_t)frames * 4) == (size_t)frames * 4)
-            audio.dumped += (Uint32)frames * 4;
         additional -= frames * 4;
     }
 }
 
 int platform_audio_open(int rate, PlatformAudioFn fn, void *user)
 {
-    SDL_AudioSpec spec;
+    SDL_AudioSpec spec = {SDL_AUDIO_S16, 2, rate};
 
-    if (audio.stream)
+    if (audio.effects)
         return 1;
-    if (!SDL_InitSubSystem(SDL_INIT_AUDIO)) {
-        SDL_Log("no sound: %s", SDL_GetError());
+    if (!platform_sdl_audio_device())
         return 0;
-    }
-    spec.format = SDL_AUDIO_S16;
-    spec.channels = 2;
-    spec.freq = rate;
     audio.fn = fn;
     audio.user = user;
-    audio.rate = rate;
-    audio.stream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, audio_more, NULL);
-    if (!audio.stream) {
+    audio.effects = SDL_CreateAudioStream(&spec, NULL);
+    if (!audio.effects || !SDL_SetAudioStreamGetCallback(audio.effects, audio_more, NULL) ||
+        !SDL_BindAudioStream(audio.device, audio.effects)) {
         SDL_Log("no sound: %s", SDL_GetError());
+        SDL_DestroyAudioStream(audio.effects);
+        audio.effects = NULL;
         return 0;
     }
-    if (audio.dump)
-        write_wav_header(audio.dump, rate, 0);
-    SDL_ResumeAudioStreamDevice(audio.stream);
     return 1;
 }
 
 void platform_audio_lock(void)
 {
-    if (audio.stream)
-        SDL_LockAudioStream(audio.stream);
+    if (audio.effects)
+        SDL_LockAudioStream(audio.effects);
 }
 
 void platform_audio_unlock(void)
 {
-    if (audio.stream)
-        SDL_UnlockAudioStream(audio.stream);
+    if (audio.effects)
+        SDL_UnlockAudioStream(audio.effects);
 }
 
 void platform_audio_dump(const char *path)
@@ -298,12 +330,15 @@ void platform_audio_dump(const char *path)
 
 void platform_audio_close(void)
 {
-    if (audio.stream) {
-        SDL_DestroyAudioStream(audio.stream);
-        audio.stream = NULL;
+    platform_music_close();
+    SDL_DestroyAudioStream(audio.effects);
+    audio.effects = NULL;
+    if (audio.device) {
+        SDL_CloseAudioDevice(audio.device);
+        audio.device = 0;
     }
     if (audio.dump) {
-        write_wav_header(audio.dump, audio.rate, audio.dumped);
+        write_wav_header(audio.dump, &audio.dump_spec, audio.dumped);
         SDL_CloseIO(audio.dump);
         audio.dump = NULL;
     }
@@ -325,36 +360,4 @@ void platform_beep(void)
     if (beep)
         beep(MB_OK);
 #endif
-}
-
-/* No MIDI playback yet on any platform. */
-int platform_music_open(const char *path)
-{
-    (void)path;
-    return 0;
-}
-
-void platform_music_play(uint32_t from, uint32_t to)
-{
-    (void)from;
-    (void)to;
-}
-
-void platform_music_pause(void)
-{
-}
-
-int platform_music_ended(void)
-{
-    return 0;
-}
-
-void platform_music_close(void)
-{
-}
-
-void platform_music_volume(uint16_t left, uint16_t right)
-{
-    (void)left;
-    (void)right;
 }

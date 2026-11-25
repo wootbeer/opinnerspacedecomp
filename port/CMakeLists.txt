@@ -11,6 +11,9 @@ add_executable(inspace
     src/main.c
     src/video.c
     src/platform/platform_sdl.c
+    src/platform/platform_music.c
+    src/platform/music_seq.c
+    src/platform/music_tsf.c
     src/win/controls.c
     src/win/crt.c
     src/win/dgroup.c
@@ -52,10 +55,17 @@ add_executable(inspace
     src/win/wavemix.c
     ${GAME_SOURCES}
     third_party/stb/stb_truetype.c
+    third_party/tsf/tsf.c
 )
 target_include_directories(inspace PRIVATE src src/game src/win third_party)
+# TinyMidiLoader's message type is a C11 anonymous union: a system header.
+target_include_directories(inspace SYSTEM PRIVATE third_party/tsf)
 target_link_libraries(inspace PRIVATE SDL3::SDL3)
-if(NOT WIN32 AND NOT MSVC)
+if(WIN32)
+    # The system's MIDI synthesizer (music_win.c).
+    target_sources(inspace PRIVATE src/platform/music_win.c)
+    target_link_libraries(inspace PRIVATE winmm)
+elseif(NOT MSVC)
     target_link_libraries(inspace PRIVATE m)
 endif()
 
@@ -67,7 +77,8 @@ endif()
 if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_options(inspace PRIVATE -Wall -Wextra -pedantic -fsigned-char -fwrapv -fno-strict-aliasing)
     # The generated game code still has the warnings listed in NOTES-port.md.
-    set_source_files_properties(${GAME_SOURCES} third_party/stb/stb_truetype.c PROPERTIES COMPILE_OPTIONS "-w")
+    set_source_files_properties(${GAME_SOURCES} third_party/stb/stb_truetype.c third_party/tsf/tsf.c
+                                PROPERTIES COMPILE_OPTIONS "-w")
 elseif(MSVC)
     target_compile_options(inspace PRIVATE /W4 /J-)
 endif()

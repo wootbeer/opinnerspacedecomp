@@ -231,9 +231,15 @@ int16_t GetProfileString(LPCSTR section, LPCSTR key, LPCSTR def, LPSTR buf, int1
     return GetPrivateProfileString(section, key, def, buf, size, "WIN.INI");
 }
 
-/* Port settings: INSPACE.INI [Port] name=1 turns an option on (default
- * off).  Listed in port/README.md. */
+/* Port settings, listed in port/README.md: INSPACE.INI [Port] name=1
+ * turns an option on (default off); port_setting gives a value (a host
+ * path) and its length, 0 when not set. */
 int port_option(const char *name)
 {
     return (int16_t)GetPrivateProfileInt("Port", name, 0, "INSPACE.INI") != 0;
+}
+
+int port_setting(const char *name, char *buf, int size)
+{
+    return GetPrivateProfileString("Port", name, "", buf, (int16_t)(size < 0x7fff ? size : 0x7fff), "INSPACE.INI");
 }

@@ -15,12 +15,15 @@ static struct {
 } seq = {0, 0, 0, 0xffffffff};
 
 /* MCI_OPEN of a sequencer with the file at dos_path: its device id, or
- * 0 (an MCI error). */
+ * 0 (an MCI error).  It plays on the SoundFont INSPACE.INI [Port]
+ * SoundFont= names (a host path), if any. */
 UINT mci_open_sequencer(LPCSTR dos_path)
 {
-    char host[1024];
+    char host[1024], soundfont[1024];
+    int has_soundfont = port_setting("SoundFont", soundfont, sizeof soundfont) > 0;
 
-    if (seq.open || !dos_to_host(dos_path, host, sizeof host) || !platform_music_open(host))
+    if (seq.open || !dos_to_host(dos_path, host, sizeof host) ||
+        !platform_music_open(host, has_soundfont ? soundfont : NULL))
         return 0;
     seq.open = 1;
     seq.pos = 0;
