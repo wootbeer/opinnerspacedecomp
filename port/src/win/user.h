@@ -74,6 +74,9 @@
 #define BS_AUTOCHECKBOX 3
 #define BM_GETCHECK (WM_USER + 0)
 #define BM_SETCHECK (WM_USER + 1)
+#define BM_GETSTATE (WM_USER + 2)
+#define BM_SETSTATE (WM_USER + 3)       /* shown pressed (wParam 1) or not */
+#define BST_PUSHED 0x0004
 #define SS_ICON 3
 #define STM_SETICON (WM_USER + 0)
 void CheckDlgButton(HWND dlg, int16_t id, UINT check);
@@ -193,6 +196,15 @@ HWND user_key_target(void);
 /* Alt or F10 was pressed and released with no other key between (the
  * menu key); asking clears it. */
 int input_menu_key_tapped(void);
+/* A key (an SDL key code) pressed or released as on the keyboard. */
+void input_key(uint32_t key, int down);
+
+/* The game controller (pad.c).  pad_game_port: what the 1994 game port
+ * loop (ISPACE.DLL 9:3ffe) reads, the loop counts of joystick A's x and
+ * y and n (2 or 4) buttons (bit k: button k + 1 held); 0 when no
+ * joystick answers.  pad_poll: the keys of the buttons (win_pump). */
+int pad_game_port(uint16_t count[2], uint16_t *buttons, int n);
+void pad_poll(void);
 
 /* Menus (menu.c).  A top-level window's menu bar is its id (GWW_ID), as
  * in Windows. */

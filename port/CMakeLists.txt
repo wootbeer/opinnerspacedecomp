@@ -14,6 +14,7 @@ add_executable(inspace
     src/platform/platform_music.c
     src/platform/music_seq.c
     src/platform/music_tsf.c
+    src/platform/platform_pad.c
     src/win/controls.c
     src/win/crt.c
     src/win/dgroup.c
@@ -30,6 +31,7 @@ add_executable(inspace
     src/win/ispace_cut.c
     src/win/ispace_dlg.c
     src/win/ispace_img.c
+    src/win/ispace_joy.c
     src/win/ispace_options.c
     src/win/ispace_panel.c
     src/win/ispace_pal.c
@@ -47,6 +49,7 @@ add_executable(inspace
     src/win/menu.c
     src/win/module.c
     src/win/ne.c
+    src/win/pad.c
     src/win/profile.c
     src/win/scrollbar.c
     src/win/startup.c

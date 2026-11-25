@@ -118,7 +118,7 @@ seg18.c:1354: call to fn_10_6ee6: long -> two words
 seg18.c:1662: call to fn_10_1eb6: dropped 2 extra argument(s): g_70ae[g_9646].f30, 1
 seg18.c:1997: call to fn_10_1eb6: dropped 2 extra argument(s): g_70ae[g_9646].f30, 1
 seg18.c:3118: call to fn_07_2080: dropped 1 extra argument(s): 0
-VIEW: 410
+VIEW: 408
 alias kept: 8
 alias resolved: 228
 assignment argument hoisted: 4

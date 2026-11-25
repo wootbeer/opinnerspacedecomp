@@ -40,7 +40,7 @@ static struct {
     int16_t ds_1f8c;            /* the saved game shown (-1: none) */
     int16_t ds_0cea;            /* the saved game last picked */
     int16_t ds_0cec;            /* the ship last picked */
-    int16_t ds_1f82, ds_2296;   /* set by dialogs not ported: 0 here */
+    int16_t ds_1f82;            /* set by a dialog not ported: 0 here */
     int16_t ds_1f78;            /* set: no team shown (by a dialog not ported; 0 here) */
     int16_t ds_1f88;            /* height of the last ship picture */
     BITMAP ds_2014;             /* the last ship picture's */
@@ -143,6 +143,11 @@ static void free_ships(void)
 
 /* 10:602a: the dialog's controls get the DLL's fonts (push buttons the
  * bold one) and are shown. */
+HFONT ispace_dialog_font(int bold)
+{
+    return st.font[bold];
+}
+
 void ispace_dialog_set_fonts(HWND dlg)
 {
     HWND c;
@@ -318,8 +323,8 @@ static LRESULT preview_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
             SelectObject(dc, old);
         }
         EndPaint(h, &ps);
-        if (st.ds_2296)
-            not_ported("ispace dialog: 9:48f8");
+        if (ispace_joy_dialog())
+            ispace_joy_paint();
         else if (st.ds_1f82)
             not_ported("ispace dialog: 10:02f4");
         else
@@ -349,6 +354,31 @@ static ATOM register_preview(int null_brush)
     wc.hbrBackground = GetStockObject(null_brush ? NULL_BRUSH : BLACK_BRUSH);
     wc.lpszClassName = "LevClass";
     return RegisterClass(&wc);
+}
+
+/* The Joystick dialog's test area (ispace_joy.c, 9:4298 and 9:4712): a
+ * LevClass window as DS:1540, its class registered with the background
+ * left unpainted; the class goes with the window. */
+HWND ispace_preview_open(HWND parent, int16_t x, int16_t y, int16_t w, int16_t h)
+{
+    if (register_preview(1))
+        st.preview[0] = CreateWindow("LevClass", NULL, WS_CHILD | WS_VISIBLE, x, y, w, h, parent, ID_PREVIEW,
+                                     ispace_module(), NULL);
+    return st.preview[0];
+}
+
+void ispace_preview_close(void)
+{
+    if (!st.preview[0])
+        return;
+    DestroyWindow(st.preview[0]);
+    st.preview[0] = 0;
+    UnregisterClass("LevClass", ispace_module());
+}
+
+HWND ispace_preview_window(void)
+{
+    return st.preview[0];
 }
 
 /* The height of "Test" in the dialogs' font: a list item's. */

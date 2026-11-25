@@ -1402,7 +1402,7 @@ extern int16_t (*g_fp_1d5c)(int16_t, int16_t, int32_t); /* DS:1d5c */
 #define g_1dee DGROUP_AT(int16_t (*), 0x1dee) /* DS:1dee */
 #define g_1df4 DGROUP_AT(int32_t (*), 0x1df4) /* DS:1df4 */
 extern REC_70 *g_1df8[0x15]; /* DS:1df8 */
-#define g_1e4c DGROUP_AT(int32_t (*), 0x1e4c) /* DS:1e4c */
+extern char *g_1e4c; /* DS:1e4c */
 #define g_1e50 DGROUP_AT(DWORD (*), 0x1e50) /* DS:1e50 */
 #define g_1e54 DGROUP_AT(DWORD (*), 0x1e54) /* DS:1e54 */
 #define g_1e58 DGROUP_AT(int32_t (*), 0x1e58) /* DS:1e58 */
@@ -1504,7 +1504,7 @@ extern void (*g_fp_3c74)(int16_t, int16_t, int32_t, int16_t, int32_t, int16_t, i
 extern HBITMAP (*g_fp_3c78)(int16_t, int16_t, RECT *, HGLOBAL, int16_t, int32_t, int16_t, int32_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t); /* DS:3c78 */
 extern void (*g_fp_3c7c)(int16_t, int16_t, int16_t, int16_t, int16_t); /* DS:3c7c */
 extern void (*g_fp_3c80)(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t); /* DS:3c80 */
-extern int16_t (*g_fp_3c84)(int16_t, int32_t); /* DS:3c84 */
+extern int16_t (*g_fp_3c84)(int16_t, char *); /* DS:3c84 */
 #define g_3c88 DGROUP_AT(DWORD (*), 0x3c88) /* DS:3c88 */
 #define g_3c8c DGROUP_AT(POINT (*)[3], 0x3c8c) /* DS:3c8c */
 #define g_3c9a DGROUP_AT(int16_t (*), 0x3c9a) /* DS:3c9a */

@@ -14,7 +14,11 @@
  * (MAKELONG(pos, the control)); after them and pseudo-ordinals 1001
  * (check a box), 1002 (pick a combo item) and 1003 (type a control's
  * text) the dialog's controls, its end and INSPACE.INI are printed
- * ("state"). */
+ * ("state").  Ordinal 41 reads into a block printed after the call
+ * ("outs"); pseudo-ordinal 1004 (x, y, buttons, present) is a virtual
+ * gamepad: the left stick, the face buttons A, B, X, Y as bits 0-3,
+ * attached or not; 1005 and 1006 are the Joystick dialog's procedure
+ * and timer. */
 #include <SDL3/SDL.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,6 +39,11 @@ static HBITMAP dc_bitmap;       /* the bitmap of a DC@K argument of this call */
 static RECT *rects;             /* ordinal 32's rectangles */
 static HGLOBAL rect_block;
 static HWND dlg;                /* the last DLGn */
+static char joystick[8];        /* ordinal 41's reading */
+static struct {
+    SDL_JoystickID id;
+    SDL_Joystick *j;
+} vpad;
 
 void app_frame(void)
 {
@@ -134,6 +143,37 @@ static int parse(char *line, int *ordinal, Args *a)
     return 1;
 }
 
+/* The virtual gamepad of pseudo-ordinal 1004. */
+static void set_pad(int16_t x, int16_t y, int buttons, int present)
+{
+    static const SDL_GamepadButton face[4] = {SDL_GAMEPAD_BUTTON_SOUTH, SDL_GAMEPAD_BUTTON_EAST,
+                                              SDL_GAMEPAD_BUTTON_WEST, SDL_GAMEPAD_BUTTON_NORTH};
+    SDL_VirtualJoystickDesc desc;
+    int i;
+
+    if (!present && vpad.j) {
+        SDL_CloseJoystick(vpad.j);
+        SDL_DetachVirtualJoystick(vpad.id);
+        vpad.j = NULL;
+    }
+    if (!present)
+        return;
+    if (!vpad.j) {
+        SDL_InitSubSystem(SDL_INIT_GAMEPAD);
+        SDL_INIT_INTERFACE(&desc);
+        desc.type = SDL_JOYSTICK_TYPE_GAMEPAD;
+        desc.naxes = SDL_GAMEPAD_AXIS_COUNT;
+        desc.nbuttons = SDL_GAMEPAD_BUTTON_COUNT;
+        vpad.id = SDL_AttachVirtualJoystick(&desc);
+        vpad.j = SDL_OpenJoystick(vpad.id);
+    }
+    SDL_SetJoystickVirtualAxis(vpad.j, SDL_GAMEPAD_AXIS_LEFTX, x);
+    SDL_SetJoystickVirtualAxis(vpad.j, SDL_GAMEPAD_AXIS_LEFTY, y);
+    for (i = 0; i < 4; i++)
+        SDL_SetJoystickVirtualButton(vpad.j, face[i], (buttons >> i) & 1);
+    SDL_UpdateJoysticks();
+}
+
 static int16_t run(int ordinal, Args *a)
 {
     int16_t *w = a->w;
@@ -181,6 +221,14 @@ static int16_t run(int ordinal, Args *a)
     case 37: return ispace_display_proc((HWND)w[0], (UINT)w[1], (WPARAM)(uint16_t)w[2], (LPARAM)a->l[3]);
     case 38: return ispace_audio_proc((HWND)w[0], (UINT)w[1], (WPARAM)(uint16_t)w[2], (LPARAM)a->l[3]);
     case 26: return ispace_save_proc((HWND)w[0], (UINT)w[1], (WPARAM)(uint16_t)w[2], (LPARAM)a->l[3]);
+    case 41: return ispace_joystick(w[0], joystick);
+    case 1004:
+        set_pad(w[0], w[1], w[2], w[3]);
+        return 0;
+    case 1005: return ispace_joy_proc((HWND)w[0], (UINT)w[1], (WPARAM)(uint16_t)w[2], (LPARAM)a->l[3]);
+    case 1006:
+        ispace_joy_timer();
+        return 0;
     case 1001:
         CheckDlgButton(dlg, w[0], (UINT)w[1]);
         return 0;
@@ -244,12 +292,13 @@ static void print_dialog(void)
     HWND c, focus = GetFocus();
     char cls[20], text[256], item[256], items[1024];
     int16_t lo = 0, hi = 0, pos = 0, sel, i, n, result;
-    int checked;
+    int checked, pressed;
     char *p;
 
     for (c = GetWindow(dlg, GW_CHILD); c; c = GetWindow(c, GW_HWNDNEXT)) {
         GetClassName(c, cls, sizeof cls);
         checked = !strcmp(cls, "Button") ? (int)SendMessage(c, BM_GETCHECK, 0, 0) : 0;
+        pressed = !strcmp(cls, "Button") && SendMessage(c, BM_GETSTATE, 0, 0) & BST_PUSHED;
         sel = -1;
         items[0] = 0;
         if (!strcmp(cls, "ComboBox")) {
@@ -270,8 +319,8 @@ static void print_dialog(void)
         GetWindowText(c, text, sizeof text);
         while ((p = strchr(text, '&')) != NULL)
             memmove(p, p + 1, strlen(p));
-        printf("state %d %s en %d chk %d sel %d [%s] sb %d %d %d \"%s\"\n", GetDlgCtrlID(c), cls,
-               IsWindowEnabled(c) != 0, checked, sel, items, lo, hi, pos, text);
+        printf("state %d %s en %d chk %d hi %d sel %d [%s] sb %d %d %d \"%s\"\n", GetDlgCtrlID(c), cls,
+               IsWindowEnabled(c) != 0, checked, pressed, sel, items, lo, hi, pos, text);
     }
     while (focus && GetParent(focus) && GetParent(focus) != dlg)
         focus = GetParent(focus);           /* a combo box's edit field: the combo box */
@@ -296,8 +345,12 @@ static void report(int k, int ordinal, const Args *a)
                 printf(" %d", a->w[i]);
         printf("\n");
     }
-    if (ordinal == 11 || ordinal == 26 || ordinal == 37 || ordinal == 38 || (ordinal >= 1001 && ordinal <= 1003))
+    if (ordinal == 11 || ordinal == 26 || ordinal == 37 || ordinal == 38 || (ordinal >= 1001 && ordinal <= 1003) ||
+        ordinal == 1005 || ordinal == 1006)
         print_dialog();
+    if (ordinal == 41)
+        printf("outs %u %u %d %d %d %d\n", (uint8_t)joystick[0] | (uint8_t)joystick[1] << 8,
+               (uint8_t)joystick[2] | (uint8_t)joystick[3] << 8, joystick[4], joystick[5], joystick[6], joystick[7]);
     if (ordinal >= 7 && ordinal <= 9) {
         DWORD v;
         waveOutGetVolume(0, &v);

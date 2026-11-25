@@ -30,16 +30,23 @@ from emu import INI, IspaceEmu, ROOT, GetDlgItem, dialog_state, dialog_window, n
 # gives X,Y), R the rectangle block
 # of ordinal 32 (no script argument: a far pointer and a handle), p a
 # far pointer to a word (the script gives its value; the words are
-# compared after the call).
-ORDINALS = {10: 'wwwwwww', 11: 'wwwl', 26: 'wwwl', 37: 'wwwl', 38: 'wwwl', 1001: 'ww', 1002: 'ww', 1003: 'ws', 1: 'wwswww', 2: 'wwswwwwwwwbbbw', 3: 's', 4: 'wwwwwww', 5: '', 6: 'www', 12: 'wwswwwwwwbb', 1000: 'wwswww',
+# compared after the call), B an 8-byte block (no script argument:
+# ordinal 41's reading, x and y words and four button bytes, compared
+# after the call).
+ORDINALS = {41: 'wB', 1004: 'wwww', 1005: 'wwwl', 1006: '', 10: 'wwwwwww', 11: 'wwwl', 26: 'wwwl', 37: 'wwwl', 38: 'wwwl', 1001: 'ww', 1002: 'ww', 1003: 'ws', 1: 'wwswww', 2: 'wwswwwwwwwbbbw', 3: 's', 4: 'wwwwwww', 5: '', 6: 'www', 12: 'wwswwwwwwbb', 1000: 'wwswww',
             7: 'lw', 8: 'Pwwl', 9: 'wPwllls', 14: 'wwwww', 15: 'wwwwwwwww', 18: 'wwwwww', 29: 'ppppppppwwwwpp', 32: 'wwRwlwlwwwwww', 33: 'wwlwlwws', 34: 'wwwwww', 35: 'wwwwww'}
 # Ordinals after which the wave device's volume is compared (as outs).
 SOUND = {7, 8, 9}
 # Ordinals that return nothing (AX is left over).
-VOID = {14}
+VOID = {14, 1006}
 # Pseudo-ordinal -> (segment, offset) of a C-convention routine: 1000 is
 # 5:0000, the ship picture of the dialogs (pal, id, name, a, b, mode).
 INTERNAL = {1000: (5, 0x0000)}
+# Pseudo-ordinal -> (segment, offset) of a Pascal routine the DLL does not
+# export: 1005 is the Joystick dialog's procedure 9:40da (template 975,
+# opened from Game Settings), 1006 its timer 9:4d02 (the NotifyClass
+# window's WM_TIMER).
+PASCAL = {1005: (9, 0x40da), 1006: (9, 0x4d02)}
 # Dialog procedures (hwnd, msg, wParam, lParam): the first argument DLGn
 # makes a dialog from the language DLL's template n (the script sends its
 # WM_INITDIALOG), DLG is the last one made; C<id>:<pos> is the long
@@ -47,8 +54,13 @@ INTERNAL = {1000: (5, 0x0000)}
 # call the dialog's state is compared.  Pseudo-ordinals 1001 (id, 0/1),
 # 1002 (id, item) and 1003 (id, "text") are the user checking a box,
 # picking an item and typing a control's text.
-DIALOGS = {11, 26, 37, 38, 1001, 1002, 1003}
+DIALOGS = {11, 26, 37, 38, 1001, 1002, 1003, 1005, 1006}
 USER = {1001: 'checked', 1002: 'sel', 1003: 'text'}
+# Pseudo-ordinal 1004 (x, y, buttons, present) is the joystick on the
+# game port: the left stick at x, y (-32768..32767), buttons held (bit 0
+# = button 1, A), plugged in or not; the port's side is a virtual
+# gamepad (port_calls).
+JOYSTICK = 1004
 
 
 def parse_script(path):
@@ -72,7 +84,12 @@ def run_emu(calls, data_dir):
     e = IspaceEmu(data_dir)
     results, out, dlg = [], [], 0
     for k, (ordinal, args) in enumerate(calls):
-        words, rect_block, mdc, ptrs, sdc = [], None, None, [], None
+        words, rect_block, mdc, ptrs, sdc, block = [], None, None, [], None, None
+        if ordinal == JOYSTICK:
+            e.set_joystick(*(int(a, 0) for a in args))
+            results.append(0)
+            out.append(dict(ret=0, bmp=None, dcbmp=None, pals={}, rects=None, outs=[], texts=[], state=None))
+            continue
         if ordinal in USER:
             w = e.windows[GetDlgItem(e, dlg, int(args[0], 0))]
             w[USER[ordinal]] = args[1] if ordinal == 1003 else int(args[1], 0)
@@ -92,6 +109,9 @@ def run_emu(calls, data_dir):
             elif kind == 'R':
                 rect_block = e.galloc(8)
                 words += [e.blocks[rect_block][0], 0, rect_block]
+            elif kind == 'B':
+                block = e.blocks[e.galloc(8)][0]
+                words += [block, 0]
             elif kind == 's':
                 fp = e.far_string(a)
                 words += [fp >> 16, fp & 0xffff] if ordinal not in INTERNAL else [fp & 0xffff, fp >> 16]
@@ -121,6 +141,8 @@ def run_emu(calls, data_dir):
         try:
             if ordinal in INTERNAL:
                 r = e.call(*INTERNAL[ordinal], words[::-1]) & 0xffff
+            elif ordinal in PASCAL:
+                r = e.call(*PASCAL[ordinal], words) & 0xffff
             else:
                 r = e.call_ordinal(ordinal, words) & 0xffff
         except RuntimeError as x:
@@ -134,6 +156,8 @@ def run_emu(calls, data_dir):
             n = e.blocks.get(e.word(e.ds * 16 + 0x1a36), [0, 0])[1] // 8
             rects = [struct.unpack('<4h', e.rd(lin + 8 * i, 8)) for i in range(n)]
         outs = [struct.unpack('<h', e.rd(q, 2))[0] for q in ptrs]
+        if block is not None:
+            outs = list(struct.unpack('<HH4B', e.rd(block * 16, 8)))
         if ordinal in SOUND:
             outs = [e.wave_volume & 0xffff, e.wave_volume >> 16]
         db = e.bitmap(e.obj(sdc, 'dc')['bmp']) if sdc else None

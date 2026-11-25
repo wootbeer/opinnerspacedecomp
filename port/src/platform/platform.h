@@ -80,4 +80,20 @@ void platform_music_volume(uint16_t left, uint16_t right);
 /* The system's default beep (Windows' MessageBeep); nothing elsewhere. */
 void platform_beep(void);
 
+/* Game controller (platform_pad.c): a gamepad (Xbox, PlayStation,
+ * Switch, Steam Deck ...), else any joystick; plugged in or out at any
+ * time.  Buttons are named by place: A is the bottom face button, B the
+ * right, X the left, Y the top one; the triggers count as held from half
+ * way.  platform_pad_read gives 0 when no controller is connected. */
+enum {
+    PAD_A, PAD_B, PAD_X, PAD_Y, PAD_BACK, PAD_START, PAD_LEFT_STICK, PAD_RIGHT_STICK,
+    PAD_LEFT_SHOULDER, PAD_RIGHT_SHOULDER, PAD_UP, PAD_DOWN, PAD_LEFT, PAD_RIGHT,
+    PAD_LEFT_TRIGGER, PAD_RIGHT_TRIGGER, PAD_BUTTONS
+};
+typedef struct {
+    uint16_t x, y;              /* left stick: 0 (left, up) to 65535, 32768 centred */
+    uint32_t buttons;           /* 1 << PAD_x: held */
+} PlatformPad;
+int platform_pad_read(PlatformPad *out);
+
 #endif

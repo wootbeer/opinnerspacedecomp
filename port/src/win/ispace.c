@@ -182,7 +182,6 @@ int16_t ispace_blit_double(HDC dst, int16_t x, int16_t y, int16_t w, int16_t h, 
 }
 
 static void ispace_17(int16_t a, int16_t b, int32_t c, int16_t d, int16_t e, int16_t f, int16_t g, char h, char i, int16_t j, int16_t k, char l, char m) { (void)a; (void)b; (void)c; (void)d; (void)e; (void)f; (void)g; (void)h; (void)i; (void)j; (void)k; (void)l; (void)m; STUB(); }
-static int16_t ispace_41(int16_t a, int32_t b) { (void)a; (void)b; STUB(); return 0; }
 
 FARPROC ispace_proc(int ordinal)
 {
@@ -209,7 +208,7 @@ FARPROC ispace_proc(int ordinal)
     case 34: return PROC(ispace_bevel);
     case 35: return PROC(ispace_gauge);
     case 36: return PROC(ispace_blit_double);
-    case 41: return PROC(ispace_41);
+    case 41: return PROC(ispace_joystick);
     default: return NULL;
     }
 }

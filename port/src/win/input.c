@@ -1,6 +1,7 @@
 /* Keyboard and mouse: SDL events become Windows 3.1 input messages
  * (US keyboard layout), the key state table and the cursor position. */
 #include <SDL3/SDL_events.h>
+#include <SDL3/SDL_stdinc.h>
 #include <string.h>
 
 #include "user.h"
@@ -99,19 +100,19 @@ static void post_key(int vk, int down, int repeat)
         PostMessage(target, msg, (WPARAM)vk, lp);
 }
 
-static void on_key(const SDL_KeyboardEvent *e)
+static void on_key(SDL_Keycode key, int down, int repeat)
 {
-    int vk = vk_of(e->key);
+    int vk = vk_of(key);
 
     if (!vk)
         return;
-    if (e->down) {
+    if (down) {
         if (!(keys[vk] & 0x80))
             keys[vk] ^= 1;
         keys[vk] |= 0x80;
-        alt_alone = vk == VK_MENU || vk == VK_F10 ? !e->repeat || alt_alone : 0;
+        alt_alone = vk == VK_MENU || vk == VK_F10 ? !repeat || alt_alone : 0;
         menu_key_tapped = 0;
-        post_key(vk, 1, e->repeat);
+        post_key(vk, 1, repeat);
     } else {
         menu_key_tapped = alt_alone && (vk == VK_MENU || vk == VK_F10);
         post_key(vk, 0, 0);
@@ -170,7 +171,7 @@ void win_pump(void)
             break;
         case SDL_EVENT_KEY_DOWN:
         case SDL_EVENT_KEY_UP:
-            on_key(&ev.key);
+            on_key(ev.key.key, ev.key.down, ev.key.repeat);
             break;
         case SDL_EVENT_MOUSE_MOTION:
             on_mouse(WM_MOUSEMOVE, ev.motion.x, ev.motion.y);
@@ -183,6 +184,7 @@ void win_pump(void)
             break;
         }
     }
+    pad_poll();
     wavemix_notify();
     mci_notify();
     now = platform_time_ms();
@@ -190,6 +192,35 @@ void win_pump(void)
         last_frame = now;
         app_frame();
     }
+}
+
+void input_key(uint32_t key, int down)
+{
+    on_key((SDL_Keycode)key, down, 0);
+}
+
+int win_key_names(const char *spec, uint32_t out[WIN_KEYS])
+{
+    static const struct {
+        const char *name;
+        SDL_Keycode key;
+    } modifiers[] = {{"Alt", SDLK_LALT}, {"Ctrl", SDLK_LCTRL}, {"Shift", SDLK_LSHIFT}};
+    char buf[64], *part, *save;
+    int n = 0;
+    size_t i;
+
+    SDL_strlcpy(buf, spec, sizeof buf);
+    for (part = SDL_strtok_r(buf, "+", &save); part; part = SDL_strtok_r(NULL, "+", &save)) {
+        if (n == WIN_KEYS)
+            return 0;
+        out[n] = SDL_GetKeyFromName(part);
+        for (i = 0; i < SDL_arraysize(modifiers); i++)
+            if (!SDL_strcasecmp(part, modifiers[i].name))
+                out[n] = modifiers[i].key;
+        if (out[n++] == SDLK_UNKNOWN)
+            return 0;
+    }
+    return n;
 }
 
 /* WM_CHAR for WM_KEYDOWN, WM_SYSCHAR for WM_SYSKEYDOWN, when the key

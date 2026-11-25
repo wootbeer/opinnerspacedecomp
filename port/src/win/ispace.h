@@ -180,6 +180,11 @@ int16_t ispace_dialog_word6(void);  /* DS:2136: the sixth word of the last call 
  * dialog's controls. */
 void ispace_dialog_fonts(int make);
 void ispace_dialog_set_fonts(HWND dlg);
+HFONT ispace_dialog_font(int bold);      /* DS:1714 (0), DS:1716 (1: bold) */
+/* The LevClass window DS:1540 as the Joystick dialog's test area. */
+HWND ispace_preview_open(HWND parent, int16_t x, int16_t y, int16_t w, int16_t h);
+void ispace_preview_close(void);
+HWND ispace_preview_window(void);
 /* The procedure of the Save Game dialog (template 167), ordinal 26
  * (10:0dc0). */
 BOOL ispace_save_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp);
@@ -193,6 +198,17 @@ int16_t ispace_options(HWND owner);
 BOOL ispace_options_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp);
 BOOL ispace_display_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp);
 BOOL ispace_audio_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp);
+
+/* Ordinal 41 (9:3e8a): joystick n (0 or 1) read into out (x and y
+ * words, four button bytes); the Joystick dialog (template 975, 9:40da)
+ * and its timer (9:4d02, NotifyClass's WM_TIMER); the joystick's INI
+ * settings, which 9:22ca reads (ispace_joy.c). */
+int16_t ispace_joystick(int16_t n, char *out);
+BOOL ispace_joy_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp);
+void ispace_joy_timer(void);
+void ispace_joy_read_settings(void);
+HWND ispace_joy_dialog(void);           /* DS:2296: the dialog while it runs */
+void ispace_joy_paint(void);            /* 9:48f8 for the test area's WM_PAINT */
 
 /* The settings 9:22ca reads from the INI (ispace_sound.c), which the
  * Game Settings dialogs (ispace_options.c) show and change. */

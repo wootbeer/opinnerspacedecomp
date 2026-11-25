@@ -376,7 +376,7 @@ BOOL ispace_options_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
         DialogBox(ispace_lang_module(), MAKEINTRESOURCE(999), h, ispace_audio_proc);
         return 0;
     case ID_JOYSTICK:
-        win_stub("ispace dialog: joystick (9:40da)");
+        DialogBox(ispace_lang_module(), MAKEINTRESOURCE(975), h, ispace_joy_proc);
         return 0;
     }
     return 0;

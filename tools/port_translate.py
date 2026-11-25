@@ -438,7 +438,9 @@ class FileTranslator:
         if msz != vt.size():
             return False
         if isinstance(mt, Ptr) or isinstance(vt, Ptr):
-            return isinstance(mt, Ptr) and isinstance(vt, Ptr) or \
+            if isinstance(mt, Ptr) and isinstance(vt, Ptr):
+                return self.same_pointee(mt.to, vt.to)
+            return \
                 (isinstance(mt, Win) and mt.name in ('LPSTR', 'LPCSTR', 'FARPROC', 'DLGPROC')) or \
                 (isinstance(vt, Win) and vt.name in ('LPSTR', 'LPCSTR', 'FARPROC', 'DLGPROC'))
         if isinstance(mt, Struct) or isinstance(vt, Struct):
@@ -456,6 +458,14 @@ class FileTranslator:
             return isinstance(mt, Arr) and isinstance(vt, Arr) and \
                 self.compatible(strip_arr(mt), strip_arr(vt)) if strip_arr(mt).size() == strip_arr(vt).size() \
                 else False
+        return True
+
+    @staticmethod
+    def same_pointee(a, b):
+        """Pointers to integers of different sizes are different views
+        (a far pointer kept as a byte pointer and read as words)."""
+        if isinstance(a, Prim) and isinstance(b, Prim) and a.name != b.name:
+            return a.size() == b.size()
         return True
 
     def ds_path(self, addr, size, vt):

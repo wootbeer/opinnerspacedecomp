@@ -242,6 +242,13 @@ the overrides; `src/inspace/` is unchanged.
   blocks are now sized in native records (`sizeof *g_1df8[0]`), so the
   zeroed part is exactly the 1994 one. [uncertain: the rocks of mass 0
   and link 0 of the tether fix above may have been this as well.]
+- **The joystick's reading (DS:1e4c).** Not a 1994 bug but the native
+  layout: 6:1b62 keeps the far pointer of the 8-byte block ordinal 41
+  fills in a long, which held a truncated native pointer, and 11:7504
+  read it through views of DS:1e4c-1e53 (the pointer and the game time
+  g_1e50): with INSPACE.INI `JoyStick=1` a wave read through a wild
+  pointer. g_1e4c is now a native pointer (`extern` and `fix` entries;
+  port_translate.py keeps a word view of a byte pointer as a VIEW).
 - **Empty directory paths (6:4368, 6:420a, 6:4190, 6:4748).**
   `path[lstrlen(path) - 1]` read the byte before the buffer when the path
   was empty; that byte was almost never `\`, so a `\` was appended. The
@@ -904,8 +911,8 @@ in ispace_room.h.
   frees and loads both, reopens the mixer (9:04e0 restarting) and loads
   the sounds again. Controls the device cannot use are grayed.
 - **Help** runs WinHelp on <SndPath><Language>_HELP.HLP, contexts 15 and
-  0x20 (stubbed: logged). **Joystick..** (template 975, 9:40da, which
-  reads the joystick through ordinal 41) is not ported: logged.
+  0x20 (stubbed: logged). **Joystick..** runs the Joystick dialog
+  (template 975, 9:40da; "Joystick" below).
 - **Checked against the DLL** with the oracle (tools/dll_oracle/options.txt):
   the three dialog procedures called with WM_INITDIALOG, every scroll code
   on each bar, the user's checks and picks, OK and Cancel, the grayed
@@ -941,6 +948,101 @@ in ispace_room.h.
   mouse, as in Windows; before, clicks on Audio.. and Display.. went to
   the group box), and a dropped-down combo box takes every key
   (DLGC_WANTMESSAGE: Enter picks the item instead of pressing OK).
+
+## Joystick (ISPACE.DLL ordinal 41, the Joystick dialog; port/src/win/ispace_joy.c, pad.c, port/src/platform/platform_pad.c)
+
+- **No MMSYSTEM joystick.** Neither INSPACE.EXE nor ISPACE.DLL imports
+  joyGetPos, joyGetDevCaps, joyGetNumDevs, joySetCapture or
+  joySetThreshold (their relocations: MMSYSTEM 2, 202, 211, 212, 401,
+  402, 415, 416, 604, 607, 701 only), and no module asks for them by
+  name. The main window procedure (2:0224) takes MM_JOY1MOVE (0x3a0),
+  MM_JOY1BUTTONDOWN (0x3b5) and MM_JOY1BUTTONUP (0x3b7) like key
+  messages, but without joySetCapture none ever came; the port sends
+  none and has no joy* API.
+- **The game port.** 9:3ffe reads joystick A on port 0x201 itself, with
+  interrupts off: the buttons (bits 4-7, low while held: A's two, then
+  B's two as buttons 3 and 4), then it fires the one-shots (`out`) and
+  counts reads while the x and y bits stay high, in longs starting at
+  -1 (steps DS:1a00-1a06, all 1); a count reaching 0x30000 means
+  nothing is there (0). The port does not time anything: pad.c gives
+  the counts from the controller's left stick, 0-1023 (the stick's
+  0-65535 shifted by 6 [port's choice: about what a 486's loop counted;
+  uncertain]); buttons 3 and 4 (X, Y) only with "4 Buttons" ticked,
+  as a two-button stick had none there.
+- **Ordinal 41 (9:3e8a)** (n, far pointer to 8 bytes): n above 1 gives
+  0xa5; nothing answering, a MessageBeep and 0xa7; else x and y as
+  count * 771 / 1000 + 14, the four buttons as bytes 0/1, and 0. Once
+  calibrated (DS:2294 = 3, which 9:22ca sets whenever it reads the
+  settings) each axis goes through the INI's corners: below JMinX gives
+  0, else (v - JMinX) * (0xffff / JRangeX), at most 0xffff (signed long
+  arithmetic, 3:0130 and 3:00fe). n picks nothing: joystick A is read.
+- **INI keys.** `JoyStick` (on; the game's g_8ff4, 6:0b3e, and the DLL's
+  DS:228e, 9:22ca), `4Btns`, `JMinX`, `JMinY`, `JRangeX`, `JRangeY`
+  (9:22ca), `JBtn0`-`JBtn3` (each button's action, default its number;
+  the game's g_1dcc, 6:0b3e). The Joystick dialog writes them all on OK.
+- **The game** (only with JoyStick set): the frame step (7:0000) and the
+  sub-game's (16:64fa) call 11:72b2 every 50 ms of game time, which
+  reads ordinal 41 into DS:1e4c unless the ship's f_0e2 is set and, on
+  0xa7, turns the joystick off until the INI is read again (a pulled
+  cable; the port's unplugged controller too); then 11:7504 every frame:
+  - Buttons (11:7588): action 0 Fire Gun (g_1042, as Shift or Space in
+    11:4db0) and 3 Turbo Thrust (g_103e, as Ctrl in 11:63b4) while held;
+    on a press 1 Fire Weapon (WM_KEYUP Return), 2 Change Weapon
+    (WM_KEYDOWN Tab), 4 Call Ambulance (WM_KEYDOWN H), 5 New Ship
+    Target (WM_KEYDOWN R), 6 Cloak/Shield (WM_KEYUP Caps Lock), posted
+    to the game window.
+  - The stick: x and y / 0x3444 (at most 4) pick a cell of the 5 x 5
+    table DS:1018: the outer ring is a heading 0-15 (0 up, clockwise),
+    the middle 3 x 3 nothing (-1): a dead zone of three fifths of each
+    axis. 11:7650 turns the ship towards the heading (g_1044/g_1046 as
+    Left/Right in 11:592a, the shorter way round) and, once it faces
+    it, thrusts (g_1040 as Up in 11:5ab6); not on autopilot (g_9134).
+    So the stick points where to fly; there is no proportional control.
+- **The Joystick dialog** (template 975, 9:40da; DS:2296 its window):
+  Joystick Enabled reads the joystick (unchecked again when nothing
+  answers) and enables Calibrate, Buttons 1-2 and their actions, 4
+  Buttons, and with it Buttons 3-4; the state text (strings 0x95f-0x964
+  by DS:2294: -1 no joystick, 0 needs calibrating, 1 upper left, 2 lower
+  right, 3 calibrated, 4 disabled). Calibrate (9:4213) disables itself
+  and OK and asks for the upper left corner. A timer (SetTimer on the
+  NotifyClass window, 50 ms; its WM_TIMER runs 9:4d02) reads the
+  joystick and draws the LevClass test area (160 x 160 at 40, 88;
+  9:48f8): while calibrating the upper left corner so far (JMin, and
+  DS:1a14 the most it reached) and then the lower right one (JRange =
+  the reading less JMin, unsigned, at least 1) as text; calibrated, a
+  white cross where the stick points and the buttons shown pressed
+  (BM_SETSTATE), a newly pressed one playing sound 0x6e and its
+  action's (9:4f46). Any button takes the upper left corner; the lower
+  right one only once both readings reach DS:1a14 (signed), so the
+  corner is not taken where the stick was when Calibrate was pressed.
+  Then sound 0x2a and OK and Calibrate come back (sound 0x15 after the
+  first corner). OK (9:4712) writes the INI; OK and Cancel end the
+  timer and the test area. Checked against the DLL with the oracle
+  (tools/dll_oracle/joystick.txt, 69 calls agree).
+- **Quirks kept:** the dialog's corners and "4 Buttons" stay the DLL's
+  after Cancel, and the game's readings use them until 9:22ca reads the
+  INI again (the next wave); a JoyStick turned on but never calibrated is
+  written on OK; Esc does nothing (Cancel is id 333); Help asks WinHelp
+  for <SndPath>INSPACE.HLP, context 0x23, a file the game does not have;
+  only JMinX and JRangeX decide whether the INI's corners count as
+  calibrated. [uncertain: the test area overlaps the 4 Buttons box and
+  the first action list, by the port's dialog units.]
+- **Fixed silently:** a range of 0 (JoyStick on, never calibrated: the
+  DLL divides by zero) reads that axis as the middle, so the ship does
+  not turn by itself; the test area is not drawn when its window could
+  not be made (the DLL drew through GetDC(0) on the screen).
+- **Port: the controller** (platform_pad.c): the first SDL gamepad
+  (standard mapping), else the first other joystick (buttons 0-9 as A,
+  B, X, Y, shoulders, Back, Start, stick buttons; hat 0 as the d-pad;
+  axes 0 and 1 as the stick). An SDL event watch notes controllers added
+  or removed; the choice is made again at the next reading. Triggers
+  count as held from half way. pad.c sends each button's keys from a
+  table (INI `[Port] Pad<button>=`, port/README.md "Gamepad") through
+  the keyboard path (input.c); for 500 ms after a game-port read the
+  joystick's buttons send none, so in a wave and in the dialog they are
+  only the joystick's (the dialog needs them for calibrating; X and Y,
+  Tab and Space, stay usable for its controls unless "4 Buttons" takes
+  them).
 
 ## Inner Space Navigation (seg06d; dosfs.c, listbox.c, icon.c)
 

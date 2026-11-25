@@ -101,7 +101,13 @@ the first command again after files are added there.
   `SOUNDS\SND_FX.DLL` and `ENG_FX.DLL`, and sounds are not played (the
   wave and MIDI volumes are kept; MCI commands are recorded).
   `C:\WINDOWS\WAVEMIX.DLL` exists, as the port's WaveMix always does:
-  GetProcAddress gives stand-ins that succeed and play nothing. Dialogs
+  GetProcAddress gives stand-ins that succeed and play nothing. The
+  game port (`in`/`out` on 0x201) holds the joystick pseudo-ordinal 1004
+  sets, as the port's pad.c gives it: each axis bit stays set for its
+  count + 1 reads after an `out` (count = the stick's -32768..32767
+  plus 32768, shifted right by 6), held buttons read 0, buttons 3 and 4
+  only with the DLL's 4Btns; nothing plugged in reads 0xff (the DLL's
+  loop times out). Dialogs
   are modelled from the language DLL's templates (controls with their
   text, enabled state, check, combo items and selection, scroll range
   and position; `_wsprintf` of `%d %u %x %s`); DialogBox and WinHelp are
@@ -118,7 +124,7 @@ the first command again after files are added there.
   compared after the call. Results of routines that return nothing
   (`VOID`, ordinal 14) are not compared. A call that stops the emulation
   (a Windows call without a stand-in) is reported with its number.
-  Ordinals 1-12, 14, 15, 18, 26, 29, 32-35, 37 and 38 are supported, and pseudo-ordinal
+  Ordinals 1-12, 14, 15, 18, 26, 29, 32-35, 37, 38 and 41 are supported, and pseudo-ordinal
   1000 for 5:0000 (the dialogs' ship picture, a C-convention routine the
   DLL does not export: `INTERNAL` in oracle.py). The dialog procedures
   (11, 26, 37, 38: hwnd, msg, wParam, lParam) take `DLGn` (a dialog of
@@ -126,8 +132,14 @@ the first command again after files are added there.
   (MAKELONG(pos, control id's handle), for WM_HSCROLL); pseudo-ordinals
   1001 (id, 0/1), 1002 (id, item) and 1003 (id, "text") are the user
   checking a box, picking an item and typing a control's text; after
-  these the controls, the focus, the dialog's end (EndDialog's value)
-  and INSPACE.INI are compared; add others to
+  these the controls (with a push button's pressed state), the focus,
+  the dialog's end (EndDialog's value) and INSPACE.INI are compared.
+  Ordinal 41 reads into an 8-byte block (x, y, four button bytes)
+  compared after the call; pseudo-ordinal 1004 (x, y, buttons, present)
+  is the joystick: the emulator's game port, the port's a virtual SDL
+  gamepad (left stick; buttons A, B, X, Y as bits 0-3); 1005 and 1006
+  are the Joystick dialog's procedure (9:40da, `DLG975`) and its timer
+  (9:4d02), Pascal routines the DLL does not export (`PASCAL`). Add others to
   `ORDINALS` (oracle.py) and `run` (port_calls.c). Ordinal 32's script
   arguments leave out the rectangles block (both sides make an 8-byte
   one); its rectangles are compared too.
@@ -178,6 +190,16 @@ the first command again after files are added there.
   it with `--data` on a copy of the game's files whose GAMES folder holds
   saved games (the emulator lists them through DOS3Call's find
   functions; LocalPath is C:\SPACE\ on both sides). All 14 calls agree.
+- `joystick.txt`: the sound set-up (9:22ca reads the joystick's INI
+  settings), ordinal 41 with a bad n and with nothing plugged in, the
+  Joystick dialog (template 975) opened without and with a joystick,
+  turned on, 4 Buttons, Calibrate: the corners taken by a button (the
+  lower right one refused while short of where the stick went first),
+  buttons shown pressed, actions picked, OK; then ordinal 41 calibrated
+  across the stick's range with buttons, and the dialog again: 4
+  Buttons off and Cancel (buttons 3 and 4 gone), unplugged while it
+  runs, turned on again without calibrating. All 69 calls agree. (A
+  range of 0 is left out: the DLL divides by it.)
 - `panel.txt`: the same set-up, then ordinals 33-35 on a memory DC. All
   agree. (Image 200, taller than wide, differs
   in 37 pixels of its top rows: the DLL reads past its pixels there, see

@@ -14,8 +14,9 @@ can work on.
 - `src/video.c` – 256-colour framebuffer shown through SDL3; frames can be
   saved (`--dump`) to compare with the original.
 - `src/platform/` – everything machine-specific the game needs (time, date,
-  folders and files to explore, data location, sound output, MIDI music):
-  `platform_sdl.c` on SDL3 for every platform, and the music backends
+  folders and files to explore, data location, sound output, MIDI music,
+  game controllers): `platform_sdl.c` on SDL3 for every platform,
+  `platform_pad.c` (gamepads and joysticks, SDL3), and the music backends
   behind `platform_music.c` (`music_tsf.c` on a SoundFont, `music_win.c`
   on Windows' MIDI output). Game code never calls the OS directly.
 
@@ -78,6 +79,14 @@ Command line:
   press, then up), `rdown`, `rup`, `rclick`. Example:
   `--mouse "4000:300,200,rclick;4100:320,255,click"` opens the game's
   right-button menu in a wave and chooses Exit Game.
+- `--pad "FRAME:WHAT[/HOLD],..."`: a virtual game controller (SDL's
+  virtual joystick). WHAT is `attach` (a gamepad), `attachraw` (a
+  joystick SDL has no gamepad mapping for), `detach`, a button held HOLD
+  frames (2 by default: `A`, `B`, `X`, `Y`, `Back`, `Start`, `LeftStick`,
+  `RightStick`, `LeftShoulder`, `RightShoulder`, `Up`, `Down`, `Left`,
+  `Right`, `LeftTrigger`, `RightTrigger`), or `LX=V` / `LY=V`, the left
+  stick (-32768 to 32767; with `/HOLD` back to the middle after HOLD
+  frames). Example: `--pad "10:attach,1600:B,3600:LX=32767/100"`.
 
 Game data (INSPACE.EXE and the other original files) is read from `data/`
 or the folder in `INSPACE_DATA`; it is not part of the repository. The game
@@ -103,12 +112,62 @@ the switches are off unless set to 1.
 - `DriveC=<folder>` (any letter C-Z): the host folder the game sees as
   that drive, an absolute path in the host's form. It replaces the
   platform's choice for that letter ("Drives and file names").
+- `Pad<button>=<keys>`: the keys a gamepad button sends (see "Gamepad").
 - `SoundFont=<file>`: a SoundFont (.sf2, General MIDI, e.g. FluidR3_GM or
   GeneralUser GS; none comes with the port), an absolute path in the
   host's form. The music (the game's MAIN.MID, RACE.MID, ANTHEM.MID and
   DEMON.MID) is then played on it, on every platform. Without it Windows
   plays the music on its own MIDI synthesizer and Linux plays none
   (NOTES-port.md "Music").
+
+## Gamepad
+
+A gamepad (Xbox, PlayStation, Switch, the Steam Deck's controls, anything
+SDL3 knows the layout of) or any other joystick can be plugged in and out
+while the game runs; the whole game can be played with it, no keyboard
+needed. It does two things:
+
+- **The 1994 joystick.** The left stick and the face buttons are the
+  joystick the game read on the PC's game port: buttons A and B are its
+  buttons 1 and 2, X and Y buttons 3 and 4 when "4 Buttons" is ticked.
+  As in 1994 it is turned on and calibrated in Game Settings, Joystick..
+  (tick Joystick Enabled, Calibrate, push the stick up and left and press
+  A, down and right and press A; then OK). In a wave the ship turns
+  towards where the stick points and thrusts once it faces that way;
+  each button does what the dialog sets (Fire Gun, Fire Weapon, Change
+  Weapon, Turbo Thrust, Call Ambulance, New Ship Target, Cloak/Shield).
+  Unplugged during a wave the joystick is off until the settings are read
+  again, as a pulled cable was in 1994.
+- **Keys.** Every button sends keys the game already uses, so menus,
+  lists, dialogs and the intro work too. While the game reads the
+  joystick, the buttons that are the joystick's (A, B; X, Y with four
+  buttons) send no keys.
+
+| Button | Keys | In a wave | Elsewhere |
+|---|---|---|---|
+| D-pad | arrows | thrust, brake, turn | move in lists, menus, dialogs |
+| A (bottom) | Return | fire weapon | OK, choose |
+| B (right) | Escape | leave the wave | cancel, intro: the New/Restore dialog |
+| X (left) | Space | fire gun | press the button that has the focus, tick a box |
+| Y (top) | Tab | change weapon | next control |
+| Start | P | pause | |
+| Back / View | Escape | leave the wave | cancel |
+| Left stick button | Return | fire weapon | OK (also while A is the joystick's) |
+| Right stick button | Alt+G | Game Settings | Game Settings |
+| Left shoulder | H | call the ambulance | |
+| Right shoulder | R | new ship target | |
+| Left trigger | Ctrl | turbo thrust | |
+| Right trigger | Caps Lock | cloak or shield | |
+
+A, B, X and Y are named by place (on a Switch controller A is the right
+button, on a PlayStation one Cross is A). Any button's keys can be set in
+INSPACE.INI `[Port]`: `PadA=`, `PadB=`, `PadX=`, `PadY=`, `PadBack=`,
+`PadStart=`, `PadLeftStick=`, `PadRightStick=`, `PadLeftShoulder=`,
+`PadRightShoulder=`, `PadUp=`, `PadDown=`, `PadLeft=`, `PadRight=`,
+`PadLeftTrigger=`, `PadRightTrigger=`, each an SDL key name with
+modifiers before it as in `--keys` (`PadStart=Alt+G`), or `None`. The game
+has a large dead zone of its own (the stick's middle three fifths do
+nothing), so the port adds none.
 
 ## Game speed
 

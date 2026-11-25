@@ -12,7 +12,7 @@ set(PORT ${CMAKE_CURRENT_SOURCE_DIR}/../../port)
 file(GLOB GAME_SOURCES ${PORT}/src/game/*.c)
 file(GLOB WIN_SOURCES ${PORT}/src/win/*.c)
 set(PLATFORM_SOURCES ${PORT}/src/platform/platform_sdl.c ${PORT}/src/platform/platform_music.c
-    ${PORT}/src/platform/music_seq.c ${PORT}/src/platform/music_tsf.c)
+    ${PORT}/src/platform/music_seq.c ${PORT}/src/platform/music_tsf.c ${PORT}/src/platform/platform_pad.c)
 add_executable(port_calls port_calls.c ${PORT}/src/video.c ${PLATFORM_SOURCES}
     ${WIN_SOURCES} ${GAME_SOURCES} ${PORT}/third_party/stb/stb_truetype.c ${PORT}/third_party/tsf/tsf.c)
 target_include_directories(port_calls PRIVATE ${PORT}/src ${PORT}/src/game ${PORT}/src/win

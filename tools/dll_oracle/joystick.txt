@@ -1,0 +1,84 @@
+# The joystick (tools/README.md): ordinal 41 and the Joystick dialog
+# (template 975, procedure 9:40da = 1005, its timer 9:4d02 = 1006).
+# 1004 X Y BUTTONS PRESENT sets the joystick on the game port.  Sound
+# set-up first (ordinal 7 mode 0, 9:22ca reads the joystick's INI
+# settings); ordinal 41 is called calibrated only after the dialog has
+# written the corners (the DLL divides by a range of 0).
+7 0x012c0190 0
+41 2
+1004 0 0 0 0
+41 0
+# Opened with nothing plugged in, then plugged in and turned on.
+1005 DLG975 0x110 0 0
+1004 0 0 0 1
+1001 980 1
+1005 DLG 0x111 980 0
+1006
+1001 985 1
+1005 DLG 0x111 985 0
+1005 DLG 0x111 1203 0
+# Calibrate: the stick is in the middle, then up and left; a button.
+1005 DLG 0x111 977 0
+1006
+1004 -20000 -20000 0 1
+1006
+1004 -20000 -20000 1 1
+1006
+# Down and right: past the upper left corner, but not as far as the
+# middle where it went first: the button is not taken.
+1004 -25000 -25000 0 1
+1006
+1004 -10000 -10000 2 1
+1006
+1004 20000 20000 0 1
+1006
+1004 20000 20000 2 1
+1006
+# Calibrated: buttons shown pressed (sounds for their actions).
+1004 5000 -5000 5 1
+1006
+1004 5000 -5000 13 1
+1006
+1004 0 0 0 1
+1006
+1002 1200 4
+1005 DLG 0x111 1200 0
+1002 1203 6
+1005 DLG 0x111 1203 0
+1005 DLG 0x111 976 0
+1005 DLG 0x111 1 0
+# The settings read again: readings mapped between the corners.
+7 0x012c0190 0
+1004 -32768 -32768 0 1
+41 0
+1004 -20000 -20000 1 1
+41 0
+1004 0 0 2 1
+41 1
+1004 20000 20000 4 1
+41 0
+1004 32767 32767 8 1
+41 0
+1004 12345 -6789 15 1
+41 0
+1004 -1 1 0 1
+41 0
+# Opened again: calibrated; four buttons turned off and cancelled (the
+# DLL keeps it), so buttons 3 and 4 are gone; the joystick unplugged
+# while the dialog runs.
+1005 DLG975 0x110 0 0
+1001 985 0
+1005 DLG 0x111 985 0
+1006
+1005 DLG 0x111 333 0
+1004 12345 -6789 15 1
+41 0
+1005 DLG975 0x110 0 0
+1004 0 0 0 0
+1006
+1005 DLG 0x111 980 0
+1004 0 0 0 1
+1001 980 1
+1005 DLG 0x111 980 0
+1005 DLG 0x111 977 0
+1005 DLG 0x111 1 0

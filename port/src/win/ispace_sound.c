@@ -135,8 +135,8 @@ static void profile_put_int(const char *key, int16_t v)
     WritePrivateProfileString(APP, key, buf, INI);
 }
 
-/* 9:22ca: the INI's sound settings, Enhance, Detail and Quick (the
- * joystick's, read here too, belong to parts not ported) and what the
+/* 9:22ca: the INI's sound settings, Enhance, Detail and Quick, the
+ * joystick's (ispace_joy.c) and what the
  * wave device can do.  A synchronous device (a PC speaker driver) turns
  * all sound off, in the INI too, unless AllowSound is set. */
 void ispace_sound_read_settings(void)
@@ -151,6 +151,7 @@ void ispace_sound_read_settings(void)
     cfg.stereo = GetPrivateProfileInt(APP, "StereoEffect", 2, INI);
     cfg.purge = GetPrivateProfileInt(APP, "PurgeSound", 1, INI);
     cfg.swap = GetPrivateProfileInt(APP, "StereoSwap", 0, INI);
+    ispace_joy_read_settings();
     ispace_sound_mix_volumes();
     if (!waveOutGetNumDevs()) {
         cfg.device_best = 0;
@@ -295,12 +296,16 @@ static void stop_all(void)
 }
 
 /* Ordinal 31 (9:2ac4): NotifyClass, told when a channel's sound has
- * ended.  (It also gets the joystick dialog's timer and the music's MCI
- * notifications, which belong to parts not ported.) */
+ * ended; it also gets the Joystick dialog's timer and the music's MCI
+ * notifications. */
 static LRESULT notify_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 {
     int16_t c = (int16_t)wp, i;
 
+    if (msg == WM_TIMER) {
+        ispace_joy_timer();
+        return 0;
+    }
     if (msg != MM_WOM_DONE)
         return ispace_music_message(hwnd, msg, wp, lp);
     if (c < 0 || c >= MAX_CHANNELS)

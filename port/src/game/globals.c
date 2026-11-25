@@ -15,6 +15,7 @@ void (*g_1d54)(HINSTANCE);
 int16_t (*g_fp_1d58)(int16_t);
 int16_t (*g_fp_1d5c)(int16_t, int16_t, int32_t);
 REC_70 *g_1df8[0x15];
+char *g_1e4c;
 int16_t (*g_fp_3c28)(int16_t, int16_t, char *, int16_t, int16_t, int16_t);
 int16_t (*g_fp_3c2c)(LPCSTR);
 int16_t (*g_fp_3c30)(int16_t, int16_t, int32_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, char, char, char, int16_t);
@@ -37,7 +38,7 @@ void (*g_fp_3c74)(int16_t, int16_t, int32_t, int16_t, int32_t, int16_t, int16_t,
 HBITMAP (*g_fp_3c78)(int16_t, int16_t, RECT *, HGLOBAL, int16_t, int32_t, int16_t, int32_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t);
 void (*g_fp_3c7c)(int16_t, int16_t, int16_t, int16_t, int16_t);
 void (*g_fp_3c80)(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t);
-int16_t (*g_fp_3c84)(int16_t, int32_t);
+int16_t (*g_fp_3c84)(int16_t, char *);
 RECT *g_3cc0;
 DWORD *g_3d4c;
 char *g_4fcc;

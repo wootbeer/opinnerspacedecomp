@@ -23,24 +23,13 @@ static int frame_count;
 #define MAX_KEYS 256
 static struct {
     int frame, hold, n;
-    SDL_Keycode key[4];
+    uint32_t key[WIN_KEYS];
 } keys[MAX_KEYS];
 static int key_count;
 
-static SDL_Keycode key_named(const char *name)
-{
-    if (!SDL_strcasecmp(name, "Alt"))
-        return SDLK_LALT;
-    if (!SDL_strcasecmp(name, "Ctrl"))
-        return SDLK_LCTRL;
-    if (!SDL_strcasecmp(name, "Shift"))
-        return SDLK_LSHIFT;
-    return SDL_GetKeyFromName(name);
-}
-
 static int parse_keys(const char *spec)
 {
-    char buf[4096], *item, *save, *part, *save2, *slash;
+    char buf[4096], *item, *save, *slash;
 
     SDL_strlcpy(buf, spec, sizeof buf);
     for (item = SDL_strtok_r(buf, ",", &save); item && key_count < MAX_KEYS;
@@ -54,10 +43,8 @@ static int parse_keys(const char *spec)
         keys[key_count].hold = slash ? SDL_atoi(slash + 1) : 2;
         if (slash)
             *slash = 0;
-        for (part = SDL_strtok_r(colon + 1, "+", &save2); part && keys[key_count].n < 4;
-             part = SDL_strtok_r(NULL, "+", &save2))
-            if ((keys[key_count].key[keys[key_count].n++] = key_named(part)) == SDLK_UNKNOWN)
-                return 0;
+        if (!(keys[key_count].n = win_key_names(colon + 1, keys[key_count].key)))
+            return 0;
         key_count++;
     }
     return 1;
@@ -172,6 +159,162 @@ static void inject_mouse(void)
     }
 }
 
+/* --pad "FRAME:WHAT[/HOLD],...": a virtual game controller for headless
+ * runs.  WHAT is attach (a gamepad), attachraw (a joystick SDL has no
+ * mapping for), detach, a button held HOLD frames (2 by default: A, B,
+ * X, Y, Back, Start, LeftStick, RightStick, LeftShoulder, RightShoulder,
+ * Up, Down, Left, Right, LeftTrigger, RightTrigger), or LX=V or LY=V,
+ * the left stick's position (-32768 to 32767; with /HOLD back to 0
+ * after HOLD frames).  "100:attach,4100:LX=32767/200,4200:A". */
+#define MAX_PAD 256
+enum { PAD_ATTACH, PAD_ATTACH_RAW, PAD_DETACH, PAD_BUTTON, PAD_AXIS };
+static struct {
+    int frame, hold, what, index, value;
+} pad_items[MAX_PAD];
+static int pad_count;
+static struct {
+    SDL_JoystickID id;
+    SDL_Joystick *joystick;
+    int raw;
+} vpad;
+
+/* A gamepad's buttons by name; a raw joystick's are the first four,
+ * the shoulders, Back and Start, the sticks' and its hat for the
+ * d-pad (platform_pad.c's order). */
+static const struct {
+    const char *name;
+    int button, raw, trigger;   /* trigger: an axis held at its top */
+    Uint8 hat;
+} pad_names[] = {
+    {"A", SDL_GAMEPAD_BUTTON_SOUTH, 0, -1, 0}, {"B", SDL_GAMEPAD_BUTTON_EAST, 1, -1, 0},
+    {"X", SDL_GAMEPAD_BUTTON_WEST, 2, -1, 0}, {"Y", SDL_GAMEPAD_BUTTON_NORTH, 3, -1, 0},
+    {"LeftShoulder", SDL_GAMEPAD_BUTTON_LEFT_SHOULDER, 4, -1, 0},
+    {"RightShoulder", SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER, 5, -1, 0},
+    {"Back", SDL_GAMEPAD_BUTTON_BACK, 6, -1, 0}, {"Start", SDL_GAMEPAD_BUTTON_START, 7, -1, 0},
+    {"LeftStick", SDL_GAMEPAD_BUTTON_LEFT_STICK, 8, -1, 0},
+    {"RightStick", SDL_GAMEPAD_BUTTON_RIGHT_STICK, 9, -1, 0},
+    {"Up", SDL_GAMEPAD_BUTTON_DPAD_UP, -1, -1, SDL_HAT_UP},
+    {"Down", SDL_GAMEPAD_BUTTON_DPAD_DOWN, -1, -1, SDL_HAT_DOWN},
+    {"Left", SDL_GAMEPAD_BUTTON_DPAD_LEFT, -1, -1, SDL_HAT_LEFT},
+    {"Right", SDL_GAMEPAD_BUTTON_DPAD_RIGHT, -1, -1, SDL_HAT_RIGHT},
+    {"LeftTrigger", -1, -1, SDL_GAMEPAD_AXIS_LEFT_TRIGGER, 0},
+    {"RightTrigger", -1, -1, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER, 0},
+};
+
+static int parse_pad(const char *spec)
+{
+    static const char *const words[] = {"attach", "attachraw", "detach"};
+    char buf[4096], *item, *save, *slash, *what;
+    size_t i;
+
+    SDL_strlcpy(buf, spec, sizeof buf);
+    for (item = SDL_strtok_r(buf, ",", &save); item && pad_count < MAX_PAD;
+         item = SDL_strtok_r(NULL, ",", &save)) {
+        char *colon = SDL_strchr(item, ':');
+        if (!colon)
+            return 0;
+        *colon = 0;
+        what = colon + 1;
+        pad_items[pad_count].frame = SDL_atoi(item);
+        slash = SDL_strchr(what, '/');
+        pad_items[pad_count].hold = slash ? SDL_atoi(slash + 1) : -1;
+        if (slash)
+            *slash = 0;
+        pad_items[pad_count].what = -1;
+        for (i = 0; i < SDL_arraysize(words); i++)
+            if (!SDL_strcmp(what, words[i]))
+                pad_items[pad_count].what = (int)i;
+        for (i = 0; i < SDL_arraysize(pad_names); i++)
+            if (!SDL_strcmp(what, pad_names[i].name)) {
+                pad_items[pad_count].what = PAD_BUTTON;
+                pad_items[pad_count].index = (int)i;
+                if (pad_items[pad_count].hold < 0)
+                    pad_items[pad_count].hold = 2;
+            }
+        if ((what[0] == 'L' && (what[1] == 'X' || what[1] == 'Y') && what[2] == '=')) {
+            pad_items[pad_count].what = PAD_AXIS;
+            pad_items[pad_count].index = what[1] == 'X' ? SDL_GAMEPAD_AXIS_LEFTX : SDL_GAMEPAD_AXIS_LEFTY;
+            pad_items[pad_count].value = SDL_atoi(what + 3);
+        }
+        if (pad_items[pad_count].what < 0)
+            return 0;
+        pad_count++;
+    }
+    return 1;
+}
+
+static void pad_attach(int raw)
+{
+    SDL_VirtualJoystickDesc desc;
+
+    if (vpad.joystick || !SDL_InitSubSystem(SDL_INIT_GAMEPAD))
+        return;
+    SDL_INIT_INTERFACE(&desc);
+    desc.type = raw ? SDL_JOYSTICK_TYPE_UNKNOWN : SDL_JOYSTICK_TYPE_GAMEPAD;
+    desc.naxes = raw ? 2 : SDL_GAMEPAD_AXIS_COUNT;
+    desc.nbuttons = raw ? 10 : SDL_GAMEPAD_BUTTON_COUNT;
+    desc.nhats = raw ? 1 : 0;
+    desc.name = raw ? "--pad joystick" : "--pad gamepad";
+    vpad.raw = raw;
+    if ((vpad.id = SDL_AttachVirtualJoystick(&desc)) != 0)
+        vpad.joystick = SDL_OpenJoystick(vpad.id);
+}
+
+static void pad_detach(void)
+{
+    if (!vpad.joystick)
+        return;
+    SDL_CloseJoystick(vpad.joystick);
+    SDL_DetachVirtualJoystick(vpad.id);
+    vpad.joystick = NULL;
+}
+
+static void pad_button(int i, int down)
+{
+    static Uint8 hat;
+
+    if (!vpad.joystick)
+        return;
+    if (pad_names[i].trigger >= 0 && !vpad.raw)
+        SDL_SetJoystickVirtualAxis(vpad.joystick, pad_names[i].trigger,
+                                   down ? SDL_JOYSTICK_AXIS_MAX : SDL_JOYSTICK_AXIS_MIN);
+    else if (pad_names[i].hat && vpad.raw) {
+        hat = down ? hat | pad_names[i].hat : hat & ~pad_names[i].hat;
+        SDL_SetJoystickVirtualHat(vpad.joystick, 0, hat);
+    } else if ((vpad.raw ? pad_names[i].raw : pad_names[i].button) >= 0)
+        SDL_SetJoystickVirtualButton(vpad.joystick, vpad.raw ? pad_names[i].raw : pad_names[i].button, down);
+}
+
+static void inject_pad(void)
+{
+    int i;
+
+    for (i = 0; i < pad_count; i++) {
+        int start = pad_items[i].frame == frame_count;
+        int end = pad_items[i].hold >= 0 && pad_items[i].frame + pad_items[i].hold == frame_count;
+        switch (pad_items[i].what) {
+        case PAD_ATTACH:
+        case PAD_ATTACH_RAW:
+            if (start)
+                pad_attach(pad_items[i].what == PAD_ATTACH_RAW);
+            break;
+        case PAD_DETACH:
+            if (start)
+                pad_detach();
+            break;
+        case PAD_BUTTON:
+            if (start || end)
+                pad_button(pad_items[i].index, start);
+            break;
+        case PAD_AXIS:
+            if ((start || end) && vpad.joystick)
+                SDL_SetJoystickVirtualAxis(vpad.joystick, pad_items[i].index,
+                                           (Sint16)(start ? pad_items[i].value : 0));
+            break;
+        }
+    }
+}
+
 static void finish(int code)
 {
     if (dump_path)
@@ -199,6 +342,7 @@ void app_frame(void)
         finish(0);
     inject_keys();
     inject_mouse();
+    inject_pad();
 }
 
 int main(int argc, char **argv)
@@ -218,6 +362,12 @@ int main(int argc, char **argv)
         else if (!strcmp(argv[i], "--keys") && i + 1 < argc) {
             if (!parse_keys(argv[++i])) {
                 fprintf(stderr, "--keys: FRAME:KEY[+KEY][/HOLD],... with SDL key names\n");
+                return 1;
+            }
+        }
+        else if (!strcmp(argv[i], "--pad") && i + 1 < argc) {
+            if (!parse_pad(argv[++i])) {
+                fprintf(stderr, "--pad: FRAME:attach|attachraw|detach|BUTTON|LX=V|LY=V[/HOLD],...\n");
                 return 1;
             }
         }

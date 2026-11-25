@@ -306,7 +306,7 @@ int16_t fn_06_1b62(void)
     g_94a4 = 0;
     if ((g_912a = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, 8L)) == 0)
         return 0;
-    if ((g_1e4c = (int32_t)GlobalLock(g_912a)) == 0) {
+    if ((g_1e4c = GlobalLock(g_912a)) == 0) {
         GlobalFree(g_912a);
         return 0;
     }

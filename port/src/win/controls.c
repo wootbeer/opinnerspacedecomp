@@ -391,6 +391,11 @@ static LRESULT button_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
         return DLGC_BUTTON | ((w->style & BS_TYPE) == BS_DEFPUSHBUTTON ? DLGC_DEFPUSHBUTTON : DLGC_UNDEFPUSHBUTTON);
     case BM_GETCHECK:
         return c->checked;
+    case BM_GETSTATE:
+        return c->checked | (c->pressed ? BST_PUSHED : 0);
+    case BM_SETSTATE:
+        button_set_pressed(h, wp != 0);
+        return 0;
     case BM_SETCHECK:
         if (is_check_box(w) && c->checked != (int)wp) {
             c->checked = (int)wp;

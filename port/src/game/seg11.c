@@ -832,9 +832,9 @@ done:
 /* 11:7588 */
 void fn_11_7588(int16_t n)
 {
-    if (((VIEW(char *, g_1e4c, 0)) + 4)[n] == g_6b54[n] && g_1dcc[n] != 0 && g_1dcc[n] != 3)
+    if (((g_1e4c) + 4)[n] == g_6b54[n] && g_1dcc[n] != 0 && g_1dcc[n] != 3)
         return;
-    g_6b54[n] = ((VIEW(char *, g_1e4c, 0)) + 4)[n];
+    g_6b54[n] = ((g_1e4c) + 4)[n];
     if (g_6b54[n] == 0)
         return;
     switch (g_1dcc[n]) {

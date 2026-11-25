@@ -17,10 +17,10 @@ import os
 import struct
 import sys
 
-from unicorn import Uc, UC_ARCH_X86, UC_MODE_16, UC_HOOK_CODE
+from unicorn import Uc, UC_ARCH_X86, UC_MODE_16, UC_HOOK_CODE, UC_HOOK_INSN
 from unicorn.x86_const import (UC_X86_REG_AX, UC_X86_REG_BP, UC_X86_REG_BX, UC_X86_REG_CS, UC_X86_REG_CX,
                                UC_X86_REG_DS, UC_X86_REG_DX, UC_X86_REG_ES, UC_X86_REG_FLAGS, UC_X86_REG_SP,
-                               UC_X86_REG_SS)
+                               UC_X86_REG_SS, UC_X86_INS_IN, UC_X86_INS_OUT)
 
 TOOLS = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, TOOLS)
@@ -38,6 +38,8 @@ ISPACE_HINST_SLOT = 0x1a30           # DS words LibMain / ordinal 3 would fill
 IGRAPHIC_HINST_SLOT = 0x0692
 LANG_HINST_SLOT = 0x0690            # the language DLL (ordinal 7, 9:0174)
 LOCAL_PATH_SLOT = 0x2056            # INI LocalPath with its backslash (ordinal 24's 10:4b1a reads it)
+FOUR_BUTTONS_SLOT = 0x2290          # INI 4Btns as the joystick code keeps it
+GAME_PORT = 0x201
 SRCCOPY = 0x00cc0020
 
 # The 20 static colours of the Windows 3.1 system palette.
@@ -115,6 +117,8 @@ class IspaceEmu:
         self.windows = {}                    # dialogs and controls (dialog_window)
         self.focus = 0
         self.dta = self.found = 0
+        self.joystick = dict(present=False, counts=(0, 0), buttons=0)
+        self.port_reads = 1 << 20           # reads of the game port since it was fired
         self.wds(ISPACE_HINST_SLOT, 0x0b00)
         self.wds(IGRAPHIC_HINST_SLOT, 0x0c00)
         self.wds(LANG_HINST_SLOT, 0x0d00)
@@ -166,6 +170,34 @@ class IspaceEmu:
         self.uc.mem_write(self.thunk * 16 + 0xff0, b'\xf4')     # return address of call()
         self.uc.hook_add(UC_HOOK_CODE, self._on_import, begin=self.thunk * 16,
                          end=self.thunk * 16 + 0xfef)
+        self.uc.hook_add(UC_HOOK_INSN, self._on_in, None, 1, 0, UC_X86_INS_IN)
+        self.uc.hook_add(UC_HOOK_INSN, self._on_out, None, 1, 0, UC_X86_INS_OUT)
+
+    # the game port (9:3ffe reads joystick A by timing its one-shots)
+    def set_joystick(self, x, y, buttons, present):
+        """The joystick as the port's pad.c gives it: a stick position
+        -32768..32767 is a loop count of 0..1023; buttons 3 and 4 only
+        with INI 4Btns (a two-button stick)."""
+        self.joystick = dict(present=bool(present), counts=((s16(x & 0xffff) + 32768) >> 6, (s16(y & 0xffff) + 32768) >> 6),
+                             buttons=buttons & 0xf)
+
+    def _on_out(self, uc, port, size, value, ud):
+        if port == GAME_PORT:
+            self.port_reads = 0
+
+    def _on_in(self, uc, port, size, ud):
+        """After a write each axis bit stays set for count + 1 reads (the
+        loop counts from -1); a button held reads 0.  Nothing there: all
+        bits set, so the loop times out."""
+        if port != GAME_PORT:
+            raise RuntimeError('in from port %#x' % port)
+        j = self.joystick
+        if not j['present']:
+            return 0xff
+        self.port_reads += 1
+        mask = 0xf if self.word(self.ds * 16 + FOUR_BUTTONS_SLOT) else 0x3
+        bits = sum(1 << a for a in range(2) if self.port_reads <= j['counts'][a] + 1)
+        return (~(j['buttons'] & mask) & 0xf) << 4 | bits
 
     # memory
     def rd(self, lin, n):
@@ -863,6 +895,19 @@ def Polygon(e, dc, points, n):
     return 1
 
 
+@api(8, 'wwww')
+def CreateRectRgn(e, l, t, r, b):
+    return e.new_gdi('rgn', rect=tuple(map(s16, (l, t, r, b))))
+
+
+@api(4, 'ww')
+def SelectClipRgn(e, dc, rgn):
+    """Kept, not applied: the drawing it clips (the Joystick dialog's
+    test area, a window the stand-ins do not draw) is not compared."""
+    e.obj(dc, 'dc')['clip'] = rgn
+    return 2
+
+
 @api(14, 'wwwwwl')
 def PatBlt(e, dc, x, y, w, h, rop):
     return blit(e, dc, x, y, w, h, None, 0, 0, 0, 0, rop)
@@ -1070,6 +1115,9 @@ def CreateWindow(e, cls, title, style, x, y, w, h, parent, menu, inst, param):
 
 @api(2, 'w')
 def DestroyWindow(e, h):
+    w = e.windows.pop(h, None)
+    if w and w['kind'] == 'ctl':
+        e.windows[w['parent']]['children'].remove(h)
     return 1
 
 
@@ -1080,6 +1128,23 @@ def UnregisterClass(e, name, inst):
 
 @api(12, 'wllw')
 def MessageBox(e, h, text, title, style):
+    return 1
+
+
+@api(2, 'w')
+def MessageBeep(e, kind):
+    e.texts.append(dict(beep=kind))
+
+
+@api(10, 'wwwl')
+def SetTimer(e, h, tid, ms, proc):
+    e.texts.append(dict(timer=(h, tid, ms)))
+    return tid
+
+
+@api(4, 'ww')
+def KillTimer(e, h, tid):
+    e.texts.append(dict(kill_timer=(h, tid)))
     return 1
 
 
@@ -1136,8 +1201,8 @@ def dialog_state(e, dlg):
     out = []
     for h in e.windows[dlg]['children']:
         w = e.windows[h]
-        out.append('%d %s en %d chk %d sel %d [%s] sb %d %d %d "%s"' % (
-            w['id'], w['cls'], w['enabled'], w['checked'], w['sel'], '|'.join(w['items']), w['range'][0],
+        out.append('%d %s en %d chk %d hi %d sel %d [%s] sb %d %d %d "%s"' % (
+            w['id'], w['cls'], w['enabled'], w['checked'], w.get('pressed', 0), w['sel'], '|'.join(w['items']), w['range'][0],
             w['range'][1], w['pos'], w['text'].replace('&', '')))
     focus = e.windows.get(e.focus, {})
     out.append('focus %d' % (focus['id'] if focus.get('parent') == dlg and focus['kind'] == 'ctl' else 0))
@@ -1227,6 +1292,9 @@ def SendMessage(e, h, msg, wp, lp):
     if w['cls'] == 'ComboBox' and msg == 0x407:     # CB_GETCURSEL
         return w['sel'] & 0xffff
     if w['cls'] == 'Static' and msg == 0x400:       # STM_SETICON
+        return 0
+    if w['cls'] == 'Button' and msg == 0x403:       # BM_SETSTATE: shown pressed
+        w['pressed'] = int(wp != 0)
         return 0
     raise RuntimeError('SendMessage %s %#x' % (w['cls'], msg))
 
