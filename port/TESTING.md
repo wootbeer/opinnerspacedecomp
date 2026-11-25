@@ -57,7 +57,6 @@ Checks that need a person, real hardware or the original game. Items move to
       modern pad is found (off by default).
 - [ ] Scope the ideas from smashport (per-user save folder, file check at
       setup, settings menu, remapping, display filters, replays).
-
 - [ ] Help: build a small native viewer for the user's ENG_HELP.HLP
       (38 topics, WinHelp 3.1, uncompressed)?
 
