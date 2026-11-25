@@ -140,7 +140,11 @@ game's DOS paths onto host folders:
 - **Mounts.** `C:\SPACE` (the game's own folder, a race track in the
   game) is always the data folder and `C:\WINDOWS` the settings folder,
   whatever C: is. They are listed in C:\ and hide a host folder of the
-  same name.
+  same name. As the original did in its folder, the game writes into
+  the data folder: saved games (`GAMES\*.SAV`, `LASTGAME.SAV` after each
+  wave), retired pilots (`RETIRED\*.DED`, `*.DON`) and race times
+  (`GAMES\*.RAC`). Saved games are in the 1994 format: the original's files
+  load in the port and the port's in the original.
 - **8.3 names.** The game was written for DOS names (8 characters, a
   dot, 3 characters, upper case); its paths, buffers and saved games
   assume them. It sees each host name as Windows 95 showed it to 16-bit

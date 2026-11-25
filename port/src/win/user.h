@@ -175,6 +175,7 @@ void ctl_bevel(HDC dc, int l, int t, int r, int b, int thin);   /* raised face *
  * underlined.  Returns the width; draws only when draw is set. */
 int ctl_label(HDC dc, int x, int y, const char *s, int n, int noprefix, int draw);
 #define EM_SETSEL (WM_USER + 1)
+#define CB_LIMITTEXT (WM_USER + 1)
 #define DLGC_HASSETSEL 0x0008
 /* Combo box and edit contents for native callers (the message forms
  * take far pointers in lParam). */
@@ -213,6 +214,7 @@ void GetScrollRange(HWND h, int16_t which, int16_t *lo, int16_t *hi);
 /* Dialogs (dialog.c). */
 #define DIALOG_CLASS "#32770"
 int dialog_is(HWND h);
+int dialog_ended(HWND h, int16_t *result);   /* EndDialog was called, with *result */
 void dialog_register(void);
 
 #endif

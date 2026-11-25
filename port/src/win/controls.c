@@ -1,5 +1,6 @@
 /* The built-in control classes dialogs use: Button (push buttons, check
- * boxes, group boxes), Static (text, icons) and ComboBox (drop-down list; Edit is in edit.c), drawn in Windows
+ * boxes, group boxes), Static (text, icons) and ComboBox (drop-down list,
+ * and drop-down with an edit field; Edit is in edit.c), drawn in Windows
  * 3.1's look into the screen.  Colours come from the parent's
  * WM_CTLCOLOR as in Windows; sizes Windows 3.1 derived from its own
  * fonts and bitmaps are approximations (port/NOTES-port.md). */
@@ -16,13 +17,21 @@
 #define SS_CENTER 1
 #define SS_RIGHT 2
 #define SS_NOPREFIX 0x80
+#define CBS_TYPE 0x0003
+#define CBS_DROPDOWN 0x0002
 #define CBS_SORT 0x0100
+#define ES_AUTOHSCROLL 0x0080
 #define CB_GETCOUNT (WM_USER + 6)
 #define CB_RESETCONTENT (WM_USER + 11)
 #define CB_FINDSTRING (WM_USER + 12)
 #define CB_SHOWDROPDOWN (WM_USER + 15)
 #define CB_GETDROPPEDSTATE (WM_USER + 23)
+#define CBN_EDITCHANGE 5
 #define CBN_DROPDOWN 7
+#define EN_KILLFOCUS 0x0200
+#define EN_CHANGE 0x0300
+#define EM_LIMITTEXT (WM_USER + 21)
+#define COMBO_EDIT 1001         /* the id of a combo box's edit field, as in Windows */
 #define BN_CLICKED 0
 #define CTLCOLOR_EDIT 1
 #define CTLCOLOR_LISTBOX 2
@@ -45,6 +54,7 @@ typedef struct {
     int count, sel, hot, top;
     int drop_h;                 /* height asked for, field and list */
     HWND list;
+    HWND edit;                  /* CBS_DROPDOWN: the field, which keeps the text */
 } Ctl;
 
 static Ctl *ctl(HWND h)
@@ -472,9 +482,10 @@ static LRESULT static_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
     return common(h, msg, wp, lp);
 }
 
-/* Combo boxes (drop-down lists).  The window is as high as the field;
- * the height it was made or moved with is the field and the list
- * together, as in Windows. */
+/* Combo boxes (drop-down lists, and CBS_DROPDOWN ones whose field is an
+ * edit control).  The window is as high as the field; the height it was
+ * made or moved with is the field and the list together, as in
+ * Windows. */
 static int combo_item_h(HWND h)
 {
     HFONT old;
@@ -511,7 +522,7 @@ static void combo_paint(HWND h)
         ctl_fill(dc, 3, 3, ax - 2, ht - 3, GetSysColor(COLOR_HIGHLIGHT));
         SetTextColor(dc, GetSysColor(COLOR_HIGHLIGHTTEXT));
     }
-    if (c->sel >= 0 && c->sel < c->count)
+    if (!c->edit && c->sel >= 0 && c->sel < c->count)
         ctl_label(dc, 4, (ht - combo_item_h(h)) / 2, c->items[c->sel], (int)SDL_strlen(c->items[c->sel]), 1, 1);
     if (GetFocus() == h && !c->list) {
         SetRect(&r, 3, 3, (int16_t)(ax - 2), (int16_t)(ht - 3));
@@ -522,6 +533,29 @@ static void combo_paint(HWND h)
         ctl_fill(dc, ax + 5 + i, ht / 2 - 3 + i, wd - 5 - i, ht / 2 - 2 + i, IsWindowEnabled(h) ? 0 : GetSysColor(COLOR_BTNSHADOW));
     ctl_fill(dc, ax + 5, ht / 2 + 2, wd - 5, ht / 2 + 3, 0);
     ctl_release(h, dc, old);
+    if (c->edit)
+        InvalidateRect(c->edit, NULL, 0);       /* painted over: the field again */
+}
+
+/* The edit field inside the frame, left of the arrow [uncertain: Windows
+ * 3.1 drew the field and the arrow button apart]. */
+static void combo_place_edit(HWND h)
+{
+    Ctl *c = ctl(h);
+    RECT r;
+
+    GetClientRect(h, &r);
+    MoveWindow(c->edit, 3, 2, (int16_t)(r.right - ARROW_W - 4), (int16_t)(r.bottom - 4), 1);
+}
+
+/* The edit field's text (and so the combo box's), all selected. */
+static void combo_set_edit(HWND h, const char *s)
+{
+    Ctl *c = ctl(h);
+
+    SDL_strlcpy(wnd_get(h)->text, s, sizeof wnd_get(h)->text);
+    SetWindowText(c->edit, s);
+    SendMessage(c->edit, EM_SETSEL, 0, MAKELONG(0, -1));
 }
 
 static void combo_select(HWND h, int i, int tell)
@@ -531,6 +565,8 @@ static void combo_select(HWND h, int i, int tell)
     if (i < 0 || i >= c->count || i == c->sel)
         return;
     c->sel = i;
+    if (c->edit)
+        combo_set_edit(h, c->items[i]);
     InvalidateRect(h, NULL, 0);
     if (tell)
         notify(h, CBN_SELCHANGE);
@@ -741,16 +777,25 @@ static LRESULT combo_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
     switch (msg) {
     case WM_CREATE:
         c->sel = -1;
+        if ((w->style & CBS_TYPE) == CBS_DROPDOWN)
+            c->edit = CreateWindow("Edit", w->text, WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL, 0, 0, 0, 0, h,
+                                   (HMENU)COMBO_EDIT, w->inst, NULL);
         return 0;
     case WM_SIZE:
         if (HIWORD(lp) != combo_field_h(h)) {
             c->drop_h = HIWORD(lp);
             SetWindowPos(h, 0, 0, 0, LOWORD(lp), (int16_t)combo_field_h(h), SWP_NOMOVE);
         }
+        if (c->edit)
+            combo_place_edit(h);
         return 0;
     case WM_SETFONT:
+        if (c->edit)
+            SendMessage(c->edit, WM_SETFONT, wp, lp);
         common(h, msg, wp, lp);
         SetWindowPos(h, 0, 0, 0, (int16_t)(w->rect.right - w->rect.left), (int16_t)combo_field_h(h), SWP_NOMOVE);
+        if (c->edit)
+            combo_place_edit(h);
         return 0;
     case WM_PAINT:
         validate(h);
@@ -780,10 +825,41 @@ static LRESULT combo_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
     case WM_KILLFOCUS:
         combo_close(h, 0);
         break;
+    case WM_SETFOCUS:
+        if (!c->edit)
+            break;
+        SetFocus(c->edit);
+        SendMessage(c->edit, EM_SETSEL, 0, MAKELONG(0, -1));
+        return 0;
+    case WM_SETTEXT:
+        if (c->edit)
+            SetWindowText(c->edit, w->text);
+        break;
+    case WM_ENABLE:
+        if (c->edit)
+            EnableWindow(c->edit, (BOOL)wp);
+        break;
+    case WM_CTLCOLOR:           /* from the edit field */
+        return SendMessage(GetParent(h), msg, wp, lp);
+    case WM_COMMAND:            /* from the edit field */
+        if (HIWORD(lp) == EN_CHANGE) {
+            GetWindowText(c->edit, w->text, sizeof w->text);
+            notify(h, CBN_EDITCHANGE);
+        } else if (HIWORD(lp) == EN_KILLFOCUS) {
+            combo_close(h, 0);
+        }
+        return 0;
+    case CB_LIMITTEXT:
+        if (!c->edit)
+            return -1;          /* CB_ERR */
+        SendMessage(c->edit, EM_LIMITTEXT, wp, 0);
+        return 1;
     case CB_GETCURSEL:
         return c->sel;
     case CB_SETCURSEL:
         c->sel = (int16_t)wp < c->count ? (int16_t)wp : -1;
+        if (c->edit)
+            combo_set_edit(h, c->sel >= 0 ? c->items[c->sel] : "");
         InvalidateRect(h, NULL, 0);
         return c->sel;
     case CB_GETCOUNT:

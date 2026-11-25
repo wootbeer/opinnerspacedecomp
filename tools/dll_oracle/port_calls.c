@@ -9,10 +9,11 @@
  * after the call: "dcbmp") or X,Y (a point).  Ordinal 29's words are
  * passed by pointer and printed after the call ("outs"), as is the wave
  * device's volume after ordinals 7-9.  The dialog procedures (ordinals
- * 11, 37, 38) take DLGn (a dialog from the language DLL's template n,
+ * 11, 26, 37, 38) take DLGn (a dialog from the language DLL's template n,
  * owned by a window of INSPACE.EXE; DLG: the last one) and C<id>:<pos>
- * (MAKELONG(pos, the control)); after them and pseudo-ordinals 1001 (check a box) and 1002
- * (pick a combo item) the dialog's controls and INSPACE.INI are printed
+ * (MAKELONG(pos, the control)); after them and pseudo-ordinals 1001
+ * (check a box), 1002 (pick a combo item) and 1003 (type a control's
+ * text) the dialog's controls, its end and INSPACE.INI are printed
  * ("state"). */
 #include <SDL3/SDL.h>
 #include <stdio.h>
@@ -179,11 +180,15 @@ static int16_t run(int ordinal, Args *a)
     case 11: return ispace_options_proc((HWND)w[0], (UINT)w[1], (WPARAM)(uint16_t)w[2], (LPARAM)a->l[3]);
     case 37: return ispace_display_proc((HWND)w[0], (UINT)w[1], (WPARAM)(uint16_t)w[2], (LPARAM)a->l[3]);
     case 38: return ispace_audio_proc((HWND)w[0], (UINT)w[1], (WPARAM)(uint16_t)w[2], (LPARAM)a->l[3]);
+    case 26: return ispace_save_proc((HWND)w[0], (UINT)w[1], (WPARAM)(uint16_t)w[2], (LPARAM)a->l[3]);
     case 1001:
         CheckDlgButton(dlg, w[0], (UINT)w[1]);
         return 0;
     case 1002:
         SendDlgItemMessage(dlg, w[0], CB_SETCURSEL, (WPARAM)w[1], 0);
+        return 0;
+    case 1003:
+        SetWindowText(GetDlgItem(dlg, w[0]), a->s[1]);
         return 0;
     default:
         fprintf(stderr, "port_calls: ordinal %d not supported\n", ordinal);
@@ -238,7 +243,7 @@ static void print_dialog(void)
 {
     HWND c, focus = GetFocus();
     char cls[20], text[256], item[256], items[1024];
-    int16_t lo = 0, hi = 0, pos = 0, sel, i, n;
+    int16_t lo = 0, hi = 0, pos = 0, sel, i, n, result;
     int checked;
     char *p;
 
@@ -268,7 +273,11 @@ static void print_dialog(void)
         printf("state %d %s en %d chk %d sel %d [%s] sb %d %d %d \"%s\"\n", GetDlgCtrlID(c), cls,
                IsWindowEnabled(c) != 0, checked, sel, items, lo, hi, pos, text);
     }
+    while (focus && GetParent(focus) && GetParent(focus) != dlg)
+        focus = GetParent(focus);           /* a combo box's edit field: the combo box */
     printf("state focus %d\n", focus && GetParent(focus) == dlg ? GetDlgCtrlID(focus) : 0);
+    if (dialog_ended(dlg, &result))
+        printf("state ended %d\n", result);
     print_ini();
 }
 
@@ -287,7 +296,7 @@ static void report(int k, int ordinal, const Args *a)
                 printf(" %d", a->w[i]);
         printf("\n");
     }
-    if (ordinal == 11 || ordinal == 37 || ordinal == 38 || ordinal == 1001 || ordinal == 1002)
+    if (ordinal == 11 || ordinal == 26 || ordinal == 37 || ordinal == 38 || (ordinal >= 1001 && ordinal <= 1003))
         print_dialog();
     if (ordinal >= 7 && ordinal <= 9) {
         DWORD v;

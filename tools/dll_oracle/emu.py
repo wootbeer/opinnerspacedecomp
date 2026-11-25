@@ -12,13 +12,15 @@ resources of ISPACE.DLL and IGRAPHIC.DLL, palettes (CreatePalette,
 AnimatePalette on PC_RESERVED entries), 8-bit bitmaps with their pixels
 (CreateDIBitmap, CreateCompatibleBitmap, SRCCOPY BitBlt/StretchBlt,
 colour-to-monochrome BitBlt).  Calls without a stand-in stop the run."""
+import fnmatch
 import os
 import struct
 import sys
 
 from unicorn import Uc, UC_ARCH_X86, UC_MODE_16, UC_HOOK_CODE
-from unicorn.x86_const import (UC_X86_REG_AX, UC_X86_REG_BP, UC_X86_REG_CS, UC_X86_REG_DS,
-                               UC_X86_REG_DX, UC_X86_REG_ES, UC_X86_REG_SP, UC_X86_REG_SS)
+from unicorn.x86_const import (UC_X86_REG_AX, UC_X86_REG_BP, UC_X86_REG_BX, UC_X86_REG_CS, UC_X86_REG_CX,
+                               UC_X86_REG_DS, UC_X86_REG_DX, UC_X86_REG_ES, UC_X86_REG_FLAGS, UC_X86_REG_SP,
+                               UC_X86_REG_SS)
 
 TOOLS = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, TOOLS)
@@ -35,6 +37,7 @@ GAME_HWND = 0x500                    # the game's window: the dialogs' owner (hI
 ISPACE_HINST_SLOT = 0x1a30           # DS words LibMain / ordinal 3 would fill
 IGRAPHIC_HINST_SLOT = 0x0692
 LANG_HINST_SLOT = 0x0690            # the language DLL (ordinal 7, 9:0174)
+LOCAL_PATH_SLOT = 0x2056            # INI LocalPath with its backslash (ordinal 24's 10:4b1a reads it)
 SRCCOPY = 0x00cc0020
 
 # The 20 static colours of the Windows 3.1 system palette.
@@ -46,7 +49,7 @@ STATICS = {0: (0, 0, 0), 1: (128, 0, 0), 2: (0, 128, 0), 3: (128, 128, 0), 4: (0
 TYPENAMES = {2: 'BITMAP', 6: 'STRING', 10: 'RCDATA'}
 # INSPACE.INI for the sound ordinals (tools/README.md, sound.txt): one
 # channel (sndPlaySound), so the sounds the DLL plays are its own calls.
-INI = {'SndPath': 'C:\\SPACE\\SOUNDS\\', 'Language': 'ENG', 'MixChannels': '1'}
+INI = {'SndPath': 'C:\\SPACE\\SOUNDS\\', 'Language': 'ENG', 'MixChannels': '1', 'LocalPath': 'C:\\SPACE\\'}
 CAPS = {8: 640, 10: 480, 12: 8, 14: 1, 24: 20, 38: 0x799, 104: 256, 106: 20}
 
 
@@ -111,9 +114,11 @@ class IspaceEmu:
         self.texts = []
         self.windows = {}                    # dialogs and controls (dialog_window)
         self.focus = 0
+        self.dta = self.found = 0
         self.wds(ISPACE_HINST_SLOT, 0x0b00)
         self.wds(IGRAPHIC_HINST_SLOT, 0x0c00)
         self.wds(LANG_HINST_SLOT, 0x0d00)
+        self.uc.mem_write(self.ds * 16 + LOCAL_PATH_SLOT, self.ini['LocalPath'].encode('latin-1') + b'\0')
         self.stock = {}
         for i, kw in STOCK.items():
             self.stock[i] = self.new_gdi(kw[0], **kw[1])
@@ -235,6 +240,9 @@ class IspaceEmu:
             uc.emu_stop()
             return
         nbytes, spec, fn = API[name]
+        if spec == 'regs':
+            fn(self)
+            return
         if spec == 'cdecl':
             r = fn(self, self.ss * 16 + uc.reg_read(UC_X86_REG_SP) + 4)
             uc.reg_write(UC_X86_REG_AX, r & 0xffff)
@@ -558,6 +566,13 @@ def GetDC(e, hwnd):
 def DeleteDC(e, dc):
     e.gdi.pop(dc, None)
     return 1
+
+
+@api(8, 'wlw')
+def GetTextExtent(e, dc, fp, n):
+    """Arial 14x6 for every character: only the dialogs' sizes use it,
+    which are not compared."""
+    return 14 << 16 | 6 * n
 
 
 @api(4, 'ww')
@@ -1039,7 +1054,18 @@ def LoadCursor(e, inst, name):
 
 @api(30, 'lllwwwwwwwl')
 def CreateWindow(e, cls, title, style, x, y, w, h, parent, menu, inst, param):
-    return 0x500
+    """A control the DLL adds to a dialog (the Save Game dialog's combo
+    box) joins its controls; other windows are not modelled."""
+    if e.windows.get(parent, {}).get('kind') != 'dlg':
+        return 0x500
+    name = e.cstr(e.lin(cls))
+    kids = e.windows[parent]['children']
+    h = max(kids) + 1
+    e.windows[h] = dict(kind='ctl', parent=parent, id=menu, style=style, text=e.cstr(e.lin(title)),
+                        cls=next((c for c in CONTROL_CLASSES.values() if c.upper() == name.upper()), name),
+                        enabled=not style & 0x08000000, checked=0, items=[], sel=-1, range=(0, 0), pos=0)
+    kids.append(h)
+    return h
 
 
 @api(2, 'w')
@@ -1115,6 +1141,8 @@ def dialog_state(e, dlg):
             w['range'][1], w['pos'], w['text'].replace('&', '')))
     focus = e.windows.get(e.focus, {})
     out.append('focus %d' % (focus['id'] if focus.get('parent') == dlg and focus['kind'] == 'ctl' else 0))
+    if e.windows[dlg]['ended'] is not None:
+        out.append('ended %d' % e.windows[dlg]['ended'])
     return out
 
 
@@ -1130,6 +1158,17 @@ def GetWindowRect(e, h, fp):
     """Every window 270 x 372 at (185, 54): the dialogs centre themselves
     with it; where they go is not compared."""
     e.uc.mem_write(e.lin(fp), struct.pack('<4h', 185, 54, 455, 426))
+
+
+@api(6, 'wl')
+def GetClientRect(e, h, fp):
+    """Not compared, as GetWindowRect."""
+    e.uc.mem_write(e.lin(fp), struct.pack('<4h', 0, 0, 264, 344))
+
+
+@api(6, 'wl')
+def ClientToScreen(e, h, fp):
+    return 0
 
 
 @api(2, 'w')
@@ -1162,12 +1201,29 @@ def SendMessage(e, h, msg, wp, lp):
     w = ctl(e, h)
     if msg == 0x30:                                 # WM_SETFONT
         return 0
-    if w['cls'] == 'ComboBox' and msg == 0x403:     # CB_ADDSTRING (no CBS_SORT in these dialogs)
-        w['items'].append(e.cstr(e.lin(lp)))
-        return len(w['items']) - 1
-    if w['cls'] == 'ComboBox' and msg == 0x40e:     # CB_SETCURSEL
+    if w['cls'] == 'ComboBox' and msg == 0x403:     # CB_ADDSTRING; CBS_SORT ignoring case, as the port
+        s, items = e.cstr(e.lin(lp)), w['items']
+        i = len(items)
+        while w['style'] & 0x100 and i > 0 and items[i - 1].upper() > s.upper():
+            i -= 1
+        items.insert(i, s)
+        if w['sel'] >= i:
+            w['sel'] += 1
+        return i
+    if w['cls'] == 'ComboBox' and msg == 0x40c:     # CB_FINDSTRING: a prefix, ignoring case, after item wp
+        s, items = e.cstr(e.lin(lp)).upper(), w['items']
+        start = s16(wp) if 0 <= s16(wp) < len(items) else len(items) - 1
+        for k in range(1, len(items) + 1):
+            if items[(start + k) % len(items)].upper().startswith(s):
+                return (start + k) % len(items)
+        return 0xffff
+    if w['cls'] == 'ComboBox' and msg == 0x40e:     # CB_SETCURSEL; a CBS_DROPDOWN field shows the item
         w['sel'] = s16(wp) if s16(wp) < len(w['items']) else -1
+        if w['style'] & 3 == 2:
+            w['text'] = w['items'][w['sel']] if w['sel'] >= 0 else ''
         return w['sel'] & 0xffff
+    if w['cls'] == 'ComboBox' and msg == 0x401:     # CB_LIMITTEXT
+        return 1
     if w['cls'] == 'ComboBox' and msg == 0x407:     # CB_GETCURSEL
         return w['sel'] & 0xffff
     if w['cls'] == 'Static' and msg == 0x400:       # STM_SETICON
@@ -1226,6 +1282,11 @@ def SetFocus(e, h):
 @api(6, 'wl')
 def SetWindowText(e, h, fp):
     e.windows[h]['text'] = e.cstr(e.lin(fp))
+
+
+@api(8, 'wlw')
+def GetWindowText(e, h, fp, n):
+    return put_string(e, fp, e.windows[h]['text'], n)
 
 
 @api(2, 'w')
@@ -1308,6 +1369,44 @@ def wsprintf(e, p):
 
 
 API['_wsprintf'] = (0, 'cdecl', wsprintf)
+
+
+# KERNEL's DOS3Call: the int 21h functions the DLL's C runtime calls
+# (_dos_findfirst and _dos_findnext of 3:04b2/3:04c2).  Files are listed
+# with DOS's upper-case 8.3 names, as the port shows them.
+def dos3call(e):
+    uc = e.uc
+    ah = uc.reg_read(UC_X86_REG_AX) >> 8
+    ds_dx = uc.reg_read(UC_X86_REG_DS) * 16 + uc.reg_read(UC_X86_REG_DX)
+    fail = 0
+    if ah == 0x2f:                                  # get the DTA
+        uc.reg_write(UC_X86_REG_ES, e.dta >> 4)
+        uc.reg_write(UC_X86_REG_BX, e.dta & 15)
+    elif ah == 0x1a:                                # set the DTA
+        e.dta = ds_dx
+    elif ah == 0x4e:                                # find first
+        dos = e.cstr(ds_dx)
+        folder = host_path(e, dos[:dos.rfind('\\') + 1] + 'X')
+        names = sorted(os.listdir(os.path.dirname(folder))) if folder and os.path.isdir(os.path.dirname(folder)) else []
+        pattern = dos[dos.rfind('\\') + 1:].upper()
+        e.found = [(n.upper(), os.path.getsize(os.path.join(os.path.dirname(folder), n))) for n in names
+                   if fnmatch.fnmatchcase(n.upper(), pattern)]
+        fail = 2 if not e.found else 0
+    elif ah == 0x4f:                                # find next
+        e.found = e.found[1:]
+        fail = 0x12 if not e.found else 0
+    else:
+        raise RuntimeError('DOS3Call %#x' % ah)
+    if ah in (0x4e, 0x4f) and not fail:
+        name, size = e.found[0]
+        uc.mem_write(e.dta, bytes(21) + struct.pack('<BHHI13s', 0x20, 0, 0, size, name.encode('latin-1')))
+    flags = uc.reg_read(UC_X86_REG_FLAGS) & ~1
+    if fail:
+        uc.reg_write(UC_X86_REG_AX, fail)
+    uc.reg_write(UC_X86_REG_FLAGS, flags | bool(fail))
+
+
+API['DOS3CALL'] = (0, 'regs', dos3call)
 
 
 # WAVEMIX.DLL, which the port always has (C:\WINDOWS\WAVEMIX.DLL exists

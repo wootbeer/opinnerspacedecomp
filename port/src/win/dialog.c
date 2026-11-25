@@ -266,6 +266,15 @@ void EndDialog(HWND h, int16_t r)
     }
 }
 
+int dialog_ended(HWND h, int16_t *result)
+{
+    Dlg *d = dlg_of(h);
+
+    if (d && d->ended)
+        *result = d->result;
+    return d && d->ended;
+}
+
 LRESULT SendDlgItemMessage(HWND dlg, int16_t id, UINT msg, WPARAM wp, LPARAM lp)
 {
     return SendMessage(GetDlgItem(dlg, id), msg, wp, lp);
@@ -279,6 +288,17 @@ HWND GetDlgItem(HWND h, int16_t id)
         if (GetDlgCtrlID(c) == id)
             return c;
     return 0;
+}
+
+/* The dialog's control that h is or is inside (a combo box's edit
+ * field), or 0. */
+static HWND control_of(HWND dlg, HWND h)
+{
+    Wnd *w = wnd_get(h);
+
+    while (w && wnd_is_child(w) && w->parent != dlg)
+        w = wnd_get(w->parent);
+    return w && wnd_is_child(w) ? w->hwnd : 0;
 }
 
 /* The next (dir 1) or previous (-1) control that takes the focus: with
@@ -337,7 +357,7 @@ static int dialog_key(HWND dlg, const MSG *m, LRESULT code)
 
     switch (vk) {
     case VK_TAB:
-        move_focus(next_control(dlg, GetFocus(), GetKeyState(VK_SHIFT) < 0 ? -1 : 1, 0));
+        move_focus(next_control(dlg, control_of(dlg, GetFocus()), GetKeyState(VK_SHIFT) < 0 ? -1 : 1, 0));
         return 1;
     case VK_LEFT:
     case VK_UP:
@@ -345,7 +365,7 @@ static int dialog_key(HWND dlg, const MSG *m, LRESULT code)
     case VK_DOWN:
         if (code & DLGC_WANTARROWS)
             return 0;
-        move_focus(next_control(dlg, GetFocus(), vk == VK_LEFT || vk == VK_UP ? -1 : 1, 1));
+        move_focus(next_control(dlg, control_of(dlg, GetFocus()), vk == VK_LEFT || vk == VK_UP ? -1 : 1, 1));
         return 1;
     case VK_RETURN:
         if (code & (DLGC_DEFPUSHBUTTON | DLGC_UNDEFPUSHBUTTON)) {
@@ -390,7 +410,7 @@ BOOL IsDialogMessage(HWND dlg, MSG *m)
     LRESULT code;
     int done = 0;
 
-    if (!w || (m->hwnd != dlg && (!wnd_is_child(w) || w->parent != dlg)))
+    if (!w || (m->hwnd != dlg && !control_of(dlg, m->hwnd)))
         return 0;
     code = SendMessage(m->hwnd, WM_GETDLGCODE, 0, 0);
     if (m->message == WM_KEYDOWN && !(code & DLGC_WANTMESSAGE))

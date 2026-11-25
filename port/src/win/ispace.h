@@ -180,6 +180,9 @@ int16_t ispace_dialog_word6(void);  /* DS:2136: the sixth word of the last call 
  * dialog's controls. */
 void ispace_dialog_fonts(int make);
 void ispace_dialog_set_fonts(HWND dlg);
+/* The procedure of the Save Game dialog (template 167), ordinal 26
+ * (10:0dc0). */
+BOOL ispace_save_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp);
 /* 9:328e: the help file's topic (WinHelp). */
 void ispace_help(int32_t topic);
 

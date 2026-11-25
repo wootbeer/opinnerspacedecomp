@@ -2,7 +2,8 @@
  * options, ...), run by 10:42c6 from ENG_LANG.DLL's templates with
  * dialog procedures in the DLL's segment 10.  Ported so far: mode 1's
  * Restore Game (10:0ec2) and New Game (10:0f26) dialogs with the ship
- * preview window class LevClass (10:309c), and the exit question. */
+ * preview window class LevClass (10:309c), Save Game (10:0dc0) and the
+ * exit question. */
 #include <SDL3/SDL_stdinc.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,6 +26,8 @@
 #define SHIP_SIZE 0x41          /* a MASTER.SHP record: type +3, colour sets +7 +8, name +0xa, body +0x21 */
 #define BODY_SIZE 0x2c          /* a MASTER.BOD record: size +0x1a, image id +0x21, image file +0x23 */
 #define NAME_SIZE 0x14
+#define SAVE_HEAD 0x1c0         /* GlobalSize of a saved game's 0x1a9-byte first record */
+#define SAVE_NAME_MAX 8         /* characters of a saved game's name */
 
 static struct {
     int16_t ds_01aa, ds_204e, ds_2134, ds_2136, ds_2138, ds_213a, ds_213c;
@@ -210,19 +213,32 @@ static void free_slot(int slot)
     st.slot[slot].bm = 0;
 }
 
+static int ship_allowed(int16_t i);
+
 static const uint8_t *ship_rec(int16_t i)
 {
     return st.ships + (size_t)i * SHIP_SIZE;
 }
 
-/* Ship i's body, NULL when its index is outside MASTER.BOD (the DLL
- * reads past the table). */
+/* Ship i's body, NULL when i is outside MASTER.SHP or its body outside
+ * MASTER.BOD (the DLL reads past the tables). */
 static const uint8_t *body_of(int16_t i)
 {
-    const uint8_t *ship = ship_rec(i);
-    int16_t k = (int16_t)(ship[0x21] | ship[0x22] << 8);
+    const uint8_t *ship;
+    int16_t k;
 
+    if (i < 0 || i >= st.ship_count)
+        return NULL;
+    ship = ship_rec(i);
+    k = (int16_t)(ship[0x21] | ship[0x22] << 8);
     return k >= 0 && k < st.body_count ? st.bodies + (size_t)k * BODY_SIZE : NULL;
+}
+
+/* Ship i's name, empty when i is outside MASTER.SHP (the DLL reads past
+ * the table). */
+static const char *ship_name(int16_t i)
+{
+    return i >= 0 && i < st.ship_count ? (const char *)ship_rec(i) + 0xa : "";
 }
 
 static int16_t body_image(const uint8_t *body)
@@ -347,13 +363,67 @@ static int16_t text_height(HWND dlg)
     return h;
 }
 
+/* <LocalPath>\GAMES\name; LocalPath ends with a backslash, also an
+ * empty one (10:4b1a). */
+static void games_path(char *out, size_t size, const char *name)
+{
+    GetPrivateProfileString(APP, "LocalPath", "", out, 0x6d, INI);
+    if (!out[0] || out[SDL_strlen(out) - 1] != '\\')
+        SDL_strlcat(out, "\\", size);
+    SDL_strlcat(out, "GAMES\\", size);
+    SDL_strlcat(out, name, size);
+}
+
+/* 10:1b13: saved game i's pilot, ship (and its picture), score and
+ * summary (the game's export 13, 10:a118) from the file's first record;
+ * a beep when the file is shorter than that. */
+static void saved_game_show(HWND dlg, int16_t i)
+{
+    typedef void (*Summary)(void *rec, char *out);
+    uint8_t rec[SAVE_HEAD];
+    char name[0x14 + 5], path[0x192];
+    OFSTRUCT of;
+    HFILE f;
+    Summary summary;
+
+    combo_get_text(GetDlgItem(dlg, ID_COMBO), i, name, 0x14);
+    lstrcat(name, ".sav");
+    games_path(path, sizeof path, name);
+    if ((f = OpenFile(path, &of, 0)) == -1)
+        return;
+    if (_lread(f, rec, SAVE_HEAD) != SAVE_HEAD) {
+        MessageBeep(0);
+        _lclose(f);
+        return;
+    }
+    _lclose(f);
+    st.ds_1f8c = (int16_t)(rec[0x22] | rec[0x23] << 8);
+    if (st.ship_count - 1 < st.ds_1f8c)
+        st.ds_1f8c = 0;
+    if (!ship_allowed(st.ds_1f8c))
+        st.ds_1f8c = 1;
+    show_ship(st.ds_1f8c, 0, (signed char)rec[0x170]);
+    SDL_strlcpy(st.player, (char *)rec + 4, sizeof st.player);
+    SetWindowText(GetDlgItem(dlg, 331), st.player);
+    SetWindowText(GetDlgItem(dlg, 329), ship_name(st.ds_1f8c));
+    SDL_snprintf(name, sizeof name, "%ld",
+                 (long)(int32_t)((uint32_t)rec[0x1e] | (uint32_t)rec[0x1f] << 8 | (uint32_t)rec[0x20] << 16 |
+                                 (uint32_t)rec[0x21] << 24));
+    SetWindowText(GetDlgItem(dlg, 269), name);
+    summary = (Summary)(void (*)(void))GetProcAddress(0, MAKEINTRESOURCE(13));
+    path[0] = 0;
+    if (summary)
+        summary(rec, path);
+    SetWindowText(GetDlgItem(dlg, 330), path);
+}
+
 /* 10:1a80: the saved game's details (i 0: " NEW GAME"). */
 static void restore_show(HWND dlg, int16_t i)
 {
     char text[0x3c];
 
     if (i != 0) {
-        not_ported("ispace dialog: saved game details (10:1b13)");
+        saved_game_show(dlg, i);
         return;
     }
     SetWindowText(GetDlgItem(dlg, 331), "?");
@@ -387,10 +457,7 @@ static void restore_init(HWND dlg)
     load_ships();
     ispace_dialog_set_fonts(dlg);
     combo_add_string(combo, " NEW GAME");
-    GetPrivateProfileString(APP, "LocalPath", "", pattern, 0x6d, INI);
-    if (pattern[0] && pattern[SDL_strlen(pattern) - 1] != '\\')
-        SDL_strlcat(pattern, "\\", sizeof pattern);
-    SDL_strlcat(pattern, "GAMES\\*.SAV", sizeof pattern);
+    games_path(pattern, sizeof pattern, "*.SAV");
     for (r = _dos_findfirst(pattern, 1, &ff); r == 0; r = _dos_findnext(&ff)) {
         count++;
         SDL_strlcpy(name, ff.name, sizeof name);
@@ -429,8 +496,10 @@ static void restore_end(HWND dlg, int ok)
         sel = (int16_t)SendMessage(combo, CB_GETCURSEL, 0, 0);
         combo_get_text(combo, sel, name, sizeof name);
         WritePrivateProfileString(APP, "Restore", name, INI);
-        if (st.ds_1f8c >= 0)
-            not_ported("ispace dialog: restore ship and player (10:1da2)");
+        if (st.ds_1f8c >= 0) {
+            WritePrivateProfileString(APP, "MainShip", ship_name(st.ds_1f8c), INI);
+            WritePrivateProfileString(APP, "ThePlayer", st.player, INI);
+        }
     }
     free_slot(0);
     if (st.preview[0]) {
@@ -768,6 +837,86 @@ static BOOL newgame_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
     return 0;
 }
 
+/* 10:0b0e: centres the dialog, adds its combo box (with an edit field,
+ * sorted), lists the saved games but LASTGAME, sizes the list to them
+ * and picks the game of INI Restore; names are kept to 8 characters. */
+static void save_init(HWND dlg)
+{
+    RECT win, combo_r;
+    POINT org = {0, 0};
+    struct _find_t ff;
+    char name[0x14 + 0x80], pattern[160];
+    HWND combo;
+    int16_t item_h, count = 0, x, y, i;
+    uint16_t r;
+
+    GetWindowRect(dlg, &win);
+    item_h = text_height(dlg);
+    ClientToScreen(dlg, &org);
+    x = (int16_t)(GetSystemMetrics(SM_CXSCREEN) / 2 + (win.left - win.right) / 2);
+    y = (int16_t)(GetSystemMetrics(SM_CYSCREEN) / 2 + (win.top - win.bottom) / 2);
+    load_ships();
+    combo = CreateWindow("combobox", "", WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_TABSTOP | 0x0102, 0x41, 0x0a,
+                         0x8c, 0x1e, dlg, (HMENU)ID_COMBO, ispace_module(), NULL);
+    ispace_dialog_set_fonts(dlg);
+    games_path(pattern, sizeof pattern, "*.SAV");
+    for (r = _dos_findfirst(pattern, 1, &ff); r == 0; r = _dos_findnext(&ff)) {
+        SDL_strlcpy(name, ff.name, sizeof name);
+        for (i = 0; i < 4 && name[0]; i++)
+            name[lstrlen(name) - 1] = 0;
+        if (lstrcmp(name, "LASTGAME")) {
+            count++;
+            combo_add_string(combo, name);
+        }
+    }
+    GetWindowRect(combo, &combo_r);
+    MoveWindow(combo, (int16_t)(combo_r.left - org.x), (int16_t)(combo_r.top - org.y),
+               (int16_t)(combo_r.right - combo_r.left), (int16_t)(item_h * count + 0x1e), 1);
+    GetPrivateProfileString(APP, "Restore", "", name, 0x14, INI);
+    i = combo_find_string(combo, -1, name);
+    if (i >= 0)
+        SendMessage(combo, CB_SETCURSEL, (WPARAM)i, 0);
+    SendMessage(combo, CB_LIMITTEXT, SAVE_NAME_MAX, 0);
+    SetFocus(combo);
+    MoveWindow(dlg, x, y, (int16_t)(win.right - win.left), (int16_t)(win.bottom - win.top), 1);
+}
+
+/* 10:0e0e: Save (ok 1) takes the name up to its first space into INI
+ * Restore; an empty name or LASTGAME (the automatic save's) is cleared
+ * and the dialog stays.  Ends with 1 (Save) or 0 (Cancel). */
+static void save_end(HWND dlg, int ok)
+{
+    HWND combo = GetDlgItem(dlg, ID_COMBO);
+    char name[SAVE_NAME_MAX + 1], *space;
+
+    if (ok) {
+        GetWindowText(combo, name, sizeof name);
+        if ((space = SDL_strchr(name, ' ')) != NULL)
+            *space = 0;
+        if (!name[0] || !lstrcmp(name, "LASTGAME")) {
+            SetWindowText(combo, "");
+            return;
+        }
+        WritePrivateProfileString(APP, "Restore", name, INI);
+    }
+    free_ships();
+    EndDialog(dlg, (int16_t)ok);
+}
+
+/* 10:0dc0 */
+BOOL ispace_save_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
+{
+    (void)lp;
+    if (msg == WM_INITDIALOG) {
+        save_init(h);
+        return 0;
+    }
+    if (msg != WM_COMMAND || (wp != IDOK && wp != ID_CANCEL))
+        return 0;
+    save_end(h, wp == IDOK);
+    return 1;
+}
+
 /* 10:109a: the exit question (mode 5: leave the game, 7: back to the
  * intro); Save & Exit only for game modes 1-3 while someone plays. */
 static void exit_init(HWND h)
@@ -869,7 +1018,7 @@ static int16_t dialogs(HWND owner, int16_t dc, HPALETTE pal, int16_t mode)
         r = run(owner, 0x1b0, NULL, "ispace dialog: 10:3346");
         break;
     default:
-        r = run(owner, 0xa7, NULL, "ispace dialog: 10:0dc0");
+        r = run(owner, 0xa7, ispace_save_proc, "");
         break;
     }
     ispace_dialog_fonts(0);

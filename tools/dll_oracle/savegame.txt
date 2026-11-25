@@ -1,0 +1,23 @@
+# Save Game (ordinal 10 mode 3 and the modes without a dialog of their
+# own; template 167, 10:0dc0 = ordinal 26).  Run with --data on a copy of
+# the game's files whose GAMES folder holds saved games (tools/README.md).
+# Opened: the combo box made, the games but LASTGAME listed and the one
+# INI Restore begins (empty: the first) picked.  Save with no name and
+# with LASTGAME (cleared, the dialog stays), with "my game" (Restore=my);
+# opened again and cancelled; opened, WAVE1 typed and saved; opened with
+# Restore=WAVE1 and saved.  The controls, the dialog's end and
+# INSPACE.INI are compared after each call.
+26 DLG167 0x110 0 0
+1003 0x14c ""
+26 DLG 0x111 1 0
+1003 0x14c "LASTGAME"
+26 DLG 0x111 1 0
+1003 0x14c "my game"
+26 DLG 0x111 1 0
+26 DLG167 0x110 0 0
+26 DLG 0x111 0x14d 0
+26 DLG167 0x110 0 0
+1003 0x14c "WAVE1"
+26 DLG 0x111 1 0
+26 DLG167 0x110 0 0
+26 DLG 0x111 1 0

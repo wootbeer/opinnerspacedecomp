@@ -7,6 +7,7 @@
 
 #include "user.h"
 #include "ne.h"
+#include "game.h"
 
 typedef struct {
     char name[16];          /* file name, upper case: ISPACE.DLL */
@@ -108,10 +109,14 @@ void FreeLibrary(HINSTANCE h)
     }
 }
 
+/* Module 0 is the program's own [inferred: ISPACE.DLL's 10:1b13 asks it
+ * for INSPACE.EXE's export 13, 10:a118, the saved game summary]. */
 FARPROC GetProcAddress(HINSTANCE h, LPCSTR name)
 {
     if (module_is(h, "ISPACE.DLL") && IS_INTRESOURCE(name))
         return ispace_proc((int)(uintptr_t)name);
+    if ((h == 0 || h == exe) && name == MAKEINTRESOURCE(13))
+        return (FARPROC)(void (*)(void))fn_10_a118;
     return NULL;
 }
 

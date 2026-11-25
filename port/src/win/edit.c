@@ -3,7 +3,8 @@
  * in Windows 3.1: a blinking caret, a selection (Shift with the arrow
  * keys or the mouse, all of it when the dialog moves the focus there),
  * a length limit (EM_LIMITTEXT) and scrolling sideways (ES_AUTOHSCROLL)
- * to keep the caret in view.  No clipboard and no undo. */
+ * to keep the caret in view.  No clipboard and no undo.  A combo box's
+ * field (id 1001) leaves the keys of the combo box's list to it. */
 #include <SDL3/SDL_stdinc.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,6 +20,8 @@
 #define EN_CHANGE 0x0300
 #define EN_UPDATE 0x0400
 #define EN_MAXTEXT 0x0501
+#define CB_GETDROPPEDSTATE (WM_USER + 23)
+#define COMBO_EDIT 1001
 #define CTLCOLOR_EDIT 1
 #define CARET_TIMER 1
 #define BLINK_MS 530            /* GetCaretBlinkTime's default */
@@ -102,12 +105,13 @@ static void hide_caret(HWND h)
         invert_caret(h);
 }
 
-/* The caret shown again and its blinking restarted. */
+/* The caret shown again (once the window is) and its blinking
+ * restarted. */
 static void show_caret(HWND h)
 {
     if (GetFocus() != h || (wnd_get(h)->style & ES_READONLY))
         return;
-    if (!edit_of(h)->caret_on)
+    if (!edit_of(h)->caret_on && wnd_visible(wnd_get(h)))
         invert_caret(h);
     SetTimer(h, CARET_TIMER, BLINK_MS, NULL);
 }
@@ -307,6 +311,25 @@ static void character(HWND h, int ch)
     }
 }
 
+/* The combo box whose field h is, or 0. */
+static HWND combo_of(HWND h)
+{
+    char cls[16];
+    HWND p = GetParent(h);
+
+    if (!p || GetDlgCtrlID(h) != COMBO_EDIT)
+        return 0;
+    GetClassName(p, cls, sizeof cls);
+    return SDL_strcasecmp(cls, "ComboBox") ? 0 : p;
+}
+
+/* Keys for a combo box's list: up and down, F4, and all while it is
+ * open. */
+static int combo_key(HWND combo, int vk)
+{
+    return combo && (vk == VK_UP || vk == VK_DOWN || vk == VK_F4 || SendMessage(combo, CB_GETDROPPEDSTATE, 0, 0));
+}
+
 /* The character boundary nearest to x. */
 static int index_at(HWND h, int x)
 {
@@ -356,7 +379,8 @@ LRESULT edit_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
         InvalidateRect(h, NULL, 1);
         return 0;
     case WM_GETDLGCODE:
-        return DLGC_WANTCHARS | DLGC_HASSETSEL | DLGC_WANTARROWS;
+        return DLGC_WANTCHARS | DLGC_HASSETSEL | DLGC_WANTARROWS |
+               (combo_of(h) ? SendMessage(combo_of(h), msg, wp, lp) & DLGC_WANTMESSAGE : 0);
     case WM_SETFOCUS:
         InvalidateRect(h, NULL, 0);
         show_caret(h);
@@ -369,7 +393,7 @@ LRESULT edit_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
         notify(h, EN_KILLFOCUS);
         return 0;
     case WM_TIMER:
-        if (wp == CARET_TIMER && GetFocus() == h)
+        if (wp == CARET_TIMER && GetFocus() == h && (e->caret_on || wnd_visible(w)))
             invert_caret(h);
         return 0;
     case WM_LBUTTONDOWN:
@@ -390,6 +414,11 @@ LRESULT edit_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
         }
         return 0;
     case WM_KEYDOWN:
+    case WM_SYSKEYDOWN:
+        if (combo_key(combo_of(h), (int)wp))
+            return SendMessage(combo_of(h), msg, wp, lp);
+        if (msg == WM_SYSKEYDOWN)
+            break;
         if (!(w->style & ES_MULTILINE))
             key(h, (int)wp);
         return 0;

@@ -250,7 +250,31 @@ the overrides; `src/inspace/` is unchanged.
 ## Far pointers and save files
 
 - **Function pointers in `REC_70`.** The far function pointers at +5e/+62/+66 make `REC_70` 124 bytes natively instead of 0x70. Any code that sizes these blocks as 0x70, copies them as raw bytes, or reads them from a file must be checked. Every other record type is pointer-free, so its native layout equals the original.
-- **Save files.** fn_06_9e66 and fn_14_4006 write and read whole GlobalAlloc blocks with `_lwrite`/`_lread`. These are the REC_SAVE block, `g_6e24` (REC_7C), `g_69f4` (REC_297), `g_6e1c`, `g_6e20`, `g_6afc` and REC_1A9 records. All are pointer-free, but they still need explicit serialisation of the original byte format, because their sizes come from `GlobalSize`.
+- **Save files** (GAMES\<name>.SAV, RETIRED\<name>.DED and .DON, the
+  6:885c writer; 6:930a reads .SAV, 10:1b13 (the Restore dialog),
+  15:5d14, 15:52e4, 17:7c2a, 17:8270 and 6:8776 read the first record,
+  6:6576 and 6:7042 its first 0x26 bytes). A file is three blocks, each
+  written and read whole with `_lwrite`/`_lread` (6:9e66, 14:4006) in
+  **GlobalSize** bytes: the 0x1a9-byte summary (REC_SAVE: signature,
+  pilot, date, score, wave, counts, ...; 6:8eea fills it) as 0x1c0
+  bytes; the pilot records `g_6e24`, (g_931a + 1) of 0x7c (REC_7C) rounded
+  up to 32; for .SAV only, the directory records `g_69f4`, g_94a4 of
+  0x297 (REC_297) rounded up to 32. The rounding is Windows 3.1's: global
+  blocks come in 32-byte units and GlobalSize answers the rounded size
+  (the 1994 RETIRED\LASTGAME.DED is 0x1c0 + 0x100 bytes for 0x1a9 +
+  2 x 0x7c; ISPACE.DLL's room header has the same rule). The port's
+  GlobalSize rounds the same way (kernel.c) and memory a block gains is
+  zeroed, so the padding is zero as in a block made with GMEM_ZEROINIT.
+  The records are pointer-free and packed, their native layout is the
+  1994 one (little-endian, checked: sizeof 0x1a9, 0x7c, 0x297), so the
+  game's own code writes and reads them unchanged; before the GlobalSize
+  rounding the port wrote the blocks back to back (0x1a9 + 0x7c + 0x297
+  bytes), which 1994 reads misaligned. Race times (<RacePath><track>.rac, 6:8dfe/6:8b90) are
+  0x42-byte records sized by count, not GlobalSize. Checked with the
+  1994 .DED: its blocks restored in a .SAV show its score 51200,
+  wave 2, 3 min 41 s and 8 icons in the Restore dialog and the game; a
+  port save, restored and saved again, differs only in what the played
+  wave changed.
 - **Far-pointer arithmetic.** About 93 casts turn a far pointer into an integer, and 17 go the other way. These are segment:offset arithmetic and `(long)ptr` comparisons. Each must become plain pointer arithmetic.
 - **`huge` and `_lread`/`_lwrite` sizes.** `huge` is dropped. The 0x7fff-byte chunking in fn_06_9e66 is harmless natively.
 - **Runtime types that differ natively.** `time()`, `stat()` and `utime()` use the host's runtime types. The original's `time_t` was 32 bits; check any place that stores these values in 32-bit globals.
@@ -559,9 +583,23 @@ in ispace_room.h.
   it gives it the focus (Tab, mnemonic, first control). Text starts at
   (1, 1) inside the border. No clipboard, undo, double-click word
   selection or multi-line editing (multi-line ones only show their
-  text).
+  text). The caret is drawn only while the edit is shown (a dialog
+  gives the focus in WM_INITDIALOG, before it is shown and centred; the
+  caret drawn then stayed on the screen where the dialog had been).
+- **Combo boxes with an edit field** (CBS_DROPDOWN, the Save Game
+  dialog's): the field is an Edit child with id 1001 (Windows' id) that
+  keeps the combo box's text (WM_SETTEXT/GetWindowText of the combo box,
+  EN_CHANGE copied back, CBN_EDITCHANGE); picking an item (list, Up,
+  Down, CB_SETCURSEL) puts its text there, all selected; CB_LIMITTEXT
+  limits it; the combo box gives it the focus; Up, Down, F4, Alt+Up,
+  Alt+Down and every key while the list is open go to the combo box.
+  IsDialogMessage takes messages for a control's children (the field) as
+  the control's. [uncertain: Windows 3.1 drew the field and the arrow
+  button apart; the port draws them in one frame like the drop-down
+  list.]
 - **Uncertain:** CB_FINDSTRING with an empty string finds item 0 (the
-  Restore Game dialog relies on it while INI Restore is unset).
+  Restore Game dialog relies on it while INI Restore is unset; the Save
+  Game dialog then shows the first saved game).
 - **Messages with pointers** (CB_ADDSTRING, LB_GETTEXT, WM_DRAWITEM, ...)
   carry native pointers in the pointer-sized lParam ("How it works").
   The native DLL code calls `combo_*` (user.h) directly; WM_SETTEXT is
@@ -694,19 +732,46 @@ in ispace_room.h.
   and runs 10:42c6, which picks the palette slot (DS:1f92), makes the
   dialog fonts (9:29c0: Arial 14x6, regular and weight 730) and runs the
   mode's dialog from ENG_LANG.DLL. Ported: mode 1's Restore Game dialog
-  (template 267; 10:0ec2 with 10:1438, 10:1a38, 10:1a80 for " NEW GAME",
-  10:1d36) and New Game dialog (template 321, or 589 "New Demo" for mode
+  (template 267; 10:0ec2 with 10:1438, 10:1a38, 10:1a80 and 10:1b13 for
+  a game's details, 10:1d36) and New Game dialog (template 321, or 589 "New Demo" for mode
   4; 10:0f26 with 10:1e7c, 10:250c, 10:2978), their LevClass preview
   window (10:4250, 10:309c, 10:2c68, 10:2aac, 10:2d3c), the ship tables
   (10:3f70, 10:406a, freed by 10:4168), 10:602a (fonts for the
-  controls), and modes 5/7, the exit question (template 244; 10:103c,
-  10:109a). The language DLL handle (DS:0690, which ordinal 7's 9:0174
+  controls), modes 5/7, the exit question (template 244; 10:103c,
+  10:109a), and mode 3 with every mode not listed in 10:42c6 (2, 6, 8,
+  9, 11, 12 and 14 have their own), the Save Game dialog (template 167;
+  10:0dc0, 10:0b0e, 10:0e0e). The language DLL handle (DS:0690, which ordinal 7's 9:0174
   loads) is loaded on first use.
 - **Flow:** ESC on the title runs mode 1. OK with " NEW GAME" writes INI
   `Restore= NEW GAME` and ends with 1; then the New Game dialog. Cancel
-  ends with 0; a saved game ends with 2 (its details, 10:1b13, are not
-  ported). Modes other than 0, 1, 4, 5, 7 and 15 log "not ported" and
-  answer 0; mode 0 is Game Settings (below).
+  ends with 0; a saved game writes Restore, MainShip (its ship's name)
+  and ThePlayer (its pilot) and ends with 2, and the game loads it
+  (6:930a). Modes 2, 6, 8, 9, 11, 12 and 14 log "not ported" and answer
+  0; mode 0 is Game Settings (below).
+- **A saved game's details** (10:1b13, picking it in Restore Game):
+  GAMES\<item>.sav's first record, read in GlobalSize(0x1a9) = 0x1c0
+  bytes (a shorter file: a beep and nothing shown): its ship (+0x22; 0
+  when past MASTER.SHP, 1 when not allowed, 10:611c) shown in the preview
+  with the halves of +0x170 blackened, the pilot (+4), the ship's name,
+  the score (+0x1e) and the summary of INSPACE.EXE's export 13 (10:a118,
+  through GetProcAddress(0, 13): module 0 is the program's own
+  [inferred]).
+- **Save Game** (mode 3, 10:0dc0): the game asks with it on Save (menu,
+  Alt+S: 10:8568 with 0 in a wave, 2 between waves) and on Save & Exit
+  of the exit questions (10:8568 with 1, -1, 3; there only when INI
+  SavePrompt is set (default 1) or Restore is empty or " NEW GAME"),
+  then saves under INI Restore (6:99b6 or 6:885c). The DLL adds the
+  combo box (CBS_DROPDOWN | CBS_SORT, 0x8c x 0x1e pixels at (0x41, 0xa))
+  listing GAMES\*.SAV but LASTGAME (the game's own save after each wave
+  and at the end), as high as the items, picks the game INI Restore
+  begins with, limits the name to 8 characters. Save takes the text up
+  to its first space; empty or LASTGAME clears it and the dialog stays,
+  else INI Restore = the name and the dialog ends with 1; Cancel with 0.
+  Checked against the DLL with the oracle (tools/dll_oracle/savegame.txt,
+  14 calls agree).
+  - **Quirk kept:** Esc does nothing (Cancel is id 333), as in Restore
+    Game; "lastgame" in lower case is taken (lstrcmp sees the case) and
+    saves over LASTGAME.SAV.
 - **New Game dialog** (10:1e7c): zoom levels (strings 2230-2232, INI
   SetSize, default 1, picks item 2 - SetSize); the ships of MASTER.SHP
   with a name, not of type 7 and allowed (10:611c, below), sorted; the
@@ -777,6 +842,10 @@ in ispace_room.h.
     file open; the port drops the data and closes the file.
   - 10:1438 cuts ".SAV" by writing before the name if it is shorter than
     4 characters (impossible for *.SAV matches); the port stops there.
+  - 10:1b13 keeps the block it allocated when the saved game cannot be
+    opened (a leak); a ship index below 0 in the file makes it read before
+    MASTER.SHP (the port shows no ship and an empty name); so does a
+    missing MASTER.SHP (no ships: index 0).
   - 10:42c6 uses slot 3 (DS:1cd6 + 6, inside the colour table) when the
     palette passed is not one of the manager's; the port uses no palette
     (ordinal 36: slot 0).

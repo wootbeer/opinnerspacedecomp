@@ -118,15 +118,16 @@ the first command again after files are added there.
   compared after the call. Results of routines that return nothing
   (`VOID`, ordinal 14) are not compared. A call that stops the emulation
   (a Windows call without a stand-in) is reported with its number.
-  Ordinals 1-12, 14, 15, 18, 29, 32-35, 37 and 38 are supported, and pseudo-ordinal
+  Ordinals 1-12, 14, 15, 18, 26, 29, 32-35, 37 and 38 are supported, and pseudo-ordinal
   1000 for 5:0000 (the dialogs' ship picture, a C-convention routine the
   DLL does not export: `INTERNAL` in oracle.py). The dialog procedures
-  (11, 37, 38: hwnd, msg, wParam, lParam) take `DLGn` (a dialog of the
-  language DLL's template n; `DLG` the last one) and `C<id>:<pos>`
+  (11, 26, 37, 38: hwnd, msg, wParam, lParam) take `DLGn` (a dialog of
+  the language DLL's template n; `DLG` the last one) and `C<id>:<pos>`
   (MAKELONG(pos, control id's handle), for WM_HSCROLL); pseudo-ordinals
-  1001 (id, 0/1) and 1002 (id, item) are the user checking a box and
-  picking an item; after these the controls, the focus and INSPACE.INI
-  are compared; add others to
+  1001 (id, 0/1), 1002 (id, item) and 1003 (id, "text") are the user
+  checking a box, picking an item and typing a control's text; after
+  these the controls, the focus, the dialog's end (EndDialog's value)
+  and INSPACE.INI are compared; add others to
   `ORDINALS` (oracle.py) and `run` (port_calls.c). Ordinal 32's script
   arguments leave out the rectangles block (both sides make an 8-byte
   one); its rectangles are compared too.
@@ -170,6 +171,13 @@ the first command again after files are added there.
   checked and items picked, OK and Cancel, the detail options grayed
   (ordinal 10's sixth word), channel counts changed, a negative width in
   sound mode 0. All 132 calls agree.
+- `savegame.txt`: the Save Game dialog (ordinal 10 mode 3, template
+  167, ordinal 26 = 10:0dc0): opened (the combo box it adds, the saved
+  games of GAMES\*.SAV but LASTGAME, the one INI Restore begins picked),
+  Save with no name, LASTGAME, "my game" and a listed game, Cancel. Run
+  it with `--data` on a copy of the game's files whose GAMES folder holds
+  saved games (the emulator lists them through DOS3Call's find
+  functions; LocalPath is C:\SPACE\ on both sides). All 14 calls agree.
 - `panel.txt`: the same set-up, then ordinals 33-35 on a memory DC. All
   agree. (Image 200, taller than wide, differs
   in 37 pixels of its top rows: the DLL reads past its pixels there, see

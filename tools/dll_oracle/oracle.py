@@ -31,7 +31,7 @@ from emu import INI, IspaceEmu, ROOT, GetDlgItem, dialog_state, dialog_window, n
 # of ordinal 32 (no script argument: a far pointer and a handle), p a
 # far pointer to a word (the script gives its value; the words are
 # compared after the call).
-ORDINALS = {10: 'wwwwwww', 11: 'wwwl', 37: 'wwwl', 38: 'wwwl', 1001: 'ww', 1002: 'ww', 1: 'wwswww', 2: 'wwswwwwwwwbbbw', 3: 's', 4: 'wwwwwww', 5: '', 6: 'www', 12: 'wwswwwwwwbb', 1000: 'wwswww',
+ORDINALS = {10: 'wwwwwww', 11: 'wwwl', 26: 'wwwl', 37: 'wwwl', 38: 'wwwl', 1001: 'ww', 1002: 'ww', 1003: 'ws', 1: 'wwswww', 2: 'wwswwwwwwwbbbw', 3: 's', 4: 'wwwwwww', 5: '', 6: 'www', 12: 'wwswwwwwwbb', 1000: 'wwswww',
             7: 'lw', 8: 'Pwwl', 9: 'wPwllls', 14: 'wwwww', 15: 'wwwwwwwww', 18: 'wwwwww', 29: 'ppppppppwwwwpp', 32: 'wwRwlwlwwwwww', 33: 'wwlwlwws', 34: 'wwwwww', 35: 'wwwwww'}
 # Ordinals after which the wave device's volume is compared (as outs).
 SOUND = {7, 8, 9}
@@ -44,10 +44,11 @@ INTERNAL = {1000: (5, 0x0000)}
 # makes a dialog from the language DLL's template n (the script sends its
 # WM_INITDIALOG), DLG is the last one made; C<id>:<pos> is the long
 # MAKELONG(pos, the control's handle) of a scroll message.  After each
-# call the dialog's state is compared.  Pseudo-ordinals 1001 (id, 0/1)
-# and 1002 (id, item) are the user checking a box and picking an item.
-DIALOGS = {11, 37, 38, 1001, 1002}
-USER = {1001: 'checked', 1002: 'sel'}
+# call the dialog's state is compared.  Pseudo-ordinals 1001 (id, 0/1),
+# 1002 (id, item) and 1003 (id, "text") are the user checking a box,
+# picking an item and typing a control's text.
+DIALOGS = {11, 26, 37, 38, 1001, 1002, 1003}
+USER = {1001: 'checked', 1002: 'sel', 1003: 'text'}
 
 
 def parse_script(path):
@@ -74,7 +75,7 @@ def run_emu(calls, data_dir):
         words, rect_block, mdc, ptrs, sdc = [], None, None, [], None
         if ordinal in USER:
             w = e.windows[GetDlgItem(e, dlg, int(args[0], 0))]
-            w[USER[ordinal]] = int(args[1], 0)
+            w[USER[ordinal]] = args[1] if ordinal == 1003 else int(args[1], 0)
             results.append(0)
             out.append(dict(ret=0, bmp=None, dcbmp=None, pals={}, rects=None, outs=[], texts=[],
                             state=dialog_state(e, dlg) + ini_state(e.ini)))

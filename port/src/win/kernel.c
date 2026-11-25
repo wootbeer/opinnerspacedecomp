@@ -14,6 +14,13 @@
  * blocks that ISPACE.DLL grows (ordinal 32's rectangles). */
 #define MEM_SLACK(n) ((n) / 4 + 64)
 
+/* Windows 3.1 hands out global memory in 32-byte units and GlobalSize
+ * answers the rounded size.  The game writes and reads its saved games
+ * in GlobalSize bytes per block (6:885c, 6:930a), so the files' layout
+ * depends on it (the 1994 RETIRED\LASTGAME.DED: 0x1a9 + 0xf8 bytes
+ * stored as 0x1c0 + 0x100). */
+#define MEM_UNIT(n) (((n) + 31) & ~(DWORD)31)
+
 typedef struct {
     void *p;
     DWORD size;
@@ -57,7 +64,7 @@ DWORD GlobalSize(HGLOBAL h)
 {
     Mem *m = handle_get(h, H_MEM);
 
-    return m ? m->size : 0;
+    return m ? MEM_UNIT(m->size) : 0;
 }
 
 HGLOBAL GlobalReAlloc(HGLOBAL h, DWORD size, UINT flags)
@@ -67,10 +74,11 @@ HGLOBAL GlobalReAlloc(HGLOBAL h, DWORD size, UINT flags)
 
     if (!m)
         return 0;
-    if (size > m->cap) {
+    if (MEM_UNIT(size) > m->cap) {
         p = realloc(m->p, size + MEM_SLACK(size));
         if (!p)
             return 0;
+        memset((char *)p + m->cap, 0, size + MEM_SLACK(size) - m->cap);
         m->p = p;
         m->cap = size + MEM_SLACK(size);
     }
