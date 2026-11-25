@@ -151,6 +151,24 @@ int ctl_label(HDC dc, int x, int y, const char *s, int n, int noprefix, int draw
     return w;
 }
 
+/* The length of s's next line in width: the words that fit, at least
+ * one (DrawText's DT_WORDBREAK leaves a word wider than the line whole,
+ * to be clipped). */
+static int line_length(HDC dc, const char *s, int width, int noprefix)
+{
+    int n = 0, fit = 0;
+
+    while (s[n] && s[n] != '\n') {
+        n++;
+        if (s[n] != ' ' && s[n] && s[n] != '\n')
+            continue;
+        if (fit && ctl_label(dc, 0, 0, s, n, noprefix, 0) > width)
+            break;
+        fit = n;
+    }
+    return fit;
+}
+
 /* Text word-wrapped into r: left, centred or right aligned lines. */
 static void wrapped(HDC dc, const RECT *r, const char *s, int align, int noprefix)
 {
@@ -159,20 +177,11 @@ static void wrapped(HDC dc, const RECT *r, const char *s, int align, int noprefi
 
     GetTextMetrics(dc, &tm);
     while (*s && y < r->bottom) {
-        int n = 0, fit = 0, w;
-        while (s[n] && s[n] != '\n') {
-            n++;
-            if ((s[n] == ' ' || !s[n] || s[n] == '\n') && ctl_label(dc, 0, 0, s, n, noprefix, 0) <= width)
-                fit = n;
-            else if (ctl_label(dc, 0, 0, s, n, noprefix, 0) > width)
-                break;
-        }
-        if (!fit)
-            fit = n > 0 ? n : 1;
-        w = ctl_label(dc, 0, 0, s, fit, noprefix, 0);
+        int n = line_length(dc, s, width, noprefix);
+        int w = ctl_label(dc, 0, 0, s, n, noprefix, 0);
         ctl_label(dc, align == SS_RIGHT ? r->right - w : align == SS_CENTER ? r->left + (width - w) / 2 : r->left,
-              y, s, fit, noprefix, 1);
-        s += fit;
+                  y, s, n, noprefix, 1);
+        s += n;
         while (*s == ' ')
             s++;
         if (*s == '\n')

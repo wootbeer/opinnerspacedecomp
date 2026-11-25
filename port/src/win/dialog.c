@@ -95,8 +95,8 @@ static LRESULT dlg_wndproc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
     return DefWindowProc(h, msg, wp, lp);
 }
 
-/* Dialog base units of a font: the average width of the letters
- * (rounded half up) and the height [uncertain: Windows 3.1's rule]. */
+/* Dialog base units of a font: the average width of the 52 letters,
+ * rounded, and the height (Helv 8 bold: 7 and 13). */
 static void base_units(HFONT font, int *bx, int *by)
 {
     static const char letters[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -148,9 +148,9 @@ static HWND create_from(const uint8_t *res, uint32_t size, HWND owner, DLGPROC p
     if (tpl_byte(&t))                       /* class */
         tpl_string(&t);
     caption = tpl_string(&t);
-    if (style & DS_SETFONT) {
+    if (style & DS_SETFONT) {               /* Windows 3.1 made it bold */
         int pt = (int)tpl_word(&t);
-        font = CreateFont((int16_t)-((pt * 96 + 36) / 72), 0, 0, 0, 400, 0, 0, 0, 0, 0, 0, 0, 0, tpl_string(&t));
+        font = CreateFont((int16_t)-((pt * 96 + 36) / 72), 0, 0, 0, 700, 0, 0, 0, 0, 0, 0, 0, 0, tpl_string(&t));
     }
     base_units(font, &bx, &by);
     if (owner)

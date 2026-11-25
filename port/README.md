@@ -45,7 +45,10 @@ to Liberation Sans and Times New Roman to Liberation Serif, picks bold for
 weights above 550, and rasterises each size on first use, one bit per pixel
 as Windows 3.1 drew it. The build copies the font files to `fonts/` next
 to the executable, where the game loads them at start (a missing style
-falls back to the family's regular one).
+falls back to the family's regular one). Windows 3.1's bitmap faces that
+the dialogs and captions name (Helv / MS Sans Serif, System) are drawn
+from Liberation Sans too, with those fonts' VGA metrics (NOTES-port.md
+"Text").
 
 ## Building
 

@@ -915,7 +915,7 @@ HFONT wnd_system_font(void)
     static HFONT font;
 
     if (!font)
-        font = CreateFont(-12, 0, 0, 0, 700, 0, 0, 0, 0, 0, 0, 0, 0, "System");
+        font = CreateFont(0, 0, 0, 0, 700, 0, 0, 0, 0, 0, 0, 0, 0, "System");
     return font;
 }
 

@@ -526,9 +526,36 @@ in ispace_room.h.
   800; Windows picks the nearer of the regular and bold faces), italic from
   the italic file. The stock font (height 0) is drawn 16 pixels high
   [uncertain].
+- **Raster faces.** Windows 3.1 had no TrueType Helv, MS Sans Serif or
+  System: they were bitmap fonts of fixed sizes, and the dialog templates'
+  "Helv 8" (WIN.INI FontSubstitutes: MS Sans Serif) and the captions'
+  System font got their metrics. text.c keeps a table of those sizes on
+  VGA (cell, ascent, internal leading, average width: MS Sans Serif 13/11/2/5,
+  16/13/3/7, 20/16/4/8; System 16/13/3/7, bold), the size picked as GDI
+  did (the largest whose cell, or em for a negative height, is not above
+  the request, else the smallest); the glyphs are Liberation Sans at the
+  size's em (cell less leading) on the size's baseline. System's from
+  VGASYS.FNT of the Windows 3.1 SDK (MSVC 1.5 BIN); MS Sans Serif's from
+  Wine's metric-compatible MS Sans Serif (fonts/ms_sans_serif.sfd), whose
+  13-pixel size agrees with the Helv 8 of HELVB.FON (the same widths but
+  for 3 of 52 letters; its height is the EGA one). A regular size asked
+  for bold is emboldened as GDI did it ("expanding the spacing of each
+  character and overstriking", TEXTMETRIC tmOverhang): each advance one
+  pixel wider, the glyph ORed with itself a pixel to the right, average
+  and maximum widths + 1, tmOverhang 1. Not modelled: Small Fonts (also
+  raster in Windows 3.1: the game's 7-pixel text, seg09a), the stock
+  font as System.
 - **Metrics** follow Windows' TrueType rules: a positive height is the cell
-  (win ascent + descent scaled to it), a negative one the em; a width sets
-  the average character width. The average width is the old OS/2
+  (win ascent + descent scaled to it), a negative one the em; a width
+  scales the font from its own average width at that height, rounded as
+  tmAveCharWidth reports it, to the one asked for (width / natural width,
+  as Wine's freetype.c does: `aveWidth / tmAveCharWidth`). Arial 14x6 (the
+  ISPACE.DLL dialogs' font) is therefore Arial 14 unscaled (natural
+  width 5.53, rounded 6); scaling from the unrounded 5.53 made it 8.5%
+  wider and cut 13 of the 59 texts of the DLL's dialogs that fit their
+  controls this way ("Louder", "Slower", "Play Detail:", "Skip
+  Sequences:", "Keep Sounds in Memory (faster loading)" 219 of 227
+  pixels ...). The average width is the old OS/2
   definition (weighted a-z and space): Liberation's own xAvgCharWidth is
   computed over all glyphs (1187 units against Arial's 904); the weighted
   one gives 904 for Sans, 980 for Sans Bold (Arial Bold: 983). Advances are
@@ -560,13 +587,27 @@ in ispace_room.h.
 - **Keyboard.** US layout. Alt makes WM_SYSKEYDOWN/WM_SYSCHAR, so the
   game's Alt accelerators (MainAccel: Alt-X exit, Alt-G, ...) arrive as in
   Windows; Alt-X opens the exit question (ordinal 10 mode 5).
+- **Dialog units.** Windows 3.1 made a template's DS_SETFONT font bold
+  (KB Q74737: "the controls will use a bold version of that font"; the
+  Win32 DS_3DLOOK later asked for the non-bold one); its base units are
+  the average width of the 52 letters A-Z a-z, (extent / 26 + 1) / 2, and
+  tmHeight; units to pixels rounded (MulDiv). Helv 8 bold (MS Sans Serif
+  13 pixels emboldened: 323 + 52 pixels for the 52 letters) gives 7 x 13;
+  the port's Liberation stand-in gives the same (386). The regular font
+  (6 x 13) or tmAveCharWidth (5 or 6) do not fit the game's dialogs,
+  which place DLL windows in pixels among controls in dialog units: at
+  7 x 13 the Joystick dialog's 160 x 160 test area (40, 88) is centred
+  under the status text (10-227) with 7 pixels to the status text above
+  and to the first button row below, and clears Calibrate (240) and
+  4 Buttons (219, 229); the Save Game combo box (65-205) clears GAME:
+  (56) and Save (219); the Restore Game preview (4-100) clears the
+  details (107); the New Game TEAM text ends at the preview (242).
+  At 6 x 12 (the port's before) or 6 x 13 each of these overlapped.
 - **Dialog look** (Windows 3.1 default colours; sizes partly
-  [uncertain]): dialog units from the dialog font (DS_SETFONT "Helv" 8,
-  mapped to Liberation Sans at 11 pixels) as the letters' average width,
-  rounded, and the font height [uncertain: Windows 3.1's own rule;
-  tmAveCharWidth would give 5 instead of 6, and the Restore Game labels
-  would not fit]. Frame 4 pixels, caption 19 (title in Liberation Sans
-  Bold standing in for the System font), push buttons with a 1-pixel
+  [uncertain]): Frame 4 pixels, caption 19 (title in the System font,
+  above). Static text is DrawText's DT_WORDBREAK: whole words per line,
+  left, centred or right; a word wider than the control stays whole and
+  is clipped (SS_RIGHT: on the left). Push buttons with a 1-pixel
   highlight and 2-pixel shadow, combo box field the font height + 6 with
   a 17-pixel arrow button, drop-down list of whole items with a scroll
   bar when they do not fit (arrow buttons, a square thumb; clicks on it
@@ -811,12 +852,8 @@ in ispace_room.h.
   - **Quirk kept:** Esc does nothing in the Restore and New Game
     dialogs: their Cancel buttons are id 333, not IDCANCEL, which Esc
     sends. Alt+C (the button's mnemonic) cancels.
-  - **Quirk kept:** the TEAM text (a static 96 units wide) runs under
-    the preview window; setting it repaints its rectangle in the dialog
-    colour over the preview (Windows paints overlapping siblings that
-    way too), leaving a white patch at the preview's left edge after a
-    ship is picked [uncertain: depends on the dialog units, which are
-    uncertain].
+  - The TEAM text (a static 96 units wide) ends where the preview
+    window starts (x 242 at 7 units a character).
 - **Registration (10:611c, ordinal 24 = 10:48d2, ispace_reg.c).** The
   dialog offers all ships only to a registered copy; the game asks
   ordinal 24 the same (10:885e, 10:946a). Ported modes: 21 (a CD in the
@@ -925,10 +962,7 @@ in ispace_room.h.
   position again is not redrawn (its thumb springs back where it was
   drawn last); a new sound system other than none does not open the
   mixer until the next ordinal 7 mode 0 (wave start); Display and Audio
-  Options give no control the focus at first; texts in the DLL's Arial
-  14x6 are wider than the template (Helv 8) planned, so some are cut
-  or wrapped ("Play", "Skip", ".ouder") [uncertain: Windows 3.1's
-  exact widths].
+  Options give no control the focus at first.
 - **Fixed silently:** 9:1fae's Cancel reads an uninitialised local as
   the previous sound system (deciding whether sound was turned on); the
   port takes the current one (nothing turned on). 9:1f38 builds the
@@ -1025,8 +1059,7 @@ in ispace_room.h.
   written on OK; Esc does nothing (Cancel is id 333); Help asks WinHelp
   for <SndPath>INSPACE.HLP, context 0x23, a file the game does not have;
   only JMinX and JRangeX decide whether the INI's corners count as
-  calibrated. [uncertain: the test area overlaps the 4 Buttons box and
-  the first action list, by the port's dialog units.]
+  calibrated.
 - **Fixed silently:** a range of 0 (JoyStick on, never calibrated: the
   DLL divides by zero) reads that axis as the middle, so the ship does
   not turn by itself; the test area is not drawn when its window could

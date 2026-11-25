@@ -3,6 +3,7 @@
  * in for them (port/third_party/liberation, loaded from fonts/ next to
  * the executable).  stb_truetype rasterises each font at the size asked
  * for, one bit per pixel as Windows 3.1 drew TrueType text. */
+#include <SDL3/SDL_stdinc.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -43,8 +44,30 @@ typedef struct {
     int ready;
 } Glyph;
 
+/* Windows 3.1's raster faces on a VGA display: each size's cell height,
+ * ascent, internal leading and average width (MS Sans Serif, which Helv
+ * stands for: as Wine's metric-compatible font has them; System:
+ * VGASYS.FNT), by size.  Their glyphs
+ * are drawn from the Liberation outlines.  A regular size asked for bold
+ * is emboldened as GDI did it: each character one pixel wider, drawn
+ * twice a pixel apart. */
+typedef struct {
+    const char *face;
+    int16_t height, ascent, leading, ave;
+    int bold;
+} Raster;
+
+static const Raster rasters[] = {
+    {"MS Sans Serif", 13, 11, 2, 5, 0},
+    {"MS Sans Serif", 16, 13, 3, 7, 0},
+    {"MS Sans Serif", 20, 16, 4, 8, 0},
+    {"System", 16, 13, 3, 7, 1},
+};
+
 typedef struct {
     int used, file;         /* file: index in ttfs, -1 for none */
+    const Raster *raster;   /* NULL for a TrueType face */
+    int embolden;           /* a raster size made bold by GDI */
     int16_t height, width;  /* as asked for */
     float sx, sy;
     TEXTMETRIC tm;
@@ -125,10 +148,13 @@ static int iround(float v)
 }
 
 /* Windows' TrueType metrics: a positive height is the cell (ascent +
- * descent), a negative one the em; a width sets the average character
- * width. */
+ * descent), a negative one the em; a width scales the font from its own
+ * average character width at that height (rounded, as GDI reports it) to
+ * the one asked for.  A raster face has its size's metrics, the outlines
+ * scaled to its em with their baseline at its ascent. */
 static void set_metrics(Face *f, int bold, int italic, int family)
 {
+    const Raster *r = f->raster;
     TEXTMETRIC *tm = &f->tm;
     int asc = 1854, desc = -434, gap = 67, upm = 2048, avg = 904;
     int x0 = 0, y0 = 0, x1 = 0, y1 = 0;
@@ -140,25 +166,52 @@ static void set_metrics(Face *f, int bold, int italic, int family)
         upm = iround(1 / stbtt_ScaleForMappingEmToPixels(info, 1));
         avg = ttfs[f->file].avg_width;
     }
-    f->sy = f->height > 0 ? (float)f->height / (asc - desc) : (float)-f->height / upm;
-    f->sx = f->width ? (float)f->width / avg : f->sy;
+    if (r)
+        f->sy = (float)(r->height - r->leading) / upm;
+    else
+        f->sy = f->height > 0 ? (float)f->height / (asc - desc) : (float)-f->height / upm;
+    f->sx = f->width && !r ? f->sy * f->width / SDL_max(1, iround(avg * f->sy)) : f->sy;
     memset(tm, 0, sizeof *tm);
-    tm->tmAscent = (int16_t)iround(asc * f->sy);
-    tm->tmDescent = (int16_t)iround(-desc * f->sy);
-    tm->tmHeight = (int16_t)(tm->tmAscent + tm->tmDescent);
-    tm->tmInternalLeading = (int16_t)(tm->tmHeight - iround(upm * f->sy));
-    tm->tmExternalLeading = (int16_t)iround(gap * f->sy);
-    tm->tmAveCharWidth = (int16_t)(f->width ? f->width : iround(avg * f->sx));
-    tm->tmMaxCharWidth = (int16_t)iround((x1 - x0) * f->sx);
+    tm->tmAscent = (int16_t)(r ? r->ascent : iround(asc * f->sy));
+    tm->tmHeight = (int16_t)(r ? r->height : tm->tmAscent + iround(-desc * f->sy));
+    tm->tmDescent = (int16_t)(tm->tmHeight - tm->tmAscent);
+    tm->tmInternalLeading = (int16_t)(r ? r->leading : tm->tmHeight - iround(upm * f->sy));
+    tm->tmExternalLeading = (int16_t)(r ? 0 : iround(gap * f->sy));
+    tm->tmAveCharWidth = (int16_t)(r ? r->ave + f->embolden : f->width ? f->width : iround(avg * f->sx));
+    tm->tmMaxCharWidth = (int16_t)(iround((x1 - x0) * f->sx) + f->embolden);
+    tm->tmOverhang = (int16_t)f->embolden;
     tm->tmWeight = (int16_t)(bold ? 700 : 400);
     tm->tmItalic = (BYTE)italic;
     tm->tmFirstChar = 0x20;
     tm->tmLastChar = 0xff;
     tm->tmDefaultChar = 0x1f;
     tm->tmBreakChar = 0x20;
-    tm->tmPitchAndFamily = (BYTE)(family ? 0x17 : 0x27);   /* variable, vector, TrueType; roman or swiss */
+    /* variable pitch, swiss or roman; TrueType ones vector and TrueType */
+    tm->tmPitchAndFamily = (BYTE)(r ? 0x21 : family ? 0x17 : 0x27);
     tm->tmDigitizedAspectX = 96;
     tm->tmDigitizedAspectY = 96;
+}
+
+/* The size of a raster face Windows picks for a height (positive: the
+ * cell, negative: the em, 0: the smallest): the largest not above it,
+ * else the smallest.  NULL for faces that are not raster ones (Helv is
+ * MS Sans Serif, as WIN.INI's FontSubstitutes had it). */
+static const Raster *raster_of(const char *face, int16_t height)
+{
+    const Raster *pick = NULL;
+    size_t i;
+
+    if (!SDL_strcasecmp(face, "Helv"))
+        face = "MS Sans Serif";
+    for (i = 0; i < SDL_arraysize(rasters); i++) {
+        const Raster *r = &rasters[i];
+        int size = height > 0 ? r->height : r->height - r->leading;
+        if (SDL_strcasecmp(face, r->face))
+            continue;
+        if (!pick || size <= SDL_abs(height))
+            pick = r;
+    }
+    return pick;
 }
 
 static void free_face(Face *f)
@@ -174,18 +227,20 @@ static void free_face(Face *f)
  * drawing, so faces are kept by file and size. */
 static Face *face_of(const Font *font)
 {
+    const Raster *raster = raster_of(font->face, font->height);
     int family = strcmp(font->face, "Times New Roman") == 0;
-    int bold = font->weight > 550;
+    int bold = font->weight > 550 || (raster && raster->bold);
+    int embolden = bold && raster && !raster->bold;
     int italic = font->italic;
-    int file = font_file(family, bold, italic);
+    int file = font_file(family, bold && !embolden, italic);
     int16_t height = font->height ? font->height : 16;
     Face *f;
     int i;
 
     for (i = 0; i < FACES; i++) {
         f = &faces[i];
-        if (f->used && f->file == file && f->height == height && f->width == font->width
-            && f->tm.tmWeight == (bold ? 700 : 400) && f->tm.tmItalic == italic)
+        if (f->used && f->raster == raster && f->embolden == embolden && f->file == file && f->height == height
+            && f->width == font->width && f->tm.tmWeight == (bold ? 700 : 400) && f->tm.tmItalic == italic)
             return f;
     }
     f = &faces[next_face];
@@ -195,6 +250,8 @@ static Face *face_of(const Font *font)
     f->file = file;
     f->height = height;
     f->width = font->width;
+    f->raster = raster;
+    f->embolden = embolden;
     set_metrics(f, bold, italic, family);
     return f;
 }
@@ -221,20 +278,22 @@ static const Glyph *glyph(Face *f, uint8_t c)
     }
     info = &ttfs[f->file].info;
     stbtt_GetCodepointHMetrics(info, cp, &adv, &lsb);
-    g->advance = iround(adv * f->sx);
+    g->advance = iround(adv * f->sx) + f->embolden;
     stbtt_GetCodepointBitmapBox(info, cp, f->sx, f->sy, &x0, &y0, &x1, &y1);
     if (x1 <= x0 || y1 <= y0)
         return g;
-    g->bits = malloc((size_t)(x1 - x0) * (y1 - y0));
+    g->bits = calloc((size_t)(x1 - x0 + f->embolden) * (y1 - y0), 1);
     if (!g->bits)
         return g;
     g->x = x0;
     g->y = f->tm.tmAscent + y0;
-    g->w = x1 - x0;
+    g->w = x1 - x0 + f->embolden;
     g->h = y1 - y0;
-    stbtt_MakeCodepointBitmap(info, g->bits, g->w, g->h, g->w, f->sx, f->sy, cp);
+    stbtt_MakeCodepointBitmap(info, g->bits, x1 - x0, g->h, g->w, f->sx, f->sy, cp);
     for (i = 0; i < g->w * g->h; i++)
         g->bits[i] = g->bits[i] >= INK;
+    for (i = g->w * g->h - 1; f->embolden && i > 0; i--)
+        g->bits[i] |= i % g->w ? g->bits[i - 1] : 0;
     return g;
 }
 
