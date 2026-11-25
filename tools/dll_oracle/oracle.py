@@ -20,17 +20,21 @@ import struct
 import shlex
 import subprocess
 import sys
+import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from emu import IspaceEmu, ROOT, new_bitmap, new_dc  # noqa: E402
+from emu import INI, IspaceEmu, ROOT, new_bitmap, new_dc  # noqa: E402
 
 # Argument kinds per ordinal, in the DLL's (Pascal) order: w word,
-# s far string, b byte (passed as a word), l long, R the rectangle block
+# s far string, b byte (passed as a word), l long, P a POINT (the script
+# gives X,Y), R the rectangle block
 # of ordinal 32 (no script argument: a far pointer and a handle), p a
 # far pointer to a word (the script gives its value; the words are
 # compared after the call).
 ORDINALS = {1: 'wwswww', 2: 'wwswwwwwwwbbbw', 3: 's', 4: 'wwwwwww', 5: '', 6: 'www', 12: 'wwswwwwwwbb', 1000: 'wwswww',
-            14: 'wwwww', 15: 'wwwwwwwww', 18: 'wwwwww', 29: 'ppppppppwwwwpp', 32: 'wwRwlwlwwwwww', 33: 'wwlwlwws', 34: 'wwwwww', 35: 'wwwwww'}
+            7: 'lw', 8: 'Pwwl', 9: 'wPwllls', 14: 'wwwww', 15: 'wwwwwwwww', 18: 'wwwwww', 29: 'ppppppppwwwwpp', 32: 'wwRwlwlwwwwww', 33: 'wwlwlwws', 34: 'wwwwww', 35: 'wwwwww'}
+# Ordinals after which the wave device's volume is compared (as outs).
+SOUND = {7, 8, 9}
 # Ordinals that return nothing (AX is left over).
 VOID = {14}
 # Pseudo-ordinal -> (segment, offset) of a C-convention routine: 1000 is
@@ -66,6 +70,9 @@ def run_emu(calls, data_dir):
                 e.uc.mem_write(e.blocks[h][0] * 16, struct.pack('<h', int(a, 0)))
                 ptrs.append(e.blocks[h][0] * 16)
                 words += [e.blocks[h][0], 0]
+            elif kind == 'P':
+                x, y = (int(v, 0) for v in a.split(','))
+                words += [y & 0xffff, x & 0xffff]
             elif kind == 'R':
                 rect_block = e.galloc(8)
                 words += [e.blocks[rect_block][0], 0, rect_block]
@@ -105,6 +112,8 @@ def run_emu(calls, data_dir):
             n = e.blocks.get(e.word(e.ds * 16 + 0x1a36), [0, 0])[1] // 8
             rects = [struct.unpack('<4h', e.rd(lin + 8 * i, 8)) for i in range(n)]
         outs = [struct.unpack('<h', e.rd(q, 2))[0] for q in ptrs]
+        if ordinal in SOUND:
+            outs = [e.wave_volume & 0xffff, e.wave_volume >> 16]
         db = e.bitmap(e.obj(sdc, 'dc')['bmp']) if sdc else None
         out.append(dict(ret=r, bmp=(b['w'], b['h'], int(b['mono']), bytes(b['px'])) if b else None,
                         dcbmp=(db['w'], db['h'], int(db['mono']), bytes(db['px'])) if db else None,
@@ -113,9 +122,16 @@ def run_emu(calls, data_dir):
     return out
 
 
-def run_port(script, exe):
-    env = dict(os.environ, SDL_VIDEODRIVER='dummy')
-    text = subprocess.run([exe, script], env=env, capture_output=True, text=True, check=True).stdout
+def run_port(script, exe, data_dir):
+    """port_calls with a settings folder of its own holding the emulator's
+    INSPACE.INI, and a sound device (SDL's dummy one)."""
+    with tempfile.TemporaryDirectory() as home:
+        os.makedirs(os.path.join(home, 'SDi', 'Inner Space'))
+        with open(os.path.join(home, 'SDi', 'Inner Space', 'INSPACE.INI'), 'w') as f:
+            f.write('[Inner Space]\n' + ''.join('%s=%s\n' % kv for kv in INI.items()))
+        env = dict(os.environ, SDL_VIDEODRIVER='dummy', SDL_AUDIO_DRIVER='dummy', XDG_DATA_HOME=home,
+                   INSPACE_DATA=data_dir)
+        text = subprocess.run([exe, script], env=env, capture_output=True, text=True, check=True).stdout
     out = []
     for line in text.splitlines():
         p = line.split()
@@ -187,7 +203,7 @@ def main():
     unknown = sorted({o for o, _ in calls} - set(ORDINALS))
     if unknown:
         sys.exit('ordinals not supported: %s' % unknown)
-    dll, port = run_emu(calls, a.data), run_port(a.script, a.port)
+    dll, port = run_emu(calls, a.data), run_port(a.script, a.port, a.data)
     failed = 0
     for k, (ordinal, args) in enumerate(calls):
         diffs = compare(k, ordinal, dll[k], port[k], a.show)

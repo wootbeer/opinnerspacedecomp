@@ -96,7 +96,10 @@ the first command again after files are added there.
   without one stops the run with its name. Colour matching (`CreateDIBitmap` with RGB
   colours, `LoadBitmap`, RGB brushes and pens) follows the port's rule,
   so it is not checked. `TextOut` is recorded, not drawn. The machine
-  (`GetWinFlags`, the wave device, INI files) answers as the port's.
+  (`GetWinFlags`, the wave device, INI files) answers as the port's;
+  INSPACE.INI is `INI` (emu.py), the sound DLLs are the user's
+  `SOUNDS\SND_FX.DLL` and `ENG_FX.DLL`, and sounds are not played (the
+  wave and MIDI volumes are kept).
 - `port_calls.c`: runs a script on the port's `ispace_*` routines and
   prints the results (built from the port's sources without `main.c`).
 - `oracle.py SCRIPT`: runs both and lists each call as same or differs.
@@ -104,12 +107,12 @@ the first command again after files are added there.
   `@K` (the result of call K, from 0), `DC` (a screen DC), `MDC` (a
   memory DC with a 640x480 bitmap, which is compared after the call) or
   `DC@K` (a memory DC with call K's bitmap selected, which is compared
-  after the call as well: a sprite sheet a call changes).
-  Ordinal 29's word pointers are given as their values; the words are
+  after the call as well: a sprite sheet a call changes), or `X,Y` (a
+  point, ordinals 8 and 9). Ordinal 29's word pointers are given as their values; the words are
   compared after the call. Results of routines that return nothing
   (`VOID`, ordinal 14) are not compared. A call that stops the emulation
   (a Windows call without a stand-in) is reported with its number.
-  Ordinals 1-6, 12, 14, 15, 18, 29 and 32-35 are supported, and pseudo-ordinal
+  Ordinals 1-9, 12, 14, 15, 18, 29 and 32-35 are supported, and pseudo-ordinal
   1000 for 5:0000 (the dialogs' ship picture, a C-convention routine the
   DLL does not export: `INTERNAL` in oracle.py); add others to
   `ORDINALS` (oracle.py) and `run` (port_calls.c). Ordinal 32's script
@@ -142,6 +145,13 @@ the first command again after files are added there.
   calls agree. The
   stand-in for `Polygon` fills as the port's draw.c does (the masks of
   DS:0184 are polygons).
+- `sound.txt`: ordinal 7's set-up (mode 0) and modes 2, 3, 4, 10,
+  ordinal 8 at points in and beyond the view and ordinal 9 with sounds
+  and commands, on and off screen, at times inside and after the quiet
+  times; the wave device's volume is compared after each call. Both
+  sides read the emulator's INSPACE.INI (`INI` in emu.py: MixChannels 1,
+  as the DLL ran without WAVEMIX.DLL; the port side gets a settings
+  folder of its own and SDL's dummy sound device). All 200 agree.
 - `panel.txt`: the same set-up, then ordinals 33-35 on a memory DC. All
   agree. (Image 200, taller than wide, differs
   in 37 pixels of its top rows: the DLL reads past its pixels there, see

@@ -14,7 +14,7 @@ can work on.
 - `src/video.c` – 256-colour framebuffer shown through SDL3; frames can be
   saved (`--dump`) to compare with the original.
 - `src/platform/` – everything machine-specific the game needs (time, date,
-  folders and files to explore, data location). One implementation per
+  folders and files to explore, data location, sound output, MIDI music). One implementation per
   platform; game code never calls the OS directly.
 
 - `src/game/` – the game logic, generated from the decomp (see
@@ -62,6 +62,9 @@ Command line:
   time, so the frame a screen appears at varies a little between runs.
 - `--shots N` (with `--dump FILE`): also save every Nth frame as
   `FILE-NNNNN.ppm`.
+- `--audio-dump FILE.wav`: also write everything played (16-bit
+  stereo, 11025 Hz) to FILE.wav. Without a sound device run with
+  `SDL_AUDIO_DRIVER=dummy`, which plays in real time into nothing.
 - `--mouse "FRAME:X,Y[,ACTION];..."`: move the mouse to framebuffer point
   (X, Y) at frame FRAME, then ACTION: `move` (the default), `down`, `up`,
   `click` (down, up two frames later), `dclick` (a double click's second

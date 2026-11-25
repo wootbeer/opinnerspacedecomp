@@ -33,10 +33,13 @@ add_executable(inspace
     src/win/ispace_room.c
     src/win/ispace_shape.c
     src/win/ispace_smooth.c
+    src/win/ispace_sound.c
+    src/win/ispace_music.c
     src/win/ispace_sprite.c
     src/win/ispace_surface.c
     src/win/kernel.c
     src/win/listbox.c
+    src/win/mci.c
     src/win/menu.c
     src/win/module.c
     src/win/ne.c
@@ -46,6 +49,7 @@ add_executable(inspace
     src/win/stubs.c
     src/win/text.c
     src/win/user.c
+    src/win/wavemix.c
     ${GAME_SOURCES}
     third_party/stb/stb_truetype.c
 )

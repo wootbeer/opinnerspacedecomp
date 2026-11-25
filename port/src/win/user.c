@@ -1316,6 +1316,7 @@ HCURSOR SetCursor(HCURSOR c)
 void MessageBeep(UINT type)
 {
     (void)type;
+    platform_beep();
 }
 
 int16_t MessageBox(HWND h, LPCSTR text, LPCSTR title, UINT type)

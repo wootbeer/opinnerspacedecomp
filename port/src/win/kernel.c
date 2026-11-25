@@ -231,10 +231,11 @@ UINT GetSystemDirectory(LPSTR buf, UINT size)
     return (UINT)strlen(buf);
 }
 
-/* One stereo wave device. */
+/* One stereo wave device with left and right volume (wavemix.c), when
+ * the platform has sound. */
 UINT waveOutGetNumDevs(void)
 {
-    return 1;
+    return wavemix_device() ? 1 : 0;
 }
 
 UINT waveOutGetDevCaps(UINT dev, WAVEOUTCAPS *caps, UINT size)
@@ -243,6 +244,7 @@ UINT waveOutGetDevCaps(UINT dev, WAVEOUTCAPS *caps, UINT size)
     (void)size;
     memset(caps, 0, sizeof *caps);
     caps->wChannels = 2;
+    caps->dwSupport = WAVECAPS_VOLUME | WAVECAPS_LRVOLUME;
     return 0;
 }
 

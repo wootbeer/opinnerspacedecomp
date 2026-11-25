@@ -95,7 +95,7 @@ UINT SetErrorMode(UINT mode);
 DWORD GetWinFlags(void);
 UINT GetSystemDirectory(LPSTR buf, UINT size);
 
-/* MMSYSTEM: the wave device as ISPACE.DLL's room code asks about it. */
+/* MMSYSTEM: the wave device as ISPACE.DLL asks about it. */
 #define WAVECAPS_SYNC 0x0010
 typedef struct {
     WORD wMid, wPid;
@@ -105,8 +105,62 @@ typedef struct {
     WORD wChannels;
     DWORD dwSupport;
 } WAVEOUTCAPS;
+#define WAVECAPS_VOLUME 0x0004
+#define WAVECAPS_LRVOLUME 0x0008
 UINT waveOutGetNumDevs(void);
 UINT waveOutGetDevCaps(UINT dev, WAVEOUTCAPS *caps, UINT size);
+
+/* The wave output (wavemix.c): WaveMix as ISPACE.DLL uses it,
+ * sndPlaySound and the device volume.  wavemix_device opens the output
+ * (0: no sound device); wavemix_notify posts the MM_WOM_DONE of waves
+ * that have ended (called with the input events). */
+#define MMSYSERR_ERROR 1
+#define MMSYSERR_INVALPARAM 11
+#define MM_WOM_DONE 0x3bd
+#define SND_ASYNC 0x0001
+#define SND_NODEFAULT 0x0002
+#define SND_MEMORY 0x0004
+#define SND_LOOP 0x0008
+#define WMIX_ALL 0x0001
+#define WMIX_OPENCOUNT 0x0002
+typedef struct MixWave MixWave;
+typedef struct {
+    HANDLE session;
+    int16_t channel;
+    MixWave *wave;
+    HWND notify;
+    uint16_t loops;
+} MIXPLAYPARAMS;
+int wavemix_device(void);
+void wavemix_notify(void);
+HANDLE WaveMixConfigureInit(void);          /* a mono session */
+UINT WaveMixOpenChannel(HANDLE session, int16_t count, DWORD flags);
+UINT WaveMixActivate(HANDLE session, BOOL on);
+MixWave *WaveMixOpenWave(HANDLE session, LPCSTR dos_path);
+MixWave *WaveMixOpenWaveData(HANDLE session, const void *riff, DWORD size);
+UINT WaveMixPlay(const MIXPLAYPARAMS *p);
+UINT WaveMixFlushChannel(HANDLE session, int16_t ch, DWORD flags);
+UINT WaveMixFreeWave(HANDLE session, MixWave *w);
+UINT WaveMixCloseChannel(HANDLE session, int16_t ch, DWORD flags);
+UINT WaveMixCloseSession(HANDLE session);
+void WaveMixPump(void);
+BOOL sndPlaySound(LPCSTR sound, UINT flags);
+UINT waveOutGetVolume(UINT dev, DWORD *vol);
+UINT waveOutSetVolume(UINT dev, DWORD vol);
+
+/* MCI's MIDI sequencer, as ISPACE.DLL drives it, and the MIDI output's
+ * volume (mci.c).  mci_notify posts MM_MCINOTIFY when play has reached
+ * its end (called with the input events). */
+#define MM_MCINOTIFY 0x3b9
+#define MCI_NOTIFY_SUCCESSFUL 1
+UINT mci_open_sequencer(LPCSTR dos_path);
+void mci_close(UINT dev);
+void mci_seek(UINT dev, DWORD to, HWND notify);
+UINT mci_play(UINT dev, DWORD to, HWND notify);
+void mci_pause(UINT dev);
+void mci_notify(void);
+UINT midiOutGetVolume(UINT dev, DWORD *vol);
+UINT midiOutSetVolume(UINT dev, DWORD vol);
 
 #include "win.h"
 

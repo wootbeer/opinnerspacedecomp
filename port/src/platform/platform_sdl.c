@@ -207,3 +207,154 @@ int platform_find_path(const char *path, char *out, int size)
     }
     return exists;
 }
+
+static struct {
+    SDL_AudioStream *stream;
+    PlatformAudioFn fn;
+    void *user;
+    SDL_IOStream *dump;
+    Uint32 dumped;          /* bytes of samples written to dump */
+    int rate;
+} audio;
+
+static void write_wav_header(SDL_IOStream *io, int rate, Uint32 bytes)
+{
+    SDL_SeekIO(io, 0, SDL_IO_SEEK_SET);
+    SDL_WriteIO(io, "RIFF", 4);
+    SDL_WriteU32LE(io, 36 + bytes);
+    SDL_WriteIO(io, "WAVEfmt ", 8);
+    SDL_WriteU32LE(io, 16);
+    SDL_WriteU16LE(io, 1);                      /* PCM */
+    SDL_WriteU16LE(io, 2);
+    SDL_WriteU32LE(io, (Uint32)rate);
+    SDL_WriteU32LE(io, (Uint32)rate * 4);
+    SDL_WriteU16LE(io, 4);
+    SDL_WriteU16LE(io, 16);
+    SDL_WriteIO(io, "data", 4);
+    SDL_WriteU32LE(io, bytes);
+}
+
+static void SDLCALL audio_more(void *userdata, SDL_AudioStream *stream, int additional, int total)
+{
+    int16_t buf[1024];
+
+    (void)userdata;
+    (void)total;
+    while (additional > 0) {
+        int frames = SDL_min(additional / 4 + (additional % 4 != 0), (int)(sizeof buf / 4));
+        audio.fn(buf, frames, audio.user);
+        SDL_PutAudioStreamData(stream, buf, frames * 4);
+        if (audio.dump && SDL_WriteIO(audio.dump, buf, (size_t)frames * 4) == (size_t)frames * 4)
+            audio.dumped += (Uint32)frames * 4;
+        additional -= frames * 4;
+    }
+}
+
+int platform_audio_open(int rate, PlatformAudioFn fn, void *user)
+{
+    SDL_AudioSpec spec;
+
+    if (audio.stream)
+        return 1;
+    if (!SDL_InitSubSystem(SDL_INIT_AUDIO)) {
+        SDL_Log("no sound: %s", SDL_GetError());
+        return 0;
+    }
+    spec.format = SDL_AUDIO_S16;
+    spec.channels = 2;
+    spec.freq = rate;
+    audio.fn = fn;
+    audio.user = user;
+    audio.rate = rate;
+    audio.stream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, audio_more, NULL);
+    if (!audio.stream) {
+        SDL_Log("no sound: %s", SDL_GetError());
+        return 0;
+    }
+    if (audio.dump)
+        write_wav_header(audio.dump, rate, 0);
+    SDL_ResumeAudioStreamDevice(audio.stream);
+    return 1;
+}
+
+void platform_audio_lock(void)
+{
+    if (audio.stream)
+        SDL_LockAudioStream(audio.stream);
+}
+
+void platform_audio_unlock(void)
+{
+    if (audio.stream)
+        SDL_UnlockAudioStream(audio.stream);
+}
+
+void platform_audio_dump(const char *path)
+{
+    audio.dump = SDL_IOFromFile(path, "wb");
+    if (!audio.dump)
+        SDL_Log("audio dump: %s", SDL_GetError());
+}
+
+void platform_audio_close(void)
+{
+    if (audio.stream) {
+        SDL_DestroyAudioStream(audio.stream);
+        audio.stream = NULL;
+    }
+    if (audio.dump) {
+        write_wav_header(audio.dump, audio.rate, audio.dumped);
+        SDL_CloseIO(audio.dump);
+        audio.dump = NULL;
+    }
+}
+
+/* Windows' MessageBeep, fetched by name: the port's own MessageBeep and
+ * GetProcAddress (the game's Windows 3.1 calls) have the same link
+ * names. */
+void platform_beep(void)
+{
+#ifdef _WIN32
+    typedef BOOL (WINAPI *BeepFn)(UINT);
+    static SDL_SharedObject *user32;
+    BeepFn beep;
+
+    if (!user32)
+        user32 = SDL_LoadObject("user32.dll");
+    beep = user32 ? (BeepFn)SDL_LoadFunction(user32, "MessageBeep") : NULL;
+    if (beep)
+        beep(MB_OK);
+#endif
+}
+
+/* No MIDI playback yet on any platform. */
+int platform_music_open(const char *path)
+{
+    (void)path;
+    return 0;
+}
+
+void platform_music_play(uint32_t from, uint32_t to)
+{
+    (void)from;
+    (void)to;
+}
+
+void platform_music_pause(void)
+{
+}
+
+int platform_music_ended(void)
+{
+    return 0;
+}
+
+void platform_music_close(void)
+{
+}
+
+void platform_music_volume(uint16_t left, uint16_t right)
+{
+    (void)left;
+    (void)right;
+}

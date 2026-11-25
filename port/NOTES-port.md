@@ -74,7 +74,7 @@
    - `fn_10_1eb6(a)`: 5 callers (seg14, seg18) pass `(a, x, 1)`, e.g. `g_70ae[main_ship].f30` as the second value.
    - `fn_08_99ce(a, b, kind, idx)`: 3 callers pass a fifth value (`1`, `ret`, `ret + 2`).
    - `fn_06_1c0c(void)` is called with 1 and 0; `fn_16_7210(void)` with 0 and 1; `fn_07_119c(a)` and `fn_11_3cc2(n)` with an extra 0 or 1.
-3. **Too few arguments in the original:** `fn_10_7480(a, b)` is called with one argument at seg02.c:433 and :1008; the callee then reads an uninitialised word of the caller's frame as `b` (only forwarded to the music DLL as `pt.y`). The port passes 0.
+3. **Too few arguments in the original:** `fn_10_7480(a, b)` is called with one argument at seg02.c:433 and :1008; the callee then reads an uninitialised word of the caller's frame as `b` (forwarded to ISPACE.DLL's music as its wait flag: 0 starts the piece when the seek's notification comes, else at once). The port passes 0.
 4. **Possible original bug:** seg09b.c:2187 reads `g_9f39[g_9322][g_94a8]`, which is `g_9f3a[g_9322][g_94a8 - 1]` (the compiler folded the -1 into the base). For `g_94a8 == 0` (a difficulty value the same function sets) it reads the byte before the row: `g_9f3a[map - 1][1]`, or for map 0 the last byte of `g_9ec2`. The port reads `g_9f3a[g_9322][g_94a8 - 1]`, which is out of bounds in that case.
 5. **Table extents.** Lengths not declared anywhere are guessed as "up to the next declared global"; see `== table length` in translate-notes.
    - `g_6670` is joined with `g_66e0` as one 0x1c table of 14 records. That is a guess.
@@ -1022,3 +1022,131 @@ not read on the 8-bit path.
   borders, 18:08bc's calls), and ordinal 12 after them: bitmaps and
   palettes identical. **Not verified:** j 2 (Size=2; the emulated DLL
   reads past its planes there and faults or differs).
+
+## Sound and music (ISPACE.DLL ordinals 7-9; port/src/win/ispace_sound.c, ispace_music.c, wavemix.c, mci.c)
+
+All of the game's sound goes through ISPACE.DLL: INSPACE.EXE calls
+ordinal 7 (9:0000, control by mode), 8 (9:076c, the followed sound's
+volume and balance, every frame from 10:7b48) and 9 (9:0c42, play; from
+10:754a, 10:7944, the dialogs' 9:298c) and MessageBeep (a few error
+cases).  Ordinal 17 (6:5538, a quick ship drawing) and 41 (9:3e8a, the
+joystick read through port 0x201) are not sound.  The DLL imports
+sndPlaySound, mciSendCommand, midiOutGetDevCaps/GetVolume/SetVolume,
+waveOutGetNumDevs/GetDevCaps/GetVolume/SetVolume, and loads
+WAVEMIX.DLL from the Windows folder by name (WaveMixGetInfo,
+ConfigureInit, OpenChannel, Activate, OpenWave, Play, FlushChannel,
+FreeWave, Pump, CloseChannel, CloseSession).
+
+- **Data.** Sound n (0-0x51) is resource 100 + n of type 100 in
+  `SOUNDS\SND_FX.DLL` (effects) or `SOUNDS\ENG_FX.DLL` (voices, the
+  language's `<Language>_FX.DLL`), from INI SndPath: RIFF WAVEs, all
+  8-bit mono 11025 Hz.  A per-sound byte (DS:2224, 9:25c6) says voice,
+  loaded on demand, purged between waves.  Ordinal 9 with id -1 plays
+  `<SndPath><name>.WAV` (voice files the user may add; none ship).
+  Music: `SOUNDS\MAIN.MID`, `RACE.MID`, `ANTHEM.MID`, `DEMON.MID`.
+- **Settings** (INSPACE.INI [Inner Space], 9:22ca): SoundSystem (0 none,
+  1 standard: no volume changes, 2 dynamic, 3 3-D dynamic; written on
+  first run from what the wave device can do, never above it),
+  SoundFX, VoiceFX, Music (1), SoundVolume (100), FXMusic (50: the
+  balance of effects and music volume), StereoEffect (2: how fast sound
+  fades sideways), MixChannels (4; 1 uses sndPlaySound), PurgeSound
+  (1), StereoSwap, ForceVol, AllowSound (sound with a synchronous
+  driver), SaverVolume (mode 10).  The Game Settings dialog that edits
+  them (ordinal 10 mode 0, 9:1546, dialog procedure ordinal 11) is not
+  ported yet: the INI keys work.
+- **No device, no files.** Without a wave device (the platform opens
+  none) waveOutGetNumDevs is 0 and SoundSystem becomes 0 (written to
+  the INI on first run, as in 1994).  A missing SND_FX.DLL or voice DLL
+  writes SoundFX=0 or VoiceFX=0 to the INI and its sounds stay silent;
+  a missing voice file is silent.  Nothing else is shown.
+- **What plays.** Ordinal 9 maps ids 0x65-0x75 to sounds or commands
+  (0x69 follow nothing, 0x6e stop all, 0x65/0x66 random picks with the
+  DLL's own rand, 0x67 two in turn, 0x68/0x6f/0x70/0x75 looping 20, 20,
+  8, 7 more times); a sound that does not loop is not started before the
+  last one's quiet time (DS:0cf2: 300-1300 ms after some sounds that
+  came from the view).  9:10ae decides whether the sound may play and
+  whether it becomes the followed one; 9:11f4 picks the channel (the
+  one that started the same sound under 80 ms ago, a free one, else the
+  longest playing that is not followed nor a voice in view).  The
+  channel table (DS:1760) is freed by MM_WOM_DONE to the hidden
+  NotifyClass window (ordinal 31).  Ordinal 8 turns the followed sound's
+  distance from the view's middle (the wave wrapping) into a left and
+  right level (four bands to 900 pixels, StereoEffect scaling), times
+  the effects volume, and sets the wave device's volume: it applies to
+  every sound playing, as in 1994.
+- **The port.** wavemix.c is the WaveMix the DLL used (mono session,
+  channels summed as unsigned 8-bit samples and clipped to 8 bits, the
+  device's left/right volume applied to the sum) and sndPlaySound (one
+  sound, a new one stops it); it runs on the platform's audio thread
+  (platform_audio_open, SDL3 there), the state it reads changed under
+  platform_audio_lock.  Ended waves are posted as MM_WOM_DONE from the
+  input pump (win_pump).  The port's WaveMix is always there: the DLL
+  used sndPlaySound when WAVEMIX.DLL was missing from the Windows
+  folder [uncertain: whether the game's installer put it there; the help
+  file speaks of the wavemixer and 1-8 channels].  The volume the DLL
+  saves and puts back is the port's own device volume, not the
+  system's.  MessageBeep is the host's (Windows) or nothing.
+- **Verified** with the oracle (tools/dll_oracle/sound.txt, MixChannels
+  1 on both sides): mode 0, ordinal 8 at 80 points and views and
+  ordinal 9 with 76 sounds and commands, on and off screen, through
+  quiet times, and modes 2, 3, 4, 10: results and the wave device's
+  volume identical.  The many-channel path (WaveMix) is checked in runs
+  (--audio-dump): sounds identified in the dump by their waves.
+- **Fixed silently:** MixChannels above 8 (only by editing the INI)
+  overran the channel table into the WaveMix entry points: 8.  Sound ids
+  outside 0-0x51 and music pieces outside 0-11 read past the DLL's
+  tables: nothing plays.  An empty SndPath read the byte before its
+  buffer: it gets its '\'.  A voice file name too long for the DLL's
+  128-byte path overran it: cut.  A voice file wave replaced before it
+  ended was never freed: it is.  Sounds are freed the way they were
+  loaded (the DLL went by the current channel count).  Two calls of the
+  game went through mistyped pointers (C undefined behaviour natively):
+  10:7480's mode 11 (a POINT for the long) and 10:7944's ordinal 9 (the
+  long as two words); `extern`/`fix` entries in overrides/signatures.txt.
+- **Uncertain:** WaveMix's wLoops (the port plays a wave 1 + loops
+  times); whether WaveMix posted MM_WOM_DONE for flushed or replaced
+  waves (the port does not); how it converted waves of other formats
+  (voice files only; the port takes PCM 8/16-bit, mono/stereo, any rate,
+  nearest sample); what mode 0's negative width (sound 0x23 only, the
+  mixer restarted) is for; the DLL's rand is seeded from the time in
+  dialogs not ported yet (here it starts at 1).
+- **Not ported:** the joystick (ordinal 41, the NotifyClass timer),
+  the Game Settings dialog, the MIDI device's capabilities (DS:227c,
+  read only by that dialog), the never-read DS:0cf6.
+
+### Music
+
+The DLL plays one of 12 pieces (ordinal 7 mode 11, from 10:7480): a
+section of one of the four MIDI files (DS:0ad8 file, DS:0aa8 start,
+DS:0ac0 length, tenths of a second), through MCI's sequencer: open,
+time format milliseconds, seek to the start, play to the end with
+MM_MCINOTIFY, then seek and play again (pieces 7 and 8 go on with 2,
+5 and 11 play once); -1 stops, -2 pauses (the focus going too), -3 goes
+on.  The MIDI output's volume is the music's share of SoundVolume
+(FXMusic).  The DLL asked (Yes/No) whether to play when the sequencer
+did not use the MIDI Mapper; the port always plays.
+
+ispace_music.c ports that logic onto mci.c (the sequencer calls the DLL
+makes), which plays through platform_music_* (play a .MID file from a
+time to a time, pause, stop, volume, "ended").  No platform plays MIDI
+yet: platform_music_open fails, as MCI did without a MIDI device, and
+the game runs without music.  Backends to choose from (not chosen):
+
+- **Windows:** the system's MIDI output (midiOut through the MIDI
+  Mapper / Microsoft GS Wavetable Synth, or MCI's sequencer itself):
+  the 1994 sound on that machine, no extra files, small code.
+- **Android:** MediaPlayer on the user's own .MID file (its built-in
+  synthesizer, through Java, as Descent-GX does): seekTo, pause, volume
+  and the position for "ended at" (polled).
+- **Linux and other desktops:** a software synthesizer with a SoundFont
+  the user supplies, read at run time (TinySoundFont + TinyMidiLoader,
+  MIT, single headers, in third_party/ like stb_truetype): one code
+  path for every platform and the same sound everywhere, but needs a
+  .sf2 (a General MIDI one: GeneralUser GS or FluidR3 are free); or
+  FluidSynth (LGPL, a library dependency); or OPL3 FM emulation (e.g.
+  Nuked-OPL3, LGPL; or the MIT ymfm) with a General MIDI FM patch set,
+  close to what most 1994 Sound Blasters played, no SoundFont needed.
+- Recommendation: the OS synthesizer where there is one (Windows,
+  Android) and TinySoundFont with a user-supplied SoundFont elsewhere
+  (optional also on Windows/Android, INI [Port]), all behind
+  platform_music_*.

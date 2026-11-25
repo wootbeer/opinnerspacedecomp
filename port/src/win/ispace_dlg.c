@@ -474,14 +474,6 @@ static BOOL restore_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
     return 0;
 }
 
-/* 9:298c: sound effect n (9:0c42, which plays nothing while the sound
- * set-up of ordinal 7 has not run). */
-static void sound_effect(int16_t n)
-{
-    (void)n;
-    not_ported("ispace dialog: sound effect (9:298c)");
-}
-
 /* 10:611c: ship i may be played.  The registered flag (DS:01ac) is
  * worked out once: the CD of WIN.INI CDDrive, else the key and the
  * registered name in INSPACE.EXE (ordinal 24).  Unregistered, or in the
@@ -734,8 +726,8 @@ static int newgame_end(HWND dlg, int ok)
         play = (int16_t)SendMessage(GetDlgItem(dlg, ID_PLAY), CB_GETCURSEL, 0, 0);
         write_int("PlayMode", play);
         if (play) {
-            sound_effect(0x6e);
-            sound_effect(0x2c);
+            ispace_sound_effect(0x6e);
+            ispace_sound_effect(0x2c);
             n = GetPrivateProfileInt(APP, "StratAsk", 0, INI);
             if (n == 0 || n == 10) {
                 if (ask(dlg, 0xb22, 4, 0xc8, MB_YESNO | MB_ICONEXCLAMATION) != IDYES)

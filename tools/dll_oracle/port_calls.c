@@ -5,9 +5,10 @@
  *
  * Script lines: ORDINAL ARG...; an ARG is a number, "text", @K (the
  * result of call K, from 0), DC (a screen DC), MDC (a memory DC with a
- * 640x480 bitmap) or DC@K (a memory DC with call K's bitmap, printed
- * after the call: "dcbmp").  Ordinal 29's words are passed by pointer
- * and printed after the call ("outs"). */
+ * 640x480 bitmap), DC@K (a memory DC with call K's bitmap, printed
+ * after the call: "dcbmp") or X,Y (a point).  Ordinal 29's words are
+ * passed by pointer and printed after the call ("outs"), as is the wave
+ * device's volume after ordinals 7-9. */
 #include <SDL3/SDL.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,6 +34,7 @@ void app_frame(void)
 
 typedef struct {
     int16_t w[MAX_ARGS];
+    int16_t y[MAX_ARGS];        /* a point's y (X,Y) */
     int32_t l[MAX_ARGS];
     char s[MAX_ARGS][64];
     int n;
@@ -80,6 +82,8 @@ static int parse(char *line, int *ordinal, Args *a)
         } else {
             a->l[k] = (int32_t)strtoll(p, &p, 0);
             a->w[k] = (int16_t)a->l[k];
+            if (*p == ',')
+                a->y[k] = (int16_t)strtol(p + 1, &p, 0);
         }
     }
     return 1;
@@ -97,6 +101,11 @@ static int16_t run(int ordinal, Args *a)
     case 4: return ispace_palette(w[0], w[1], w[2], w[3], w[4], w[5], w[6]);
     case 5: return ispace_image_height();
     case 6: return (int16_t)ispace_make_mask(w[0], w[1], w[2]);
+    case 7: return ispace_sound_control(a->l[0], w[1]);
+    case 8: return ispace_sound_follow((POINT){w[0], a->y[0]}, w[1], w[2], a->l[3]);
+    case 9:
+        return ispace_sound_play(w[0], (POINT){w[1], a->y[1]}, w[2], a->l[3], a->l[4], (DWORD)a->l[5],
+                                 a->s[6]);
     case 12: return ispace_smooth_image(w[0], w[1], 0, w[3], w[4], w[5], w[6], w[7], w[8],
                                         (char)w[9], (char)w[10]);
     case 14:
@@ -151,6 +160,11 @@ static void report(int k, int ordinal, const Args *a)
             if (i < 8 || i > 11)
                 printf(" %d", a->w[i]);
         printf("\n");
+    }
+    if (ordinal >= 7 && ordinal <= 9) {
+        DWORD v;
+        waveOutGetVolume(0, &v);
+        printf("outs %u %u\n", (unsigned)LOWORD(v), (unsigned)HIWORD(v));
     }
     if (ordinal == 32) {
         int n = (int)(GlobalSize(rect_block) / 8);

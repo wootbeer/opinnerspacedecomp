@@ -47,4 +47,34 @@ const char *platform_pref_dir(void);
  * when the whole path exists. */
 int platform_find_path(const char *path, char *out, int size);
 
+/* Sound output: 16-bit stereo frames at rate, asked of fn on the
+ * platform's audio thread.  platform_audio_lock keeps fn from running
+ * (for data fn reads).  Returns 0 when there is no sound device. */
+typedef void (*PlatformAudioFn)(int16_t *frames, int count, void *user);
+int platform_audio_open(int rate, PlatformAudioFn fn, void *user);
+void platform_audio_lock(void);
+void platform_audio_unlock(void);
+/* Test option: everything played is also written to a WAV file at path
+ * (call before platform_audio_open); platform_audio_close finishes it. */
+void platform_audio_dump(const char *path);
+void platform_audio_close(void);
+
+/* Music: a standard MIDI file (.MID) played by the platform's MIDI
+ * synthesizer, times in milliseconds.  platform_music_open gives 0 when
+ * the platform cannot play MIDI (so far none can: port/NOTES-port.md,
+ * "Music").  platform_music_play plays from `from` (PLATFORM_MUSIC_HERE:
+ * where it stopped) to `to` (0: the end);
+ * platform_music_ended tells, once, that it got there.  Volumes are
+ * 0-0xffff per side. */
+#define PLATFORM_MUSIC_HERE 0xffffffffu
+int platform_music_open(const char *path);
+void platform_music_play(uint32_t from, uint32_t to);
+void platform_music_pause(void);
+int platform_music_ended(void);
+void platform_music_close(void);
+void platform_music_volume(uint16_t left, uint16_t right);
+
+/* The system's default beep (Windows' MessageBeep); nothing elsewhere. */
+void platform_beep(void);
+
 #endif

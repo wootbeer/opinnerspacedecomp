@@ -176,4 +176,26 @@ int16_t ispace_dialog(int16_t hwnd, int16_t dc, int16_t pal, int16_t v1, int16_t
                       int16_t mode);
 int ispace_dialog_slot(void);    /* DS:1f92, slot 0 before any dialog */
 
+/* Ordinals 7, 8, 9 (9:0000, 9:076c, 9:0c42): sound (ispace_sound.c). */
+int16_t ispace_sound_control(int32_t a, int16_t mode);
+int16_t ispace_sound_follow(POINT p, int16_t x, int16_t y, int32_t view);
+int16_t ispace_sound_play(int16_t a, POINT p, int16_t r, int32_t q, int32_t view, DWORD now,
+                          LPCSTR name);
+void ispace_sound_effect(int16_t n);         /* 9:298c */
+HWND ispace_sound_window(void);              /* DS:21ae: the NotifyClass window */
+int16_t ispace_sound_system(void);           /* DS:2280 SoundSystem */
+int16_t ispace_sound_music_volume(void);     /* DS:2288 */
+void ispace_sound_path(char *path, size_t size);    /* INI SndPath with its '\' */
+
+/* The music (ordinal 7 mode 11, 9:3906; ispace_music.c). */
+void ispace_music(int16_t n, int16_t wait);
+void ispace_music_set_on(int16_t on);        /* INI Music */
+void ispace_music_center(void);
+LRESULT ispace_music_message(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp);
+void ispace_music_save_volume(void);
+void ispace_music_restore_volume(void);
+void ispace_music_deactivate(void);
+void ispace_music_activate(int force_volume);
+void ispace_music_resume(void);
+
 #endif

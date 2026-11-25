@@ -183,6 +183,8 @@ void win_pump(void)
             break;
         }
     }
+    wavemix_notify();
+    mci_notify();
     now = platform_time_ms();
     if (now - last_frame >= FRAME_MS) {
         last_frame = now;

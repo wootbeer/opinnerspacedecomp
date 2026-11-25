@@ -29,7 +29,7 @@ from optl_unpack import unpack       # noqa: E402
 
 ROOT = os.path.dirname(TOOLS)
 DATA_SEG = 11                        # ISPACE.DLL's DGROUP
-HINST = {0x0b00: 'ISPACE', 0x0c00: 'IGRAPHIC', 0x0d00: 'ENG_LANG'}
+HINST = {0x0b00: 'ISPACE', 0x0c00: 'IGRAPHIC', 0x0d00: 'ENG_LANG', 0x0e00: 'SND_FX', 0x0f00: 'ENG_FX'}
 ISPACE_HINST_SLOT = 0x1a30           # DS words LibMain / ordinal 3 would fill
 IGRAPHIC_HINST_SLOT = 0x0692
 LANG_HINST_SLOT = 0x0690            # the language DLL (ordinal 7, 9:0174)
@@ -42,6 +42,9 @@ STATICS = {0: (0, 0, 0), 1: (128, 0, 0), 2: (0, 128, 0), 3: (128, 128, 0), 4: (0
            249: (255, 0, 0), 250: (0, 255, 0), 251: (255, 255, 0), 252: (0, 0, 255),
            253: (255, 0, 255), 254: (0, 255, 255), 255: (255, 255, 255)}
 TYPENAMES = {2: 'BITMAP', 6: 'STRING', 10: 'RCDATA'}
+# INSPACE.INI for the sound ordinals (tools/README.md, sound.txt): one
+# channel, as the DLL has with no WAVEMIX.DLL in the Windows folder.
+INI = {'SndPath': 'C:\\SPACE\\SOUNDS\\', 'Language': 'ENG', 'MixChannels': '1'}
 CAPS = {8: 640, 10: 480, 12: 8, 14: 1, 24: 20, 38: 0x799, 104: 256, 106: 20}
 
 
@@ -84,7 +87,12 @@ class IspaceEmu:
         self.entries = entry_points(data)
         self.res = {'ISPACE': load_resources(packed),
                     'IGRAPHIC': load_resources(open(os.path.join(data_dir, 'IGRAPHIC.DLL'), 'rb').read()),
-                    'ENG_LANG': load_resources(open(os.path.join(data_dir, 'ENG_LANG.DLL'), 'rb').read())}
+                    'ENG_LANG': load_resources(open(os.path.join(data_dir, 'ENG_LANG.DLL'), 'rb').read()),
+                    'SND_FX': load_resources(open(os.path.join(data_dir, 'SOUNDS', 'SND_FX.DLL'), 'rb').read()),
+                    'ENG_FX': load_resources(open(os.path.join(data_dir, 'SOUNDS', 'ENG_FX.DLL'), 'rb').read())}
+        self.data_dir = data_dir
+        self.ini = dict(INI)
+        self.wave_volume = self.midi_volume = 0xffffffff
         self.uc = Uc(UC_ARCH_X86, UC_MODE_16)
         self.uc.mem_map(0, 0x111000)
         self._load(data)
@@ -362,9 +370,39 @@ def GetSystemDirectory(e, fp, size):
 
 @api(22, 'llllwl')
 def GetPrivateProfileString(e, app, key, default, ret, size, file):
-    """No INI files (the port's settings folder has none of SYSTEM.INI,
-    CONTROL.INI, PROTOCOL.INI or NETWORK.INF): the default."""
-    return put_string(e, ret, e.cstr(e.lin(default)), size)
+    """INSPACE.INI as INI below; no other INI files (the port's settings
+    folder has none of SYSTEM.INI, CONTROL.INI, PROTOCOL.INI or
+    NETWORK.INF): the default."""
+    v = e.ini.get(e.cstr(e.lin(key))) if e.cstr(e.lin(file)).upper() == 'INSPACE.INI' else None
+    return put_string(e, ret, v if v is not None else e.cstr(e.lin(default)), size)
+
+
+@api(14, 'llwl')
+def GetPrivateProfileInt(e, app, key, default, file):
+    v = e.ini.get(e.cstr(e.lin(key))) if e.cstr(e.lin(file)).upper() == 'INSPACE.INI' else None
+    return int(v) & 0xffff if v is not None else default
+
+
+@api(16, 'llll')
+def WritePrivateProfileString(e, app, key, value, file):
+    if e.cstr(e.lin(file)).upper() == 'INSPACE.INI':
+        e.ini[e.cstr(e.lin(key))] = e.cstr(e.lin(value))
+    return 1
+
+
+def host_path(e, dos):
+    """C:\\SPACE\\... in the data folder; nothing else exists."""
+    dos = dos.upper()
+    if not dos.startswith('C:\\SPACE\\'):
+        return None
+    return os.path.join(e.data_dir, *dos[len('C:\\SPACE\\'):].split('\\'))
+
+
+@api(10, 'llw')
+def OpenFile(e, name, of, mode):
+    """Existence checks (OF_EXIST) only."""
+    p = host_path(e, e.cstr(e.lin(name)))
+    return 1 if p and os.path.exists(p) else 0xffff
 
 
 @api(8, 'll')
@@ -380,8 +418,9 @@ def waveOutGetNumDevs(e):
 
 @api(8, 'wlw')
 def waveOutGetDevCaps(e, dev, fp, size):
-    """As the port's: one stereo device, no WAVECAPS_SYNC."""
-    caps = struct.pack('<HHH32sIHHI', 0, 0, 0, b'', 0, 2, 0, 0)
+    """As the port's: one stereo device with left and right volume
+    (WAVECAPS_VOLUME | WAVECAPS_LRVOLUME), no WAVECAPS_SYNC."""
+    caps = struct.pack('<HHH32sIHI', 0, 0, 0, b'', 0, 2, 0x0c)
     e.uc.mem_write(e.lin(fp), caps[:size])
     return 0
 
@@ -451,7 +490,11 @@ def SizeofResource(e, inst, hres):
 
 @api(4, 'l')
 def LoadLibrary(e, name):
-    return 0x0c00 if 'IGRAPHIC' in e.cstr(e.lin(name)).upper() else 0x0b00
+    n = e.cstr(e.lin(name)).upper()
+    for h, mod in HINST.items():
+        if mod + '.DLL' in n:
+            return h
+    return 0x0b00
 
 
 @api(2, 'w')
@@ -922,4 +965,72 @@ def TextOut(e, dc, x, y, fp, n):
     e.texts.append(dict(x=s16(x), y=s16(y), text=e.rd(e.lin(fp), n).decode('latin-1'),
                         font=dict(e.gdi.get(d.get('font'), {})), color=d['text'], bk=d['bk'],
                         bkmode=d.get('bkmode', 2), align=d.get('align', 0)))
+    return 1
+
+
+# MMSYSTEM sound: the volumes are kept (the oracle compares the wave
+# device's), sounds are not played.
+@api(6, 'wl')
+def waveOutGetVolume(e, dev, fp):
+    e.uc.mem_write(e.lin(fp), struct.pack('<I', e.wave_volume))
+    return 0
+
+
+@api(6, 'wl')
+def waveOutSetVolume(e, dev, v):
+    e.wave_volume = v
+    return 0
+
+
+@api(6, 'wl')
+def midiOutGetVolume(e, dev, fp):
+    e.uc.mem_write(e.lin(fp), struct.pack('<I', e.midi_volume))
+    return 0
+
+
+@api(6, 'wl')
+def midiOutSetVolume(e, dev, v):
+    e.midi_volume = v
+    return 0
+
+
+@api(8, 'wlw')
+def midiOutGetDevCaps(e, dev, fp, size):
+    e.uc.mem_write(e.lin(fp), bytes(size))
+    return 0
+
+
+@api(6, 'lw')
+def sndPlaySound(e, fp, flags):
+    return 1
+
+
+# USER: the sound's hidden window
+@api(4, 'l')
+def RegisterClass(e, fp):
+    return 1
+
+
+@api(6, 'wl')
+def LoadCursor(e, inst, name):
+    return 1
+
+
+@api(30, 'lllwwwwwwwl')
+def CreateWindow(e, cls, title, style, x, y, w, h, parent, menu, inst, param):
+    return 0x500
+
+
+@api(2, 'w')
+def DestroyWindow(e, h):
+    return 1
+
+
+@api(6, 'lw')
+def UnregisterClass(e, name, inst):
+    return 1
+
+
+@api(12, 'wllw')
+def MessageBox(e, h, text, title, style):
     return 1

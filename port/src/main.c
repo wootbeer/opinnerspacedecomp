@@ -1,6 +1,7 @@
 /* Operation: Inner Space, native port: sets up the screen and the native
  * Windows calls, gives the globals their initial values from INSPACE.EXE
  * and runs the game's WinMain (2:0000). */
+#include "platform/platform.h"
 #include "video.h"
 #include "win/win.h"
 
@@ -176,6 +177,7 @@ static void finish(int code)
     if (dump_path)
         video_save_ppm(dump_path);
     video_close();
+    platform_audio_close();
     SDL_Quit();
     exit(code);
 }
@@ -209,6 +211,8 @@ int main(int argc, char **argv)
             frame_limit = SDL_atoi(argv[++i]);
         else if (!strcmp(argv[i], "--dump") && i + 1 < argc)
             dump_path = argv[++i];
+        else if (!strcmp(argv[i], "--audio-dump") && i + 1 < argc)
+            platform_audio_dump(argv[++i]);
         else if (!strcmp(argv[i], "--shots") && i + 1 < argc)
             shot_every = SDL_atoi(argv[++i]);
         else if (!strcmp(argv[i], "--keys") && i + 1 < argc) {
