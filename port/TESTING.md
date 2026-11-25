@@ -53,8 +53,12 @@ Checks that need a person, real hardware or the original game. Items move to
       35.7 after about 45 s; that is the 1994 game's own timing.
 - [ ] Title logo, briefing, landing and the exit-question delay now draw as
       they happen instead of all at once afterwards.
-- [ ] One wave ended without explanation in windowed mode.
-- [ ] Rocks with mass 0 (possibly fixed with the record-size fix).
+- [ ] One wave ended without explanation in windowed mode (not reproduced
+      in a 20,000-frame run). If it happens again, note what was clicked
+      just before: a right-click opens the game's menu at the pointer, and
+      the next left click can land on "Exit Game".
+- [ ] Rocks shot apart: the three pieces should move normally (the mass-0
+      pieces came from the record-size bug, now fixed; not re-observed).
 - [ ] After pressing OK in Game Settings once (it writes `Quick=1`), ships
       and objects that appear mid-wave are drawn by the quick ship drawing;
       before, they were invisible. Check over a long wave.
@@ -62,9 +66,10 @@ Checks that need a person, real hardware or the original game. Items move to
 - [ ] New Ship Body dialog after the ambulance picks you up (never reached
       in a real test run).
 - [ ] Help buttons and the Help menu do nothing visible yet (logged only).
-- [ ] Rooms: image 76 in room 105 (VGA-colour images) has no bitmap.
-- [ ] Rooms: object type 5 not drawn; room lines drawn 1 px wide instead
-      of 2.
+- [ ] Room 105 shows the textured tower fronts and 2 px circuit lines;
+      rooms 110 and 115 show the discs (pentagram platform, pedestal).
+- [ ] Lines the game draws with wide pens elsewhere are now 2-3 px thick
+      (they were all 1 px); check they look right.
 
 ## Decisions
 - [ ] Optional: turn on and calibrate the joystick automatically when a

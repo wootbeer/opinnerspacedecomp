@@ -1018,7 +1018,7 @@ def CreatePatternBrush(e, h):
 
 @api(8, 'wwl')
 def CreatePen(e, style, width, c):
-    return e.new_gdi('pen', color=c, null=style == 5)
+    return e.new_gdi('pen', color=c, width=s16(width), null=style == 5)
 
 
 @api(6, 'www')
@@ -1044,24 +1044,34 @@ def LineTo(e, dc, x, y):
     return line(e, d, x0, y0, x1, y1)
 
 
+def pen_dot(e, d, x, y, w, v):
+    for j in range(w):
+        for i in range(w):
+            put(e, d, x - w // 2 + i, y - w // 2 + j, v)
+
+
 def line(e, d, x0, y0, x1, y1):
-    """port/src/win/draw.c line(): Bresenham, end point left out."""
+    """port/src/win/draw.c line(): Bresenham, end point left out; a
+    pen w wide puts a w x w square at each point, the end point too."""
     p = e.gdi.get(d['pen'])
     if not p or p.get('null'):
         return 1
     v = pixel_of(e, d, p['color'])
+    w = max(p.get('width', 1), 1)
     dx, dy = abs(x1 - x0), -abs(y1 - y0)
     stx, sty = (1 if x0 < x1 else -1), (1 if y0 < y1 else -1)
     err = dx + dy
     while x0 != x1 or y0 != y1:
         e2 = 2 * err
-        put(e, d, x0, y0, v)
+        pen_dot(e, d, x0, y0, w, v)
         if e2 >= dy:
             err += dy
             x0 += stx
         if e2 <= dx:
             err += dx
             y0 += sty
+    if w > 1:
+        pen_dot(e, d, x1, y1, w, v)
     return 1
 
 

@@ -65,6 +65,8 @@ void room_box(int32_t x, int32_t y, int32_t d, int32_t w, int32_t z, int32_t h, 
               const char *text, int16_t text_face, int16_t text_kind, int16_t text_size);
 void room_cylinder(int32_t x, int32_t y, int32_t z, int32_t w, int32_t d, int32_t h, int16_t ramp,
                    int16_t channel, int16_t b, int16_t mark, int16_t step);
+void room_disc(int32_t x, int32_t y, int32_t z, int32_t w, int32_t d, int32_t h, int16_t ramp,
+               int16_t channel, int16_t b);
 void room_point(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, int32_t t,
                 int16_t ramp, int16_t channel, int16_t b);
 void room_line_point(int32_t x, int32_t y, int32_t z, int16_t ramp, int16_t channel, int16_t b,

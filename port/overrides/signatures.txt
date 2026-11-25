@@ -131,9 +131,9 @@ fix seg08.c fn_08_1e32: g_1df8[g_65cc[bi].f04][g_65cc[bi].f06].f36 = -1; => if (
 
 # Tether forces (8:1e32) divide by both objects' masses.  A rock with
 # mass 0 tethered to object 0 of type 0 was met in a wave (records 44-46
-# of type 3: mass 0 and link 0, never set up) [uncertain: whether 1994
-# could reach this state; there it was a divide fault].  A zero mass
-# gives no force.
+# of type 3: mass 0 and link 0, zeroed by the record-size bug fixed
+# below; 1994 faulted dividing by a zero mass).  A zero mass gives no
+# force.
 fix seg08.c fn_08_1e32: f1 = (int)((long)u * 100 / ((long)m1 * 100 / m2 + 100)); => f1 = m2 && (long)m1 * 100 / m2 + 100 ? (int)((long)u * 100 / ((long)m1 * 100 / m2 + 100)) : 0;
 fix seg08.c fn_08_1e32: f1 += force / m1; => f1 += m1 ? force / m1 : 0;
 fix seg08.c fn_08_1e32: f2 += force / m2; => f2 += m2 ? force / m2 : 0;

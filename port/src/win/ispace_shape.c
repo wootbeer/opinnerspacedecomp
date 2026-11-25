@@ -1,7 +1,7 @@
 /* ISPACE.DLL segment 8: the shapes of the rooms (ispace_room.h) drawn
  * into room.dc: faces filled in bands with their edges smoothed
- * (8:1fe6), boxes (8:28de), upright cylinders (8:3874), lines
- * (8:5470, 8:5632) and text (8:5978).  Every band is shaded by its
+ * (8:1fe6), boxes (8:28de), upright cylinders (8:3874), discs
+ * (8:4206), lines (8:5470, 8:5632) and text (8:5978).  Every band is shaded by its
  * distance from the horizon on the floor below it. */
 
 #include <stdlib.h>
@@ -443,6 +443,137 @@ void room_cylinder(int32_t x, int32_t y, int32_t z, int32_t w, int32_t d, int32_
         pr = r;
         room_unbrush(old);
     }
+}
+
+/* 8:4206: where the rim of a disc meets column xi at depth y: the
+ * screen x, the floor's y, and the screen y of its bottom (z) and top
+ * (z + h). */
+typedef struct {
+    int16_t x, fy, base, top;
+} RimPoint;
+
+static RimPoint rim_point(int32_t xi, int32_t y, int32_t z, int32_t h)
+{
+    int32_t s = room_scale(y);
+    RimPoint p;
+
+    p.fy = room_floor_y(s);
+    p.x = room_screen_x(p.fy, (int16_t)div32(xi * s, 1000));
+    p.base = (int16_t)(p.fy - (int16_t)div32(z * s, 1000));
+    p.top = (int16_t)(p.base - (int16_t)div32((int16_t)s * h, 1000));
+    return p;
+}
+
+/* 8:4206: half the chord of a circle of radius rw at p from its
+ * centre. */
+static int16_t disc_root(int32_t rw, int32_t p)
+{
+    return ispace_newton_root(rw * rw - p * p, labs(rw) - div32(labs(p) * 3, 4));
+}
+
+/* 8:4206: the disc's side along its far or near half, in columns step
+ * apart lit from the front; a column is drawn where the rim runs right
+ * to left (far half) or left to right (near half). */
+static void disc_side(int32_t x, int32_t y, int32_t z, int32_t w, int32_t h, int32_t step, int back,
+                      int16_t ramp, int16_t channel, int32_t two_b)
+{
+    int32_t rw = div32(w, 2), x0 = x - rw, xi;
+    RimPoint prev, cur = {0, 0, 0, 0};
+
+    for (xi = x0; xi < x + rw; xi += step) {
+        int32_t p = xi - x, lit, shade;
+        int16_t r = disc_root(rw, p);
+        HBRUSH old;
+
+        prev = cur;
+        cur = rim_point(xi, (back ? r : -r) + rw + y, z, h);
+        if (xi <= x0 || (back ? prev.x <= cur.x : prev.x >= cur.x))
+            continue;
+        lit = div32(-(p * p) * 128, rw * rw) + 0xc0;
+        shade = div32((int32_t)floor_light2(cur.fy, two_b) * lit, 128);
+        if (shade > 0xfff)
+            shade = 0xfff;
+        old = room_brush(room_color(ramp, channel, (int16_t)(shade >> 1)));
+        band(prev.x, prev.top, (int16_t)(cur.x - prev.x), (int16_t)(prev.base - prev.top));
+        room_unbrush(old);
+    }
+}
+
+/* 8:4206: the lid of the disc in rows from the back, with wedges along
+ * its rim between rows (one row's left, right and top: l, r, t; the row
+ * before's left and right: pl, pr; the row's height n). */
+static void disc_wedges(int16_t l, int16_t r, int16_t t, int16_t pl, int16_t pr, int16_t n)
+{
+    int16_t k;
+
+    for (k = 1; k < n; k++) {
+        if (pl > l)
+            band(pl, (int16_t)(t - n + k), part((int16_t)(l - pl), k, n), 1);
+        else if (pl < l)
+            band(l, (int16_t)(t - k + n - 1), part((int16_t)(pl - l), k, n), 1);
+        if (pr > r)
+            band(r, (int16_t)(t - k + n - 1), part((int16_t)(pr - r), k, n), 1);
+        else if (pr < r)
+            band(pr, (int16_t)(t - n + k), part((int16_t)(r - pr), k, n), 1);
+    }
+}
+
+static void disc_lid(int32_t x, int32_t y, int32_t z, int32_t w, int32_t h, int32_t step, int16_t ramp,
+                     int16_t channel, int32_t two_b)
+{
+    int32_t rw = div32(w, 2), yi;
+    int16_t l = 0, r = 0, t = 0, pl = 0, pr = 0;
+
+    for (yi = w + y; y - step < yi; yi -= step) {
+        int32_t s = room_scale(yi);
+        int16_t root = disc_root(rw, yi - (rw + y)), fy = room_floor_y(s), pl2 = l, pr2 = r, pt = t, n;
+        HBRUSH old;
+
+        l = room_screen_x(fy, (int16_t)div32((x - root) * s, 1000));
+        r = room_screen_x(fy, (int16_t)div32((x + root) * s, 1000));
+        t = (int16_t)(fy + (int16_t)div32((int16_t)s * h, -1000) - (int16_t)div32((int16_t)s * z, 1000));
+        if (yi >= w + y)
+            continue;
+        n = (int16_t)(t - pt);
+        old = room_brush(room_color(ramp, channel, room_floor_light(fy, two_b)));
+        band(pl2, pt, (int16_t)(pr2 - pl2), n);
+        if (w + y - step > yi)
+            disc_wedges(pl2, pr2, pt, pl, pr, n);
+        pl = pl2;
+        pr = pr2;
+        room_unbrush(old);
+    }
+}
+
+/* 8:4206: a disc lying on the floor (rooms 110 and 115): w across and w
+ * deep from depth y, centred on x, from z up h high; its size on the
+ * screen is taken at depth y + d / 2.  Its side, then its lid when seen
+ * from above. */
+void room_disc(int32_t x, int32_t y, int32_t z, int32_t w, int32_t d, int32_t h, int16_t ramp,
+               int16_t channel, int16_t b)
+{
+    int32_t two_b = (int16_t)(b * 2), s1 = room_scale(y), sc = room_scale(div32(d, 2) + y), wc, rx, ry, step;
+    int16_t fy1 = room_floor_y(s1), fyc = room_floor_y(sc);
+    int16_t cx = room_screen_x(fyc, (int16_t)div32(x * sc, 1000)), left, right;
+    int16_t base_c = (int16_t)(fyc - (int16_t)div32(z * sc, 1000));
+    int16_t top_c = (int16_t)(base_c - (int16_t)div32(h * sc, 1000));
+    int16_t top_f = (int16_t)(fy1 - (int16_t)div32(z * s1, 1000) - (int16_t)div32(h * s1, 1000));
+
+    wc = div32(w * sc, 1000);
+    left = (int16_t)(cx - (int16_t)div32(wc, 2));
+    right = (int16_t)((int16_t)div32(wc, 2) + cx);
+    rx = (int16_t)((int16_t)(right - left) / 2);
+    ry = (int16_t)(top_f - top_c);
+    if (!ry)
+        ry = 1;
+    step = div32(w, rx);
+    if (step) {                         /* [fix: 0 loops for ever in the DLL] */
+        disc_side(x, y, z, w, h, step, 1, ramp, channel, two_b);
+        disc_side(x, y, z, w, h, step, 0, ramp, channel, two_b);
+    }
+    step = div32(w, ry < 2 ? 2 : ry);
+    if (top_c > room.eye_y && step)
+        disc_lid(x, y, z, w, h, step, ramp, channel, two_b);
 }
 
 /* 8:50ec: a flat point (the star of a pentagram) at height t from

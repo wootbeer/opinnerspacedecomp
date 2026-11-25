@@ -321,11 +321,14 @@ the overrides; `src/inspace/` is unchanged.
   (flying and shooting rocks) records 44-46 of the rocks (type 3) had
   mass 0 and a tether link of 0 rather than -1, so they were treated as
   tethered to object 0 of type 0, and the division faulted (found by
-  AddressSanitizer). A zero mass now gives no force. [uncertain: whether
-  1994 could reach this state (a divide fault there) or the port missed
-  setting the records up: the wave's set-up (9:6624) sets the links to
-  -1 for the records counted then (g_92ec, from 9:22b4); which routine
-  made these three is not found yet.]
+  AddressSanitizer). A zero mass now gives no force. Those records were
+  the port's record-size bug (below): a rock shot apart becomes three
+  new records (7:5090), each set up (mass 350, link -1) right after its
+  block grows; with blocks sized in 0x70-byte records, growing from 49
+  to 52 records zeroed bytes [49 x 0x70, 52 x 0x70), which hold most of
+  native records 44, 45 and 46 (124 bytes each) with their mass (+0x44)
+  and link (+0x32). 1994 does not reach this state that way;
+  the check stays for any other object of mass 0.
 - **Object record blocks (REC_70).** Not a 1994 bug but the native
   layout: the records hold far function pointers and are 124 bytes here,
   0x70 in 1994, yet their blocks were allocated and grown as counts of
@@ -337,8 +340,8 @@ the overrides; `src/inspace/` is unchanged.
   of ship 1, and the radar (11:33cc) called a null pointer (found with
   the secret codes in a wave, AddressSanitizer and a watchpoint). The
   blocks are now sized in native records (`sizeof *g_1df8[0]`), so the
-  zeroed part is exactly the 1994 one. [uncertain: the rocks of mass 0
-  and link 0 of the tether fix above may have been this as well.]
+  zeroed part is exactly the 1994 one. The rocks of mass 0 and link 0 of
+  the tether fix above were this.
 - **The joystick's reading (DS:1e4c).** Not a 1994 bug but the native
   layout: 6:1b62 keeps the far pointer of the 8-byte block ordinal 41
   fills in a long, which held a truncated native pointer, and 11:7504
@@ -440,6 +443,18 @@ Native versions of the DLL's routines, written from its disassembly
     row). Nothing seen so far draws one.
   - **Fixed silently:** a source width of 0 (divide by zero in the DLL)
     draws nothing; the spill past the last row goes into a spare row.
+- **Images with VGA colours (6:7fc8).** An image whose colour 15 is not
+  black (red counts only for id -2) has its colours in the VGA's order:
+  5:26a2 gives it the game's 16 colours (DS:1ea8), and ordinal 1 then
+  renumbers its pixels into the game's order under a new 4-bit header
+  (5:22e6) before making the bitmap. Of the game's images only 76 (room
+  105's texture) is one. The DLL also counts the pixels by hue into
+  DS:1670/1672, which nothing reads; its search for the largest count
+  compares the counts with the index found so far [sic]. Ordinals 2, 12
+  and 17 have the same call (6:0200, 7:13b8, 6:563b), not ported (they
+  log; none of their images has VGA colours). Checked with the oracle
+  (rooms.txt: image 76 with five colour-set and softening arguments,
+  room 105).
 - **Image loader mode 0 (5:26a2).** Mode 0 puts the image's colours in
   the palette: colours 0-9 as a ramp of 28 entries from 185 (three steps
   from each colour to the next), 10-14 as 17 entries from 213 (four
@@ -541,7 +556,11 @@ in ispace_room.h.
   side loops), slots, a black screen inset, textures METAL and image 76,
   text and the "HIGH VOLTAGE" sign, the monitor and tower fronts as the
   game's rectangles), lines (8:5470, 8:5632), upright cylinders (8:3874,
-  with the batteries' "+"), flat points (type 4, 8:50ec). Faces are
+  with the batteries' "+"), flat points (type 4, 8:50ec), discs (type 5,
+  8:4206: lying on the floor, w across and w deep; the far half of the
+  rim drawn only where it runs right to left, the near half where it
+  runs left to right, then the lid in rows from the back with wedges
+  along the rim, when seen from above). Faces are
   filled in bands with wedges along slanted edges (8:1fe6); every band is
   shaded by the floor's distance below the horizon (8:27f0 picks the
   ramp's entry).
@@ -555,14 +574,11 @@ in ispace_room.h.
 - **Verified** against the DLL with the oracle (tools/dll_oracle,
   rooms.txt): the one ordinal 32 call the game makes up to the
   navigation window (room 100 at 640x480, captured from a run), room 120,
-  and room 100 with other vanishing points, lifts and sizes: bitmaps,
-  palettes and rectangles identical.
-- **Not ported:** object type 5 (8:4206, a ring or disc; rooms 110 and
-  115 draw it and are not identical yet; they are not reached before the
-  navigation window); rooms in the caller's memory (id -1, unused by the
-  game); the paths for displays of fewer than 256 colours. Room 105's
-  two fronts with texture 120 stay black: ordinal 1 does not load image
-  76 (its VGA colours, 6:7fc8, are not ported).
+  room 100 with other vanishing points, lifts and sizes, rooms 105 (its
+  texture image 76), 110 and 115 (discs) at three sizes and vanishing
+  points: bitmaps, palettes and rectangles identical.
+- **Not ported:** rooms in the caller's memory (id -1, unused by the
+  game); the paths for displays of fewer than 256 colours.
 - **Quirks kept:** a box size of mode 0 is the parent's width on all
   three axes; object 2 is lifted (word 14) only when its rectangle byte
   is -20; the 12th and 13th words set the vanishing point's y and x (the
@@ -574,12 +590,15 @@ in ispace_room.h.
   table); a box's text with an id of 0 or 1 is empty (the DLL draws an
   uninitialised buffer); cylinders and points without a colour ramp
   (the DLL reads before its ramp tables) and kinds of text not 1-3 (an
-  uninitialised font size) are not drawn; header bytes past 0x6c read 0.
+  uninitialised font size) are not drawn; header bytes past 0x6c read 0;
+  a disc whose step across (w / its screen half-width) or back to front
+  (w / its screen height) is 0 has no side or no lid (the DLL loops for
+  ever, or faults on a half-width of 0).
 - **Uncertain (GDI, not checked by the oracle, which draws as the port
-  does):** lines are drawn with pens 2 pixels wide, which the port draws
-  1 pixel wide (wide pens are not modelled); the wedges along slanted
-  edges are PatBlts of negative width, which the port fills from x + w +
-  1 to x; the text of room 105 goes through text.c.
+  does):** lines are drawn with pens 2 pixels wide (draw.c's wide pens,
+  see "GDI"); the wedges along slanted edges are PatBlts of negative
+  width, which the port fills from x + w + 1 to x; the text of room 105
+  goes through text.c.
 - **Rectangles block.** The DLL grows the game's locked block
   (GlobalReAlloc) and writes the rectangles through the new pointer; the
   game keeps its old pointer (in Win16 the selector stays). kernel.c
@@ -614,6 +633,15 @@ in ispace_room.h.
   The oracle's stand-in (tools/dll_oracle/emu.py) reads the same way.
   [uncertain: whether Windows 3.1's StretchBlt did so too for an
   overlapping stretch, as 7:3a42's shrinking icon has.]
+- **Wide pens.** A pen of width w > 1 puts a w x w square, from w / 2
+  left of and above each point, at every point of the line, the end
+  point included (Windows 3.1 drew wide pens as polygons with round
+  ends, which reach past the end point). The rooms' lines (8:5632) and
+  the game's 2-pixel lines (seg11, seg15, seg15b; seg18's is 3) use
+  them; before, every line was 1 pixel wide. The oracle's stand-in
+  draws the same. [uncertain: the exact pixels of Windows 3.1's wide
+  lines (which side of a 2-pixel line the second pixel falls on, the
+  shape of the ends).]
 
 ## Text (port/src/win/text.c)
 
@@ -1447,8 +1475,9 @@ not read on the 8-bit path.
   without a range (the DLL reads before the range table) and a ramp
   index past the tables give entry 0; a palette not the manager's gives
   no bitmap.
-- **Not ported:** fixed palettes, images with VGA colours (6:7fc8),
-  displays of fewer than 8 bits (log, no bitmap); the per-row callback
+- **Not ported:** fixed palettes, images with VGA colours (6:7fc8 here;
+  no wave image has them), displays of fewer than 8 bits (log, no
+  bitmap); the per-row callback
   9:360a (sound). n != 0 is 6:78ba, the quick drawing (below).
 - **Verified** with the oracle (tools/dll_oracle/surfaces.txt): the
   three calls of a wave (images 180, 60 with m 1, 370) after the

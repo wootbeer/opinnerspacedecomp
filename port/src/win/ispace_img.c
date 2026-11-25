@@ -7,9 +7,9 @@
  * in the palette as ramps (mode 0), ordinal 2's calibration strip
  * (5:17c2) and its surfaces (6:011c, ispace_surface.c), and 5:0000, the
  * dialogs' ship pictures, and 5:075e, the softened pictures of INI
- * Enhance; ordinal 2's surfaces of 6:78ba are ispace_quick.c's.  6:7fc8
- * (images with VGA colours) and images from files (5:1d74) log themselves
- * once and give no bitmap. */
+ * Enhance; ordinal 2's surfaces of 6:78ba are ispace_quick.c's, and
+ * 6:7fc8, images with VGA colours.  Images from files (5:1d74) log
+ * themselves once and give no bitmap. */
 #include <stdlib.h>
 #include <string.h>
 
@@ -108,6 +108,14 @@ static int resource_dib(int16_t id, Dib *d)
         return 0;
     }
     return 1;
+}
+
+static void put_le32(uint8_t *p, uint32_t v)
+{
+    p[0] = (uint8_t)v;
+    p[1] = (uint8_t)(v >> 8);
+    p[2] = (uint8_t)(v >> 16);
+    p[3] = (uint8_t)(v >> 24);
 }
 
 static void set_color(uint8_t *c, const uint8_t rgb[3])
@@ -342,6 +350,36 @@ static int fit_colors(int16_t pal, int16_t id, Dib *d, int16_t mode, signed char
     return 1;
 }
 
+/* 6:7fc8: the pixels of an image with VGA colours (fit_colors gave it
+ * the vga table above) renumbered from the VGA's colour order to that
+ * table's, under a new 4-bit header (5:22e6).  The DLL also counts the
+ * pixels by hue into DS:1670/1672, which nothing reads. */
+static int vga_order(Dib *d)
+{
+    static const uint8_t game_color[16] = {15, 5, 1, 2, 9, 6, 10, 13, 14, 4, 0, 3, 8, 7, 11, 12};
+    int16_t w = (int16_t)(d->data[4] | d->data[5] << 8), h = (int16_t)(d->data[8] | d->data[9] << 8);
+    int stride = ((w + 1) / 2 + 3) & ~3, x, y;
+    uint8_t *row;
+
+    memset(d->data, 0, 40);
+    put_le32(d->data, 40);
+    put_le32(d->data + 4, (uint32_t)w);
+    put_le32(d->data + 8, (uint32_t)h);
+    d->data[12] = 1;
+    d->data[14] = 4;
+    put_le32(d->data + 20, (uint32_t)(((4 * w + 31) >> 3 & ~3) * h));
+    if (!dib_valid(d))                  /* [fix: the DLL trusts the new header] */
+        return 0;
+    for (y = 0, row = d->data + 40 + 4 * dib_colors(d); y < h; y++, row += stride)
+        for (x = 0; x < w; x++) {
+            uint8_t *p = &row[x / 2];
+            int shift = x & 1 ? 0 : 4;
+
+            *p = (uint8_t)((*p & ~(0xf << shift)) | game_color[*p >> shift & 0xf] << shift);
+        }
+    return 1;
+}
+
 /* 5:1b8e: image id (from a file when negative: name) with its colours
  * fitted; shows the palette in modes 0 and 2. */
 int ispace_dib_load(int16_t pal, int16_t id, LPCSTR name, int16_t mode, signed char a,
@@ -509,9 +547,7 @@ int16_t ispace_load_image(int16_t pal, int16_t id, char *name, int16_t dc, int16
         return 0;
     }
     soft = GetDeviceCaps(dc, SIZEPALETTE) >= 256 && b;
-    if (st.f.ds_1ea8 || (soft && (s < 0 || !pal))) {
-        if (st.f.ds_1ea8)
-            not_ported("ispace image: VGA colours (6:7fc8)");
+    if ((st.f.ds_1ea8 && !vga_order(&d)) || (soft && (s < 0 || !pal))) {
         free(d.data);
         return 0;
     }

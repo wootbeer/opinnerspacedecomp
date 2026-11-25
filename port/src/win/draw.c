@@ -242,20 +242,33 @@ COLORREF GetPixel(HDC hd, int16_t x, int16_t y)
     return PALETTEINDEX(b->px[(size_t)py * b->w + px]);
 }
 
-/* Lines exclude their end point, as in GDI. */
+/* One point of a line: a pen w pixels wide covers a w x w square around
+ * it. */
+static void pen_dot(Dc *d, int x, int y, int w, uint8_t v)
+{
+    int i, j;
+
+    for (j = 0; j < w; j++)
+        for (i = 0; i < w; i++)
+            put(d, x - w / 2 + i, y - w / 2 + j, v);
+}
+
+/* Lines exclude their end point, as in GDI, unless the pen is wider
+ * than a pixel (Windows 3.1 drew those as polygons with round ends). */
 static void line(Dc *d, int x0, int y0, int x1, int y1)
 {
     const Pen *p = handle_get(d->pen, H_PEN);
     int dx = abs(x1 - x0), dy = -abs(y1 - y0);
-    int stx = x0 < x1 ? 1 : -1, sty = y0 < y1 ? 1 : -1, err = dx + dy;
+    int stx = x0 < x1 ? 1 : -1, sty = y0 < y1 ? 1 : -1, err = dx + dy, w;
     uint8_t v;
 
     if (!p || p->null)
         return;
     v = gdi_pixel_of(d, p->color);
+    w = p->width > 1 ? p->width : 1;
     while (x0 != x1 || y0 != y1) {
         int e2 = 2 * err;
-        put(d, x0, y0, v);
+        pen_dot(d, x0, y0, w, v);
         if (e2 >= dy) {
             err += dy;
             x0 += stx;
@@ -265,6 +278,8 @@ static void line(Dc *d, int x0, int y0, int x1, int y1)
             y0 += sty;
         }
     }
+    if (w > 1)
+        pen_dot(d, x1, y1, w, v);
 }
 
 DWORD MoveTo(HDC hd, int16_t x, int16_t y)

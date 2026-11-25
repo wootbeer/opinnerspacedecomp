@@ -25,6 +25,7 @@ typedef struct {
 
 typedef struct {
     int null;
+    int width;
     COLORREF color;
 } Pen;
 

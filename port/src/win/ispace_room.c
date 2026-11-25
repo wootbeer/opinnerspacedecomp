@@ -23,7 +23,7 @@ typedef struct {
     int8_t parent;              /* +1b: placed relative to */
     int8_t parent2;             /* +1c: the second end of a line is relative to */
     int8_t ramp;                /* +1d: colour ramp, -1 none */
-    uint8_t type;               /* +1e: 1 box, 2 line, 3 cylinder, 4 and 5 not ported */
+    uint8_t type;               /* +1e: 1 box, 2 line, 3 cylinder, 4 flat point, 5 disc */
     int8_t rect;                /* +1f: >= 0 the game's rectangle, < -1 a condition */
     int8_t shade;               /* +20: brightness in fiftieths */
     int8_t f21, f22, f23, f24, f25;
@@ -475,7 +475,8 @@ static void draw_all(RECT *rects)
                            (int16_t)(o->f21 * 10), ramp, c, b);
             break;
         case 5:
-            win_stub("ispace_32: object type 5 (8:4206)");
+            if (ramp >= 0)
+                room_disc(POS(o, 0), POS(o, 1), POS(o, 2), SIZE(o, 0), SIZE(o, 1), SIZE(o, 2), ramp, c, b);
             break;
         default:
             break;

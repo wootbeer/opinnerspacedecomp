@@ -159,9 +159,11 @@ the first command again after files are added there.
   images of IGRAPHIC.DLL. All agree.
 - `rooms.txt`: the palette set-up up to the desk (captured from a run)
   and ordinal 32: the desk as the game draws it, room 120, and room 100
-  with other sizes and vanishing points. All agree. Rooms 105 (image 76
-  not loaded by ordinal 1), 110 and 115 (object type 5 not ported) still
-  differ.
+  with other sizes and vanishing points; ordinal 1 on image 76 (VGA
+  colours, 6:7fc8) with five colour-set and softening arguments; rooms
+  105, 110 and 115 (discs, 8:4206) at three sizes and vanishing points.
+  All 35 calls agree. `LineTo` draws wide pens as the port's draw.c
+  does.
 - `wave.txt`: the palette set-up of a run up to a wave (captured), the
   launch scene's ordinal 14 calls and more percentages, ordinal 18 as the
   game calls it (kinds 1 and 0) and six variations, and ordinal 29: the

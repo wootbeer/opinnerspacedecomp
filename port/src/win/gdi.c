@@ -104,13 +104,14 @@ static HGDIOBJ new_dark_gray(void)
     return h;
 }
 
-static HGDIOBJ new_pen(COLORREF c, int null)
+static HGDIOBJ new_pen(COLORREF c, int width, int null)
 {
     Pen *p = calloc(1, sizeof *p);
 
     if (!p)
         return 0;
     p->color = c;
+    p->width = width;
     p->null = null;
     return handle_new(H_PEN, p);
 }
@@ -145,9 +146,9 @@ void gdi_init(void)
     stock[DKGRAY_BRUSH] = new_dark_gray();
     stock[BLACK_BRUSH] = new_brush(RGB(0, 0, 0), 0);
     stock[NULL_BRUSH] = new_brush(0, 1);
-    stock[WHITE_PEN] = new_pen(RGB(255, 255, 255), 0);
-    stock[BLACK_PEN] = new_pen(RGB(0, 0, 0), 0);
-    stock[8] = new_pen(0, 1);
+    stock[WHITE_PEN] = new_pen(RGB(255, 255, 255), 1, 0);
+    stock[BLACK_PEN] = new_pen(RGB(0, 0, 0), 1, 0);
+    stock[8] = new_pen(0, 1, 1);
     stock[13] = handle_new(H_FONT, calloc(1, sizeof(Font)));
     stock[15] = default_pal;
 }
@@ -661,8 +662,7 @@ HBRUSH CreatePatternBrush(HBITMAP hb)
 
 HPEN CreatePen(int16_t style, int16_t width, COLORREF c)
 {
-    (void)width;
-    return new_pen(c, style == 5);
+    return new_pen(c, width, style == 5);
 }
 
 HFONT CreateFont(int16_t height, int16_t width, int16_t esc, int16_t orient, int16_t weight,
