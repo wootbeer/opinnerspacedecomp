@@ -2,8 +2,9 @@
  * options, ...), run by 10:42c6 from ENG_LANG.DLL's templates with
  * dialog procedures in the DLL's segment 10.  Ported so far: mode 1's
  * Restore Game (10:0ec2) and New Game (10:0f26) dialogs with the ship
- * preview window class LevClass (10:309c), Save Game (10:0dc0) and the
- * exit question. */
+ * preview window class LevClass (10:309c), Save Game (10:0dc0), the
+ * exit question, mode 6's New Ship Body (10:0f9c) and modes 12 and 14,
+ * Registration Benefits and Plus Pack (10:5f96). */
 #include <SDL3/SDL_stdinc.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,6 +24,8 @@
 #define ID_TEAM 0x146
 #define ID_DRIVE 0x14a
 #define ID_ZOOM 0x14c
+#define ID_BODY 0xa8            /* New Ship Body: the ships */
+#define ID_COST 0x11f
 #define SHIP_SIZE 0x41          /* a MASTER.SHP record: type +3, colour sets +7 +8, name +0xa, body +0x21 */
 #define BODY_SIZE 0x2c          /* a MASTER.BOD record: size +0x1a, image id +0x21, image file +0x23 */
 #define NAME_SIZE 0x14
@@ -56,7 +59,7 @@ static struct {
         HPALETTE old_pal;       /* DS:158c */
         int16_t size;           /* DS:1544: the picture's height */
     } slot[2];
-} st;
+} st = {.ds_01aa = 1};       /* DS:01aa starts 1: the limited version */
 
 static void not_ported(const char *what)
 {
@@ -127,8 +130,12 @@ static uint8_t *read_records(const char *name, long size, int16_t *count)
     return data;
 }
 
+/* The tables of a dialog still open are let go (the DLL keeps a second
+ * copy). */
 static void load_ships(void)
 {
+    free(st.bodies);
+    free(st.ships);
     st.bodies = read_records("MASTER.BOD", BODY_SIZE, &st.body_count);
     st.ships = read_records("MASTER.SHP", SHIP_SIZE, &st.ship_count);
 }
@@ -381,6 +388,19 @@ HWND ispace_preview_window(void)
     return st.preview[0];
 }
 
+/* The end of the dialogs with a ship preview: its picture, window and
+ * class, and the ship tables. */
+static void close_preview(void)
+{
+    free_slot(0);
+    if (st.preview[0]) {
+        DestroyWindow(st.preview[0]);
+        st.preview[0] = 0;
+    }
+    UnregisterClass("LevClass", ispace_module());
+    free_ships();
+}
+
 /* The height of "Test" in the dialogs' font: a list item's. */
 static int16_t text_height(HWND dlg)
 {
@@ -531,13 +551,7 @@ static void restore_end(HWND dlg, int ok)
             WritePrivateProfileString(APP, "ThePlayer", st.player, INI);
         }
     }
-    free_slot(0);
-    if (st.preview[0]) {
-        DestroyWindow(st.preview[0]);
-        st.preview[0] = 0;
-    }
-    UnregisterClass("LevClass", ispace_module());
-    free_ships();
+    close_preview();
     EndDialog(dlg, (int16_t)(ok ? (sel == 0 ? 1 : 2) : 0));
 }
 
@@ -749,8 +763,8 @@ static void newgame_init(HWND dlg)
     SetFocus(GetDlgItem(dlg, ID_SHIP));
 }
 
-/* 10:2978: a ship picked in the list (id 0x144 here; 0xa8 and 0x1b3 in
- * dialogs not ported show it in slot 2 and 1). */
+/* 10:2978: a ship picked in the list (id 0x144 here; 0xa8, New Ship
+ * Body, shows it in slot 2, and 0x1b3, Demo Options, in slot 1). */
 static void ship_picked(HWND dlg, int16_t id, HWND combo)
 {
     int16_t sel = (int16_t)SendMessage(combo, CB_GETCURSEL, 0, 0), slot, i, found = 0;
@@ -832,13 +846,7 @@ static int newgame_end(HWND dlg, int ok)
             }
         }
     }
-    free_slot(0);
-    if (st.preview[0]) {
-        DestroyWindow(st.preview[0]);
-        st.preview[0] = 0;
-    }
-    UnregisterClass("LevClass", ispace_module());
-    free_ships();
+    close_preview();
     st.ds_1f7a = 0;
     EndDialog(dlg, (int16_t)ok);
     return 1;
@@ -862,6 +870,94 @@ static BOOL newgame_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
         return 0;
     case ID_CANCEL:
         newgame_end(h, 0);
+        return 1;
+    }
+    return 0;
+}
+
+/* 10:173c: the ships that may be played, the one of INI MainShip picked
+ * (TRANSFORMER, written back, when it may not be played) and shown in a
+ * preview at the top left with mode 2's ramps; the dialog centred.  Not
+ * played by a person (a demo), it presses OK itself. */
+static void newbody_init(HWND dlg)
+{
+    RECT win;
+    HWND combo = GetDlgItem(dlg, ID_BODY);
+    char name[NAME_SIZE];
+    int16_t x, y, i;
+
+    GetWindowRect(dlg, &win);
+    x = (int16_t)(GetSystemMetrics(SM_CXSCREEN) / 2 + (win.left - win.right) / 2);
+    y = (int16_t)(GetSystemMetrics(SM_CYSCREEN) / 2 + (win.top - win.bottom) / 2);
+    load_ships();
+    ispace_dialog_set_fonts(dlg);
+    SetWindowText(GetDlgItem(dlg, ID_COST), "6.0 ICONS");
+    for (i = 0; i < st.ship_count; i++)
+        if (ship_rec(i)[0xa] && ship_rec(i)[3] != 7 && ship_allowed(i))
+            combo_add_string(combo, (LPCSTR)ship_rec(i) + 0xa);
+    if (register_preview(0))
+        st.preview[0] = CreateWindow("LevClass", NULL, WS_CHILD | WS_VISIBLE, 4, 8, 0x60, 0x60, dlg, ID_PREVIEW,
+                                     ispace_module(), NULL);
+    GetPrivateProfileString(APP, "MainShip", "", name, NAME_SIZE, INI);
+    for (i = 0; i < st.ship_count; i++)
+        if (!lstrcmp((LPCSTR)ship_rec(i) + 0xa, name) && ship_rec(i)[3] != 7 && !ship_allowed(i)) {
+            lstrcpy(name, "TRANSFORMER");
+            WritePrivateProfileString(APP, "MainShip", name, INI);
+        }
+    i = combo_find_string(combo, -1, name);
+    SendMessage(combo, CB_SETCURSEL, (WPARAM)(i < 0 ? 0 : i), 0);
+    lstrcpy(st.ship_name, name);
+    for (i = 0; i < st.ship_count && lstrcmp((LPCSTR)ship_rec(i) + 0xa, st.ship_name); i++)
+        ;
+    if (i < st.ship_count)
+        show_ship(i, 2, 0);
+    SetFocus(combo);
+    MoveWindow(dlg, x, y, (int16_t)(win.right - win.left), (int16_t)(win.bottom - win.top), 1);
+    if (!st.ds_2134)
+        PostMessage(dlg, WM_COMMAND, IDOK, 0);
+}
+
+/* 10:2862 (ok 1): the ship picked becomes INI MainShip; in the limited
+ * version only TRANSFORMER may (a message, the dialog stays: returns
+ * 0). */
+static int newbody_end(HWND dlg, int ok)
+{
+    if (ok) {
+        if (st.ds_01aa && lstrcmp(st.ship_name, "TRANSFORMER")) {
+            ask(dlg, 0x916, 2, 0x8c, MB_ICONEXCLAMATION);
+            return 0;
+        }
+        WritePrivateProfileString(APP, "MainShip", st.ship_name, INI);
+    }
+    close_preview();
+    EndDialog(dlg, (int16_t)ok);
+    return 1;
+}
+
+/* 10:0f9c: New Ship Body (mode 6), the ambulance's.  Without a person
+ * playing, OK waits a second and a half first. */
+BOOL ispace_newbody_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
+{
+    DWORD t;
+
+    if (msg == WM_INITDIALOG) {
+        newbody_init(h);
+        return 0;
+    }
+    if (msg != WM_COMMAND)
+        return 0;
+    switch (wp) {
+    case IDOK:
+        if (!st.ds_2134)
+            for (t = GetCurrentTime(); GetCurrentTime() - t < 1500;)
+                ;
+        return newbody_end(h, 1) != 0;
+    case ID_BODY:
+        if (HIWORD(lp) == CBN_SELCHANGE)
+            ship_picked(h, (int16_t)wp, (HWND)LOWORD(lp));
+        return 0;
+    case ID_CANCEL:
+        newbody_end(h, 0);
         return 1;
     }
     return 0;
@@ -993,6 +1089,65 @@ static BOOL exit_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
     return 1;
 }
 
+/* 10:3af6: Registration Benefits (mode 12, the limited version's leaving)
+ * and Inner Space Plus Pack (mode 14): two sounds, the game's icon, the
+ * language DLL's text 5000/330 or 5000/138 in the edit field, the focus
+ * on Exit, the dialog centred. */
+static void benefits_init(HWND h)
+{
+    RECT win;
+    HINSTANCE inst = GetWindowWord(GetParent(h), GWW_HINSTANCE);
+    const uint8_t *r;
+    uint32_t size;
+    char *text;
+    int16_t x, y;
+
+    ispace_sound_effect(0x6e);
+    ispace_sound_effect(0x51);
+    GetWindowRect(h, &win);
+    x = (int16_t)(GetSystemMetrics(SM_CXSCREEN) / 2 + (win.left - win.right) / 2);
+    y = (int16_t)(GetSystemMetrics(SM_CYSCREEN) / 2 + (win.top - win.bottom) / 2);
+    SendDlgItemMessage(h, 0x24f, STM_SETICON, LoadIcon(inst, "GAME"), 0);
+    ispace_dialog_set_fonts(h);
+    SendMessage(GetDlgItem(h, 0x320), WM_SETFONT, st.font[1], 1);
+    r = module_resource(ispace_lang_module(), MAKEINTRESOURCE(5000), MAKEINTRESOURCE(st.ds_1f90 == 12 ? 330 : 138),
+                        &size);
+    text = calloc(r ? size + 1 : 1, 1);     /* [fix: the DLL trusts the text to end in the resource] */
+    if (text && r)
+        memcpy(text, r, size);
+    SetWindowText(GetDlgItem(h, 0x321), text ? text : "");
+    free(text);
+    SetFocus(GetDlgItem(h, IDCANCEL));
+    MoveWindow(h, x, y, (int16_t)(win.right - win.left), (int16_t)(win.bottom - win.top), 1);
+}
+
+/* 10:5f96: Exit ends with 0; Order.. ends with 1 (the game then shows
+ * the ordering dialogs, mode 8), in the Plus Pack's dialog it opens
+ * <Path>ORDER.TXT in Notepad and the dialog stays. */
+BOOL ispace_benefits_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
+{
+    char cmd[0x84];
+
+    (void)lp;
+    if (msg == WM_INITDIALOG) {
+        benefits_init(h);
+        return 0;
+    }
+    if (msg != WM_COMMAND || (wp != IDOK && wp != IDCANCEL))
+        return 0;
+    if (wp == IDOK && st.ds_1f90 == 14) {
+        lstrcpy(cmd, "NOTEPAD ");
+        GetPrivateProfileString(APP, "Path", "", cmd + 8, 0x6d, INI);
+        if (cmd[lstrlen(cmd) - 1] != '\\')
+            lstrcat(cmd, "\\");
+        lstrcat(cmd, "ORDER.TXT");
+        WinExec(cmd, SW_SHOW);
+        return 1;
+    }
+    EndDialog(h, wp == IDOK);
+    return 1;
+}
+
 /* One of the DLL's dialogs, or a note that it is not ported yet. */
 static int16_t run(HWND owner, int id, DLGPROC proc, const char *what)
 {
@@ -1016,7 +1171,7 @@ static int16_t dialogs(HWND owner, int16_t dc, HPALETTE pal, int16_t mode)
     switch (mode) {
     case 12:
     case 14:
-        r = run(owner, mode == 12 ? 0x31f : 0x750, NULL, "ispace dialog: 10:5f96");
+        r = run(owner, mode == 12 ? 0x31f : 0x750, ispace_benefits_proc, "");
         break;
     case 8:
         r = run(owner, 0x2b5, NULL, "ispace dialog: 10:0664");
@@ -1038,7 +1193,7 @@ static int16_t dialogs(HWND owner, int16_t dc, HPALETTE pal, int16_t mode)
         r = run(owner, 0x24d, newgame_proc, "");
         break;
     case 6:
-        r = run(owner, 0x11e, NULL, "ispace dialog: 10:0f9c");
+        r = run(owner, 0x11e, ispace_newbody_proc, "");
         break;
     case 5:
     case 7:

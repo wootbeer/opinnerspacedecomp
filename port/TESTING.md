@@ -33,12 +33,22 @@ Checks that need a person, real hardware or the original game. Items move to
       than before.
 - [ ] Display Options reaches the right edge of the screen (placed from its
       template, believed to match 1994).
+- [ ] Every wave now shows image 170 softened (Enhance=1, the default).
+- [ ] Plus Pack text: a tab after "Death Heads" shows as a small box (edit
+      fields don't expand tabs yet).
 - [ ] Letters may differ by a pixel from real Windows Arial.
 
 ## Behaviour
-- [ ] Esc on a popup menu during a wave: should it ever leave the wave?
 - [ ] One wave ended without explanation in windowed mode.
 - [ ] Rocks with mass 0 (possibly fixed with the record-size fix).
+- [ ] After pressing OK in Game Settings once (it writes `Quick=1`), ships
+      and objects that appear mid-wave are drawn by the quick ship drawing;
+      before, they were invisible. Check over a long wave.
+- [ ] Cloak/shield (Caps Lock) shows the ship's cloak frames.
+- [ ] New Ship Body dialog after the ambulance picks you up (never reached
+      in a real test run).
+- [ ] Help buttons and the Help menu do nothing visible yet (logged only).
+- [ ] Rooms: image 76 in room 105 (VGA-colour images) has no bitmap.
 - [ ] Rooms: object type 5 not drawn; room lines drawn 1 px wide instead
       of 2.
 
@@ -48,4 +58,9 @@ Checks that need a person, real hardware or the original game. Items move to
 - [ ] Scope the ideas from smashport (per-user save folder, file check at
       setup, settings menu, remapping, display filters, replays).
 
+- [ ] Help: build a small native viewer for the user's ENG_HELP.HLP
+      (38 topics, WinHelp 3.1, uncompressed)?
+
 ## Done
+- Esc on the right-button menu in a wave no longer asks to leave the wave
+  (the menu takes the key-up).

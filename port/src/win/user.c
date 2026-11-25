@@ -1130,6 +1130,24 @@ BOOL PostMessage(HWND h, UINT msg, WPARAM wp, LPARAM lp)
     return 1;
 }
 
+/* Takes the first posted msg with wParam wp out of the queue; 1 when
+ * there was one. */
+int user_unpost(UINT msg, WPARAM wp)
+{
+    int i, k;
+
+    for (i = 0; i < q_count; i++) {
+        MSG *m = &queue[(q_head + i) % QUEUE_LEN];
+        if (m->message != msg || m->wParam != wp)
+            continue;
+        for (k = i; k < q_count - 1; k++)
+            queue[(q_head + k) % QUEUE_LEN] = queue[(q_head + k + 1) % QUEUE_LEN];
+        q_count--;
+        return 1;
+    }
+    return 0;
+}
+
 LRESULT SendMessage(HWND h, UINT msg, WPARAM wp, LPARAM lp)
 {
     Wnd *w = wnd_get(h);

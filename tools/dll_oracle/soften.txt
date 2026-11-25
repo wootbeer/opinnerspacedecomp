@@ -1,0 +1,58 @@
+# Ordinal 1's 5:075e (b 1 and 2 on a 256-colour display: the softened
+# pictures of INI Enhance): wave.txt's palette set-up up to the wave
+# (captured), then image 170 as the wave loads it (b 2, colour set 1),
+# with b 1, other colour sets and other 16-colour images of IGRAPHIC.DLL,
+# and image 0x28a, matched to the image's colours (5:4e96).  The bitmaps
+# and the palette are compared.  Images of 32768 pixels or more (image
+# 50) are left out: the DLL's buffer size overflows (a GP fault).
+4 0 0 0 0 0 0 0
+4 @0 0 0 0 2 -1000 1
+4 @0 0 DC 0 0 0 3
+4 @0 0 0 0 0 0 2
+4 0 0 0 0 0 0 0
+4 @4 0 0 0 2 8 1
+4 @4 0 DC 0 0 0 3
+4 @4 0 0 0 1 8 1
+4 @4 0 DC 0 0 0 3
+4 @4 0 0 0 0 5 7
+1 @4 300 "" DC 0 -1
+12 @4 300 "" DC -2 -2 2 0 1 1 12
+4 @4 0 DC 0 0 1 4
+4 @4 0 DC 0 0 0 3
+4 @4 0 0 0 2 109 1
+4 @4 0 DC 0 0 0 3
+1 @4 290 "" DC 0 -1
+1 @4 290 "" DC 0 -1
+12 @4 60 "" DC -2 -2 2 0 1 0 10
+4 @4 0 0 0 0 8 1
+4 @4 0 DC 0 0 0 3
+4 @4 0 DC 0 0 0 5
+4 @4 0 DC 0 0 0 3
+4 @4 0 0 0 0 8 1
+4 @4 0 DC 0 0 0 3
+4 @4 0 DC 0 0 0 3
+1 @4 175 "" DC 0 -1
+1 @4 200 "" DC 0 -1
+1 @4 50 "" DC 3 -1
+1 @4 210 "" DC 3 -1
+1 @4 820 "" DC 0 -1
+1 @4 270 "" DC 0 -1
+1 @4 690 "" DC 3 -1
+1 @4 691 "" DC 3 -1
+1 @4 692 "" DC 3 -1
+1 @4 250 "" DC 0 -1
+1 @4 240 "" DC 0 -1
+1 @4 45 "" DC 0 -1
+1 @4 260 "" DC 0 -1
+1 @4 170 "" DC 2 1
+1 @4 170 "" DC 1 1
+1 @4 170 "" DC 2 3
+1 @4 170 "" DC 1 9
+1 @4 175 "" DC 2 1
+1 @4 200 "" DC 2 1
+1 @4 300 "" DC 1 5
+1 @4 260 "" DC 1 1
+1 @4 820 "" DC 2 7
+1 @4 0x28a "" DC 2 1
+1 @4 0x28a "" DC 1 -1
+1 @4 170 "" DC 2 1

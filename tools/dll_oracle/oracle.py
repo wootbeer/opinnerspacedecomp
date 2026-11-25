@@ -33,12 +33,13 @@ from emu import INI, IspaceEmu, ROOT, GetDlgItem, dialog_state, dialog_window, n
 # compared after the call), B an 8-byte block (no script argument:
 # ordinal 41's reading, x and y words and four button bytes, compared
 # after the call).
-ORDINALS = {41: 'wB', 1004: 'wwww', 1005: 'wwwl', 1006: '', 10: 'wwwwwww', 11: 'wwwl', 26: 'wwwl', 37: 'wwwl', 38: 'wwwl', 1001: 'ww', 1002: 'ww', 1003: 'ws', 1: 'wwswww', 2: 'wwswwwwwwwbbbw', 3: 's', 4: 'wwwwwww', 5: '', 6: 'www', 12: 'wwswwwwwwbb', 1000: 'wwswww',
+ORDINALS = {41: 'wB', 1004: 'wwww', 1005: 'wwwl', 1006: '', 10: 'wwwwwww', 11: 'wwwl', 26: 'wwwl', 28: 'wwwl', 40: 'wwwl', 37: 'wwwl', 38: 'wwwl', 1001: 'ww', 1002: 'ww', 1003: 'ws', 1: 'wwswww', 2: 'wwswwwwwwwbbbw', 3: 's', 4: 'wwwwwww', 5: '', 6: 'www', 12: 'wwswwwwwwbb', 17: 'wwswwwwbbwwbb', 1000: 'wwswww',
             7: 'lw', 8: 'Pwwl', 9: 'wPwllls', 14: 'wwwww', 15: 'wwwwwwwww', 18: 'wwwwww', 29: 'ppppppppwwwwpp', 32: 'wwRwlwlwwwwww', 33: 'wwlwlwws', 34: 'wwwwww', 35: 'wwwwww'}
 # Ordinals after which the wave device's volume is compared (as outs).
 SOUND = {7, 8, 9}
-# Ordinals that return nothing (AX is left over).
-VOID = {14, 1006}
+# Ordinals that return nothing (AX is left over), or a handle that may be
+# gone (ordinal 17 deletes its bitmap after drawing it into a sheet).
+VOID = {14, 17, 1006}
 # Pseudo-ordinal -> (segment, offset) of a C-convention routine: 1000 is
 # 5:0000, the ship picture of the dialogs (pal, id, name, a, b, mode).
 INTERNAL = {1000: (5, 0x0000)}
@@ -51,10 +52,12 @@ PASCAL = {1005: (9, 0x40da), 1006: (9, 0x4d02)}
 # makes a dialog from the language DLL's template n (the script sends its
 # WM_INITDIALOG), DLG is the last one made; C<id>:<pos> is the long
 # MAKELONG(pos, the control's handle) of a scroll message.  After each
-# call the dialog's state is compared.  Pseudo-ordinals 1001 (id, 0/1),
+# call the dialog's state is compared.  N<id>:<code> is the long
+# MAKELONG(the control's handle, code) of a control's notification
+# (WM_COMMAND).  Pseudo-ordinals 1001 (id, 0/1),
 # 1002 (id, item) and 1003 (id, "text") are the user checking a box,
 # picking an item and typing a control's text.
-DIALOGS = {11, 26, 37, 38, 1001, 1002, 1003, 1005, 1006}
+DIALOGS = {11, 26, 28, 37, 38, 40, 1001, 1002, 1003, 1005, 1006}
 USER = {1001: 'checked', 1002: 'sel', 1003: 'text'}
 # Pseudo-ordinal 1004 (x, y, buttons, present) is the joystick on the
 # game port: the left stick at x, y (-32768..32767), buttons held (bit 0
@@ -121,6 +124,9 @@ def run_emu(calls, data_dir):
             elif a.startswith('C') and ':' in a:
                 cid, pos = a[1:].split(':')
                 words += [GetDlgItem(e, dlg, int(cid, 0)), int(pos, 0) & 0xffff]
+            elif a.startswith('N') and ':' in a:
+                cid, code = a[1:].split(':')
+                words += [int(code, 0) & 0xffff, GetDlgItem(e, dlg, int(cid, 0))]
             elif a == 'DC':
                 words.append(new_dc(e))
             elif a.startswith('DC@'):
@@ -180,6 +186,7 @@ def run_port(script, exe, data_dir):
         os.makedirs(os.path.join(home, 'SDi', 'Inner Space'))
         with open(os.path.join(home, 'SDi', 'Inner Space', 'INSPACE.INI'), 'w') as f:
             f.write('[Inner Space]\n' + ''.join('%s=%s\n' % kv for kv in INI.items()))
+            f.write('[Port]\nCopyCheck=1\n')
         env = dict(os.environ, SDL_VIDEODRIVER='dummy', SDL_AUDIO_DRIVER='dummy', XDG_DATA_HOME=home,
                    INSPACE_DATA=data_dir)
         text = subprocess.run([exe, script], env=env, capture_output=True, text=True, check=True).stdout

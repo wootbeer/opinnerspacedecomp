@@ -112,6 +112,10 @@ void OffsetRect(RECT *r, int16_t dx, int16_t dy);
 void UnionRect(RECT *d, const RECT *a, const RECT *b);
 HDC GetWindowDC(HWND h);
 
+/* Room for a window's text, its NUL included (the language DLL's longest
+ * text for a dialog's edit field is 2816 bytes). */
+#define WND_TEXT 4096
+
 /* A window.  rect and client are screen coordinates; a child's are
  * kept in step with its parent's. */
 typedef struct {
@@ -129,7 +133,7 @@ typedef struct {
     RECT update;            /* what needs painting, screen coordinates */
     HBRUSH background;      /* the class's */
     char cls[32];
-    char text[256];
+    char text[WND_TEXT];
     void *data;             /* state of a built-in control (controls.c) */
     uint8_t *saved;         /* the screen under a CS_SAVEBITS window while it is shown */
     HMENU sysmenu;          /* the window's own copy of the system menu (menu.c) */
@@ -188,6 +192,9 @@ int16_t combo_get_text(HWND combo, int16_t i, LPSTR out, int16_t n);
 
 /* Where keyboard messages go: the focus window, else the active one. */
 HWND user_key_target(void);
+/* Takes the first posted msg with wParam wp out of the queue; 1 when
+ * there was one. */
+int user_unpost(UINT msg, WPARAM wp);
 
 /* Key message lParam bits (input.c). */
 #define KF_ALT 0x20000000L      /* the context code: Alt held */
@@ -196,6 +203,9 @@ HWND user_key_target(void);
 /* Alt or F10 was pressed and released with no other key between (the
  * menu key); asking clears it. */
 int input_menu_key_tapped(void);
+/* The menu loop ended on vk's key-down: its key-up is not posted
+ * (Windows 3.1's menu loop took it). */
+void input_eat_key_up(int vk);
 /* A key (an SDL key code) pressed or released as on the keyboard. */
 void input_key(uint32_t key, int down);
 

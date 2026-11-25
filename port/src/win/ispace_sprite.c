@@ -39,7 +39,7 @@ static int16_t sum_diff(const PALETTEENTRY *e, int r, int g, int b)
 /* 5:4e96: the entry of group 2 (DS:0180, 16 entries) nearest to the
  * colour (sum of the channel differences); the first closer than 14
  * wins.  Red and blue swap while DS:1ea6 is set. */
-static uint8_t nearest_image_entry(int s, uint8_t r, uint8_t g, uint8_t b, int swap)
+uint8_t ispace_nearest_image_entry(int s, uint8_t r, uint8_t g, uint8_t b, int swap)
 {
     const PALETTEENTRY *e = ispace_pal_entries(s);
     int16_t first = (int16_t)(ispace_ramp_area[ispace_pal_fixed(s) == 1][2] / 4), best = 1000, d, i,
@@ -65,7 +65,7 @@ static uint8_t nearest_image_entry(int s, uint8_t r, uint8_t g, uint8_t b, int s
 /* 5:64f8: the entry nearest to the colour in the ranges of colour sets
  * set1 and set2 (-1: none); the first closer than 14 wins, and without
  * any entry to look at the last call's answer stands.  Kind 2 gives 0. */
-static uint8_t nearest_set_entry(int s, uint8_t r, uint8_t g, uint8_t b, int set1, int set2)
+uint8_t ispace_nearest_set_entry(int s, uint8_t r, uint8_t g, uint8_t b, int set1, int set2)
 {
     const PALETTEENTRY *e = ispace_pal_entries(s);
     int sets[2] = {set1, set2}, k;
@@ -159,7 +159,7 @@ static int image_colors(int s, const uint8_t *sheet, int16_t h, int16_t n, int16
     uint32_t size;
 
     for (k = 1; k < 16; k++)
-        map[k] = nearest_image_entry(s, t[4 * k], t[4 * k + 1], t[4 * k + 2], swap);
+        map[k] = ispace_nearest_image_entry(s, t[4 * k], t[4 * k + 1], t[4 * k + 2], swap);
     if (!ispace_dib8_new((int16_t)(h * n), h, out))
         return 0;
     bits = out->data + 40 + 1024;
@@ -206,7 +206,8 @@ static int half_size(int s, const uint8_t *sheet, int16_t h, int16_t n, int16_t 
     for (y = 0; y < h / 2; y++)
         for (x = 0; x < ow; x++) {
             const uint8_t *p = &rgb[y * rgb_stride + x * 3];
-            c1 = p[0] > DARK || p[1] > DARK || p[2] > DARK ? nearest_set_entry(s, p[0], p[1], p[2], 1, -1) : 0;
+            c1 = p[0] > DARK || p[1] > DARK || p[2] > DARK ? ispace_nearest_set_entry(s, p[0], p[1], p[2], 1, -1)
+                                                           : 0;
             c = (int16_t)(c1 && count1 && r0 && r1 ? (int16_t)((c1 - start1) * count0) / count1 + start0 : 0);
             c2 = (uint8_t)c;
             bits[(int16_t)(ostride * h) / 2 + y * ostride + x] = c1;

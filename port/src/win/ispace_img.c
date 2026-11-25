@@ -6,12 +6,14 @@
  * colours left as they are (mode 3), added to the palette (mode 2) or put
  * in the palette as ramps (mode 0), ordinal 2's calibration strip
  * (5:17c2) and its surfaces (6:011c, ispace_surface.c), and 5:0000, the
- * dialogs' ship pictures.  The branches that keep an image's own colours,
- * 5:075e, 6:7fc8, images from files (5:1d74) and ordinal 2's surfaces of
- * 6:78ba log themselves once and give no bitmap. */
+ * dialogs' ship pictures, and 5:075e, the softened pictures of INI
+ * Enhance; ordinal 2's surfaces of 6:78ba are ispace_quick.c's.  6:7fc8
+ * (images with VGA colours) and images from files (5:1d74) log themselves
+ * once and give no bitmap. */
 #include <stdlib.h>
 #include <string.h>
 
+#include "gdi.h"
 #include "ispace.h"
 
 #define TYPE_IMAGE 4000                 /* resource type of the images */
@@ -30,6 +32,7 @@ static struct {
     int16_t ds_1ea6;                    /* red and blue swapped (ordinal 18) */
     uint8_t ds_1178[16][4];             /* the image's colours, modes 0 and 1 */
     IspaceImgFlags f;
+    IspaceEntries e;
 } st;
 
 static void not_ported(const char *what)
@@ -254,6 +257,38 @@ void ispace_set_image_swap(int16_t on)
     st.ds_1ea6 = on;
 }
 
+IspaceEntries *ispace_image_entries(void)
+{
+    return &st.e;
+}
+
+/* 5:26a2 with DS:015c set (6:5538's pictures): each colour's entry
+ * (DS:1484) in the slot's palette.  A colour of a set nearest in the
+ * ranges of sets DS:147c and DS:1480; a colour of the image's own (set
+ * 12) nearest in the set of its hue, which goes into the palette at the
+ * first colour of that hue.  Only for 8-bit palettes that are not
+ * fixed. */
+static void image_entries(int s, const Dib *d, signed char a, signed char b)
+{
+    int16_t hue[15];
+    int k, j, met;
+
+    for (k = 0; k < 15; k++) {
+        const uint8_t *c = dib_color(d, k);
+        hue[k] = -1;            /* [fix: the DLL compares stale stack bytes for colours not of set 12] */
+        if ((k < 10 ? a : b) != OWN_COLORS) {
+            st.e.ds_1484[k] = ispace_nearest_set_entry(s, c[2], c[1], c[0], st.e.ds_147c, st.e.ds_1480);
+            continue;
+        }
+        hue[k] = ispace_set_of_color(c[2], c[1], c[0]);
+        for (met = 0, j = 0; j < k; j++)
+            met |= hue[j] == hue[k];
+        if (!met)
+            ispace_pal_load_set(s, hue[k]);
+        st.e.ds_1484[k] = ispace_nearest_set_entry(s, c[2], c[1], c[0], hue[k], -1);
+    }
+}
+
 /* 5:26a2: fits the image's colours to palette pal.  Colours 0-9 come
  * from colour set a, 10-14 from set b (unless OWN_COLORS or -1); colours
  * 10-14 equal to one of 0-9 are nudged apart.  Mode 2 adds the colours
@@ -262,7 +297,7 @@ void ispace_set_image_swap(int16_t on)
 static int fit_colors(int16_t pal, int16_t id, Dib *d, int16_t mode, signed char a, signed char b,
                       int16_t own)
 {
-    int n = dib_colors(d), k, j;
+    int n = dib_colors(d), s = ispace_pal_slot(pal), k, j;
     uint8_t *c15 = dib_color(d, 15);
 
     st.f.ds_1ea8 = 0;
@@ -293,7 +328,9 @@ static int fit_colors(int16_t pal, int16_t id, Dib *d, int16_t mode, signed char
     if (st.ds_0024)
         for (k = 0; k < 15; k++)
             nudge(dib_color(d, k), 2);
-    if ((mode == 0 || mode == 1) && !st.f.ds_1ea4)
+    if (st.e.ds_015c && ispace_pal_bits() >= 8 && s >= 0 && !ispace_pal_fixed(s))
+        image_entries(s, d, a, b);
+    if ((mode == 0 || mode == 1 || st.e.ds_015c) && !st.f.ds_1ea4)
         keep_colors(d);
     if (mode == 0 && ispace_pal_bits() >= 8)
         put_ramps(pal, d, a, b);
@@ -323,6 +360,7 @@ int ispace_dib_load(int16_t pal, int16_t id, LPCSTR name, int16_t mode, signed c
     }
     if (mode == 2 || mode == 0)
         ispace_pal_animate(pal, 0, ispace_dc());
+    st.e.ds_015c = 0;
     return 1;
 }
 
@@ -356,9 +394,83 @@ HBITMAP ispace_dib_bitmap(Dib *d, int16_t pal)
     return bm;
 }
 
+static uint8_t channel(const PALETTEENTRY *e, int k)
+{
+    return k == 0 ? e->peRed : k == 1 ? e->peGreen : e->peBlue;
+}
+
+/* 5:075e (b 1 and 2; INI Enhance asks for it): the picture softened in
+ * the colours of slot s's entries.  For each channel of a pixel that is
+ * not black, a byte sums the pixel at 3/4 (b 1) or 1/2 (b 2) and eight
+ * reads around it at 1/32 or 1/16 each: in the row before (DIB rows, the
+ * picture's bottom up) x - 1 twice [sic: the second meant x + 1 of the
+ * pixel's own row], x and x + 1, in its own row x - 1, in the row after
+ * x - 1, x and x + 1.  Off the picture the pixel stands in: in the row
+ * before for both reads of a side and for the whole row at twice and
+ * once the weight, in the row after once a read and for the whole row
+ * at twice and once.  The sums (wrapping as bytes) are matched to the
+ * entries of colour set c, or of the image's colours for special
+ * images; a pixel whose sums are all 0 keeps its entry. */
+static void soften(int s, Bmp *bm, int16_t b, int special, int16_t c)
+{
+    static const uint8_t shifts[2][3] = {{2, 5, 4}, {1, 4, 3}};     /* the pixel's second, a read, a stand-in */
+    const PALETTEENTRY *e = ispace_pal_entries(s);
+    int16_t w = (int16_t)bm->w, h = (int16_t)bm->h, stride = (int16_t)((w + 3) & ~3), x, y, k;
+    const uint8_t *sh = shifts[b - 1];
+    uint8_t *buf, *bits, *sum;
+    long i;
+
+    buf = calloc((size_t)stride * (size_t)h + 1, 1);   /* bits[-1]: the colour table's last byte, 0 */
+    sum = calloc((size_t)stride * (size_t)h, 3);
+    if (!buf || !sum) {
+        free(buf);
+        free(sum);
+        return;
+    }
+    bits = buf + 1;
+    for (y = 0; y < h; y++)
+        memcpy(bits + (long)y * stride, bm->px + (long)(h - 1 - y) * w, (size_t)w);
+    for (y = 0; y < h; y++)
+        for (x = 0; x < w; x++) {
+            const PALETTEENTRY *p = &e[bits[i = (long)y * stride + x]];
+            if (!p->peRed && !p->peGreen && !p->peBlue)
+                continue;
+            for (k = 0; k < 3; k++) {
+                uint8_t v = channel(p, k), t = (uint8_t)((b == 1 ? v >> 1 : 0) + (v >> sh[0]));
+#define READ(o) (uint8_t)(channel(&e[bits[i + (o)]], k) >> sh[1])
+                if (y > 0) {
+                    t = (uint8_t)(t + (x > 0 ? READ(-stride - 1) + READ(-1) : v >> sh[2]));
+                    t = (uint8_t)(t + (x < w - 1 ? READ(-stride - 1) + READ(-stride + 1) : v >> sh[2]));
+                    t = (uint8_t)(t + READ(-stride));
+                } else {
+                    t = (uint8_t)(t + (v >> sh[1]) + (v >> sh[2]));
+                }
+                if (y < h - 1) {
+                    t = (uint8_t)(t + (x > 0 ? READ(stride - 1) : v >> sh[1]));
+                    t = (uint8_t)(t + (x < w - 1 ? READ(stride + 1) : v >> sh[1]));
+                    t = (uint8_t)(t + READ(stride));
+                } else {
+                    t = (uint8_t)(t + (v >> sh[1]) + (v >> sh[2]));
+                }
+#undef READ
+                sum[3 * i + k] = t;
+            }
+        }
+    for (y = 0; y < h; y++)
+        for (x = 0; x < w; x++) {
+            const uint8_t *t = &sum[3 * (i = (long)y * stride + x)];
+            if (!t[0] && !t[1] && !t[2])
+                continue;
+            bm->px[(long)(h - 1 - y) * w + x] = special ? ispace_nearest_image_entry(s, t[0], t[1], t[2], st.ds_1ea6)
+                                                        : ispace_nearest_set_entry(s, t[0], t[1], t[2], c, -1);
+        }
+    free(buf);
+    free(sum);
+}
+
 int16_t ispace_load_image(int16_t pal, int16_t id, char *name, int16_t dc, int16_t b, int16_t c)
 {
-    int s = ispace_pal_slot(pal), fixed = s >= 0 && ispace_pal_fixed(s), special = 0, recolor = 0;
+    int s = ispace_pal_slot(pal), fixed = s >= 0 && ispace_pal_fixed(s), special = 0, recolor = 0, soft;
     int16_t mode;
     Dib d;
     HBITMAP bm;
@@ -396,14 +508,18 @@ int16_t ispace_load_image(int16_t pal, int16_t id, char *name, int16_t dc, int16
     } else if (!ispace_dib_load(pal, id, name, mode, OWN_COLORS, OWN_COLORS, 0, &d)) {
         return 0;
     }
-    if (st.f.ds_1ea8 || (GetDeviceCaps(dc, SIZEPALETTE) >= 256 && b)) {
-        not_ported(st.f.ds_1ea8 ? "ispace image: VGA colours (6:7fc8)" : "ispace image: 5:075e");
+    soft = GetDeviceCaps(dc, SIZEPALETTE) >= 256 && b;
+    if (st.f.ds_1ea8 || (soft && (s < 0 || !pal))) {
+        if (st.f.ds_1ea8)
+            not_ported("ispace image: VGA colours (6:7fc8)");
         free(d.data);
         return 0;
     }
-    (void)special;
-    (void)c;
     bm = ispace_dib_bitmap(&d, pal);
+    if (soft && (b < 1 || b > 2 || (fixed && !special)))
+        not_ported("ispace image: 5:075e with a fixed palette or b other than 1, 2");
+    else if (soft)
+        soften(s, handle_get(bm, H_BITMAP), b, special, c);
     if (GetObject(bm, sizeof info, &info))
         st.height = info.bmHeight;
     free(d.data);
@@ -530,13 +646,9 @@ int16_t ispace_build_surface(int16_t pal, int16_t a, int32_t name, int16_t dc, i
 {
     (void)name;
     (void)e;
-    (void)g;
-    (void)h;
     if (a == -1000)
         return (int16_t)build_strip(pal, dc, f);
-    if (n) {
-        not_ported("ispace_2: surfaces of 6:78ba");
-        return 0;
-    }
+    if (n)
+        return ispace_quick_surface(pal, a, dc, f, g, h, j, k, l, m);
     return ispace_surface(pal, a, "", dc, f, i, j, (signed char)k, (signed char)l, (signed char)m);
 }

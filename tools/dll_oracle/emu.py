@@ -51,7 +51,7 @@ STATICS = {0: (0, 0, 0), 1: (128, 0, 0), 2: (0, 128, 0), 3: (128, 128, 0), 4: (0
 TYPENAMES = {2: 'BITMAP', 6: 'STRING', 10: 'RCDATA'}
 # INSPACE.INI for the sound ordinals (tools/README.md, sound.txt): one
 # channel (sndPlaySound), so the sounds the DLL plays are its own calls.
-INI = {'SndPath': 'C:\\SPACE\\SOUNDS\\', 'Language': 'ENG', 'MixChannels': '1', 'LocalPath': 'C:\\SPACE\\'}
+INI = {'SndPath': 'C:\\SPACE\\SOUNDS\\', 'ShipPath': 'C:\\SPACE\\SHIPS\\', 'Language': 'ENG', 'MixChannels': '1', 'LocalPath': 'C:\\SPACE\\'}
 CAPS = {8: 640, 10: 480, 12: 8, 14: 1, 24: 20, 38: 0x799, 104: 256, 106: 20}
 
 
@@ -117,6 +117,8 @@ class IspaceEmu:
         self.windows = {}                    # dialogs and controls (dialog_window)
         self.focus = 0
         self.dta = self.found = 0
+        self.files = {}
+        self.classes = set()
         self.joystick = dict(present=False, counts=(0, 0), buttons=0)
         self.port_reads = 1 << 20           # reads of the game port since it was fired
         self.wds(ISPACE_HINST_SLOT, 0x0b00)
@@ -368,6 +370,13 @@ def GlobalFree(e, h):
     e.gfree(h)
 
 
+@api(4, 'l')
+def GlobalDosAlloc(e, size):
+    """Fails: the disk's serial number (10:4568, int 21h 440Dh through
+    DPMI) reads as 0, as the port's (ispace_reg.c)."""
+    return 0
+
+
 @api(2, 'w')
 def GlobalSize(e, h):
     """Windows 3.1 gives blocks in 32-byte units; the scene data of
@@ -428,6 +437,17 @@ def GetPrivateProfileString(e, app, key, default, ret, size, file):
     return put_string(e, ret, v if v is not None else e.cstr(e.lin(default)), size)
 
 
+@api(18, 'llllw')
+def GetProfileString(e, app, key, default, ret, size):
+    """No WIN.INI (none in the port's settings folder): the default."""
+    return put_string(e, ret, e.cstr(e.lin(default)), size)
+
+
+@api(10, 'llw')
+def GetProfileInt(e, app, key, default):
+    return default
+
+
 @api(14, 'llwl')
 def GetPrivateProfileInt(e, app, key, default, file):
     v = e.ini.get(e.cstr(e.lin(key))) if e.cstr(e.lin(file)).upper() == 'INSPACE.INI' else None
@@ -451,12 +471,51 @@ def host_path(e, dos):
 
 @api(10, 'llw')
 def OpenFile(e, name, of, mode):
-    """Existence checks (OF_EXIST) only; C:\\WINDOWS\\WAVEMIX.DLL exists."""
+    """Existence checks (OF_EXIST) and reading (OF_READ: a DOS handle
+    from 5, the file's bytes kept in e.files); C:\\WINDOWS\\WAVEMIX.DLL
+    exists."""
     dos = e.cstr(e.lin(name))
     if dos.upper() == 'C:\\WINDOWS\\WAVEMIX.DLL':
         return 1
     p = host_path(e, dos)
-    return 1 if p and os.path.exists(p) else 0xffff
+    if not p or not os.path.isfile(p):
+        return 0xffff
+    if mode & 0x4000:
+        return 1
+    if mode & 3:
+        raise RuntimeError('OpenFile %s mode %#x' % (dos, mode))
+    h = min(set(range(5, 20)) - set(e.files))
+    e.files[h] = [open(p, 'rb').read(), 0]
+    return h
+
+
+def file_read(e, h, lin, n):
+    data, pos = e.files[h]
+    got = data[pos:pos + n]
+    e.uc.mem_write(lin, got)
+    e.files[h][1] = pos + len(got)
+    return len(got)
+
+
+@api(8, 'wlw')
+def _lread(e, h, fp, n):
+    return file_read(e, h, e.lin(fp), n)
+
+
+def file_seek(e, h, off, origin):
+    data, pos = e.files[h]
+    e.files[h][1] = max(0, [0, pos, len(data)][origin] + off)
+    return e.files[h][1]
+
+
+@api(8, 'wlw')
+def _llseek(e, h, off, origin):
+    return file_seek(e, h, s32(off), origin)
+
+
+@api(2, 'w')
+def _lclose(e, h):
+    return 0 if e.files.pop(h, None) else 0xffff
 
 
 @api(8, 'll')
@@ -743,6 +802,26 @@ def CreateDIBitmap(e, dc, hdr, init, bits, bmi, usage):
     return dib_bitmap(e, w, h, bpp, e.rd(e.lin(bits), stride * h), table)
 
 
+@api(18, 'wwwwllw')
+def GetDIBits(e, dc, bm, start, lines, bits, bmi, usage):
+    """An 8-bit bitmap's rows into an 8-bit DIB, bottom up, rows padded
+    with 0 to 4 bytes, the colour table the DC palette's colours (the
+    port's bitmaps are palette indices: GetDIBits and CreateDIBitmap with
+    the same palette are each other's inverse)."""
+    b = e.bitmap(bm)
+    hdr = e.rd(e.lin(bmi), 40)
+    if not b or b['mono'] or struct.unpack_from('<H', hdr, 14)[0] != 8:
+        raise RuntimeError('GetDIBits: not an 8-bit bitmap into an 8-bit DIB')
+    w, h, stride = b['w'], b['h'], (b['w'] + 3) // 4 * 4
+    pal = e.dc_palette(dc) or []
+    table = b''.join(bytes((c[2], c[1], c[0], 0)) for c in pal[:256])
+    e.uc.mem_write(e.lin(bmi) + 40, table)
+    rows = b''.join(bytes(b['px'][(h - 1 - y) * w:(h - y) * w]) + bytes(stride - w)
+                    for y in range(start, min(h, start + lines)))
+    e.uc.mem_write(e.lin(bits), rows)
+    return min(h, start + lines) - start
+
+
 @api(6, 'wl')
 def LoadBitmap(e, inst, name):
     """As the port's LoadBitmap model: monochrome stays monochrome,
@@ -772,6 +851,10 @@ def GetObject(e, h, n, fp):
     wb = (b['w'] * bpp + 15) // 16 * 2
     e.uc.mem_write(e.lin(fp), struct.pack('<HHHHBBI', 0, b['w'], b['h'], wb, 1, bpp, 0)[:n])
     return n
+
+
+def s32(v):
+    return v - 0x100000000 if v & 0x80000000 else v
 
 
 def s16(v):
@@ -1089,6 +1172,11 @@ def mciSendCommand(e, dev, msg, flags, param):
 # USER: the sound's hidden window
 @api(4, 'l')
 def RegisterClass(e, fp):
+    """Fails for a class registered already, as in Windows."""
+    name = e.cstr(e.lin(struct.unpack('<I', e.rd(e.lin(fp) + 22, 4))[0])).upper()
+    if name in e.classes:
+        return 0
+    e.classes.add(name)
     return 1
 
 
@@ -1123,6 +1211,10 @@ def DestroyWindow(e, h):
 
 @api(6, 'lw')
 def UnregisterClass(e, name, inst):
+    name = e.cstr(e.lin(name)).upper()
+    if name not in e.classes:
+        return 0
+    e.classes.discard(name)
     return 1
 
 
@@ -1203,7 +1295,7 @@ def dialog_state(e, dlg):
         w = e.windows[h]
         out.append('%d %s en %d chk %d hi %d sel %d [%s] sb %d %d %d "%s"' % (
             w['id'], w['cls'], w['enabled'], w['checked'], w.get('pressed', 0), w['sel'], '|'.join(w['items']), w['range'][0],
-            w['range'][1], w['pos'], w['text'].replace('&', '')))
+            w['range'][1], w['pos'], w['text'].replace('&', '').replace('\r', '\\r').replace('\n', '\\n')))
     focus = e.windows.get(e.focus, {})
     out.append('focus %d' % (focus['id'] if focus.get('parent') == dlg and focus['kind'] == 'ctl' else 0))
     if e.windows[dlg]['ended'] is not None:
@@ -1291,6 +1383,11 @@ def SendMessage(e, h, msg, wp, lp):
         return 1
     if w['cls'] == 'ComboBox' and msg == 0x407:     # CB_GETCURSEL
         return w['sel'] & 0xffff
+    if w['cls'] == 'ComboBox' and msg == 0x408:     # CB_GETLBTEXT
+        if not 0 <= s16(wp) < len(w['items']):
+            return 0xffff
+        e.uc.mem_write(e.lin(lp), w['items'][s16(wp)].encode('latin-1') + b'\0')
+        return len(w['items'][s16(wp)])
     if w['cls'] == 'Static' and msg == 0x400:       # STM_SETICON
         return 0
     if w['cls'] == 'Button' and msg == 0x403:       # BM_SETSTATE: shown pressed
@@ -1365,6 +1462,13 @@ def GetDlgCtrlID(e, h):
 @api(4, 'ww')
 def EndDialog(e, h, r):
     e.windows[h]['ended'] = s16(r)
+
+
+@api(10, 'wwwl')
+def PostMessage(e, h, msg, wp, lp):
+    """Recorded: nothing runs the dialogs' message loops."""
+    e.texts.append(dict(post=msg, wp=wp, lp=lp))
+    return 1
 
 
 @api(12, 'wlwl')
@@ -1444,7 +1548,8 @@ API['_wsprintf'] = (0, 'cdecl', wsprintf)
 # with DOS's upper-case 8.3 names, as the port shows them.
 def dos3call(e):
     uc = e.uc
-    ah = uc.reg_read(UC_X86_REG_AX) >> 8
+    ah, al = uc.reg_read(UC_X86_REG_AX) >> 8, uc.reg_read(UC_X86_REG_AX) & 0xff
+    bx = uc.reg_read(UC_X86_REG_BX)
     ds_dx = uc.reg_read(UC_X86_REG_DS) * 16 + uc.reg_read(UC_X86_REG_DX)
     fail = 0
     if ah == 0x2f:                                  # get the DTA
@@ -1463,6 +1568,12 @@ def dos3call(e):
     elif ah == 0x4f:                                # find next
         e.found = e.found[1:]
         fail = 0x12 if not e.found else 0
+    elif ah == 0x42 and bx in e.files:              # seek: from the start, here, the end
+        pos = file_seek(e, bx, s32(uc.reg_read(UC_X86_REG_CX) << 16 | uc.reg_read(UC_X86_REG_DX)), al)
+        uc.reg_write(UC_X86_REG_AX, pos & 0xffff)
+        uc.reg_write(UC_X86_REG_DX, pos >> 16)
+    elif ah == 0x3f and bx in e.files:              # read
+        uc.reg_write(UC_X86_REG_AX, file_read(e, bx, ds_dx, uc.reg_read(UC_X86_REG_CX)))
     else:
         raise RuntimeError('DOS3Call %#x' % ah)
     if ah in (0x4e, 0x4f) and not fail:

@@ -25,7 +25,7 @@
 #define CTLCOLOR_EDIT 1
 #define CARET_TIMER 1
 #define BLINK_MS 530            /* GetCaretBlinkTime's default */
-#define MAX_TEXT 255            /* the window text's room (user.h) */
+#define MAX_TEXT (WND_TEXT - 1)  /* the window text's room (user.h) */
 
 typedef struct {
     HFONT font;
@@ -162,7 +162,8 @@ static void paint_single(HWND h, HDC dc, const RECT *r)
     TextOut(dc, (int16_t)x, 1, s + lo, (int16_t)(hi - lo));
 }
 
-/* Multi-line: the text word-wrapped, left-aligned. */
+/* Multi-line: the text word-wrapped, left-aligned; lines end at CR LF
+ * (or a lone LF), which are not drawn. */
 static void paint_multi(HWND h, HDC dc, const RECT *r)
 {
     const char *s = wnd_get(h)->text;
@@ -171,18 +172,20 @@ static void paint_multi(HWND h, HDC dc, const RECT *r)
     SetBkMode(dc, TRANSPARENT);
     while (*s && y < r->bottom) {
         int n = 0, fit = 0;
-        while (s[n] && s[n] != '\n') {
+        while (s[n] && s[n] != '\n' && s[n] != '\r') {
             n++;
-            if ((s[n] == ' ' || !s[n] || s[n] == '\n') && extent(dc, s, n) <= width)
+            if ((s[n] == ' ' || !s[n] || s[n] == '\n' || s[n] == '\r') && extent(dc, s, n) <= width)
                 fit = n;
             else if (extent(dc, s, n) > width)
                 break;
         }
         if (!fit)
-            fit = n > 0 ? n : 1;
+            fit = n > 0 ? n : *s != '\r' && *s != '\n';
         TextOut(dc, (int16_t)(r->left + 1), (int16_t)y, s, (int16_t)fit);
         s += fit;
         while (*s == ' ')
+            s++;
+        if (*s == '\r')
             s++;
         if (*s == '\n')
             s++;

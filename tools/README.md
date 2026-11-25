@@ -101,7 +101,13 @@ the first command again after files are added there.
   `SOUNDS\SND_FX.DLL` and `ENG_FX.DLL`, and sounds are not played (the
   wave and MIDI volumes are kept; MCI commands are recorded).
   `C:\WINDOWS\WAVEMIX.DLL` exists, as the port's WaveMix always does:
-  GetProcAddress gives stand-ins that succeed and play nothing. The
+  GetProcAddress gives stand-ins that succeed and play nothing. Files of
+  the data folder can be read (OpenFile, `_lread`, `_llseek`,
+  `_lclose`, DOS3Call's seek and read); there is no WIN.INI (the
+  defaults) and no DOS memory (GlobalDosAlloc fails: the disk serial
+  number reads 0, as the port's). RegisterClass fails for a class
+  registered already, as in Windows. GetDIBits gives an 8-bit bitmap's
+  palette indices. The
   game port (`in`/`out` on 0x201) holds the joystick pseudo-ordinal 1004
   sets, as the port's pad.c gives it: each axis bit stays set for its
   count + 1 reads after an `out` (count = the stick's -32768..32767
@@ -111,7 +117,7 @@ the first command again after files are added there.
   are modelled from the language DLL's templates (controls with their
   text, enabled state, check, combo items and selection, scroll range
   and position; `_wsprintf` of `%d %u %x %s`); DialogBox and WinHelp are
-  recorded, not run.
+  recorded, not run, as is PostMessage.
 - `port_calls.c`: runs a script on the port's `ispace_*` routines and
   prints the results (built from the port's sources without `main.c`).
 - `oracle.py SCRIPT`: runs both and lists each call as same or differs.
@@ -124,11 +130,13 @@ the first command again after files are added there.
   compared after the call. Results of routines that return nothing
   (`VOID`, ordinal 14) are not compared. A call that stops the emulation
   (a Windows call without a stand-in) is reported with its number.
-  Ordinals 1-12, 14, 15, 18, 26, 29, 32-35, 37, 38 and 41 are supported, and pseudo-ordinal
+  Ordinals 1-12, 14, 15, 17, 18, 26, 28, 29, 32-35, 37, 38, 40 and 41 are supported, and pseudo-ordinal
   1000 for 5:0000 (the dialogs' ship picture, a C-convention routine the
   DLL does not export: `INTERNAL` in oracle.py). The dialog procedures
-  (11, 26, 37, 38: hwnd, msg, wParam, lParam) take `DLGn` (a dialog of
-  the language DLL's template n; `DLG` the last one) and `C<id>:<pos>`
+  (11, 26, 28, 37, 38, 40: hwnd, msg, wParam, lParam) take `DLGn` (a
+  dialog of the language DLL's template n; `DLG` the last one),
+  `N<id>:<code>` (MAKELONG(control id's handle, code): a control's
+  WM_COMMAND notification) and `C<id>:<pos>`
   (MAKELONG(pos, control id's handle), for WM_HSCROLL); pseudo-ordinals
   1001 (id, 0/1), 1002 (id, item) and 1003 (id, "text") are the user
   checking a box, picking an item and typing a control's text; after
@@ -204,3 +212,19 @@ the first command again after files are added there.
   agree. (Image 200, taller than wide, differs
   in 37 pixels of its top rows: the DLL reads past its pixels there, see
   port/NOTES-port.md.)
+- `soften.txt`: ordinal 1's 5:075e (b 1 and 2: INI Enhance's softened
+  pictures): wave.txt's set-up, then image 170 as the wave loads it,
+  other colour sets and images, image 0x28a. All 51 calls agree.
+- `quick.txt`: the quick drawing 6:5538: surfaces.txt's set-up, ordinal
+  2 with n set (6:78ba, INI Quick) on the wave's images and variations,
+  then ordinal 17 into ships' sheets (`DC@K`) as the cloak draws it.
+  Ordinal 17's result (a handle it may have deleted) is not compared.
+  All 94 calls agree.
+- `newbody.txt`: the New Ship Body dialog (ordinal 10 mode 6, template
+  286, ordinal 28) with the DLL's starting words (not played by a person,
+  the limited version); the port side runs with `[Port] CopyCheck=1`
+  (oracle.py writes it for every script) so both check the copy the same
+  way. All 16 calls agree.
+- `benefits.txt`: the Registration Benefits / Plus Pack dialog (modes 12
+  and 14, templates 799 and 1872, ordinal 40). All 5 calls agree (only
+  the text of mode 0: the mode is set by 10:42c6, which runs DialogBox).

@@ -123,6 +123,14 @@ the switches are off unless set to 1.
   plays the music on its own MIDI synthesizer and Linux plays none
   (NOTES-port.md "Music").
 
+## Help
+
+The game's help (the Help menu, the Navigation window's Help button,
+Game Settings' and Joystick's Help) is a Windows 3.1 help file,
+ENG_HELP.HLP in the data folder. The port has no help viewer yet: each
+request is logged with its topic and the game goes on, as it did when
+WinHelp could not find the file (NOTES-port.md "Help").
+
 ## Gamepad
 
 A gamepad (Xbox, PlayStation, Switch, the Steam Deck's controls, anything

@@ -692,10 +692,12 @@ in ispace_room.h.
   Esc (first closes the popup, then the menu), letters, Alt/F10 released
   end it. Grayed items can be selected, not chosen. Commands are posted
   after the loop: WM_COMMAND (id, 0), WM_SYSCOMMAND (id, mouse position
-  or 0). Esc ends the menu on its key-down; its WM_KEYUP then reaches
-  the game window, and the game acts on key-ups (Esc there asks to leave
-  the wave), as it would under Windows [uncertain: not checked against
-  Windows 3.1].
+  or 0). A key whose key-down ends the menu (Esc, Enter, a mnemonic)
+  has its key-up taken as well (input.c drops it, or takes it out of the
+  queue when it is already there), as Windows 3.1's menu loop did
+  [as reported; not checked against Windows 3.1 here]: the game acts on
+  key-ups, and before this Esc on the right-button menu in a wave went
+  on to the game window and asked to leave the wave.
 - **System menu**: Windows 3.1's (Restore, Move, Size, Minimize,
   Maximize, Close Alt+F4, Switch To... Ctrl+Esc), a copy per window with
   WS_SYSMENU made by GetSystemMenu; Restore always gray (no window is
@@ -788,14 +790,67 @@ in ispace_room.h.
   controls), modes 5/7, the exit question (template 244; 10:103c,
   10:109a), and mode 3 with every mode not listed in 10:42c6 (2, 6, 8,
   9, 11, 12 and 14 have their own), the Save Game dialog (template 167;
-  10:0dc0, 10:0b0e, 10:0e0e). The language DLL handle (DS:0690, which ordinal 7's 9:0174
+  10:0dc0, 10:0b0e, 10:0e0e), mode 6's New Ship Body (template 286;
+  10:0f9c, 10:173c, 10:2862) and modes 12 and 14, Registration Benefits
+  and Plus Pack (templates 799, 1872; 10:5f96, 10:3af6). The language DLL handle (DS:0690, which ordinal 7's 9:0174
   loads) is loaded on first use.
 - **Flow:** ESC on the title runs mode 1. OK with " NEW GAME" writes INI
   `Restore= NEW GAME` and ends with 1; then the New Game dialog. Cancel
   ends with 0; a saved game writes Restore, MainShip (its ship's name)
   and ThePlayer (its pilot) and ends with 2, and the game loads it
-  (6:930a). Modes 2, 6, 8, 9, 11, 12 and 14 log "not ported" and answer
-  0; mode 0 is Game Settings (below).
+  (6:930a). Modes 2, 8, 9 and 11 log "not ported" and answer 0 (below:
+  none is reached in the registered game); mode 0 is Game Settings
+  (below).
+- **Which game paths reach the other modes** (INSPACE.EXE's 10:82a2 is
+  the only caller with a mode; its callers pass 1, 4, 5, 6, 7, 8, 11,
+  12, 14 and -100, which is mode 6 owned by the ambulance dialog):
+  - 6, New Ship Body: the ambulance (seg16 16:1741) when the ship it
+    picks up has lost its body (DS:9e5b 0), and its Ambulance Options
+    dialog (template 194) when an option with BODY in its name is added.
+    Normal play: ported.
+  - 12, Registration Benefits: leaving (SC_CLOSE, Exit) while 10:885e's
+    copy state DS:920c is 0 or 1 (unregistered, trial days). Only with
+    `[Port] CopyCheck=1` and files that fail the check (the user's do).
+    Ported; its Order.. ends with 1 and the game then asks for mode 8.
+  - 14, Plus Pack: leaving with DS:920c -1 or 3 and DS:11aa 0, every
+    13th time (INI PlusCount). DS:11aa is ordinal 24 mode 10's answer
+    (the registered name in INSPACE.EXE 5000/143), 1 with the user's
+    INSPACE.EXE (" - "), so never with these files (the title says
+    "Plus Edition"). Ported (cheap: 10:5f96 again); Order Form runs
+    WinExec("NOTEPAD <Path>ORDER.TXT"), a stub in the port.
+  - 8, Order Inner Space Now! (template 693, 10:0664) then Important
+    Information (988, 10:124a): 'R' on the desk and Order.. of mode 12,
+    both only while DS:920c is 0 or 1 (unregistered). 10:0664 takes a
+    registration number that unlocks the copy (about 1200 bytes of
+    code); not ported.
+  - 11, Important Information alone: Esc on the desk while DS:920c is 2
+    (a 35-day state from SYSTEM.INI [386Enh] 32BitSP) and INI Accept is
+    not 42. Not ported.
+  - 2, Demo Options (template 432, 10:3346) and 9 (10:5b24): no caller.
+    Mode 9 is reached only through 10:82a2(10), which nothing calls;
+    mode 2 is never passed (perhaps the screen saver's or Ship Factory's,
+    neither part of the port).
+- **New Ship Body** (mode 6, 10:0f9c): the ships that may be played
+  (as New Game lists them), MainShip picked (TRANSFORMER, written back,
+  when not allowed), shown in a preview at (4, 8) with mode 2's ramps
+  (slot 2); the Cost field says "6.0 ICONS" (a constant). OK writes
+  MainShip (the limited version only TRANSFORMER: message 2326-2327, the
+  dialog stays) and ends with 1; the game reads it back. Not played by a
+  person (DS:2134 0, the game's flow_interactive), the dialog posts OK to
+  itself and OK waits 1.5 s. Checked with the oracle
+  (tools/dll_oracle/newbody.txt, 16 calls agree). DS:01aa starts 1 in
+  the DLL's data (the port's did 0); no ported mode reads it before
+  setting it.
+- **Long texts** (edit.c, user.h): a window's text now holds 4095
+  characters (it held 255; the Benefits and Plus Pack texts are 1136 bytes,
+  the licence of template 988 2816), and a multi-line edit ends its
+  lines at CR LF without drawing them (it drew the CR as a glyph).
+- **Registration Benefits / Plus Pack** (10:5f96): sounds 0x6e and 0x51,
+  the game's icon, the language DLL's text 5000/330 (mode 12) or
+  5000/138 into the edit field, focus on Exit. Exit ends with 0, Order..
+  with 1 (mode 14: Notepad, the dialog stays). Checked with the oracle
+  (benefits.txt, 5 calls; only the text of DS:1f90 0, the mode is set
+  by 10:42c6, which the oracle cannot run).
 - **A saved game's details** (10:1b13, picking it in Restore Game):
   GAMES\<item>.sav's first record, read in GlobalSize(0x1a9) = 0x1c0
   bytes (a shorter file: a beep and nothing shown): its ship (+0x22; 0
@@ -894,6 +949,9 @@ in ispace_room.h.
     palette passed is not one of the manager's; the port uses no palette
     (ordinal 36: slot 0).
   - Ordinal 10 modes 10 and 13 return whatever AX holds; the port 0.
+  - 10:3f70/10:406a allocate the ship tables again for every ship
+    dialog opened (a dialog still open keeps its copy, leaked); the port
+    frees the old tables first.
   - A ship whose body index is outside MASTER.BOD makes the DLL read
     past the table; the port shows no picture and lets it be played. A
     failed read leaves no ships (the DLL keeps the count).
@@ -948,7 +1006,7 @@ in ispace_room.h.
   frees and loads both, reopens the mixer (9:04e0 restarting) and loads
   the sounds again. Controls the device cannot use are grayed.
 - **Help** runs WinHelp on <SndPath><Language>_HELP.HLP, contexts 15 and
-  0x20 (stubbed: logged). **Joystick..** runs the Joystick dialog
+  0x20 (help.c: logged; see "Help"). **Joystick..** runs the Joystick dialog
   (template 975, 9:40da; "Joystick" below).
 - **Checked against the DLL** with the oracle (tools/dll_oracle/options.txt):
   the three dialog procedures called with WM_INITDIALOG, every scroll code
@@ -1125,10 +1183,9 @@ on a directory with programs leads to the wave's briefing.
   it never finishes (6:4190 only asks whether a `*.exe` exists); with
   the earlier 4 slots kept until a search ended, these could take the
   slot of the tree's own search (DS:69f8).
-- **Not ported yet, met after Navigation:** ISPACE ordinal 1's branch
-  5:075e (logs as a stub on the way to the briefing). Ordinal 2's
-  surfaces (6:011c), met there too, and ordinals 14 and 18, met in the
-  launch scene, are ported (below).
+- Met after Navigation: ordinal 1's 5:075e (image 170, every wave with
+  INI Enhance, below), ordinal 2's surfaces (6:011c), and ordinals 14
+  and 18 in the launch scene; all ported.
 
 ## ISPACE.DLL in the launch scene and the wave (ordinals 14, 18, 29)
 
@@ -1294,18 +1351,8 @@ not read on the 8-bit path.
   index past the tables give entry 0; a palette not the manager's gives
   no bitmap.
 - **Not ported:** fixed palettes, images with VGA colours (6:7fc8),
-  displays of fewer than 8 bits (log, no bitmap); n != 0 (6:78ba, which
-  sets colour sets up and calls 6:5538; logs, no bitmap). n is set from
-  INSPACE.INI `Quick` (6:0b3e reads it, nothing writes it): with 2 the
-  ships (14:11a8), the wave's other objects (10:533a) and 10:18b0's
-  picture are made so; with 1 the objects and 10:18b0's picture, and the
-  ships other than the player's, while DS:1e68 is set in a wave
-  [uncertain: what DS:1e68 counts]. 6:5538 is a quick drawing: the image (mode 3,
-  with DS:015c set so 5:26a2 fills DS:1484, each colour's palette entry)
-  turned to 16 angles pixel by pixel (DS:011a, DS:013a), no shading,
-  single gaps closed at angles 2, 6, 10, 14; that loader branch is not
-  ported either;
-  the per-row callback 9:360a (sound, stubs).
+  displays of fewer than 8 bits (log, no bitmap); the per-row callback
+  9:360a (sound). n != 0 is 6:78ba, the quick drawing (below).
 - **Verified** with the oracle (tools/dll_oracle/surfaces.txt): the
   three calls of a wave (images 180, 60 with m 1, 370) after the
   wave's set-up, and 21 variations (one angle, 16 angles, j 0 and 1,
@@ -1320,7 +1367,7 @@ All of the game's sound goes through ISPACE.DLL: INSPACE.EXE calls
 ordinal 7 (9:0000, control by mode), 8 (9:076c, the followed sound's
 volume and balance, every frame from 10:7b48) and 9 (9:0c42, play; from
 10:754a, 10:7944, the dialogs' 9:298c) and MessageBeep (a few error
-cases).  Ordinal 17 (6:5538, a quick ship drawing) and 41 (9:3e8a, the
+cases).  Ordinal 17 (6:5538, the quick drawing) and 41 (9:3e8a, the
 joystick read through port 0x201) are not sound.  The DLL imports
 sndPlaySound, mciSendCommand, midiOutGetDevCaps/GetVolume/SetVolume,
 waveOutGetNumDevs/GetDevCaps/GetVolume/SetVolume, and loads
@@ -1490,3 +1537,115 @@ clock (1 ms timer resolution).
   later in the dump), the wave's piece 1, the pause for dialogs, with
   the effects mixed in; ASan and TSan runs clean. SDL's dummy device runs about 3% slower
   than the wall clock, so "ended" comes that much later there.
+
+## ISPACE.DLL ordinal 1's softened pictures (5:075e; port/src/win/ispace_img.c)
+
+- **When:** ordinal 1 with b != 0 on a 256-colour display. The game asks
+  for it with INI Enhance (default 1): image 170 (the wave's sprite
+  sheet 10, 10:1745) with b 2 and colour set 1, in every wave.
+- **What:** the image is made a bitmap as usual (5:2080), read back as an
+  8-bit DIB (5:21a4, GetDIBits: the palette indices), and each channel
+  of each pixel that is not black summed in a byte: the pixel at 3/4 (b
+  1) or 1/2 (b 2), and eight reads around it at 1/32 or 1/16, in DIB
+  rows (bottom up): the row before x - 1 twice [sic: the second read was
+  meant to be x + 1 of the pixel's own row], x and x + 1; its own row
+  x - 1; the row after x - 1, x, x + 1. Off the picture the pixel stands
+  in (row before: once for both reads of a side, at 1/16 (b 1) or 1/8;
+  the whole row before or after: once at each weight; row after: once
+  per read). The sums are matched to the palette (5:64f8: nearest in
+  colour set c's range; image 0x28a: 5:4e96, the image's colours'
+  area); a pixel whose sums are all 0 (or wrap to 0) keeps its entry.
+- **Checked** with the oracle (tools/dll_oracle/soften.txt: image 170 as
+  the wave loads it, b 1 and 2, other sets and images, 0x28a; 51 calls,
+  bitmaps and palettes agree).
+- **Fixed silently:** the DLL sizes its buffer w x h x 3 from the 16-bit
+  w x h, so pictures of 32768 pixels or more get no buffer (a GP fault
+  in 1994; image 50 would); the port softens them. At x 0 of the second
+  row the DLL reads the byte before the bits (the colour table's last,
+  0): the port reads 0 too.
+- **Not ported:** fixed palettes (5:4cca) and b other than 1 and 2 (its
+  shifts are uninitialised): logged, the plain picture.
+
+## Quick drawing (ISPACE.DLL 6:5538: ordinal 17 and 6:78ba; port/src/win/ispace_quick.c)
+
+- **When:** ordinal 17 from 11:4b00, the cloak or shield going on or off
+  (Caps Lock, the joystick's Cloak/Shield, computer ships): one angle
+  of the ship into the 17th column of its sprite sheet, two rows (the
+  image's frames 1 and 2) [inferred: the cloak's pictures]. Ordinal 2
+  with n set (6:78ba) from INSPACE.INI `Quick` (6:0b3e, default 0; the
+  Game Settings dialog shows Quickload ticked by default (9:22ca reads
+  1) and its OK writes Quick=1): with 2 the ships (14:11a8), the wave's
+  other objects (10:533a) and 10:18b0's picture are drawn so; with 1 the
+  objects and 10:18b0's picture, and the ships other than the player's,
+  once the wave is under way (g_1e68). Before this port those got no
+  bitmap and were invisible.
+- **Image:** 5:1b8e mode 3 with DS:015c set: 5:26a2 also works out each
+  colour's palette entry (DS:1484): nearest in the ranges of colour
+  sets DS:147c and DS:1480 (5:6f58 of the caller's sets, left as they
+  were for set 12), or for the image's own colours (set 12) in the set
+  of the colour's hue, put into the palette at its first colour
+  (5:66ea, 5:61b2). With DS:015c the image's colours are also kept
+  (DS:1178, as modes 0 and 1). DS:015a (colours copied to DS:12e4 and
+  DS:1d72, read by nothing ported) is not modelled.
+- **Turn:** each frame (square, h pixels; colour 15 the background) is
+  turned pixel by pixel to the angle (DS:011a sine, DS:013a minus
+  cosine, x 512, rounded (v + 256) >> 9) into a cell h + border wide,
+  kept inside it; at angles 2, 6, 10, 14 a single empty pixel between
+  two drawn ones takes the left one's entry, over the cell's first h
+  rows from its top edge, not its border's [sic]. Angle -1 (6:78ba)
+  draws the 16 angles side by side and the frames as rows in reverse
+  order; with ordinal 2's m 1 two frames (the last, then the first) and
+  a 17th cell left black, as 6:011c. A frame starting on an odd pixel
+  is read from its second pixel at x 1, as in 6:011c [quirk kept].
+- **Ordinal 17's sheet:** the cell is drawn at (16 h + 17 border,
+  (h + border) k + border), k 0 and 1, scaled by the last word / 2
+  (StretchBlt), and the bitmap deleted; the stale handle is returned
+  (the game ignores it).
+- **Checked** with the oracle (tools/dll_oracle/quick.txt: the wave's
+  surfaces with n 1 and 2, two frames, sizes, borders, colour sets,
+  the image's own colours with set ids in g and h; ordinal 17 into
+  sheets of 6:011c and 6:78ba, scale 2, a sheet without the column, no
+  sheet; 94 calls, bitmaps and palettes agree).
+- **Fixed silently:** an angle outside 0-15 (the DLL reads past its
+  tables) draws angle 0; writes outside the sheet are dropped; for
+  colours not of set 12 the DLL compares stale stack bytes when it looks
+  for a hue met before (the port: none met); a palette that is not the
+  manager's gives no bitmap.
+- **Not ported:** fixed palettes (5:4e96/1484 by group), displays of
+  fewer than 8 bits, images with VGA colours (6:7fc8): logged, no
+  bitmap.
+
+## Help (WinHelp; port/src/win/help.c)
+
+- **Calls:** INSPACE.EXE 2:190a: <Path><Language>_HELP.HLP (Path is the
+  game folder, C:\SPACE\), contents (menu commands 0x100 and 0xca, and
+  0xf0 while DS:0a7c is 0) or contexts 0x1c (0xc9, Credits) and 5 (0xcb
+  and the Navigation window's Help button, General). ISPACE.DLL 9:328e:
+  <SndPath><Language>_HELP.HLP, contexts 15 (Game Settings) and 0x20
+  (Display Options); the Joystick dialog's Help: <SndPath>INSPACE.HLP,
+  context 0x23. Nothing calls HELP_QUIT. Nobody reads the result.
+- **Files:** the user's data has ENG_HELP.HLP (91588 bytes) in the game
+  folder only, so the DLL's two never find theirs (SndPath is
+  C:\SPACE\SOUNDS\): in 1994 WinHelp said so; INSPACE.HLP does not exist
+  at all. ENG_HELP.HLP is WinHelp 3.1 format (|SYSTEM 1.21, title "Basic
+  Inner Space Help", no compression, no phrases, no bitmaps), 38 topics
+  (Contents, Joystick Settings, Your Mission, Installing, QuickStart,
+  General, Icons, Hazards, Resource Management, Dealing With Other
+  Ships, Special Ship Systems, High Scores, Race Courses, Duelling, Ship
+  Factory, Game Settings, Screen Savers, Optimizing for Your Computer,
+  Troubleshooting, Tech Support, the eight teams, Credits, Laws of Inner
+  Space, Inner Demon, Detail Settings, Display Options, Special Times of
+  Day, Ordering Instructions, Why Register Inner Space?); |CTXOMAP maps
+  context numbers 1-37 to them (35 is Joystick Settings, which the
+  Joystick dialog would have found in ENG_HELP.HLP).
+- **Now:** WinHelp logs the file, the topic and whether the file exists,
+  and returns TRUE, as Windows 3.1 did whether the file was there or
+  not (WINHELP.EXE reported a missing file itself) [inferred].
+- **Recommended:** a small native viewer that reads the user's own .HLP
+  at run time (nothing of it in the port): the B+ tree directory,
+  |SYSTEM, |CTXOMAP for the context numbers, |TTLBTREE for titles and
+  |TOPIC's uncompressed records (paragraph text with bold and the
+  jump hotspots of its formatting codes); LZ77 and phrase compression,
+  which this file does not use, can wait. Shown in a plain window with
+  links and Back, opened on the asked context; a missing file gets
+  Windows 3.1's message.

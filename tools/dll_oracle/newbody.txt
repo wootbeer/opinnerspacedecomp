@@ -1,0 +1,27 @@
+# New Ship Body (ordinal 10 mode 6, template 286, 10:0f9c = ordinal 28),
+# the ambulance's.  The DLL's words as they start: DS:2134 0 (not played
+# by a person, so the dialog posts OK to itself and OK waits 1.5 s
+# first), DS:01aa 1 (the limited version: only TRANSFORMER may be
+# taken).  The port side runs with [Port] CopyCheck=1, so both check the
+# copy (unregistered with the user's files: fewer ships listed).
+# Opened (MainShip not set: the first ship picked); ships picked
+# (CBN_SELCHANGE; other notifications change nothing); OK refused (a
+# message, the dialog stays); opened again, Esc (2: nothing), TRANSFORMER
+# picked, OK (MainShip written); opened (TRANSFORMER picked), another
+# ship, Cancel (id 333, not in the template: nothing written).
+28 DLG286 0x110 0 0
+1002 0xa8 3
+28 DLG 0x111 0xa8 N0xa8:1
+1002 0xa8 10
+28 DLG 0x111 0xa8 N0xa8:4
+28 DLG 0x111 0xa8 N0xa8:1
+28 DLG 0x111 1 0
+28 DLG286 0x110 0 0
+28 DLG 0x111 2 0
+1002 0xa8 55
+28 DLG 0x111 0xa8 N0xa8:1
+28 DLG 0x111 1 0
+28 DLG286 0x110 0 0
+1002 0xa8 0
+28 DLG 0x111 0xa8 N0xa8:1
+28 DLG 0x111 0x14d 0

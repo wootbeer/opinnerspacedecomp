@@ -59,6 +59,8 @@ static struct {
     int sel;
     int button;                 /* the left button is held */
     int menu_key;               /* Alt or F10 went down in the loop: its release ends it */
+    int key;                    /* the last key that went down in the loop */
+    int key_ended;              /* that key ended the loop (Esc, Enter, a mnemonic) */
     int chosen;
     UINT cmd;
     int cmd_sys;
@@ -898,9 +900,12 @@ static void run_loop(void)
             track_mouse(m.message, m.pt);
         } else if (m.message == WM_KEYDOWN || m.message == WM_SYSKEYDOWN) {
             TranslateMessage(&m);
-            track_key((int)m.wParam);
+            t.key = (int)m.wParam;
+            track_key(t.key);
+            t.key_ended = !t.running;
         } else if (m.message == WM_CHAR || m.message == WM_SYSCHAR) {
             track_char((int)m.wParam);
+            t.key_ended = !t.running;
         } else if (m.message == WM_KEYUP || m.message == WM_SYSKEYUP) {
             if ((m.wParam == VK_MENU || m.wParam == VK_F10) && t.menu_key)
                 end_loop();
@@ -912,6 +917,8 @@ static void run_loop(void)
     draw_bar_sel(t.bar_sel, 0);
     t.bar_sel = NO_SEL;
     t.running = 0;
+    if (t.key_ended)
+        input_eat_key_up(t.key);
     if (IsWindow(t.owner)) {
         ReleaseCapture();
         if (t.old_capture)

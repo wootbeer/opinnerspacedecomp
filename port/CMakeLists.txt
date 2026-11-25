@@ -24,6 +24,7 @@ add_executable(inspace
     src/win/edit.c
     src/win/gdi.c
     src/win/handles.c
+    src/win/help.c
     src/win/icon.c
     src/win/input.c
     src/win/ispace.c
@@ -35,6 +36,7 @@ add_executable(inspace
     src/win/ispace_options.c
     src/win/ispace_panel.c
     src/win/ispace_pal.c
+    src/win/ispace_quick.c
     src/win/ispace_reg.c
     src/win/ispace_room.c
     src/win/ispace_shape.c
@@ -53,7 +55,6 @@ add_executable(inspace
     src/win/profile.c
     src/win/scrollbar.c
     src/win/startup.c
-    src/win/stubs.c
     src/win/text.c
     src/win/user.c
     src/win/wavemix.c

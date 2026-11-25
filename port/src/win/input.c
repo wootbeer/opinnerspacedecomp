@@ -15,6 +15,7 @@ static POINT cursor;
 static uint32_t last_frame;
 static int alt_alone;           /* Alt or F10 pressed with no other key since */
 static int menu_key_tapped;     /* ... and released */
+static int eaten_key;           /* a held key whose release the menu loop took */
 
 /* SDL key to virtual-key code. */
 static const struct {
@@ -115,7 +116,10 @@ static void on_key(SDL_Keycode key, int down, int repeat)
         post_key(vk, 1, repeat);
     } else {
         menu_key_tapped = alt_alone && (vk == VK_MENU || vk == VK_F10);
-        post_key(vk, 0, 0);
+        if (vk == eaten_key)
+            eaten_key = 0;
+        else
+            post_key(vk, 0, 0);
         keys[vk] &= 0x7f;
         if (vk == VK_MENU || vk == VK_F10)
             alt_alone = 0;
@@ -237,6 +241,16 @@ BOOL TranslateMessage(const MSG *m)
     if (!c)
         return 0;
     return PostMessage(m->hwnd, m->message == WM_KEYDOWN ? WM_CHAR : WM_SYSCHAR, (WPARAM)c, m->lParam);
+}
+
+/* The menu loop ended on vk's key-down and takes its release too, held
+ * or already queued, so the window never sees it. */
+void input_eat_key_up(int vk)
+{
+    if (keys[vk & 0xff] & 0x80)
+        eaten_key = vk;
+    else if (!user_unpost(WM_KEYUP, (WPARAM)vk))
+        user_unpost(WM_SYSKEYUP, (WPARAM)vk);
 }
 
 int input_menu_key_tapped(void)

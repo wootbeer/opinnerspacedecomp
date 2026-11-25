@@ -70,6 +70,15 @@ typedef struct {
 } IspaceImgFlags;
 
 IspaceImgFlags *ispace_img_flags(void);
+/* 6:5538's pictures: with DS:015c set the next image load (5:26a2) also
+ * gives each colour's palette entry (DS:1484), nearest in colour set ids
+ * DS:147c and DS:1480 (the image's own colours: in the set of their
+ * hue); the load clears DS:015c. */
+typedef struct {
+    int16_t ds_015c, ds_147c, ds_1480;
+    uint8_t ds_1484[15];
+} IspaceEntries;
+IspaceEntries *ispace_image_entries(void);
 /* DS:1178: the last image's 16 colours (red, green, blue, flags: 4 bytes
  * each) as loaded in modes 0 and 1 (5:26a2, 5:39f6). */
 const uint8_t *ispace_image_colors(void);
@@ -87,6 +96,12 @@ int ispace_dib8_new(int16_t w, int16_t h, IspaceDib *d);
 const uint8_t *ispace_dib_color(const IspaceDib *d, int k);   /* blue, green, red */
 const uint8_t *ispace_dib_bits(const IspaceDib *d);
 void ispace_set_image_height(int16_t h);                       /* DS:1c72 */
+/* 5:4e96 for group 2: the entry of the image's colours' area (16
+ * entries) nearest to the colour; red and blue swapped with swap. */
+uint8_t ispace_nearest_image_entry(int slot, uint8_t r, uint8_t g, uint8_t b, int swap);
+/* 5:64f8: the entry nearest to the colour in the ranges of colour sets
+ * set1 and set2 (-1: none). */
+uint8_t ispace_nearest_set_entry(int slot, uint8_t r, uint8_t g, uint8_t b, int set1, int set2);
 
 /* 6:7f52 as its callers use it: the root mean square of three weighted
  * channels, three Newton steps from their mean.  Red counts 3/4, blue
@@ -122,6 +137,15 @@ IspaceRamp *ispace_ramps(int group);
 uint8_t ispace_ramp_shade(const PALETTEENTRY *e, const IspaceRamp *rp, uint8_t v);
 /* 5:66ea: the colour set id (0-13) whose hue colour r, g, b has. */
 int16_t ispace_set_of_color(int r, int g, int b);
+/* 5:6f58: the set id of colour set k; -1 for set 12 and others. */
+int16_t ispace_set_id(int k);
+/* Ordinal 17 (6:5538): one angle of an image drawn quickly into a sprite
+ * sheet (ispace_quick.c). */
+int16_t ispace_quick_draw(int16_t pal, int16_t id, int32_t name, int16_t dc, int16_t border, int16_t c,
+                          int16_t d, char cs1, char cs2, int16_t angle, int16_t hdc, char two, char scale);
+/* 6:78ba: ordinal 2's surface with n set, drawn quickly. */
+int16_t ispace_quick_surface(int16_t pal, int16_t id, int16_t dc, int16_t f, int16_t g, int16_t h, int16_t j,
+                             signed char k, signed char l, signed char m);
 /* DS:1ccc: the angles of ordinal 2's last surface; ordinal 12 makes its
  * bitmap that many times wider again (ispace_surface.c). */
 int16_t *ispace_ds_1ccc(void);
@@ -188,6 +212,11 @@ HWND ispace_preview_window(void);
 /* The procedure of the Save Game dialog (template 167), ordinal 26
  * (10:0dc0). */
 BOOL ispace_save_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp);
+/* The Registration Benefits and Plus Pack dialogs' (templates 799 and
+ * 1872), ordinal 40 (10:5f96). */
+BOOL ispace_benefits_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp);
+/* The New Ship Body dialog's (template 286), ordinal 28 (10:0f9c). */
+BOOL ispace_newbody_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp);
 /* 9:328e: the help file's topic (WinHelp). */
 void ispace_help(int32_t topic);
 

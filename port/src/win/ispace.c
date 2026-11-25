@@ -181,8 +181,6 @@ int16_t ispace_blit_double(HDC dst, int16_t x, int16_t y, int16_t w, int16_t h, 
     return (int16_t)DeleteObject(bm);
 }
 
-static void ispace_17(int16_t a, int16_t b, int32_t c, int16_t d, int16_t e, int16_t f, int16_t g, char h, char i, int16_t j, int16_t k, char l, char m) { (void)a; (void)b; (void)c; (void)d; (void)e; (void)f; (void)g; (void)h; (void)i; (void)j; (void)k; (void)l; (void)m; STUB(); }
-
 FARPROC ispace_proc(int ordinal)
 {
     switch (ordinal) {
@@ -199,7 +197,7 @@ FARPROC ispace_proc(int ordinal)
     case 12: return PROC(ispace_smooth_image);
     case 14: return PROC(ispace_pal_scale);
     case 15: return PROC(ispace_cut);
-    case 17: return PROC(ispace_17);
+    case 17: return PROC(ispace_quick_draw);
     case 18: return PROC(ispace_sprite_sheet);
     case 24: return PROC(ispace_check);
     case 29: return PROC(ispace_collide);

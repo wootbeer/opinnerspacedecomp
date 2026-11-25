@@ -1,0 +1,10 @@
+# The Registration Benefits / Plus Pack dialog (ordinal 10 modes 12 and
+# 14, templates 799 and 1872, 10:5f96 = ordinal 40) as the DLL starts:
+# DS:1f90 (the mode running, set by 10:42c6) 0, so the text is the Plus
+# Pack's (5000/138) and Order.. ends the dialog as in mode 12.  Opened in
+# both templates; Esc (2: Exit), Order.. (1), another command.
+40 DLG1872 0x110 0 0
+40 DLG 0x111 0x24f 0
+40 DLG 0x111 2 0
+40 DLG799 0x110 0 0
+40 DLG 0x111 1 0

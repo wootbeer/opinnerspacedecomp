@@ -9,9 +9,10 @@
  * after the call: "dcbmp") or X,Y (a point).  Ordinal 29's words are
  * passed by pointer and printed after the call ("outs"), as is the wave
  * device's volume after ordinals 7-9.  The dialog procedures (ordinals
- * 11, 26, 37, 38) take DLGn (a dialog from the language DLL's template n,
- * owned by a window of INSPACE.EXE; DLG: the last one) and C<id>:<pos>
- * (MAKELONG(pos, the control)); after them and pseudo-ordinals 1001
+ * 11, 26, 28, 37, 38, 40) take DLGn (a dialog from the language DLL's template n,
+ * owned by a window of INSPACE.EXE; DLG: the last one), C<id>:<pos>
+ * (MAKELONG(pos, the control)) and N<id>:<code> (MAKELONG(the control,
+ * code)); after them and pseudo-ordinals 1001
  * (check a box), 1002 (pick a combo item) and 1003 (type a control's
  * text) the dialog's controls, its end and INSPACE.INI are printed
  * ("state").  Ordinal 41 reads into a block printed after the call
@@ -124,6 +125,10 @@ static int parse(char *line, int *ordinal, Args *a)
             HWND c = GetDlgItem(dlg, (int16_t)strtol(p + 1, &p, 0));
             a->l[k] = (int32_t)MAKELONG(strtol(p + 1, &p, 0), c);
             a->w[k] = (int16_t)a->l[k];
+        } else if (*p == 'N' && p[1] >= '0' && p[1] <= '9') {
+            HWND c = GetDlgItem(dlg, (int16_t)strtol(p + 1, &p, 0));
+            a->l[k] = (int32_t)MAKELONG(c, strtol(p + 1, &p, 0));
+            a->w[k] = (int16_t)a->l[k];
         } else if (!strncmp(p, "DC@", 3)) {
             HDC dc = CreateCompatibleDC(0);
             long i = strtol(p + 3, &p, 10);
@@ -197,6 +202,8 @@ static int16_t run(int ordinal, Args *a)
         ispace_pal_scale(w[0], w[1], w[2], w[3], w[4]);
         return 0;
     case 15: return ispace_cut(w[0], w[1], w[2], w[3], w[4], w[5], w[6], w[7], w[8]);
+    case 17: return ispace_quick_draw(w[0], w[1], 0, w[3], w[4], w[5], w[6], (char)w[7], (char)w[8], w[9], w[10],
+                                      (char)w[11], (char)w[12]);
     case 18: return ispace_sprite_sheet(w[0], w[1], w[2], w[3], w[4], w[5]);
     case 29:
         return ispace_collide(&w[0], &w[1], &w[2], &w[3], &w[4], &w[5], &w[6], &w[7], w[8], w[9],
@@ -221,6 +228,8 @@ static int16_t run(int ordinal, Args *a)
     case 37: return ispace_display_proc((HWND)w[0], (UINT)w[1], (WPARAM)(uint16_t)w[2], (LPARAM)a->l[3]);
     case 38: return ispace_audio_proc((HWND)w[0], (UINT)w[1], (WPARAM)(uint16_t)w[2], (LPARAM)a->l[3]);
     case 26: return ispace_save_proc((HWND)w[0], (UINT)w[1], (WPARAM)(uint16_t)w[2], (LPARAM)a->l[3]);
+    case 28: return ispace_newbody_proc((HWND)w[0], (UINT)w[1], (WPARAM)(uint16_t)w[2], (LPARAM)a->l[3]);
+    case 40: return ispace_benefits_proc((HWND)w[0], (UINT)w[1], (WPARAM)(uint16_t)w[2], (LPARAM)a->l[3]);
     case 41: return ispace_joystick(w[0], joystick);
     case 1004:
         set_pad(w[0], w[1], w[2], w[3]);
@@ -290,7 +299,7 @@ static void print_ini(void)
 static void print_dialog(void)
 {
     HWND c, focus = GetFocus();
-    char cls[20], text[256], item[256], items[1024];
+    char cls[20], text[4096], item[256], items[1024];
     int16_t lo = 0, hi = 0, pos = 0, sel, i, n, result;
     int checked, pressed;
     char *p;
@@ -319,8 +328,11 @@ static void print_dialog(void)
         GetWindowText(c, text, sizeof text);
         while ((p = strchr(text, '&')) != NULL)
             memmove(p, p + 1, strlen(p));
-        printf("state %d %s en %d chk %d hi %d sel %d [%s] sb %d %d %d \"%s\"\n", GetDlgCtrlID(c), cls,
-               IsWindowEnabled(c) != 0, checked, pressed, sel, items, lo, hi, pos, text);
+        printf("state %d %s en %d chk %d hi %d sel %d [%s] sb %d %d %d \"", GetDlgCtrlID(c), cls,
+               IsWindowEnabled(c) != 0, checked, pressed, sel, items, lo, hi, pos);
+        for (p = text; *p; p++)
+            printf(*p == '\r' ? "\\r" : *p == '\n' ? "\\n" : "%c", *p);
+        printf("\"\n");
     }
     while (focus && GetParent(focus) && GetParent(focus) != dlg)
         focus = GetParent(focus);           /* a combo box's edit field: the combo box */
@@ -345,7 +357,7 @@ static void report(int k, int ordinal, const Args *a)
                 printf(" %d", a->w[i]);
         printf("\n");
     }
-    if (ordinal == 11 || ordinal == 26 || ordinal == 37 || ordinal == 38 || (ordinal >= 1001 && ordinal <= 1003) ||
+    if (ordinal == 11 || ordinal == 26 || ordinal == 28 || ordinal == 40 || ordinal == 37 || ordinal == 38 || (ordinal >= 1001 && ordinal <= 1003) ||
         ordinal == 1005 || ordinal == 1006)
         print_dialog();
     if (ordinal == 41)

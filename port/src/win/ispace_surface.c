@@ -43,7 +43,7 @@ static void not_ported(const char *what)
 
 /* 5:6f58: the set id of colour set k; -1 for set 12 and others (the DLL
  * returns an uninitialised word). */
-static int16_t id_of_set(int k)
+int16_t ispace_set_id(int k)
 {
     static const int8_t id[18] = {2, 5, 13, 6, 1, 7, 12, 8, 0, 0, 4, 4, -1, 10, 11, 3, 2, 9};
 
@@ -531,9 +531,9 @@ int16_t ispace_surface(int16_t pal, int16_t id, LPCSTR name, int16_t dc, int16_t
         return 0;
     }
     if (k != OWN_COLORS)
-        ispace_pal_load_set(s, set_a = id_of_set(k));
+        ispace_pal_load_set(s, set_a = ispace_set_id(k));
     if (l != OWN_COLORS)
-        ispace_pal_load_set(s, set_b = id_of_set(l));
+        ispace_pal_load_set(s, set_b = ispace_set_id(l));
     flags->ds_0188 = 1;
     if (!ispace_dib_load(pal, id, name, 1, k, l, 0, &src))
         return 0;
