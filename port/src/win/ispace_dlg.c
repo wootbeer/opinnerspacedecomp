@@ -22,7 +22,6 @@
 #define ID_TEAM 0x146
 #define ID_DRIVE 0x14a
 #define ID_ZOOM 0x14c
-#define STM_SETICON (WM_USER + 0)
 #define SHIP_SIZE 0x41          /* a MASTER.SHP record: type +3, colour sets +7 +8, name +0xa, body +0x21 */
 #define BODY_SIZE 0x2c          /* a MASTER.BOD record: size +0x1a, image id +0x21, image file +0x23 */
 #define NAME_SIZE 0x14
@@ -80,14 +79,8 @@ static HPALETTE dialog_palette(void)
     return st.ds_1f92 < 3 ? ispace_pal_handle(st.ds_1f92) : 0;
 }
 
-/* 9:29c0 and 9:2a1e: the dialogs' fonts. */
-static void make_fonts(void)
-{
-    st.font[0] = CreateFont(14, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, "Arial");
-    st.font[1] = CreateFont(14, 6, 0, 0, 730, 0, 0, 0, 0, 0, 0, 2, 0x22, "Arial");
-}
-
-static void free_fonts(void)
+/* 9:29c0 (make) and 9:2a1e: the dialogs' fonts. */
+void ispace_dialog_fonts(int make)
 {
     int i;
 
@@ -96,6 +89,10 @@ static void free_fonts(void)
             DeleteObject(st.font[i]);
             st.font[i] = 0;
         }
+    if (!make)
+        return;
+    st.font[0] = CreateFont(14, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, "Arial");
+    st.font[1] = CreateFont(14, 6, 0, 0, 730, 0, 0, 0, 0, 0, 0, 2, 0x22, "Arial");
 }
 
 /* 10:3f70 and 10:406a: <ShipPath>\name read whole as records of size
@@ -143,7 +140,7 @@ static void free_ships(void)
 
 /* 10:602a: the dialog's controls get the DLL's fonts (push buttons the
  * bold one) and are shown. */
-static void set_fonts(HWND dlg)
+void ispace_dialog_set_fonts(HWND dlg)
 {
     HWND c;
     char cls[20];
@@ -388,7 +385,7 @@ static void restore_init(HWND dlg)
     x = (int16_t)(GetSystemMetrics(SM_CXSCREEN) / 2 + (win.left - win.right) / 2);
     y = (int16_t)(GetSystemMetrics(SM_CYSCREEN) / 2 + (win.top - win.bottom) / 2);
     load_ships();
-    set_fonts(dlg);
+    ispace_dialog_set_fonts(dlg);
     combo_add_string(combo, " NEW GAME");
     GetPrivateProfileString(APP, "LocalPath", "", pattern, 0x6d, INI);
     if (pattern[0] && pattern[SDL_strlen(pattern) - 1] != '\\')
@@ -613,7 +610,7 @@ static void newgame_init(HWND dlg)
     x = (int16_t)(GetSystemMetrics(SM_CXSCREEN) / 2 + (win.left - win.right) / 2);
     y = (int16_t)(GetSystemMetrics(SM_CYSCREEN) / 2 + (win.top - win.bottom) / 2);
     load_ships();
-    set_fonts(dlg);
+    ispace_dialog_set_fonts(dlg);
     add_strings(GetDlgItem(dlg, ID_ZOOM), 0x8b6, 3);
     SendMessage(GetDlgItem(dlg, ID_ZOOM), CB_SETCURSEL, (WPARAM)(2 - GetPrivateProfileInt(APP, "SetSize", 1, INI)), 0);
     for (i = 0; i < st.ship_count; i++)
@@ -798,7 +795,7 @@ static void exit_init(HWND h)
         ShowWindow(GetDlgItem(h, ID_SAVE_EXIT), SW_HIDE);
     else if (st.ds_2134 && st.ds_2138 >= 1 && st.ds_2138 <= 3)
         EnableWindow(GetDlgItem(h, ID_SAVE_EXIT), 1);
-    set_fonts(h);
+    ispace_dialog_set_fonts(h);
     SetFocus(GetDlgItem(h, ID_CANCEL));
     MoveWindow(h, x, y, (int16_t)(win.right - win.left), (int16_t)(win.bottom - win.top), 1);
 }
@@ -835,7 +832,7 @@ static int16_t dialogs(HWND owner, int16_t dc, HPALETTE pal, int16_t mode)
     for (st.ds_1f92 = 0; st.ds_1f92 < 3 && ispace_pal_handle(st.ds_1f92) != pal; st.ds_1f92++)
         ;
     st.ds_2012 = dc;
-    make_fonts();
+    ispace_dialog_fonts(1);
     st.ds_1f90 = mode;
     switch (mode) {
     case 12:
@@ -875,7 +872,7 @@ static int16_t dialogs(HWND owner, int16_t dc, HPALETTE pal, int16_t mode)
         r = run(owner, 0xa7, NULL, "ispace dialog: 10:0dc0");
         break;
     }
-    free_fonts();
+    ispace_dialog_fonts(0);
     return r;
 }
 
@@ -912,8 +909,7 @@ int16_t ispace_dialog(int16_t hwnd, int16_t dc, int16_t pal, int16_t v1, int16_t
         st.date[2] = v0;
         return 1;
     case 0:
-        not_ported("ispace dialog: mode 0 (9:1546)");
-        return 0;
+        return ispace_options((HWND)hwnd);
     case 9:
         not_ported("ispace dialog: mode 9 (10:5b24)");
         return 0;
@@ -923,6 +919,11 @@ int16_t ispace_dialog(int16_t hwnd, int16_t dc, int16_t pal, int16_t v1, int16_t
     default:
         return mode > 15 ? 0 : dialogs((HWND)hwnd, dc, (HPALETTE)pal, mode);
     }
+}
+
+int16_t ispace_dialog_word6(void)
+{
+    return st.ds_2136;
 }
 
 /* The palette slot of the last dialog (DS:1f92), which ordinal 36

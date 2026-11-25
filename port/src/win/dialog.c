@@ -371,8 +371,11 @@ static int dialog_char(HWND dlg, const MSG *m, LRESULT code)
     c = mnemonic(dlg, (int)m->wParam);
     if (!c)
         return m->message == WM_SYSCHAR;
-    if (SendMessage(c, WM_GETDLGCODE, 0, 0) & (DLGC_DEFPUSHBUTTON | DLGC_UNDEFPUSHBUTTON))
+    code = SendMessage(c, WM_GETDLGCODE, 0, 0);
+    if (code & (DLGC_DEFPUSHBUTTON | DLGC_UNDEFPUSHBUTTON))
         command(dlg, GetDlgCtrlID(c));
+    else if (code & DLGC_BUTTON)
+        button_click(c);
     else
         move_focus(c);
     return 1;
@@ -390,9 +393,9 @@ BOOL IsDialogMessage(HWND dlg, MSG *m)
     if (!w || (m->hwnd != dlg && (!wnd_is_child(w) || w->parent != dlg)))
         return 0;
     code = SendMessage(m->hwnd, WM_GETDLGCODE, 0, 0);
-    if (m->message == WM_KEYDOWN)
+    if (m->message == WM_KEYDOWN && !(code & DLGC_WANTMESSAGE))
         done = dialog_key(dlg, m, code);
-    else if (m->message == WM_CHAR || m->message == WM_SYSCHAR)
+    else if ((m->message == WM_CHAR || m->message == WM_SYSCHAR) && !(code & DLGC_WANTMESSAGE))
         done = dialog_char(dlg, m, code);
     if (!done) {
         TranslateMessage(m);

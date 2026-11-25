@@ -99,7 +99,13 @@ the first command again after files are added there.
   (`GetWinFlags`, the wave device, INI files) answers as the port's;
   INSPACE.INI is `INI` (emu.py), the sound DLLs are the user's
   `SOUNDS\SND_FX.DLL` and `ENG_FX.DLL`, and sounds are not played (the
-  wave and MIDI volumes are kept).
+  wave and MIDI volumes are kept; MCI commands are recorded).
+  `C:\WINDOWS\WAVEMIX.DLL` exists, as the port's WaveMix always does:
+  GetProcAddress gives stand-ins that succeed and play nothing. Dialogs
+  are modelled from the language DLL's templates (controls with their
+  text, enabled state, check, combo items and selection, scroll range
+  and position; `_wsprintf` of `%d %u %x %s`); DialogBox and WinHelp are
+  recorded, not run.
 - `port_calls.c`: runs a script on the port's `ispace_*` routines and
   prints the results (built from the port's sources without `main.c`).
 - `oracle.py SCRIPT`: runs both and lists each call as same or differs.
@@ -112,9 +118,15 @@ the first command again after files are added there.
   compared after the call. Results of routines that return nothing
   (`VOID`, ordinal 14) are not compared. A call that stops the emulation
   (a Windows call without a stand-in) is reported with its number.
-  Ordinals 1-9, 12, 14, 15, 18, 29 and 32-35 are supported, and pseudo-ordinal
+  Ordinals 1-12, 14, 15, 18, 29, 32-35, 37 and 38 are supported, and pseudo-ordinal
   1000 for 5:0000 (the dialogs' ship picture, a C-convention routine the
-  DLL does not export: `INTERNAL` in oracle.py); add others to
+  DLL does not export: `INTERNAL` in oracle.py). The dialog procedures
+  (11, 37, 38: hwnd, msg, wParam, lParam) take `DLGn` (a dialog of the
+  language DLL's template n; `DLG` the last one) and `C<id>:<pos>`
+  (MAKELONG(pos, control id's handle), for WM_HSCROLL); pseudo-ordinals
+  1001 (id, 0/1) and 1002 (id, item) are the user checking a box and
+  picking an item; after these the controls, the focus and INSPACE.INI
+  are compared; add others to
   `ORDINALS` (oracle.py) and `run` (port_calls.c). Ordinal 32's script
   arguments leave out the rectangles block (both sides make an 8-byte
   one); its rectangles are compared too.
@@ -150,8 +162,14 @@ the first command again after files are added there.
   and commands, on and off screen, at times inside and after the quiet
   times; the wave device's volume is compared after each call. Both
   sides read the emulator's INSPACE.INI (`INI` in emu.py: MixChannels 1,
-  as the DLL ran without WAVEMIX.DLL; the port side gets a settings
+  sounds through sndPlaySound; the port side gets a settings
   folder of its own and SDL's dummy sound device). All 200 agree.
+- `options.txt`: the sound set-up, then the Game Settings dialogs
+  (ordinal 10 mode 0): ordinals 11 (template 100), 37 (Display Options)
+  and 38 (Audio Options) opened, every scroll code on each bar, boxes
+  checked and items picked, OK and Cancel, the detail options grayed
+  (ordinal 10's sixth word), channel counts changed, a negative width in
+  sound mode 0. All 132 calls agree.
 - `panel.txt`: the same set-up, then ordinals 33-35 on a memory DC. All
   agree. (Image 200, taller than wide, differs
   in 37 pixels of its top rows: the DLL reads past its pixels there, see

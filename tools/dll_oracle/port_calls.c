@@ -8,7 +8,12 @@
  * 640x480 bitmap), DC@K (a memory DC with call K's bitmap, printed
  * after the call: "dcbmp") or X,Y (a point).  Ordinal 29's words are
  * passed by pointer and printed after the call ("outs"), as is the wave
- * device's volume after ordinals 7-9. */
+ * device's volume after ordinals 7-9.  The dialog procedures (ordinals
+ * 11, 37, 38) take DLGn (a dialog from the language DLL's template n,
+ * owned by a window of INSPACE.EXE; DLG: the last one) and C<id>:<pos>
+ * (MAKELONG(pos, the control)); after them and pseudo-ordinals 1001 (check a box) and 1002
+ * (pick a combo item) the dialog's controls and INSPACE.INI are printed
+ * ("state"). */
 #include <SDL3/SDL.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,6 +21,7 @@
 
 #include "video.h"
 #include "gdi.h"
+#include "user.h"
 #include "ispace.h"
 
 #define MAX_CALLS 4096
@@ -27,9 +33,38 @@ static HBITMAP mdc_bitmap;      /* the bitmap of the last MDC argument */
 static HBITMAP dc_bitmap;       /* the bitmap of a DC@K argument of this call */
 static RECT *rects;             /* ordinal 32's rectangles */
 static HGLOBAL rect_block;
+static HWND dlg;                /* the last DLGn */
 
 void app_frame(void)
 {
+}
+
+static BOOL no_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
+{
+    (void)h;
+    (void)msg;
+    (void)wp;
+    (void)lp;
+    return 0;
+}
+
+/* A dialog of template n owned by a window of INSPACE.EXE, in place of
+ * the last one; the script calls its procedure. */
+static HWND new_dialog(int n)
+{
+    static HWND owner;
+    WNDCLASS wc;
+
+    if (!owner) {
+        memset(&wc, 0, sizeof wc);
+        wc.lpfnWndProc = DefWindowProc;
+        wc.lpszClassName = "PortCalls";
+        RegisterClass(&wc);
+        owner = CreateWindow("PortCalls", "", WS_POPUP, 0, 0, 640, 480, 0, 0, module_exe(), NULL);
+    }
+    if (dlg)
+        DestroyWindow(dlg);
+    return CreateDialog(ispace_lang_module(), MAKEINTRESOURCE(n), owner, no_proc);
 }
 
 typedef struct {
@@ -70,6 +105,15 @@ static int parse(char *line, int *ordinal, Args *a)
             SelectObject(dc, mdc_bitmap);
             a->w[k] = (int16_t)dc;
             p += 3;
+        } else if (!strncmp(p, "DLG", 3)) {
+            p += 3;
+            if (*p >= '0' && *p <= '9')
+                dlg = new_dialog((int)strtol(p, &p, 10));
+            a->w[k] = (int16_t)dlg;
+        } else if (*p == 'C' && p[1] >= '0' && p[1] <= '9') {
+            HWND c = GetDlgItem(dlg, (int16_t)strtol(p + 1, &p, 0));
+            a->l[k] = (int32_t)MAKELONG(strtol(p + 1, &p, 0), c);
+            a->w[k] = (int16_t)a->l[k];
         } else if (!strncmp(p, "DC@", 3)) {
             HDC dc = CreateCompatibleDC(0);
             long i = strtol(p + 3, &p, 10);
@@ -131,6 +175,16 @@ static int16_t run(int ordinal, Args *a)
         ispace_gauge(w[0], w[1], w[2], w[3], w[4], w[5]);
         return 0;
     case 1000: return (int16_t)ispace_ship_image(w[0], w[1], a->s[2], w[3], w[4], w[5]);
+    case 10: return ispace_dialog(w[0], w[1], w[2], w[3], w[4], w[5], w[6]);
+    case 11: return ispace_options_proc((HWND)w[0], (UINT)w[1], (WPARAM)(uint16_t)w[2], (LPARAM)a->l[3]);
+    case 37: return ispace_display_proc((HWND)w[0], (UINT)w[1], (WPARAM)(uint16_t)w[2], (LPARAM)a->l[3]);
+    case 38: return ispace_audio_proc((HWND)w[0], (UINT)w[1], (WPARAM)(uint16_t)w[2], (LPARAM)a->l[3]);
+    case 1001:
+        CheckDlgButton(dlg, w[0], (UINT)w[1]);
+        return 0;
+    case 1002:
+        SendDlgItemMessage(dlg, w[0], CB_SETCURSEL, (WPARAM)w[1], 0);
+        return 0;
     default:
         fprintf(stderr, "port_calls: ordinal %d not supported\n", ordinal);
         exit(2);
@@ -144,6 +198,78 @@ static void hex(const uint8_t *p, size_t n)
     for (i = 0; i < n; i++)
         printf("%02x", p[i]);
     printf("\n");
+}
+
+static int key_cmp(const void *a, const void *b)
+{
+    const char *x = *(const char *const *)a, *y = *(const char *const *)b;
+
+    for (; *x && *y && *x != '=' && *y != '='; x++, y++)
+        if (SDL_toupper((unsigned char)*x) != SDL_toupper((unsigned char)*y))
+            return SDL_toupper((unsigned char)*x) - SDL_toupper((unsigned char)*y);
+    return (*x != '=' && *x) - (*y != '=' && *y);
+}
+
+/* INSPACE.INI's [Inner Space] keys, sorted. */
+static void print_ini(void)
+{
+    static char lines[512][256];
+    char *sorted[512], path[1024];
+    int n = 0, in = 0, i;
+    FILE *f;
+
+    if (!dos_to_host("C:\\WINDOWS\\INSPACE.INI", path, sizeof path) || !(f = fopen(path, "r")))
+        return;
+    while (n < 512 && fgets(lines[n], sizeof lines[n], f)) {
+        lines[n][strcspn(lines[n], "\r\n")] = 0;
+        if (lines[n][0] == '[')
+            in = !SDL_strcasecmp(lines[n], "[Inner Space]");
+        else if (in && strchr(lines[n], '='))
+            sorted[n] = lines[n], n++;
+    }
+    fclose(f);
+    qsort(sorted, (size_t)n, sizeof sorted[0], key_cmp);
+    for (i = 0; i < n; i++)
+        printf("state ini %s\n", sorted[i]);
+}
+
+/* The dialog's controls as oracle.py's emulator prints them. */
+static void print_dialog(void)
+{
+    HWND c, focus = GetFocus();
+    char cls[20], text[256], item[256], items[1024];
+    int16_t lo = 0, hi = 0, pos = 0, sel, i, n;
+    int checked;
+    char *p;
+
+    for (c = GetWindow(dlg, GW_CHILD); c; c = GetWindow(c, GW_HWNDNEXT)) {
+        GetClassName(c, cls, sizeof cls);
+        checked = !strcmp(cls, "Button") ? (int)SendMessage(c, BM_GETCHECK, 0, 0) : 0;
+        sel = -1;
+        items[0] = 0;
+        if (!strcmp(cls, "ComboBox")) {
+            sel = (int16_t)SendMessage(c, CB_GETCURSEL, 0, 0);
+            n = (int16_t)SendMessage(c, WM_USER + 6, 0, 0);     /* CB_GETCOUNT */
+            for (i = 0; i < n; i++) {
+                combo_get_text(c, i, item, sizeof item);
+                SDL_strlcat(items, i ? "|" : "", sizeof items);
+                SDL_strlcat(items, item, sizeof items);
+            }
+        }
+        if (!strcmp(cls, "ScrollBar")) {
+            GetScrollRange(c, SB_CTL, &lo, &hi);
+            pos = GetScrollPos(c, SB_CTL);
+        } else {
+            lo = hi = pos = 0;
+        }
+        GetWindowText(c, text, sizeof text);
+        while ((p = strchr(text, '&')) != NULL)
+            memmove(p, p + 1, strlen(p));
+        printf("state %d %s en %d chk %d sel %d [%s] sb %d %d %d \"%s\"\n", GetDlgCtrlID(c), cls,
+               IsWindowEnabled(c) != 0, checked, sel, items, lo, hi, pos, text);
+    }
+    printf("state focus %d\n", focus && GetParent(focus) == dlg ? GetDlgCtrlID(focus) : 0);
+    print_ini();
 }
 
 static void report(int k, int ordinal, const Args *a)
@@ -161,6 +287,8 @@ static void report(int k, int ordinal, const Args *a)
                 printf(" %d", a->w[i]);
         printf("\n");
     }
+    if (ordinal == 11 || ordinal == 37 || ordinal == 38 || ordinal == 1001 || ordinal == 1002)
+        print_dialog();
     if (ordinal >= 7 && ordinal <= 9) {
         DWORD v;
         waveOutGetVolume(0, &v);

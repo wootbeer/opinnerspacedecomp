@@ -29,7 +29,9 @@ from optl_unpack import unpack       # noqa: E402
 
 ROOT = os.path.dirname(TOOLS)
 DATA_SEG = 11                        # ISPACE.DLL's DGROUP
-HINST = {0x0b00: 'ISPACE', 0x0c00: 'IGRAPHIC', 0x0d00: 'ENG_LANG', 0x0e00: 'SND_FX', 0x0f00: 'ENG_FX'}
+HINST = {0x0b00: 'ISPACE', 0x0c00: 'IGRAPHIC', 0x0d00: 'ENG_LANG', 0x0e00: 'SND_FX', 0x0f00: 'ENG_FX',
+         0x1000: 'INSPACE', 0x1100: 'WAVEMIX'}
+GAME_HWND = 0x500                    # the game's window: the dialogs' owner (hInstance INSPACE)
 ISPACE_HINST_SLOT = 0x1a30           # DS words LibMain / ordinal 3 would fill
 IGRAPHIC_HINST_SLOT = 0x0692
 LANG_HINST_SLOT = 0x0690            # the language DLL (ordinal 7, 9:0174)
@@ -43,7 +45,7 @@ STATICS = {0: (0, 0, 0), 1: (128, 0, 0), 2: (0, 128, 0), 3: (128, 128, 0), 4: (0
            253: (255, 0, 255), 254: (0, 255, 255), 255: (255, 255, 255)}
 TYPENAMES = {2: 'BITMAP', 6: 'STRING', 10: 'RCDATA'}
 # INSPACE.INI for the sound ordinals (tools/README.md, sound.txt): one
-# channel, as the DLL has with no WAVEMIX.DLL in the Windows folder.
+# channel (sndPlaySound), so the sounds the DLL plays are its own calls.
 INI = {'SndPath': 'C:\\SPACE\\SOUNDS\\', 'Language': 'ENG', 'MixChannels': '1'}
 CAPS = {8: 640, 10: 480, 12: 8, 14: 1, 24: 20, 38: 0x799, 104: 256, 106: 20}
 
@@ -89,7 +91,9 @@ class IspaceEmu:
                     'IGRAPHIC': load_resources(open(os.path.join(data_dir, 'IGRAPHIC.DLL'), 'rb').read()),
                     'ENG_LANG': load_resources(open(os.path.join(data_dir, 'ENG_LANG.DLL'), 'rb').read()),
                     'SND_FX': load_resources(open(os.path.join(data_dir, 'SOUNDS', 'SND_FX.DLL'), 'rb').read()),
-                    'ENG_FX': load_resources(open(os.path.join(data_dir, 'SOUNDS', 'ENG_FX.DLL'), 'rb').read())}
+                    'ENG_FX': load_resources(open(os.path.join(data_dir, 'SOUNDS', 'ENG_FX.DLL'), 'rb').read()),
+                    'INSPACE': load_resources(open(os.path.join(data_dir, 'INSPACE.EXE'), 'rb').read()),
+                    'WAVEMIX': {}}
         self.data_dir = data_dir
         self.ini = dict(INI)
         self.wave_volume = self.midi_volume = 0xffffffff
@@ -105,6 +109,8 @@ class IspaceEmu:
         self.time = 100000
         self.failed = None
         self.texts = []
+        self.windows = {}                    # dialogs and controls (dialog_window)
+        self.focus = 0
         self.wds(ISPACE_HINST_SLOT, 0x0b00)
         self.wds(IGRAPHIC_HINST_SLOT, 0x0c00)
         self.wds(LANG_HINST_SLOT, 0x0d00)
@@ -148,6 +154,7 @@ class IspaceEmu:
                 else:
                     v = consts[name]
                     self.uc.mem_write(base + site, bytes([v & 0xff]) if src == 0 else struct.pack('<H', v))
+        self.imports += [n for n in WAVEMIX if n not in self.imports]
         for i, name in enumerate(self.imports):
             nbytes = API[name][0] if name in API else 0
             self.uc.mem_write(self.thunk * 16 + i * 4, b'\xca' + struct.pack('<H', nbytes) + b'\x90')
@@ -228,6 +235,10 @@ class IspaceEmu:
             uc.emu_stop()
             return
         nbytes, spec, fn = API[name]
+        if spec == 'cdecl':
+            r = fn(self, self.ss * 16 + uc.reg_read(UC_X86_REG_SP) + 4)
+            uc.reg_write(UC_X86_REG_AX, r & 0xffff)
+            return
         p = self.ss * 16 + uc.reg_read(UC_X86_REG_SP) + 4 + nbytes
         args = []
         for t in spec:
@@ -400,8 +411,11 @@ def host_path(e, dos):
 
 @api(10, 'llw')
 def OpenFile(e, name, of, mode):
-    """Existence checks (OF_EXIST) only."""
-    p = host_path(e, e.cstr(e.lin(name)))
+    """Existence checks (OF_EXIST) only; C:\\WINDOWS\\WAVEMIX.DLL exists."""
+    dos = e.cstr(e.lin(name))
+    if dos.upper() == 'C:\\WINDOWS\\WAVEMIX.DLL':
+        return 1
+    p = host_path(e, dos)
     return 1 if p and os.path.exists(p) else 0xffff
 
 
@@ -1005,6 +1019,13 @@ def sndPlaySound(e, fp, flags):
     return 1
 
 
+@api(12, 'wwll')
+def mciSendCommand(e, dev, msg, flags, param):
+    """Recorded, not played; no music device is open in the scripts."""
+    e.texts.append(dict(mci=(dev, msg, flags)))
+    return 0
+
+
 # USER: the sound's hidden window
 @api(4, 'l')
 def RegisterClass(e, fp):
@@ -1034,3 +1055,293 @@ def UnregisterClass(e, name, inst):
 @api(12, 'wllw')
 def MessageBox(e, h, text, title, style):
     return 1
+
+
+# USER: dialogs.  A dialog is made from its template (dialog_window) and
+# its procedure is called by the script; the controls keep what the
+# DLL's calls set (text, enabled, check, combo items and selection,
+# scroll range and position) for the comparison.
+CONTROL_CLASSES = {0x80: 'Button', 0x81: 'Edit', 0x82: 'Static', 0x83: 'ListBox', 0x84: 'ScrollBar',
+                   0x85: 'ComboBox'}
+BS_TYPE, BS_CHECKBOX, BS_AUTOCHECKBOX = 0x0f, 2, 3
+
+
+def template_string(blob, p):
+    end = blob.index(0, p)
+    return blob[p:end].decode('latin-1'), end + 1
+
+
+def dialog_window(e, template):
+    """A dialog from the language DLL's template, owned by the game's
+    window; its handle.  Controls are in template order."""
+    blob = e.res['ENG_LANG'][('DIALOG', str(template))]
+    style, n = struct.unpack_from('<IB', blob, 0)
+    p = 13
+    p = p + 3 if blob[p] == 0xff else template_string(blob, p)[1]
+    p = template_string(blob, p)[1]
+    caption, p = template_string(blob, p)
+    if style & 0x40:
+        p = template_string(blob, p + 2)[1]
+    dlg = 0x3000 + 0x100 * len([w for w in e.windows.values() if w['kind'] == 'dlg'])
+    e.windows[dlg] = dict(kind='dlg', parent=GAME_HWND, text=caption, children=[], ended=None)
+    for i in range(n):
+        _, _, _, _, cid, cstyle = struct.unpack_from('<hhhhHI', blob, p)
+        p += 14
+        if blob[p] & 0x80:
+            cls = CONTROL_CLASSES[blob[p]]
+            p += 1
+        else:
+            cls, p = template_string(blob, p)
+        if blob[p] == 0xff:
+            text, p = '', p + 3
+        else:
+            text, p = template_string(blob, p)
+        p += 1 + blob[p]
+        h = dlg + 1 + i
+        e.windows[h] = dict(kind='ctl', parent=dlg, id=cid, cls=cls, style=cstyle, text=text,
+                            enabled=not cstyle & 0x08000000, checked=0, items=[], sel=-1, range=(0, 0), pos=0)
+        e.windows[dlg]['children'].append(h)
+    return dlg
+
+
+def dialog_state(e, dlg):
+    """What a dialog's controls show, one line each, and the focus (as
+    the port's port_calls prints them)."""
+    out = []
+    for h in e.windows[dlg]['children']:
+        w = e.windows[h]
+        out.append('%d %s en %d chk %d sel %d [%s] sb %d %d %d "%s"' % (
+            w['id'], w['cls'], w['enabled'], w['checked'], w['sel'], '|'.join(w['items']), w['range'][0],
+            w['range'][1], w['pos'], w['text'].replace('&', '')))
+    focus = e.windows.get(e.focus, {})
+    out.append('focus %d' % (focus['id'] if focus.get('parent') == dlg and focus['kind'] == 'ctl' else 0))
+    return out
+
+
+def ctl(e, h):
+    w = e.windows.get(h)
+    if not w or w['kind'] != 'ctl':
+        raise RuntimeError('no control %#x' % h)
+    return w
+
+
+@api(6, 'wl')
+def GetWindowRect(e, h, fp):
+    """Every window 270 x 372 at (185, 54): the dialogs centre themselves
+    with it; where they go is not compared."""
+    e.uc.mem_write(e.lin(fp), struct.pack('<4h', 185, 54, 455, 426))
+
+
+@api(2, 'w')
+def GetParent(e, h):
+    return e.windows[h]['parent'] if h in e.windows else 0
+
+
+@api(4, 'ww')
+def GetWindowWord(e, h, i):
+    if h == GAME_HWND and s16(i) == -6:
+        return 0x1000
+    raise RuntimeError('GetWindowWord %#x %d' % (h, s16(i)))
+
+
+@api(6, 'wl')
+def LoadIcon(e, inst, name):
+    return 0x600
+
+
+@api(4, 'ww')
+def GetDlgItem(e, dlg, cid):
+    for h in e.windows.get(dlg, {}).get('children', []):
+        if e.windows[h]['id'] == cid:
+            return h
+    return 0
+
+
+@api(10, 'wwwl')
+def SendMessage(e, h, msg, wp, lp):
+    w = ctl(e, h)
+    if msg == 0x30:                                 # WM_SETFONT
+        return 0
+    if w['cls'] == 'ComboBox' and msg == 0x403:     # CB_ADDSTRING (no CBS_SORT in these dialogs)
+        w['items'].append(e.cstr(e.lin(lp)))
+        return len(w['items']) - 1
+    if w['cls'] == 'ComboBox' and msg == 0x40e:     # CB_SETCURSEL
+        w['sel'] = s16(wp) if s16(wp) < len(w['items']) else -1
+        return w['sel'] & 0xffff
+    if w['cls'] == 'ComboBox' and msg == 0x407:     # CB_GETCURSEL
+        return w['sel'] & 0xffff
+    if w['cls'] == 'Static' and msg == 0x400:       # STM_SETICON
+        return 0
+    raise RuntimeError('SendMessage %s %#x' % (w['cls'], msg))
+
+
+@api(12, 'wwwwl')
+def SendDlgItemMessage(e, dlg, cid, msg, wp, lp):
+    return SendMessage(e, GetDlgItem(e, dlg, cid), msg, wp, lp)
+
+
+@api(6, 'www')
+def CheckDlgButton(e, dlg, cid, v):
+    ctl(e, GetDlgItem(e, dlg, cid))['checked'] = v
+
+
+@api(4, 'ww')
+def IsDlgButtonChecked(e, dlg, cid):
+    return ctl(e, GetDlgItem(e, dlg, cid))['checked']
+
+
+@api(4, 'ww')
+def EnableWindow(e, h, on):
+    w = ctl(e, h)
+    old, w['enabled'] = not w['enabled'], int(bool(on))
+    return int(old)
+
+
+@api(10, 'wwwww')
+def SetScrollRange(e, h, bar, lo, hi, redraw):
+    w = ctl(e, h)
+    w['range'] = (s16(lo), s16(hi))
+    w['pos'] = min(max(w['pos'], min(w['range'])), max(w['range']))
+
+
+@api(8, 'wwww')
+def SetScrollPos(e, h, bar, pos, redraw):
+    """Kept within the range, as Windows (and the port) do."""
+    w = ctl(e, h)
+    old, w['pos'] = w['pos'], min(max(s16(pos), min(w['range'])), max(w['range']))
+    return old & 0xffff
+
+
+@api(12, 'wwwwww')
+def MoveWindow(e, h, x, y, cx, cy, repaint):
+    return 1
+
+
+@api(2, 'w')
+def SetFocus(e, h):
+    old, e.focus = e.focus, h
+    return old
+
+
+@api(6, 'wl')
+def SetWindowText(e, h, fp):
+    e.windows[h]['text'] = e.cstr(e.lin(fp))
+
+
+@api(2, 'w')
+def GetDlgCtrlID(e, h):
+    return ctl(e, h)['id']
+
+
+@api(4, 'ww')
+def EndDialog(e, h, r):
+    e.windows[h]['ended'] = s16(r)
+
+
+@api(12, 'wlwl')
+def DialogBox(e, inst, name, owner, proc):
+    """Not run: the script calls a dialog's procedure itself."""
+    e.texts.append(dict(dialog=res_name(e, name)))
+    return 0
+
+
+@api(4, 'ww')
+def GetWindow(e, h, cmd):
+    if cmd == 5:                                    # GW_CHILD
+        kids = e.windows[h].get('children', [])
+        return kids[0] if kids else 0
+    if cmd == 2:                                    # GW_HWNDNEXT
+        kids = e.windows[e.windows[h]['parent']]['children']
+        i = kids.index(h) + 1
+        return kids[i] if i < len(kids) else 0
+    raise RuntimeError('GetWindow %d' % cmd)
+
+
+@api(8, 'wlw')
+def GetClassName(e, h, fp, n):
+    return put_string(e, fp, ctl(e, h)['cls'], n)
+
+
+@api(4, 'ww')
+def GetWindowLong(e, h, i):
+    if s16(i) == -16:
+        return ctl(e, h)['style']
+    raise RuntimeError('GetWindowLong %d' % s16(i))
+
+
+@api(4, 'ww')
+def ShowWindow(e, h, cmd):
+    return 0
+
+
+@api(2, 'w')
+def IsWindow(e, h):
+    return int(h in e.windows)
+
+
+@api(12, 'wlwl')
+def WinHelp(e, h, fp, cmd, data):
+    e.texts.append(dict(help=e.cstr(e.lin(fp)), cmd=cmd, data=data))
+    return 1
+
+
+def wsprintf(e, p):
+    """USER's _wsprintf (C convention: buffer, format, values): %d, %u,
+    %x of words, %s of far strings."""
+    out_fp, fmt_fp = struct.unpack('<II', e.rd(p, 8))
+    fmt, p, out, i = e.cstr(e.lin(fmt_fp)), p + 8, '', 0
+    while i < len(fmt):
+        if fmt[i] != '%':
+            out += fmt[i]
+            i += 1
+            continue
+        c = fmt[i + 1]
+        i += 2
+        if c == 's':
+            out += e.cstr(e.lin(struct.unpack('<I', e.rd(p, 4))[0]))
+            p += 4
+        else:
+            v = e.word(p)
+            p += 2
+            out += str(s16(v)) if c == 'd' else '%x' % v if c == 'x' else str(v)
+    return put_string(e, out_fp, out, 1024)
+
+
+API['_wsprintf'] = (0, 'cdecl', wsprintf)
+
+
+# WAVEMIX.DLL, which the port always has (C:\WINDOWS\WAVEMIX.DLL exists
+# for OpenFile): GetProcAddress gives these stand-ins; they succeed and
+# play nothing.
+WAVEMIX = ['WaveMixGetInfo', 'WaveMixConfigureInit', 'WaveMixOpenChannel', 'WaveMixActivate',
+           'WaveMixFlushChannel', 'WaveMixOpenWave', 'WaveMixPlay', 'WaveMixFreeWave', 'WaveMixPump',
+           'WaveMixCloseChannel', 'WaveMixCloseSession']
+
+
+@api(6, 'wl')
+def GetProcAddress(e, h, fp):
+    name = e.cstr(e.lin(fp))
+    if HINST.get(h) != 'WAVEMIX' or name not in WAVEMIX:
+        raise RuntimeError('GetProcAddress %s' % name)
+    return e.thunk << 16 | e.imports.index(name) * 4
+
+
+def wavemix(nbytes, spec, result):
+    def stand_in(e, *args):
+        return result(e) if callable(result) else result
+    return (nbytes, spec, stand_in)
+
+
+API.update({
+    'WaveMixGetInfo': wavemix(4, 'l', 0),
+    'WaveMixConfigureInit': wavemix(4, 'l', 0x77),
+    'WaveMixOpenChannel': wavemix(8, 'wwl', 0),
+    'WaveMixActivate': wavemix(4, 'ww', 0),
+    'WaveMixFlushChannel': wavemix(8, 'wwl', 0),
+    'WaveMixOpenWave': wavemix(12, 'wlwl', lambda e: e.blocks[e.galloc(16)][0] << 16),
+    'WaveMixPlay': wavemix(4, 'l', 0),
+    'WaveMixFreeWave': wavemix(6, 'wl', 0),
+    'WaveMixPump': wavemix(0, '', 0),
+    'WaveMixCloseChannel': wavemix(8, 'wwl', 0),
+    'WaveMixCloseSession': wavemix(2, 'w', 0),
+})

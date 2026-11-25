@@ -640,7 +640,8 @@ HWND GetWindow(HWND h, UINT cmd)
 }
 
 /* The last visible window containing p among the top-level windows
- * (parent 0) or the children of parent. */
+ * (parent 0) or the children of parent; children that answer
+ * WM_NCHITTEST with HTTRANSPARENT (group boxes) are passed over. */
 static HWND topmost_at(HWND parent, POINT p)
 {
     HWND found = 0;
@@ -649,7 +650,8 @@ static HWND topmost_at(HWND parent, POINT p)
     for (i = 0; i < MAX_WINDOWS; i++) {
         Wnd *w = wnd_get(windows[i]);
         if (w && w->visible && PtInRect(&w->rect, p) &&
-            (parent ? wnd_is_child(w) && w->parent == parent : !wnd_is_child(w)))
+            (parent ? wnd_is_child(w) && w->parent == parent : !wnd_is_child(w)) &&
+            (!parent || (int16_t)SendMessage(w->hwnd, WM_NCHITTEST, 0, MAKELONG(p.x, p.y)) != HTTRANSPARENT))
             found = w->hwnd;
     }
     return found;
@@ -1041,6 +1043,8 @@ LRESULT DefWindowProc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
     if (!w)
         return 0;
     switch (msg) {
+    case WM_NCHITTEST:
+        return HTCLIENT;
     case WM_NCPAINT:
         if (has_frame(w))
             paint_frame(w);

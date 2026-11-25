@@ -236,3 +236,13 @@ void ispace_music_resume(void)
     if (mus.resume)
         play_piece();
 }
+
+int16_t ispace_music_on(void)
+{
+    return mus.on;
+}
+
+int16_t ispace_music_piece(void)
+{
+    return mus.piece;
+}

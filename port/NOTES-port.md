@@ -545,7 +545,7 @@ in ispace_room.h.
   DKGRAY_BRUSH is a checkerboard of black and dark gray (entry 248), as
   an 8-bit display dithers RGB(64, 64, 64) [uncertain: which colour is at
   the origin]; other RGB brushes are not dithered. Not modelled: list
-  scroll bars elsewhere, icons in statics. At 14 pixels some glyphs lose
+  scroll bars elsewhere. At 14 pixels some glyphs lose
   detail (the colon's upper dot), see "Text".
 - **Edit controls** (edit.c): single-line ones are edited as in Windows
   3.1: caret one pixel wide [uncertain] and a line high, inverted,
@@ -590,7 +590,7 @@ in ispace_room.h.
   writes the current state back at exit, so a first run has no menu bar,
   as the port's default is. The help file: "Turn on Game Menu ... Press
   the 'Display..' button on the Game Settings dialog" (ordinal 10 mode 0,
-  not ported) or, windowed, the system menu's Main Menus.
+  App Menu in Display Options) or, windowed, the system menu's Main Menus.
 - **The menu bar** is the main window's id (GWW_ID), as in Windows: the
   game turns it on and off with SetWindowWord + DrawMenuBar, which works
   out the client area again (18 pixels less, WM_SIZE; the game lays out
@@ -628,8 +628,9 @@ in ispace_room.h.
   the bar's bottom line (the caption's for the system menu) and are kept
   on the screen; they keep what they cover (CS_SAVEBITS) and are not
   activated.
-- **Scroll bar** (vertical controls only; the game has no others):
-  arrows as long as SM_CYVSCROLL (17, at most half the bar) and the
+- **Scroll bar** controls, vertical (the radar zoom) and horizontal (the
+  Game Settings dialogs; the same geometry across): arrows as long as
+  SM_CYVSCROLL (17, at most half the bar) and the
   thumb as long [uncertain: Windows 3.1 may scale both for a 14-pixel
   wide bar], thumb top = arrow + (pos - min) * (length - 2 arrows -
   thumb) / (max - min), rounded. A click is tracked in a loop of its own
@@ -642,6 +643,13 @@ in ispace_room.h.
   (CTLCOLOR_SCROLLBAR) brush, COLOR_SCROLLBAR by default. Not modelled:
   the thumb snapping back when the mouse goes far from the bar, keyboard
   (the game's bar has no WS_TABSTOP, so it never has the focus).
+- **Scroll bar keyboard and focus:** a bar with WS_TABSTOP (the dialogs')
+  takes the focus when clicked or tabbed to, and while it has it the
+  thumb blinks (inverted every 530 ms) [uncertain: how Windows 3.1 showed
+  a focused bar]; arrows send SB_LINEUP/DOWN, Page Up/Down SB_PAGEUP/DOWN,
+  Home SB_TOP, End SB_BOTTOM, each key-up SB_ENDSCROLL (WM_GETDLGCODE:
+  DLGC_WANTARROWS). GetScrollPos and GetScrollRange are there for the
+  oracle (the game uses neither).
 - **Frames and activation** (user.c). Sizing borders (WS_THICKFRAME:
   IS_NAV, IS_ICON, IS_SMART, IS_WATCH, the windowed main window) are 4
   pixels (SM_CXFRAME [inferred: border width 3 plus 1]) in the border
@@ -697,8 +705,8 @@ in ispace_room.h.
 - **Flow:** ESC on the title runs mode 1. OK with " NEW GAME" writes INI
   `Restore= NEW GAME` and ends with 1; then the New Game dialog. Cancel
   ends with 0; a saved game ends with 2 (its details, 10:1b13, are not
-  ported). Modes other than 1, 4, 5, 7 and 15 log "not ported" and
-  answer 0.
+  ported). Modes other than 0, 1, 4, 5, 7 and 15 log "not ported" and
+  answer 0; mode 0 is Game Settings (below).
 - **New Game dialog** (10:1e7c): zoom levels (strings 2230-2232, INI
   SetSize, default 1, picks item 2 - SetSize); the ships of MASTER.SHP
   with a name, not of type 7 and allowed (10:611c, below), sorted; the
@@ -785,6 +793,85 @@ in ispace_room.h.
     port always lists C).
 - **Quirk kept:** a ship file's length is divided as its low word,
   sign-extended (files of 32 KB or more give no records).
+
+## Game Settings (ordinal 10 mode 0; port/src/win/ispace_options.c)
+
+- **Opened** by the game's 10:7f18 (sound 0x6e, music paused, the dialog
+  with the speed words DS:8ffa/8ffc, then 6:0b3e reads the INI again and
+  the music goes on) from WM_COMMAND 0x68 (menu Game, Options..) and 0xc0
+  (Alt+G, accelerator MAINACCEL; the right-button menu's Game Options..;
+  WM_SYSCOMMAND 0xc0), whenever the game window takes commands (title,
+  desk, briefing, waves). 9:1546 refuses a second one (string 0x8ac),
+  plays sounds 0x6e and 0x13 and runs template 100 with ordinal 11.
+- **Template 100** (9:15cc): Audio.., Master Volume (bar 0-100: DS:069e,
+  the effects and music volume at once through 9:0a9e; a line or page
+  is 1, letting go plays sound 0x23), the sound system (strings
+  0x8b9-0x8bc up to what the device allows), Display.., Quickload,
+  Play Detail, Zoom (INI Size), Enhanced Graphics, Ship Auto Braking,
+  Difficulty (INI Complex), Play Speed (bar 0-1000 for FrameRateSet:
+  4-36 frames/sec over 0-500, 36-106 over 500-1000, 1000 and past 104
+  "Full Out" (1200); a line or page is 50, Home is Full Out and End the
+  slowest [sic: SB_TOP and SB_BOTTOM]; Normal Speed is 500), Joystick..,
+  Help, the language (0x905), the program's version and date (INSPACE.EXE
+  strings 0xa7, 0xe9, 0x708, 0x25f), the sound libraries (NONE when not
+  loaded, "Compressed" when the library has a string 0x90a, else the
+  template's Normal), the program's icon. OK writes Complex, Braking,
+  Enhance, SoundVolume, SoundSystem, Quick, Detail, Size, SetSize and
+  FrameRateSet and, for a new sound system, runs 9:22ca again; OK or
+  Cancel then starts the last music piece when music was turned on (in
+  Audio Options) or sound turned on. Ordinal 10's sixth word 1 (DS:2136;
+  the game passes 0) grays the detail options.
+- **Display Options** (template 666, 9:2bf8): Enhanced Brightness
+  (Bright), App Menu (Menu: the menu bar), Game Border (Border),
+  Animated Ship Watches (ShipAnim), Always Ask for Save Name
+  (SavePrompt), Skip Sequences (QuickIntro, strings 0x96a-0x96c); OK
+  writes them, the game applies them when the main dialog ends.
+- **Audio Options** (template 999, 9:2f30): Sound FX, Voice Effects,
+  Music Soundtrack, Effects vs. Music (FXMusic, at once), Mix Channels
+  (1-8: WAVEMIX.DLL is there, as the port's always is; else only 1),
+  Stereo Effect (0x96d-0x970), Keep Sounds in Memory (not PurgeSound),
+  Swap left/right. OK writes them and 9:331a frees the sound DLLs turned
+  off, loads those turned on and, for a new channel count with sound on,
+  frees and loads both, reopens the mixer (9:04e0 restarting) and loads
+  the sounds again. Controls the device cannot use are grayed.
+- **Help** runs WinHelp on <SndPath><Language>_HELP.HLP, contexts 15 and
+  0x20 (stubbed: logged). **Joystick..** (template 975, 9:40da, which
+  reads the joystick through ordinal 41) is not ported: logged.
+- **Checked against the DLL** with the oracle (tools/dll_oracle/options.txt):
+  the three dialog procedures called with WM_INITDIALOG, every scroll code
+  on each bar, the user's checks and picks, OK and Cancel, the grayed
+  detail options, channel changes: every control's text, state, items,
+  selection and scroll position, the focus and INSPACE.INI after each of
+  132 calls agree.
+- **Quirks kept:** any scroll bar message in Audio Options moves the
+  effects/music bar; the bars remember the last position they showed
+  (DS:0d00-0d04, kept between openings), so a bar moved to that old
+  position again is not redrawn (its thumb springs back where it was
+  drawn last); a new sound system other than none does not open the
+  mixer until the next ordinal 7 mode 0 (wave start); Display and Audio
+  Options give no control the focus at first; texts in the DLL's Arial
+  14x6 are wider than the template (Helv 8) planned, so some are cut
+  or wrapped ("Play", "Skip", ".ouder") [uncertain: Windows 3.1's
+  exact widths].
+- **Fixed silently:** 9:1fae's Cancel reads an uninitialised local as
+  the previous sound system (deciding whether sound was turned on); the
+  port takes the current one (nothing turned on). 9:1f38 builds the
+  version from uninitialised buffers when INSPACE.EXE lacks the strings;
+  the port's are empty. 9:03d8 (a sound DLL freed while SND_FX.DLL has
+  other users) left sounds pointing into the freed library for
+  sndPlaySound; the port lets those of that library go too.
+- **Controls added for it** (controls.c, scrollbar.c, dialog.c, user.c):
+  check boxes (BS_CHECKBOX, BS_AUTOCHECKBOX: a 13-pixel square with a
+  cross, the text 4 pixels after it, the focus rectangle around the text,
+  a double frame while pressed [uncertain: Windows 3.1's bitmaps];
+  BM_GETCHECK/SETCHECK, CheckDlgButton, IsDlgButtonChecked; a mnemonic
+  clicks it), icon statics (SS_ICON, STM_SETICON, the icon at the top
+  left; the template's own icon resource is not loaded: ENG_LANG.DLL has
+  none), horizontal scroll bars (above), WM_NCHITTEST for children
+  (group boxes answer HTTRANSPARENT, so the buttons inside them get the
+  mouse, as in Windows; before, clicks on Audio.. and Display.. went to
+  the group box), and a dropped-down combo box takes every key
+  (DLGC_WANTMESSAGE: Enter picks the item instead of pressing OK).
 
 ## Inner Space Navigation (seg06d; dosfs.c, listbox.c, icon.c)
 
@@ -1051,9 +1138,9 @@ FreeWave, Pump, CloseChannel, CloseSession).
   balance of effects and music volume), StereoEffect (2: how fast sound
   fades sideways), MixChannels (4; 1 uses sndPlaySound), PurgeSound
   (1), StereoSwap, ForceVol, AllowSound (sound with a synchronous
-  driver), SaverVolume (mode 10).  The Game Settings dialog that edits
-  them (ordinal 10 mode 0, 9:1546, dialog procedure ordinal 11) is not
-  ported yet: the INI keys work.
+  driver), SaverVolume (mode 10).  9:22ca also reads Enhance, Detail and
+  Quick (default 1 here, 0 in the game's 6:0b3e) for the Game Settings
+  dialog (ordinal 10 mode 0, ispace_options.c), which edits them.
 - **No device, no files.** Without a wave device (the platform opens
   none) waveOutGetNumDevs is 0 and SoundSystem becomes 0 (written to
   the INI on first run, as in 1994).  A missing SND_FX.DLL or voice DLL
@@ -1107,12 +1194,16 @@ FreeWave, Pump, CloseChannel, CloseSession).
   times); whether WaveMix posted MM_WOM_DONE for flushed or replaced
   waves (the port does not); how it converted waves of other formats
   (voice files only; the port takes PCM 8/16-bit, mono/stereo, any rate,
-  nearest sample); what mode 0's negative width (sound 0x23 only, the
-  mixer restarted) is for; the DLL's rand is seeded from the time in
-  dialogs not ported yet (here it starts at 1).
-- **Not ported:** the joystick (ordinal 41, the NotifyClass timer),
-  the Game Settings dialog, the MIDI device's capabilities (DS:227c,
-  read only by that dialog), the never-read DS:0cf6.
+  nearest sample); what mode 0's negative width (one channel through
+  sndPlaySound and only sound 0x23; the game passes none) is for; the
+  DLL's rand is seeded from the time in dialogs not ported yet (here it
+  starts at 1).
+- **Fixed (port bug):** mode 0's negative width restarted the mixer in
+  the port; 9:0448 passes it to 9:04e0 as the one-channel flag (found
+  with the oracle, options.txt).
+- **Not ported:** the joystick (ordinal 41, the NotifyClass timer, its
+  dialog 9:40da), the never-read DS:227c (the MIDI device's
+  capabilities) and DS:0cf6.
 
 ### Music
 

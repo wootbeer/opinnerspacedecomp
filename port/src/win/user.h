@@ -10,6 +10,7 @@
 #define WM_SETTEXT 0x000C      /* sent after the text is stored; lParam unused */
 #define WM_ERASEBKGND 0x0014
 #define WM_KILLFOCUS 0x0008
+#define WM_NCHITTEST 0x0084    /* asked of children only; DefWindowProc answers HTCLIENT */
 #define WM_NCPAINT 0x0085
 #define WM_GETDLGCODE 0x0087
 #define WM_SYSCHAR 0x0106
@@ -20,6 +21,7 @@
 #define WM_INITMENUPOPUP 0x0117
 #define WM_MENUSELECT 0x011F
 #define WM_RBUTTONDBLCLK 0x0206
+#define WM_HSCROLL 0x0114
 #define DM_GETDEFID (WM_USER + 0)
 
 #define WS_DISABLED 0x08000000L
@@ -58,6 +60,7 @@
 #define COLOR_BTNHIGHLIGHT 20
 
 #define DLGC_WANTARROWS 0x0001
+#define DLGC_WANTMESSAGE 0x0004     /* every key: a dropped-down combo box */
 #define DLGC_WANTCHARS 0x0080
 #define DLGC_DEFPUSHBUTTON 0x0010
 #define DLGC_UNDEFPUSHBUTTON 0x0020
@@ -66,7 +69,20 @@
 
 #define GWW_HINSTANCE (-6)
 
+/* Buttons and statics: check boxes and icons. */
+#define BS_CHECKBOX 2
+#define BS_AUTOCHECKBOX 3
+#define BM_GETCHECK (WM_USER + 0)
+#define BM_SETCHECK (WM_USER + 1)
+#define SS_ICON 3
+#define STM_SETICON (WM_USER + 0)
+void CheckDlgButton(HWND dlg, int16_t id, UINT check);
+UINT IsDlgButtonChecked(HWND dlg, int16_t id);
+/* A check box chosen by its mnemonic: focus, then as clicked. */
+void button_click(HWND h);
+
 /* Hit-test codes: where a point lies in a window. */
+#define HTTRANSPARENT (-1)     /* the window under it gets the mouse */
 #define HTNOWHERE 0
 #define HTCLIENT 1
 #define HTCAPTION 2
@@ -189,8 +205,10 @@ void menu_syscommand(HWND h, WPARAM cmd, LPARAM lp);
 void menu_window_gone(Wnd *w);
 void menu_register(void);
 
-/* Scroll bar controls (scrollbar.c). */
+/* Scroll bar controls (scrollbar.c); the Get calls are for the oracle (tools/dll_oracle). */
 LRESULT scrollbar_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp);
+int16_t GetScrollPos(HWND h, int16_t which);
+void GetScrollRange(HWND h, int16_t which, int16_t *lo, int16_t *hi);
 
 /* Dialogs (dialog.c). */
 #define DIALOG_CLASS "#32770"

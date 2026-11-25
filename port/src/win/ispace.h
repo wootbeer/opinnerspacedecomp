@@ -175,6 +175,39 @@ int16_t ispace_collide(int16_t *vx1, int16_t *vy1, int16_t *vx2, int16_t *vy2, i
 int16_t ispace_dialog(int16_t hwnd, int16_t dc, int16_t pal, int16_t v1, int16_t v0, int16_t w6,
                       int16_t mode);
 int ispace_dialog_slot(void);    /* DS:1f92, slot 0 before any dialog */
+int16_t ispace_dialog_word6(void);  /* DS:2136: the sixth word of the last call (1: Game Settings grays its detail options) */
+/* The dialogs' fonts (9:29c0, 9:2a1e) and 10:602a, which gives them to a
+ * dialog's controls. */
+void ispace_dialog_fonts(int make);
+void ispace_dialog_set_fonts(HWND dlg);
+/* 9:328e: the help file's topic (WinHelp). */
+void ispace_help(int32_t topic);
+
+/* Ordinal 10 mode 0 (9:1546): the Game Settings dialog with its dialog
+ * procedures, ordinals 11 (9:15cc), 37 (9:2bf8, Display Options) and 38
+ * (9:2f30, Audio Options) (ispace_options.c). */
+int16_t ispace_options(HWND owner);
+BOOL ispace_options_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp);
+BOOL ispace_display_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp);
+BOOL ispace_audio_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp);
+
+/* The settings 9:22ca reads from the INI (ispace_sound.c), which the
+ * Game Settings dialogs (ispace_options.c) show and change. */
+typedef struct {
+    int16_t system;             /* DS:2280 SoundSystem: 0 none, 1 standard, 2 dynamic, 3 3-D */
+    int16_t device_best;        /* DS:227e: the most the wave device allows */
+    int16_t fx_on, voice_on;    /* DS:0694 SoundFX, DS:0696 VoiceFX */
+    int16_t volume;             /* DS:069e SoundVolume (SaverVolume in mode 10) */
+    int16_t balance;            /* DS:06a2 FXMusic: 0 effects only ... 100 music only */
+    int16_t stereo;             /* DS:228c StereoEffect */
+    int16_t purge;              /* DS:0698 PurgeSound */
+    int16_t swap;               /* DS:069a StereoSwap */
+    int16_t enhance;            /* DS:2132 Enhance */
+    int16_t detail;             /* DS:228a Detail */
+    int16_t quick;              /* DS:2286 Quick */
+} IspaceSettings;
+
+IspaceSettings *ispace_settings(void);
 
 /* Ordinals 7, 8, 9 (9:0000, 9:076c, 9:0c42): sound (ispace_sound.c). */
 int16_t ispace_sound_control(int32_t a, int16_t mode);
@@ -186,10 +219,19 @@ HWND ispace_sound_window(void);              /* DS:21ae: the NotifyClass window 
 int16_t ispace_sound_system(void);           /* DS:2280 SoundSystem */
 int16_t ispace_sound_music_volume(void);     /* DS:2288 */
 void ispace_sound_path(char *path, size_t size);    /* INI SndPath with its '\' */
+void ispace_sound_read_settings(void);       /* 9:22ca */
+void ispace_sound_mix_volumes(void);         /* 9:0a9e */
+int16_t ispace_sound_channels(void);         /* DS:219e MixChannels */
+HINSTANCE ispace_sound_library(int n);       /* DS:068c: SND_FX.DLL (0), <Language>_FX.DLL (1) */
+/* 9:331a after the Audio Options dialog's INI writes: the sound DLLs and
+ * the mixer as the new settings and channel count say. */
+void ispace_sound_apply(int16_t channels);
 
 /* The music (ordinal 7 mode 11, 9:3906; ispace_music.c). */
 void ispace_music(int16_t n, int16_t wait);
 void ispace_music_set_on(int16_t on);        /* INI Music */
+int16_t ispace_music_on(void);               /* DS:221e */
+int16_t ispace_music_piece(void);            /* DS:0aa4: the piece asked for last */
 void ispace_music_center(void);
 LRESULT ispace_music_message(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp);
 void ispace_music_save_volume(void);

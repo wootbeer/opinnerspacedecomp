@@ -1,5 +1,5 @@
-/* The built-in control classes dialogs use: Button (push buttons),
- * Static (text) and ComboBox (drop-down list; Edit is in edit.c), drawn in Windows
+/* The built-in control classes dialogs use: Button (push buttons, check
+ * boxes, group boxes), Static (text, icons) and ComboBox (drop-down list; Edit is in edit.c), drawn in Windows
  * 3.1's look into the screen.  Colours come from the parent's
  * WM_CTLCOLOR as in Windows; sizes Windows 3.1 derived from its own
  * fonts and bitmaps are approximations (port/NOTES-port.md). */
@@ -32,9 +32,14 @@
 #define MAX_ITEMS 256
 #define LIST_CLASS "ComboLBox"
 
+#define CHECK_BOX 13            /* a check box's square [uncertain: Windows 3.1's bitmap] */
+#define CHECK_GAP 4             /* from the square to the text [uncertain] */
+
 typedef struct {
     HFONT font;
     int pressed, tracking;      /* buttons */
+    int checked;                /* check boxes */
+    HICON icon;                 /* icon statics */
     /* combo box */
     char items[MAX_ITEMS][64];
     int count, sel, hot, top;
@@ -268,6 +273,71 @@ static void group_paint(HWND h)
     ctl_release(h, dc, old);
 }
 
+static int is_check_box(const Wnd *w)
+{
+    return (w->style & BS_TYPE) == BS_CHECKBOX || (w->style & BS_TYPE) == BS_AUTOCHECKBOX;
+}
+
+/* Check boxes: a square (black frame, two while pressed, a cross when
+ * checked) in the middle of the left side, the text after it, the
+ * focus rectangle around the text. */
+static void check_paint(HWND h)
+{
+    Wnd *w = wnd_get(h);
+    Ctl *c = ctl(h);
+    HFONT old;
+    HDC dc = ctl_dc(h, &old);
+    HBRUSH bg = ctl_color(h, dc, CTLCOLOR_BTN);
+    COLORREF frame = GetSysColor(COLOR_WINDOWFRAME);
+    TEXTMETRIC tm;
+    RECT r;
+    int y, k, tw, tx, ty;
+
+    GetClientRect(h, &r);
+    if (bg)
+        FillRect(dc, &r, bg);
+    y = (r.bottom - CHECK_BOX) / 2;
+    ctl_fill(dc, 0, y, CHECK_BOX, y + CHECK_BOX, frame);
+    k = c->pressed ? 2 : 1;
+    ctl_fill(dc, k, y + k, CHECK_BOX - k, y + CHECK_BOX - k, GetSysColor(COLOR_WINDOW));
+    if (c->checked)
+        for (k = 2; k < CHECK_BOX - 2; k++) {
+            ctl_fill(dc, k, y + k, k + 1, y + k + 1, frame);
+            ctl_fill(dc, CHECK_BOX - 1 - k, y + k, CHECK_BOX - k, y + k + 1, frame);
+        }
+    GetTextMetrics(dc, &tm);
+    SetBkMode(dc, TRANSPARENT);
+    SetTextColor(dc, GetSysColor(IsWindowEnabled(h) ? COLOR_WINDOWTEXT : COLOR_GRAYTEXT));
+    tw = ctl_label(dc, 0, 0, w->text, (int)SDL_strlen(w->text), 0, 0);
+    tx = CHECK_BOX + CHECK_GAP;
+    ty = (r.bottom - tm.tmHeight) / 2;
+    ctl_label(dc, tx, ty, w->text, (int)SDL_strlen(w->text), 0, 1);
+    if (GetFocus() == h) {
+        SetRect(&r, (int16_t)(tx - 1), (int16_t)ty, (int16_t)(tx + tw + 1), (int16_t)(ty + tm.tmHeight));
+        DrawFocusRect(dc, &r);
+    }
+    ctl_release(h, dc, old);
+}
+
+/* A button released over itself: an automatic check box changes, the
+ * parent hears of it. */
+static void button_done(HWND h)
+{
+    Ctl *c = ctl(h);
+
+    if ((wnd_get(h)->style & BS_TYPE) == BS_AUTOCHECKBOX) {
+        c->checked = !c->checked;
+        InvalidateRect(h, NULL, 0);
+    }
+    notify(h, BN_CLICKED);
+}
+
+void button_click(HWND h)
+{
+    SetFocus(h);
+    button_done(h);
+}
+
 static void button_set_pressed(HWND h, int on)
 {
     Ctl *c = ctl(h);
@@ -293,17 +363,30 @@ static LRESULT button_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
         }
         if (msg == WM_GETDLGCODE)
             return DLGC_STATIC;
-        if (msg == WM_LBUTTONDOWN || msg == WM_LBUTTONDBLCLK)
-            return 0;
+        if (msg == WM_NCHITTEST)
+            return HTTRANSPARENT;
         return common(h, msg, wp, lp);
     }
     switch (msg) {
     case WM_PAINT:
         validate(h);
-        button_paint(h);
+        if (is_check_box(w))
+            check_paint(h);
+        else
+            button_paint(h);
         return 0;
     case WM_GETDLGCODE:
+        if (is_check_box(w))
+            return DLGC_BUTTON;
         return DLGC_BUTTON | ((w->style & BS_TYPE) == BS_DEFPUSHBUTTON ? DLGC_DEFPUSHBUTTON : DLGC_UNDEFPUSHBUTTON);
+    case BM_GETCHECK:
+        return c->checked;
+    case BM_SETCHECK:
+        if (is_check_box(w) && c->checked != (int)wp) {
+            c->checked = (int)wp;
+            InvalidateRect(h, NULL, 0);
+        }
+        return 0;
     case WM_LBUTTONDOWN:
     case WM_LBUTTONDBLCLK:
         SetCapture(h);
@@ -326,7 +409,7 @@ static LRESULT button_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
         ReleaseCapture();
         if (c->pressed) {
             button_set_pressed(h, 0);
-            notify(h, BN_CLICKED);
+            button_done(h);
         }
         return 0;
     case WM_KEYDOWN:
@@ -336,7 +419,7 @@ static LRESULT button_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
     case WM_KEYUP:
         if (wp == VK_SPACE && c->pressed) {
             button_set_pressed(h, 0);
-            notify(h, BN_CLICKED);
+            button_done(h);
         }
         return 0;
     case WM_KILLFOCUS:
@@ -346,14 +429,18 @@ static LRESULT button_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
     return common(h, msg, wp, lp);
 }
 
-/* Static text. */
+/* Static text, or an icon (SS_ICON: STM_SETICON's, at the top left; the
+ * template's icon resource is not loaded [uncertain: the game's names
+ * none that exists]). */
 static LRESULT static_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
 {
     Wnd *w = wnd_get(h);
+    Ctl *c = ctl(h);
     HFONT old;
     HDC dc;
     HBRUSH bg;
     RECT r;
+    HICON prev;
 
     switch (msg) {
     case WM_PAINT:
@@ -364,9 +451,19 @@ static LRESULT static_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
         if (bg)
             FillRect(dc, &r, bg);
         SetBkMode(dc, TRANSPARENT);
-        wrapped(dc, &r, w->text, (int)(w->style & SS_TYPE), (w->style & SS_NOPREFIX) != 0);
+        if ((w->style & SS_TYPE) == SS_ICON) {
+            if (c->icon)
+                DrawIcon(dc, 0, 0, c->icon);
+        } else {
+            wrapped(dc, &r, w->text, (int)(w->style & SS_TYPE), (w->style & SS_NOPREFIX) != 0);
+        }
         ctl_release(h, dc, old);
         return 0;
+    case STM_SETICON:
+        prev = c->icon;
+        c->icon = wp;
+        InvalidateRect(h, NULL, 1);
+        return prev;
     case WM_GETDLGCODE:
         return DLGC_STATIC;
     case WM_SETFOCUS:
@@ -660,7 +757,7 @@ static LRESULT combo_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
         combo_paint(h);
         return 0;
     case WM_GETDLGCODE:
-        return DLGC_WANTARROWS | DLGC_WANTCHARS;
+        return DLGC_WANTARROWS | DLGC_WANTCHARS | (c->list ? DLGC_WANTMESSAGE : 0);
     case WM_LBUTTONDOWN:
     case WM_LBUTTONDBLCLK:
         SetFocus(h);
@@ -815,6 +912,16 @@ static LRESULT list_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
         return 0;
     }
     return DefWindowProc(h, msg, wp, lp);
+}
+
+void CheckDlgButton(HWND dlg, int16_t id, UINT check)
+{
+    SendDlgItemMessage(dlg, id, BM_SETCHECK, check, 0);
+}
+
+UINT IsDlgButtonChecked(HWND dlg, int16_t id)
+{
+    return (UINT)SendDlgItemMessage(dlg, id, BM_GETCHECK, 0, 0);
 }
 
 void controls_register(void)

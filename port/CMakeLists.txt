@@ -30,6 +30,7 @@ add_executable(inspace
     src/win/ispace_cut.c
     src/win/ispace_dlg.c
     src/win/ispace_img.c
+    src/win/ispace_options.c
     src/win/ispace_panel.c
     src/win/ispace_pal.c
     src/win/ispace_reg.c

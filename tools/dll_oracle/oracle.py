@@ -23,7 +23,7 @@ import sys
 import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from emu import INI, IspaceEmu, ROOT, new_bitmap, new_dc  # noqa: E402
+from emu import INI, IspaceEmu, ROOT, GetDlgItem, dialog_state, dialog_window, new_bitmap, new_dc  # noqa: E402
 
 # Argument kinds per ordinal, in the DLL's (Pascal) order: w word,
 # s far string, b byte (passed as a word), l long, P a POINT (the script
@@ -31,7 +31,7 @@ from emu import INI, IspaceEmu, ROOT, new_bitmap, new_dc  # noqa: E402
 # of ordinal 32 (no script argument: a far pointer and a handle), p a
 # far pointer to a word (the script gives its value; the words are
 # compared after the call).
-ORDINALS = {1: 'wwswww', 2: 'wwswwwwwwwbbbw', 3: 's', 4: 'wwwwwww', 5: '', 6: 'www', 12: 'wwswwwwwwbb', 1000: 'wwswww',
+ORDINALS = {10: 'wwwwwww', 11: 'wwwl', 37: 'wwwl', 38: 'wwwl', 1001: 'ww', 1002: 'ww', 1: 'wwswww', 2: 'wwswwwwwwwbbbw', 3: 's', 4: 'wwwwwww', 5: '', 6: 'www', 12: 'wwswwwwwwbb', 1000: 'wwswww',
             7: 'lw', 8: 'Pwwl', 9: 'wPwllls', 14: 'wwwww', 15: 'wwwwwwwww', 18: 'wwwwww', 29: 'ppppppppwwwwpp', 32: 'wwRwlwlwwwwww', 33: 'wwlwlwws', 34: 'wwwwww', 35: 'wwwwww'}
 # Ordinals after which the wave device's volume is compared (as outs).
 SOUND = {7, 8, 9}
@@ -40,6 +40,14 @@ VOID = {14}
 # Pseudo-ordinal -> (segment, offset) of a C-convention routine: 1000 is
 # 5:0000, the ship picture of the dialogs (pal, id, name, a, b, mode).
 INTERNAL = {1000: (5, 0x0000)}
+# Dialog procedures (hwnd, msg, wParam, lParam): the first argument DLGn
+# makes a dialog from the language DLL's template n (the script sends its
+# WM_INITDIALOG), DLG is the last one made; C<id>:<pos> is the long
+# MAKELONG(pos, the control's handle) of a scroll message.  After each
+# call the dialog's state is compared.  Pseudo-ordinals 1001 (id, 0/1)
+# and 1002 (id, item) are the user checking a box and picking an item.
+DIALOGS = {11, 37, 38, 1001, 1002}
+USER = {1001: 'checked', 1002: 'sel'}
 
 
 def parse_script(path):
@@ -61,9 +69,16 @@ def script_args(ordinal, args):
 
 def run_emu(calls, data_dir):
     e = IspaceEmu(data_dir)
-    results, out = [], []
+    results, out, dlg = [], [], 0
     for k, (ordinal, args) in enumerate(calls):
         words, rect_block, mdc, ptrs, sdc = [], None, None, [], None
+        if ordinal in USER:
+            w = e.windows[GetDlgItem(e, dlg, int(args[0], 0))]
+            w[USER[ordinal]] = int(args[1], 0)
+            results.append(0)
+            out.append(dict(ret=0, bmp=None, dcbmp=None, pals={}, rects=None, outs=[], texts=[],
+                            state=dialog_state(e, dlg) + ini_state(e.ini)))
+            continue
         for kind, a in script_args(ordinal, args):
             if kind == 'p':
                 h = e.galloc(2)
@@ -79,6 +94,12 @@ def run_emu(calls, data_dir):
             elif kind == 's':
                 fp = e.far_string(a)
                 words += [fp >> 16, fp & 0xffff] if ordinal not in INTERNAL else [fp & 0xffff, fp >> 16]
+            elif a.startswith('DLG'):
+                dlg = dialog_window(e, int(a[3:])) if a[3:] else dlg
+                words.append(dlg)
+            elif a.startswith('C') and ':' in a:
+                cid, pos = a[1:].split(':')
+                words += [GetDlgItem(e, dlg, int(cid, 0)), int(pos, 0) & 0xffff]
             elif a == 'DC':
                 words.append(new_dc(e))
             elif a.startswith('DC@'):
@@ -117,9 +138,14 @@ def run_emu(calls, data_dir):
         db = e.bitmap(e.obj(sdc, 'dc')['bmp']) if sdc else None
         out.append(dict(ret=r, bmp=(b['w'], b['h'], int(b['mono']), bytes(b['px'])) if b else None,
                         dcbmp=(db['w'], db['h'], int(db['mono']), bytes(db['px'])) if db else None,
-                        pals=pals, rects=rects, texts=e.texts, outs=outs))
+                        pals=pals, rects=rects, texts=e.texts, outs=outs,
+                        state=dialog_state(e, dlg) + ini_state(e.ini) if ordinal in DIALOGS else None))
         e.texts = []
     return out
+
+
+def ini_state(ini):
+    return ['ini %s=%s' % kv for kv in sorted(ini.items(), key=lambda kv: kv[0].upper())]
 
 
 def run_port(script, exe, data_dir):
@@ -136,7 +162,9 @@ def run_port(script, exe, data_dir):
     for line in text.splitlines():
         p = line.split()
         if p[0] == 'call':
-            out.append(dict(ret=int(p[5]) & 0xffff, bmp=None, dcbmp=None, pals={}, rects=None, outs=[]))
+            out.append(dict(ret=int(p[5]) & 0xffff, bmp=None, dcbmp=None, pals={}, rects=None, outs=[], state=None))
+        elif p[0] == 'state':
+            out[-1]['state'] = (out[-1]['state'] or []) + [line[6:]]
         elif p[0] == 'outs':
             out[-1]['outs'] = [int(x) for x in p[1:]]
         elif p[0] == 'rects':
@@ -173,6 +201,10 @@ def compare(k, ordinal, o, p, show):
         diffs.append('result: DLL %d, port %d' % (o['ret'], p['ret']))
     if o['outs'] != p['outs']:
         diffs.append('words: DLL %s, port %s' % (o['outs'], p['outs']))
+    if o.get('state') != p.get('state'):
+        os_, ps = o.get('state') or [], p.get('state') or []
+        diffs += ['state: DLL %s | port %s' % (a, b) for a, b in zip(os_ + [''] * len(ps), ps + [''] * len(os_))
+                  if a != b][:show]
     diffs += compare_bitmaps('bitmap', o['bmp'], p['bmp'], show)
     diffs += compare_bitmaps('DC bitmap', o['dcbmp'], p['dcbmp'], show)
     if o.get('rects') is not None or p.get('rects') is not None:

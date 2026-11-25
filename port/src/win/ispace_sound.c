@@ -63,17 +63,11 @@ typedef struct {                /* DS:187c, DS:17d8 */
     MixWave *wave;              /* for WaveMix */
 } Sound;
 
+static IspaceSettings cfg = {.volume = 100, .balance = 50};
+
 static struct {
-    int16_t system;             /* DS:2280 SoundSystem: 0 none, 1 standard, 2 dynamic, 3 3-D */
-    int16_t device_best;        /* DS:227e: the most the wave device allows */
-    int16_t fx_on, voice_on;    /* DS:0694 SoundFX, DS:0696 VoiceFX */
-    int16_t volume;             /* DS:069e SoundVolume (SaverVolume in mode 10) */
-    int16_t balance;            /* DS:06a2 FXMusic: 0 effects only ... 100 music only */
     int16_t fx_volume;          /* DS:06a0 */
     int16_t music_volume;       /* DS:2288 */
-    int16_t stereo;             /* DS:228c StereoEffect */
-    int16_t purge;              /* DS:0698 PurgeSound */
-    int16_t swap;               /* DS:069a StereoSwap */
     HINSTANCE lib[2];           /* DS:068c: SND_FX.DLL, <Language>_FX.DLL */
     int16_t lib_refs[2];        /* DS:19d8 */
     int16_t channels;           /* DS:219e MixChannels */
@@ -99,7 +93,7 @@ static struct {
     DWORD set_volume;           /* DS:0cee: the last one set */
     uint32_t seed;              /* DS:0b8c: the DLL's own rand */
 } snd = {
-    .fx_volume = 100, .balance = 50, .wave_volume = 0xffffffff, .saved_volume = 0xffffffff,
+    .fx_volume = 100, .wave_volume = 0xffffffff, .saved_volume = 0xffffffff,
     .followed_ch = NO_CHANNEL, .seed = 1,
 };
 
@@ -111,12 +105,17 @@ static int16_t dll_rand(void)
     return (int16_t)(snd.seed >> 16 & 0x7fff);
 }
 
-/* 9:0a9e: effects and music volume from SoundVolume and FXMusic. */
-static void mix_volumes(void)
+IspaceSettings *ispace_settings(void)
 {
-    snd.fx_volume = snd.balance <= 50 ? snd.volume
-                                      : (int16_t)((100 - snd.balance) * 2 * snd.volume / 100);
-    snd.music_volume = snd.balance >= 50 ? snd.volume : (int16_t)(snd.balance * 2 * snd.volume / 100);
+    return &cfg;
+}
+
+/* 9:0a9e: effects and music volume from SoundVolume and FXMusic. */
+void ispace_sound_mix_volumes(void)
+{
+    snd.fx_volume = cfg.balance <= 50 ? cfg.volume
+                                      : (int16_t)((100 - cfg.balance) * 2 * cfg.volume / 100);
+    snd.music_volume = cfg.balance >= 50 ? cfg.volume : (int16_t)(cfg.balance * 2 * cfg.volume / 100);
 }
 
 /* 9:0b62: the device volume, when it changes; 0 when setting it fails. */
@@ -136,45 +135,48 @@ static void profile_put_int(const char *key, int16_t v)
     WritePrivateProfileString(APP, key, buf, INI);
 }
 
-/* 9:22ca: the INI's sound settings (the joystick's and Enhance, Detail
- * and Quick, read here too, belong to parts not ported) and what the
+/* 9:22ca: the INI's sound settings, Enhance, Detail and Quick (the
+ * joystick's, read here too, belong to parts not ported) and what the
  * wave device can do.  A synchronous device (a PC speaker driver) turns
  * all sound off, in the INI too, unless AllowSound is set. */
-static void read_settings(void)
+void ispace_sound_read_settings(void)
 {
     WAVEOUTCAPS caps;
 
-    snd.fx_on = GetPrivateProfileInt(APP, "SoundFX", 1, INI);
-    snd.voice_on = GetPrivateProfileInt(APP, "VoiceFX", 1, INI);
+    cfg.fx_on = GetPrivateProfileInt(APP, "SoundFX", 1, INI);
+    cfg.voice_on = GetPrivateProfileInt(APP, "VoiceFX", 1, INI);
     ispace_music_set_on(GetPrivateProfileInt(APP, "Music", 1, INI));
-    snd.volume = GetPrivateProfileInt(APP, "SoundVolume", 100, INI);
-    snd.balance = GetPrivateProfileInt(APP, "FXMusic", 50, INI);
-    snd.stereo = GetPrivateProfileInt(APP, "StereoEffect", 2, INI);
-    snd.purge = GetPrivateProfileInt(APP, "PurgeSound", 1, INI);
-    snd.swap = GetPrivateProfileInt(APP, "StereoSwap", 0, INI);
-    mix_volumes();
+    cfg.volume = GetPrivateProfileInt(APP, "SoundVolume", 100, INI);
+    cfg.balance = GetPrivateProfileInt(APP, "FXMusic", 50, INI);
+    cfg.stereo = GetPrivateProfileInt(APP, "StereoEffect", 2, INI);
+    cfg.purge = GetPrivateProfileInt(APP, "PurgeSound", 1, INI);
+    cfg.swap = GetPrivateProfileInt(APP, "StereoSwap", 0, INI);
+    ispace_sound_mix_volumes();
     if (!waveOutGetNumDevs()) {
-        snd.device_best = 0;
+        cfg.device_best = 0;
     } else {
         waveOutGetDevCaps(0, &caps, sizeof caps);
         if (caps.dwSupport & WAVECAPS_SYNC && !GetPrivateProfileInt(APP, "AllowSound", 0, INI)) {
-            snd.device_best = snd.voice_on = snd.fx_on = 0;
+            cfg.device_best = cfg.voice_on = cfg.fx_on = 0;
             ispace_music_set_on(0);
             profile_put_int("Music", 0);
             profile_put_int("SoundFX", 0);
             profile_put_int("VoiceFX", 0);
         } else if (caps.dwSupport & WAVECAPS_VOLUME)
-            snd.device_best = caps.dwSupport & WAVECAPS_LRVOLUME ? 3 : 2;
+            cfg.device_best = caps.dwSupport & WAVECAPS_LRVOLUME ? 3 : 2;
         else
-            snd.device_best = 1;
+            cfg.device_best = 1;
     }
-    snd.system = GetPrivateProfileInt(APP, "SoundSystem", -1, INI);
-    if (snd.system == -1) {
-        snd.system = snd.device_best;
-        profile_put_int("SoundSystem", snd.system);
+    cfg.system = GetPrivateProfileInt(APP, "SoundSystem", -1, INI);
+    if (cfg.system == -1) {
+        cfg.system = cfg.device_best;
+        profile_put_int("SoundSystem", cfg.system);
     }
-    if (snd.system > snd.device_best)
-        snd.system = snd.device_best;
+    cfg.enhance = GetPrivateProfileInt(APP, "Enhance", 1, INI);
+    cfg.detail = GetPrivateProfileInt(APP, "Detail", 3, INI);
+    cfg.quick = GetPrivateProfileInt(APP, "Quick", 1, INI);
+    if (cfg.system > cfg.device_best)
+        cfg.system = cfg.device_best;
 }
 
 /* INI SndPath, ending in '\' (an empty one gives "\"). */
@@ -211,7 +213,7 @@ static void load_library(int n)
         SDL_strlcat(path, "_FX.DLL", sizeof path);
     }
     if (OpenFile(path, &of, OF_EXIST) == HFILE_ERROR) {
-        *(n == 0 ? &snd.fx_on : &snd.voice_on) = 0;
+        *(n == 0 ? &cfg.fx_on : &cfg.voice_on) = 0;
         profile_put_int(off_key[n], 0);
         return;
     }
@@ -250,9 +252,9 @@ static void load_wave(int16_t a, int force)
     const uint8_t *riff;
     uint32_t size;
 
-    if (!snd.system || loaded(a) || !lib)
+    if (!cfg.system || loaded(a) || !lib)
         return;
-    if ((!force && sound_flags[a] & F_ON_DEMAND) || (voice ? !snd.voice_on : !snd.fx_on))
+    if ((!force && sound_flags[a] & F_ON_DEMAND) || (voice ? !cfg.voice_on : !cfg.fx_on))
         return;
     riff = module_resource(lib, MAKEINTRESOURCE(RES_TYPE), MAKEINTRESOURCE(100 + a), &size);
     if (!riff)
@@ -268,7 +270,7 @@ static void load_wave(int16_t a, int force)
  * the current channel count, not by how the sound was loaded.) */
 static void free_wave(int16_t a, int force)
 {
-    if (!force && (!(sound_flags[a] & F_ON_DEMAND) || (!snd.purge && !(sound_flags[a] & F_PURGE))))
+    if (!force && (!(sound_flags[a] & F_ON_DEMAND) || (!cfg.purge && !(sound_flags[a] & F_PURGE))))
         return;
     if (snd.sound[a].wave)
         WaveMixFreeWave(snd.session, snd.sound[a].wave);
@@ -359,17 +361,18 @@ static void close_mixer(int force)
 }
 
 /* 9:04e0: MixChannels channels of WaveMix, or sndPlaySound for one.
- * only_one restarts it [uncertain: what the negative width of mode 0
- * that asks for it means]; one_channel forces sndPlaySound.  More than 8
- * channels (only by editing the INI) overran the DLL's table: 8. */
-static void open_mixer(int only_one, int one_channel)
+ * restart closes it first (the Audio Options dialog's new channel
+ * count); one_channel forces sndPlaySound (mode 0's negative width).
+ * More than 8 channels (only by editing the INI) overran the DLL's
+ * table: 8. */
+static void open_mixer(int restart, int one_channel)
 {
     snd.channels = GetPrivateProfileInt(APP, "MixChannels", 4, INI);
     if (snd.channels > MAX_CHANNELS)
         snd.channels = MAX_CHANNELS;
     if (one_channel)
         snd.channels = 1;
-    if (only_one) {
+    if (restart) {
         close_mixer(1);
         if (!snd.opened)
             snd.opened = 1;
@@ -392,8 +395,9 @@ static void open_mixer(int only_one, int one_channel)
 }
 
 /* 9:0448 (mode 0): the wave's size, the settings, the sound DLLs, the
- * mixer and the sounds that are not loaded on demand (only sound 0x23
- * when w is negative). */
+ * mixer and the sounds that are not loaded on demand; a negative w asks
+ * for one channel (sndPlaySound) and only sound 0x23 [uncertain: what
+ * for; the game passes none]. */
 static void sound_init(int16_t w, int16_t h)
 {
     int only_one = w < 0;
@@ -405,16 +409,71 @@ static void sound_init(int16_t w, int16_t h)
         snd.world.x = w;
         snd.world.y = h;
     }
-    read_settings();
+    ispace_sound_read_settings();
     load_library(0);
     load_library(1);
-    if (snd.system)
-        open_mixer(only_one, 0);
+    if (cfg.system)
+        open_mixer(0, only_one);
     if (only_one)
         load_wave(0x23, 0);
     else
         for (i = 0; i < SOUNDS; i++)
             load_wave(i, 0);
+}
+
+/* 9:03d8: library n let go whatever its users: everything stopped, the
+ * sounds freed (all of them while SND_FX.DLL has at most one user, else
+ * the on-demand ones).  A sound left in the DLL's memory would have
+ * pointed into the freed library; those of library n go too. */
+static void drop_library(int n)
+{
+    int16_t i;
+
+    stop_all();
+    for (i = 0; i < SOUNDS; i++)
+        free_wave(i, snd.lib_refs[0] <= 1 || (snd.sound[i].riff && (sound_flags[i] & F_VOICE) == n));
+    snd.lib_refs[n] = 0;
+    if (snd.lib[n]) {
+        FreeLibrary(snd.lib[n]);
+        snd.lib[n] = 0;
+    }
+}
+
+void ispace_sound_apply(int16_t channels)
+{
+    int reload = 0, n;
+    int16_t i;
+
+    for (n = 0; n < 2; n++)
+        if (!(n ? cfg.voice_on : cfg.fx_on) && snd.lib[n])
+            drop_library(n);
+    for (n = 0; n < 2; n++)
+        if ((n ? cfg.voice_on : cfg.fx_on) && !snd.lib[n]) {
+            load_library(n);
+            reload = 1;
+        }
+    if (channels != snd.channels && cfg.system) {
+        drop_library(0);
+        drop_library(1);
+        snd.channels = channels;
+        load_library(0);
+        load_library(1);
+        reload = 1;
+        open_mixer(1, 0);
+    }
+    if (reload)
+        for (i = 0; i < SOUNDS; i++)
+            load_wave(i, 0);
+}
+
+int16_t ispace_sound_channels(void)
+{
+    return snd.channels;
+}
+
+HINSTANCE ispace_sound_library(int n)
+{
+    return snd.lib[n];
 }
 
 /* 9:06a0 (mode 1). */
@@ -424,7 +483,7 @@ static void sound_end(void)
 
     for (i = 0; i < SOUNDS; i++)
         free_wave(i, snd.lib_refs[0] <= 1);
-    if (snd.system)
+    if (cfg.system)
         close_mixer(0);
     free_library(0);
     free_library(1);
@@ -436,7 +495,7 @@ static void sound_end(void)
  * device gets its volume from before back. */
 static void sound_deactivate(void)
 {
-    if (!snd.system)
+    if (!cfg.system)
         return;
     stop_all();
     waveOutGetVolume(0, &snd.wave_volume);
@@ -454,7 +513,7 @@ static void sound_activate(void)
 {
     int force = GetPrivateProfileInt(APP, "ForceVol", 0, INI) != 0;
 
-    if (!snd.system)
+    if (!cfg.system)
         return;
     waveOutGetVolume(0, &snd.saved_volume);
     if (force)
@@ -499,8 +558,8 @@ int16_t ispace_sound_control(int32_t a, int16_t mode)
             WaveMixPump();
         break;
     case 10:                    /* the screen saver's volume */
-        snd.volume = GetPrivateProfileInt(APP, "SaverVolume", 0, INI);
-        mix_volumes();
+        cfg.volume = GetPrivateProfileInt(APP, "SaverVolume", 0, INI);
+        ispace_sound_mix_volumes();
         break;
     case 11:                    /* 9:3906 */
         ispace_music((int16_t)LO16(a), (int16_t)HI16(a));
@@ -515,7 +574,7 @@ int16_t ispace_sound_control(int32_t a, int16_t mode)
  * StereoEffect: for x the near and far ear, for y both. */
 static int16_t scaled(int16_t d)
 {
-    switch (snd.stereo) {
+    switch (cfg.stereo) {
     case 0: return (int16_t)(d / 4);
     case 1: return (int16_t)(d / 2);
     case 3: return (int16_t)(d + d / 2);
@@ -592,7 +651,7 @@ int16_t ispace_sound_follow(POINT p, int16_t x, int16_t y, int32_t view)
     int16_t dx, dy, near_ear, far_ear, both, left, right, t;
     int set;
 
-    if (snd.system <= 1)
+    if (cfg.system <= 1)
         return 0;
     if (x) {
         snd.offset.x = x;
@@ -618,7 +677,7 @@ int16_t ispace_sound_follow(POINT p, int16_t x, int16_t y, int32_t view)
         snd.ch[snd.followed_ch].on_screen = 0;
     left = (int16_t)device_level((uint16_t)left);
     right = (int16_t)device_level((uint16_t)right);
-    if (snd.swap) {
+    if (cfg.swap) {
         t = left;
         left = right;
         right = t;
@@ -738,7 +797,7 @@ int16_t ispace_sound_play(int16_t a, POINT p, int16_t r, int32_t q, int32_t view
     char path[0x80];
     const char *file = NULL;
 
-    if (!snd.system || (!snd.voice_on && a == -1))
+    if (!cfg.system || (!cfg.voice_on && a == -1))
         return 0;
     switch (a) {
     case -1:
@@ -750,7 +809,7 @@ int16_t ispace_sound_play(int16_t a, POINT p, int16_t r, int32_t q, int32_t view
         break;
     case 0x0c: a = 0x0b; break;
     case 0x26:
-        if (!snd.voice_on)
+        if (!cfg.voice_on)
             a = 0x23;
         break;
     case 0x64: return 0;
@@ -825,7 +884,7 @@ void ispace_sound_effect(int16_t n)
 /* The DLL's music settings the music module reads. */
 int16_t ispace_sound_system(void)
 {
-    return snd.system;
+    return cfg.system;
 }
 
 int16_t ispace_sound_music_volume(void)
