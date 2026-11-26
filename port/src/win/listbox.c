@@ -3,8 +3,10 @@
  * (LBS_OWNERDRAWFIXED, WM_DRAWITEM), in one column or in columns
  * (LBS_MULTICOLUMN); scroll bars (WS_VSCROLL, WS_HSCROLL with
  * LB_SETHORIZONTALEXTENT) appear when the items do not fit.  One item
- * is selected at a time (multiple selection is not modelled).  Any
- * change repaints the whole control, each item drawn entire. */
+ * is selected at a time, or any number (LBS_EXTENDEDSEL: a click or an
+ * arrow key selects one, Shift extends from the anchor, Ctrl+click
+ * toggles; LBS_MULTIPLESEL: a click or Space toggles).  Any change
+ * repaints the whole control, each item drawn entire. */
 #include <SDL3/SDL_stdinc.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,6 +18,9 @@
 #define LBS_OWNERDRAWFIXED 0x0010
 #define LBS_HASSTRINGS 0x0040
 #define LBS_MULTICOLUMN 0x0200
+#define LBS_MULTIPLESEL 0x0008
+#define LBS_EXTENDEDSEL 0x0800
+#define LB_GETSEL (WM_USER + 8)
 #define WS_HSCROLL 0x00100000L
 #define LB_ERR (-1)
 #define LB_SETSEL (WM_USER + 6)
@@ -34,12 +39,15 @@
 typedef struct {
     char *s;
     DWORD data;
+    int selected;               /* multiple-selection boxes */
 } Item;
 
 typedef struct {
     Item *v;
     int count, cap;
-    int sel, top, xoff;         /* top: first item shown; xoff: pixels scrolled sideways */
+    int sel, top, xoff;         /* sel: the selection, or the caret of a multiple-selection box;
+                                 * top: first item shown; xoff: pixels scrolled sideways */
+    int anchor, sel_changed;    /* multiple selection: where Shift extends from; a change to notify */
     int item_h, col_w, extent;
     int redraw, tracking, pressed_sel, dbl;
     HFONT font;
@@ -74,6 +82,18 @@ static int has_strings(HWND h)
 static int multi(HWND h)
 {
     return (style(h) & LBS_MULTICOLUMN) != 0;
+}
+
+static int multisel(HWND h)
+{
+    return (style(h) & (LBS_MULTIPLESEL | LBS_EXTENDEDSEL)) != 0;
+}
+
+static int is_selected(HWND h, int i)
+{
+    Lb *l = lb(h);
+
+    return multisel(h) ? l->v[i].selected : i == l->sel;
 }
 
 static Layout layout(HWND h)
@@ -194,12 +214,86 @@ static void select_item(HWND h, int i)
     show_item(h, i);
 }
 
+/* Multiple selection: items from..to selected, the others too when
+ * keep is set; the caret on to. */
+static void select_range(HWND h, int from, int to, int keep)
+{
+    Lb *l = lb(h);
+    int lo = SDL_min(from, to), hi = SDL_max(from, to), i;
+
+    for (i = 0; i < l->count; i++) {
+        int on = (i >= lo && i <= hi) || (keep && l->v[i].selected);
+        if (on != l->v[i].selected) {
+            l->v[i].selected = on;
+            l->sel_changed = 1;
+        }
+    }
+    l->sel = to;
+    show_item(h, to);
+    changed(h);
+}
+
+/* Item i chosen in a multiple-selection box: toggled (Ctrl, or any
+ * choice in an LBS_MULTIPLESEL box), the range from the anchor (Shift),
+ * else selected alone. */
+static void choose(HWND h, int i, int shift, int ctrl)
+{
+    Lb *l = lb(h);
+
+    if (i < 0 || i >= l->count)
+        return;
+    if (ctrl || style(h) & LBS_MULTIPLESEL) {
+        l->v[i].selected = !l->v[i].selected;
+        l->sel_changed = 1;
+        l->anchor = l->sel = i;
+        show_item(h, i);
+        changed(h);
+        return;
+    }
+    if (!shift || l->anchor < 0 || l->anchor >= l->count)
+        l->anchor = i;
+    select_range(h, l->anchor, i, 0);
+}
+
+/* LBN_SELCHANGE for a change made by the user. */
+static void notify_change(HWND h)
+{
+    Lb *l = lb(h);
+
+    if (l->sel_changed) {
+        l->sel_changed = 0;
+        notify(h, LBN_SELCHANGE);
+    }
+}
+
+static int sel_count(HWND h)
+{
+    Lb *l = lb(h);
+    int n = 0, i;
+
+    for (i = 0; i < l->count; i++)
+        n += l->v[i].selected;
+    return n;
+}
+
+/* LB_GETSELITEMS: the indexes of up to max selected items. */
+static int sel_items(HWND h, int max, int16_t *out)
+{
+    Lb *l = lb(h);
+    int n = 0, i;
+
+    for (i = 0; i < l->count && n < max; i++)
+        if (l->v[i].selected)
+            out[n++] = (int16_t)i;
+    return n;
+}
+
 /* Painting. */
 static void draw_item(HWND h, HDC dc, const RECT *r, int i, int focus)
 {
     Lb *l = lb(h);
     DRAWITEMSTRUCT dis;
-    UINT state = (i == l->sel ? ODS_SELECTED : 0) | (focus ? ODS_FOCUS : 0);
+    UINT state = (i >= 0 && is_selected(h, i) ? ODS_SELECTED : 0) | (focus ? ODS_FOCUS : 0);
 
     if (owner_draw(h)) {
         dis.CtlType = ODT_LISTBOX;
@@ -316,6 +410,7 @@ static int insert(HWND h, int at, LPARAM lp)
     }
     it.s = SDL_strdup(has_strings(h) ? (const char *)lp : "");
     it.data = has_strings(h) ? 0 : (DWORD)lp;
+    it.selected = 0;
     memmove(&l->v[at + 1], &l->v[at], (size_t)(l->count - at) * sizeof *l->v);
     l->v[at] = it;
     l->count++;
@@ -348,6 +443,8 @@ static int delete_item(HWND h, int i)
         l->sel = -1;
     else if (l->sel > i)
         l->sel--;
+    if (l->anchor >= l->count)
+        l->anchor = l->count - 1;
     set_top(h, l->top);
     changed(h);
     return l->count;
@@ -359,7 +456,7 @@ static void reset(HWND h)
 
     while (l->count)
         SDL_free(l->v[--l->count].s);
-    l->sel = -1;
+    l->sel = l->anchor = -1;
     l->top = l->xoff = 0;
     changed(h);
 }
@@ -419,6 +516,24 @@ static int bar_click(HWND h, int x, int y)
     return x >= o.w || y >= o.h;
 }
 
+/* The caret moved by a key to i: an LBS_MULTIPLESEL box moves only the
+ * caret (Space toggles), an LBS_EXTENDEDSEL box selects as a click. */
+static void multisel_key(HWND h, int i)
+{
+    Lb *l = lb(h);
+
+    if (i < 0)
+        return;
+    if (style(h) & LBS_MULTIPLESEL) {
+        l->sel = i;
+        show_item(h, i);
+        changed(h);
+        return;
+    }
+    choose(h, i, GetKeyState(VK_SHIFT) < 0, 0);
+    notify_change(h);
+}
+
 static void key(HWND h, int vk)
 {
     Lb *l = lb(h);
@@ -439,6 +554,10 @@ static void key(HWND h, int vk)
     if (l->sel < 0 && vk != VK_END)
         i = 0;
     i = i < 0 ? 0 : i;
+    if (multisel(h)) {
+        multisel_key(h, SDL_min(i, l->count - 1));
+        return;
+    }
     if (i < l->count && i != l->sel) {
         select_item(h, i);
         notify(h, LBN_SELCHANGE);
@@ -481,7 +600,7 @@ LRESULT listbox_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
         l = w->data = calloc(1, sizeof *l);
         if (!l)
             return DefWindowProc(h, msg, wp, lp);
-        l->sel = -1;
+        l->sel = l->anchor = -1;
         l->redraw = 1;
         l->item_h = 16;
         l->col_w = 64;
@@ -532,7 +651,17 @@ LRESULT listbox_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
         key(h, wp);
         return 0;
     case WM_CHAR:
+        if (multisel(h) && wp == ' ') {
+            choose(h, l->sel, 0, 1);
+            notify_change(h);
+            return 0;
+        }
         i = find(h, l->sel, (char[2]){(char)wp, 0}, 0);
+        if (multisel(h)) {
+            choose(h, i, 0, 0);
+            notify_change(h);
+            return 0;
+        }
         if (i >= 0 && i != l->sel) {
             select_item(h, i);
             notify(h, LBN_SELCHANGE);
@@ -547,18 +676,29 @@ LRESULT listbox_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
         l->dbl = msg == WM_LBUTTONDBLCLK;
         l->pressed_sel = l->sel;
         SetCapture(h);
-        select_item(h, item_at(h, (int16_t)LOWORD(lp), (int16_t)HIWORD(lp)));
+        i = item_at(h, (int16_t)LOWORD(lp), (int16_t)HIWORD(lp));
+        if (multisel(h))
+            choose(h, i, (wp & MK_SHIFT) != 0, (wp & MK_CONTROL) != 0);
+        else
+            select_item(h, i);
         return 0;
     case WM_MOUSEMOVE:
-        if (l->tracking)
-            select_item(h, item_at(h, (int16_t)LOWORD(lp), (int16_t)HIWORD(lp)));
+        if (!l->tracking)
+            return 0;
+        i = item_at(h, (int16_t)LOWORD(lp), (int16_t)HIWORD(lp));
+        if (!multisel(h))
+            select_item(h, i);
+        else if (style(h) & LBS_EXTENDEDSEL && !(wp & MK_CONTROL) && i >= 0 && i != l->sel)
+            select_range(h, l->anchor, i, 0);
         return 0;
     case WM_LBUTTONUP:
         if (!l->tracking)
             return 0;
         l->tracking = 0;
         ReleaseCapture();
-        if (l->sel != l->pressed_sel)
+        if (multisel(h))
+            notify_change(h);
+        else if (l->sel != l->pressed_sel)
             notify(h, LBN_SELCHANGE);
         if (l->dbl && l->sel >= 0)
             notify(h, LBN_DBLCLK);
@@ -620,8 +760,24 @@ LRESULT listbox_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
         l->col_w = (int16_t)wp > 0 ? (int16_t)wp : 1;
         changed(h);
         return 0;
-    case LB_SETSEL:
-        return LB_ERR;
+    case LB_SETSEL:                                     /* wp: on; LOWORD(lp): the item, -1 all */
+        i = (int16_t)LOWORD(lp);
+        if (!multisel(h) || i >= l->count)
+            return LB_ERR;
+        if (i < 0)
+            for (i = 0; i < l->count; i++)
+                l->v[i].selected = wp != 0;
+        else
+            l->v[i].selected = wp != 0;
+        changed(h);
+        return 0;
+    case LB_GETSEL:
+        i = (int16_t)wp;
+        return i < 0 || i >= l->count ? LB_ERR : is_selected(h, i);
+    case LB_GETSELCOUNT:
+        return multisel(h) ? sel_count(h) : LB_ERR;
+    case LB_GETSELITEMS:
+        return multisel(h) ? sel_items(h, (int16_t)wp, (int16_t *)lp) : LB_ERR;
     }
     return DefWindowProc(h, msg, wp, lp);
 }

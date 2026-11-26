@@ -50,6 +50,17 @@ void app_tick(void)
 {
 }
 
+/* Message boxes answer at once with their first button, as emu.py's
+ * stand-in does: a run has nobody to press it. */
+int16_t MessageBox(HWND h, LPCSTR text, LPCSTR title, UINT type)
+{
+    (void)h;
+    (void)text;
+    (void)title;
+    (void)type;
+    return 1;
+}
+
 static BOOL no_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
 {
     (void)h;

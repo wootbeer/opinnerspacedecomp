@@ -49,6 +49,7 @@ typedef int16_t *LPINT;
 typedef int16_t _dev_t;
 typedef uint16_t _ino_t;
 typedef int32_t _off_t;
+typedef int32_t dos_time_t;       /* the times of struct stat and utimbuf: 32-bit, as in DGROUP */
 
 typedef uint16_t HACCEL;
 typedef uint16_t HANDLE;
@@ -241,6 +242,7 @@ typedef struct {
     LPCSTR lpstrAlias;
 } MCI_OPEN_PARMS;
 
+#pragma pack(push, 2)    /* the 1994 runtime's layout: they live in DGROUP */
 struct _find_t {
     char reserved[21];
     char attrib;
@@ -249,7 +251,9 @@ struct _find_t {
     int32_t size;
     char name[13];
 };
+#pragma pack(pop)
 
+#pragma pack(push, 2)    /* the 1994 runtime's layout: they live in DGROUP */
 struct stat {
     _dev_t st_dev;
     _ino_t st_ino;
@@ -259,15 +263,18 @@ struct stat {
     int16_t st_gid;
     _dev_t st_rdev;
     _off_t st_size;
-    time_t st_atime;
-    time_t st_mtime;
-    time_t st_ctime;
+    dos_time_t st_atime;
+    dos_time_t st_mtime;
+    dos_time_t st_ctime;
 };
+#pragma pack(pop)
 
+#pragma pack(push, 2)    /* the 1994 runtime's layout: they live in DGROUP */
 struct utimbuf {
-    time_t actime;
-    time_t modtime;
+    dos_time_t actime;
+    dos_time_t modtime;
 };
+#pragma pack(pop)
 
 #define find_t _find_t
 typedef BITMAP *LPBITMAP;

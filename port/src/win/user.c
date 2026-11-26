@@ -1386,13 +1386,6 @@ void MessageBeep(UINT type)
     platform_beep();
 }
 
-int16_t MessageBox(HWND h, LPCSTR text, LPCSTR title, UINT type)
-{
-    (void)h;
-    SDL_Log("MessageBox [%s] %s", title ? title : "", text ? text : "");
-    return (type & 0xf) == MB_YESNO ? IDNO : IDOK;
-}
-
 /* Rectangles. */
 void SetRect(RECT *r, int16_t l, int16_t t, int16_t rt, int16_t b)
 {

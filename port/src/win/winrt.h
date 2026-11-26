@@ -15,6 +15,8 @@
 #define WM_RBUTTONUP 0x0205
 #define MK_LBUTTON 0x0001
 #define MK_RBUTTON 0x0002
+#define MK_SHIFT 0x0004
+#define MK_CONTROL 0x0008
 #define VK_LBUTTON 0x01
 #define VK_RBUTTON 0x02
 #define IDNO 7

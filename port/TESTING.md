@@ -49,6 +49,14 @@ Checks that need a person, real hardware or the original game. Items move to
 - [ ] Letters may differ by a pixel from real Windows Arial.
 
 ## Behaviour
+- [ ] Message boxes are now real Windows 3.1-style boxes (before, they were
+      only logged and yes/no answered No). They have no icon yet. Check the
+      shop, save and first-start notes and F12's Command Mode question.
+- [ ] Ambulance Options and Ship Options: buying and selling work now (Add
+      and Remove were always grey).
+- [ ] After leaving a wave through the gate, the debriefing draws (it was a
+      black screen).
+- [ ] Windowed mode: the window can't be moved, minimised or maximised yet.
 - [ ] Waves look smoother. At 36 a wave starts at 34.5 fps and settles at
       35.7 after about 45 s; that is the 1994 game's own timing.
 - [ ] Title logo, briefing, landing and the exit-question delay now draw as

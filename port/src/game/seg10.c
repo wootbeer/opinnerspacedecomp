@@ -2554,7 +2554,7 @@ int16_t fn_10_a96c(void)
     int16_t r;
     int16_t v;
     char b0[200];
-    char b1[200];
+    char b1[400];
     char b2[200];
 
     v = GetPrivateProfileInt(g_9690, "StratAsk", 0, g_96a9);

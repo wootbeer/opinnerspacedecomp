@@ -50,6 +50,7 @@ add_executable(inspace
     src/win/mci.c
     src/win/menu.c
     src/win/module.c
+    src/win/msgbox.c
     src/win/ne.c
     src/win/pad.c
     src/win/profile.c

@@ -341,6 +341,9 @@ PRELUDE = ''.join('typedef int %s;\n' % n for n in WIN_TYPES) + \
     'struct find_t { char x[43]; }; struct _find_t { char x[43]; }; struct stat { char x[30]; };\n' \
     'struct tm { char x[18]; }; struct utimbuf { char x[8]; };\n'
 CRT_STRUCTS = {'find_t', '_find_t', 'stat', 'tm', 'utimbuf'}
+# The 1994 runtime's structs the game keeps in DGROUP (g_3948, g_922e,
+# g_3c10): their 1994 size and layout, 32-bit times.
+DOS_STRUCTS = {'struct _find_t', 'struct stat', 'struct utimbuf'}
 PRELUDE_LINES = PRELUDE.count('\n')
 
 
@@ -2009,6 +2012,7 @@ typedef int16_t *LPINT;
 typedef int16_t _dev_t;
 typedef uint16_t _ino_t;
 typedef int32_t _off_t;
+typedef int32_t dos_time_t;       /* the times of struct stat and utimbuf: 32-bit, as in DGROUP */
 '''
 
 
@@ -2170,6 +2174,10 @@ def emit_win16api_h(mg, path):
             if dep in structs and dep != n:
                 emit_struct(dep)
         fields = [port_c_types(x.strip()) + ';' for x in body.split(';') if x.strip()]
+        if n in DOS_STRUCTS:
+            fields = [re.sub(r'\btime_t\b', 'dos_time_t', f) for f in fields]
+        if n in DOS_STRUCTS:
+            lines.append('#pragma pack(push, 2)    /* the 1994 runtime\'s layout: they live in DGROUP */')
         if n.startswith('struct '):
             lines.append('%s {' % n)
             lines.extend('    ' + f for f in fields)
@@ -2178,6 +2186,8 @@ def emit_win16api_h(mg, path):
             lines.append('typedef struct {')
             lines.extend('    ' + f for f in fields)
             lines.append('} %s;' % n)
+        if n in DOS_STRUCTS:
+            lines.append('#pragma pack(pop)')
         lines.append('')
     for n in want:
         emit_struct(n)

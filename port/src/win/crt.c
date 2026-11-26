@@ -238,9 +238,9 @@ int16_t stat(const char *path, struct stat *st)
     memset(st, 0, sizeof *st);
     st->st_mode = info.type == SDL_PATHTYPE_DIRECTORY ? 0x4000 : 0x8000;
     st->st_size = (_off_t)info.size;
-    st->st_mtime = (time_t)(info.modify_time / 1000000000);
-    st->st_atime = (time_t)(info.access_time / 1000000000);
-    st->st_ctime = (time_t)(info.create_time / 1000000000);
+    st->st_mtime = (dos_time_t)(info.modify_time / 1000000000);
+    st->st_atime = (dos_time_t)(info.access_time / 1000000000);
+    st->st_ctime = (dos_time_t)(info.create_time / 1000000000);
     return 0;
 }
 

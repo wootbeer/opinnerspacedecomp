@@ -128,7 +128,7 @@ static void move_focus(HWND c)
 
 static const char *const predefined[] = {"Button", "Edit", "Static", "ListBox", "ScrollBar", "ComboBox"};
 
-static HWND create_from(const uint8_t *res, uint32_t size, HWND owner, DLGPROC proc)
+static HWND create_from(const uint8_t *res, uint32_t size, HWND owner, DLGPROC proc, LPARAM init)
 {
     Tpl t = {res, res + size};
     DWORD style = tpl_dword(&t);
@@ -196,7 +196,7 @@ static HWND create_from(const uint8_t *res, uint32_t size, HWND owner, DLGPROC p
         if (!first && cs & WS_TABSTOP)
             first = c;
     }
-    if (proc(h, WM_INITDIALOG, first, 0) && first)
+    if (proc(h, WM_INITDIALOG, first, init) && first)
         move_focus(first);
     if (style & WS_VISIBLE)
         ShowWindow(h, SW_SHOW);
@@ -217,23 +217,29 @@ HWND CreateDialog(HINSTANCE inst, LPCSTR name, HWND owner, DLGPROC proc)
     uint32_t size;
     const uint8_t *res = template_of(inst, name, &size);
 
-    return res ? create_from(res, size, owner, proc) : 0;
+    return res ? create_from(res, size, owner, proc, 0) : 0;
 }
 
 int16_t DialogBox(HINSTANCE inst, LPCSTR name, HWND owner, DLGPROC proc)
 {
     uint32_t size;
     const uint8_t *res = template_of(inst, name, &size);
+
+    return res ? dialog_box_indirect(res, size, owner, proc, 0) : -1;
+}
+
+/* DialogBoxIndirectParam: a modal dialog from the template res; init
+ * is WM_INITDIALOG's lParam. */
+int16_t dialog_box_indirect(const uint8_t *res, uint32_t size, HWND owner, DLGPROC proc, LPARAM init)
+{
     HWND h;
     Dlg *d;
     MSG m;
     int16_t result;
 
-    if (!res)
-        return -1;
     if (owner)
         EnableWindow(owner, 0);
-    h = create_from(res, size, owner, proc);
+    h = create_from(res, size, owner, proc, init);
     d = dlg_of(h);
     if (d && !d->ended)
         ShowWindow(h, SW_SHOW);

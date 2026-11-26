@@ -11,6 +11,7 @@ find_package(SDL3 REQUIRED CONFIG)
 set(PORT ${CMAKE_CURRENT_SOURCE_DIR}/../../port)
 file(GLOB GAME_SOURCES ${PORT}/src/game/*.c)
 file(GLOB WIN_SOURCES ${PORT}/src/win/*.c)
+list(REMOVE_ITEM WIN_SOURCES ${PORT}/src/win/msgbox.c)
 set(PLATFORM_SOURCES ${PORT}/src/platform/platform_sdl.c ${PORT}/src/platform/platform_music.c
     ${PORT}/src/platform/music_seq.c ${PORT}/src/platform/music_tsf.c ${PORT}/src/platform/platform_pad.c)
 add_executable(port_calls port_calls.c ${PORT}/src/video.c ${PLATFORM_SOURCES}

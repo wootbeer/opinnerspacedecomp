@@ -181,6 +181,8 @@ void ctl_bevel(HDC dc, int l, int t, int r, int b, int thin);   /* raised face *
 /* Text with '&' prefixes (unless noprefix): the next character is
  * underlined.  Returns the width; draws only when draw is set. */
 int ctl_label(HDC dc, int x, int y, const char *s, int n, int noprefix, int draw);
+/* The size of text word-wrapped as static controls wrap it into width. */
+void ctl_wrapped_size(HDC dc, const char *s, int width, int noprefix, int *w, int *h);
 #define EM_SETSEL (WM_USER + 1)
 #define CB_LIMITTEXT (WM_USER + 1)
 #define DLGC_HASSETSEL 0x0008
@@ -237,6 +239,7 @@ void GetScrollRange(HWND h, int16_t which, int16_t *lo, int16_t *hi);
 #define DIALOG_CLASS "#32770"
 int dialog_is(HWND h);
 int dialog_ended(HWND h, int16_t *result);   /* EndDialog was called, with *result */
+int16_t dialog_box_indirect(const uint8_t *res, uint32_t size, HWND owner, DLGPROC proc, LPARAM init);
 void dialog_register(void);
 
 #endif

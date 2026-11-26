@@ -353,6 +353,29 @@ the overrides; `src/inspace/` is unchanged.
   `path[lstrlen(path) - 1]` read the byte before the buffer when the path
   was empty; that byte was almost never `\`, so a `\` was appended. The
   port appends it for an empty path.
+- **Globals wider natively (not 1994 bugs: the native layout).**
+  - `g_6078`, the debriefing text (LPSTR, a 4-byte far pointer), was an
+    8-byte view in the DGROUP image over g_607c (a RECT the panels set).
+    Once the debriefing had freed it (0), setting the RECT made it
+    non-zero again, so the next debriefing (9:6dec) believed its text
+    was there and drew nothing: leaving a wave through the exit gate
+    gave a black screen until Escape. It is a native variable now
+    (`extern` entry).
+  - `g_1d38`, the last key's lParam (LPARAM, pointer-sized natively),
+    overwrote g_1d3c, the start-up time that the screen saver's "any
+    key quits after 4 s" and the demo's 10 s wait read; it is a 32-bit
+    view now, as in 1994 (`extern` entry).
+  - The 1994 runtime's `struct _find_t`, `stat` and `utimbuf` live in
+    DGROUP (g_3948, g_922e/924c/926a, g_3c10) but were native-sized (48,
+    48 and 16 bytes for 44, 30 and 8): every `_dos_findfirst/next`
+    with a 12-character name wrote into g_3974[0] (the object surface
+    0's DC held before its bitmap), and the copy-check stat of 10:80dc (the
+    unregistered order dialogs) wrote over g_9288-g_9299. win16api.h
+    declares them packed to 2 with 32-bit times (tools/port_merge.py,
+    `DOS_STRUCTS`).
+- **Command Mode question (10:a96c).** Its text overflowed the 200-byte
+  buffer it was joined in: harmless in the 1994 frame, garbled natively;
+  the buffer is 400 bytes ("Message boxes").
 
 ## Far pointers and save files
 
@@ -777,6 +800,32 @@ in ispace_room.h.
   carry native pointers in the pointer-sized lParam ("How it works").
   The native DLL code calls `combo_*` (user.h) directly; WM_SETTEXT is
   sent after SetWindowText has stored the text.
+
+## Message boxes (port/src/win/msgbox.c)
+
+- **Before:** MessageBox only logged and answered No to yes/no boxes, so
+  F12's Command Mode question (10:a96c) could never be answered Yes and
+  warnings (shop: "You have the maximum number of weapons already",
+  the copy-limit notes of 16:68d6, the DLL's New Game and Save Game
+  notes, resource alerts) were never seen.
+- **Now:** a modal dialog (dialog.c's modal loop, from a template made
+  in memory: `dialog_box_indirect`, DialogBoxIndirectParam) with the
+  text word-wrapped in the System font as static controls wrap it, at
+  most 400 pixels wide, and the type's buttons ("OK", "Cancel",
+  "&Abort", "&Retry", "&Ignore", "&Yes", "&No"), the MB_DEFBUTTONn one
+  default; centred on the screen; MessageBeep with the icon type.
+  Escape answers Cancel when there is a Cancel button, OK in an OK box,
+  nothing otherwise (Windows' rule). Still logged, for headless runs.
+- **Approximate [inferred]:** margins, button size (10 x 1.5 System
+  characters) and the 400-pixel text width are not Windows 3.1's
+  measured values; Windows 3.1 also showed the icon (MB_ICONEXCLAMATION
+  and the others), which needs USER.EXE's icon pictures: none is drawn.
+- **Command Mode question (10:a96c), fixed silently:** its four strings
+  (0xb22-0xb25, about 260 characters) are joined in the 200-byte `b1`.
+  In 1994 the overflow ran into the unused `b0` above it (b1 at
+  bp-0x196, b0 up to bp-6) and the box read right; natively it ran into
+  `b2` and the text came out cut and repeated. `b1` is 400 bytes in the
+  port (`fix` entry).
 
 ## Menus and scroll bars (port/src/win/menu.c, scrollbar.c)
 
@@ -1281,8 +1330,19 @@ on a directory with programs leads to the wave's briefing.
     ODA_DRAWENTIRE, where Windows sends ODA_SELECT and ODA_FOCUS for the
     items that changed; the game's handlers (6:47e8, 6:4e04, 6:4ea8) draw
     the same pixels either way.
-  - Not modelled: multiple selection (the program list is
-    LBS_EXTENDEDSEL; it selects one item at a time), dragging the thumb.
+  - Multiple selection (LBS_EXTENDEDSEL: the Navigation program list,
+    the Ambulance Options and Ship Options lists; LBS_MULTIPLESEL, which
+    the game does not use): a click or an arrow key selects one item and
+    sets the anchor, Shift extends from the anchor, Ctrl+click toggles,
+    dragging extends; LB_GETSELCOUNT, LB_GETSELITEMS, LB_GETSEL,
+    LB_SETSEL; LB_GETCURSEL answers the caret. Until now the ambulance's
+    and the shop's Add >> and Remove stayed grey (16:43f2 counts the
+    selection with LB_GETSELCOUNT, 16:44fa buys what LB_GETSELITEMS
+    lists): nothing could be bought or sold, and New Ship Body (a BODY
+    item, 16:44fa) could not be reached. [uncertain: Windows 3.1's
+    keyboard details: Ctrl+arrows and Shift+F8 are not modelled; Space
+    toggles the caret item.]
+  - Not modelled: dragging the thumb.
 - **Group boxes** (controls.c): frame from half the text height,
   text at 9 pixels on the control's background [uncertain: Windows 3.1's
   offsets]. The navigation window shows them only for race tracks and

@@ -42,6 +42,7 @@ int16_t (*g_fp_3c84)(int16_t, char *);
 RECT *g_3cc0;
 DWORD *g_3d4c;
 char *g_4fcc;
+char *g_6078;
 REC_297 *g_69f4;
 REC_31 *g_6af8;
 REC_42 *g_6afc;

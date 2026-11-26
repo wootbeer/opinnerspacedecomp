@@ -169,18 +169,24 @@ static int line_length(HDC dc, const char *s, int width, int noprefix)
     return fit;
 }
 
-/* Text word-wrapped into r: left, centred or right aligned lines. */
-static void wrapped(HDC dc, const RECT *r, const char *s, int align, int noprefix)
+/* Text word-wrapped into r: left, centred or right aligned lines, drawn
+ * when draw is set.  Returns the height used; *widest gets the widest
+ * line. */
+static int wrap(HDC dc, const RECT *r, const char *s, int align, int noprefix, int draw, int *widest)
 {
     TEXTMETRIC tm;
     int y = r->top, width = r->right - r->left;
 
     GetTextMetrics(dc, &tm);
+    *widest = 0;
     while (*s && y < r->bottom) {
         int n = line_length(dc, s, width, noprefix);
         int w = ctl_label(dc, 0, 0, s, n, noprefix, 0);
-        ctl_label(dc, align == SS_RIGHT ? r->right - w : align == SS_CENTER ? r->left + (width - w) / 2 : r->left,
-                  y, s, n, noprefix, 1);
+        if (draw)
+            ctl_label(dc, align == SS_RIGHT ? r->right - w : align == SS_CENTER ? r->left + (width - w) / 2 : r->left,
+                      y, s, n, noprefix, 1);
+        if (w > *widest)
+            *widest = w;
         s += n;
         while (*s == ' ')
             s++;
@@ -188,6 +194,15 @@ static void wrapped(HDC dc, const RECT *r, const char *s, int align, int noprefi
             s++;
         y += tm.tmHeight;
     }
+    return y - r->top;
+}
+
+void ctl_wrapped_size(HDC dc, const char *s, int width, int noprefix, int *w, int *h)
+{
+    RECT r;
+
+    SetRect(&r, 0, 0, (int16_t)width, 0x7fff);
+    *h = wrap(dc, &r, s, 0, noprefix, 0, w);
 }
 
 static LRESULT common(HWND h, UINT msg, WPARAM wp, LPARAM lp)
@@ -465,6 +480,7 @@ static LRESULT static_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
     HBRUSH bg;
     RECT r;
     HICON prev;
+    int widest;
 
     switch (msg) {
     case WM_PAINT:
@@ -479,7 +495,7 @@ static LRESULT static_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
             if (c->icon)
                 DrawIcon(dc, 0, 0, c->icon);
         } else {
-            wrapped(dc, &r, w->text, (int)(w->style & SS_TYPE), (w->style & SS_NOPREFIX) != 0);
+            wrap(dc, &r, w->text, (int)(w->style & SS_TYPE), (w->style & SS_NOPREFIX) != 0, 1, &widest);
         }
         ctl_release(h, dc, old);
         return 0;

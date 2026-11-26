@@ -139,6 +139,10 @@ static void on_mouse(UINT msg, float wx, float wy)
         wp |= MK_LBUTTON;
     if (keys[VK_RBUTTON] & 0x80)
         wp |= MK_RBUTTON;
+    if (keys[VK_SHIFT] & 0x80)
+        wp |= MK_SHIFT;
+    if (keys[VK_CONTROL] & 0x80)
+        wp |= MK_CONTROL;
     h = wnd_at(x, y);
     wnd_send_click(h, msg, x, y, wp);
 }

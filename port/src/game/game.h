@@ -1375,7 +1375,7 @@ extern char *g_0080; /* DS:0080 */
 #define g_1d20 DGROUP_AT(RECT (*), 0x1d20) /* DS:1d20 */
 #define g_1d28 DGROUP_AT(RECT (*), 0x1d28) /* DS:1d28 */
 #define g_1d30 DGROUP_AT(RECT (*), 0x1d30) /* DS:1d30 */
-#define g_1d38 DGROUP_AT(LPARAM (*), 0x1d38) /* DS:1d38 */
+#define g_1d38 DGROUP_AT(int32_t (*), 0x1d38) /* DS:1d38 */
 #define g_1d3c DGROUP_AT(DWORD (*), 0x1d3c) /* DS:1d3c */
 #define g_1d40 DGROUP_AT(DWORD (*), 0x1d40) /* DS:1d40 */
 #define g_1d44 DGROUP_AT(DWORD (*), 0x1d44) /* DS:1d44 */
@@ -1598,7 +1598,7 @@ extern char *g_4fcc; /* DS:4fcc */
 #define g_5ea8 DGROUP_AT(HBRUSH (*)[2], 0x5ea8) /* DS:5ea8 */
 #define g_5eac DGROUP_AT(int16_t (*)[][0x12], 0x5eac) /* DS:5eac */
 #define g_6038 DGROUP_AT(int16_t (*)[], 0x6038) /* DS:6038 */
-#define g_6078 DGROUP_AT(LPSTR (*), 0x6078) /* DS:6078 */
+extern char *g_6078; /* DS:6078 */
 #define g_607c DGROUP_AT(RECT (*), 0x607c) /* DS:607c */
 #define g_6084 DGROUP_AT(RECT (*), 0x6084) /* DS:6084 */
 #define g_608c DGROUP_AT(int16_t (*), 0x608c) /* DS:608c */

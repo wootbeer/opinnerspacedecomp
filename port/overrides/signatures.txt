@@ -138,6 +138,23 @@ fix seg08.c fn_08_1e32: f1 = (int)((long)u * 100 / ((long)m1 * 100 / m2 + 100));
 fix seg08.c fn_08_1e32: f1 += force / m1; => f1 += m1 ? force / m1 : 0;
 fix seg08.c fn_08_1e32: f2 += force / m2; => f2 += m2 ? force / m2 : 0;
 
+# Globals declared with Windows types that are wider natively.  g_6078,
+# the debriefing text (LPSTR, a 4-byte far pointer), was an 8-byte view
+# in the DGROUP image over its slot and g_607c (a RECT the debriefing
+# sets): the pointer's top half became the RECT's left and top, so a
+# freed (zeroed) pointer read as set and the next wave's debriefing was
+# never drawn (a black screen).  g_1d38, the last key's lParam (LPARAM,
+# pointer-sized natively), overwrote g_1d3c, the start-up time the
+# screen saver's "any key quits" and the demo's 10 s timer read.
+extern g_6078: extern char far *g_6078;
+extern g_1d38: extern long g_1d38;
+
+# Command Mode question (10:a96c): strings 0xb22-0xb25 joined in the
+# 200-byte b1 make about 260 characters.  In 1994 they ran on into the
+# unused b0 above it (b1 at bp-0x196, b0 up to bp-6), so the box read
+# right; natively they overwrote b2 and the text came out garbled.
+fix seg10.c fn_10_a96c: char b1[200]; => char b1[400];
+
 # Object records (REC_70) are 124 bytes natively, not 0x70: they hold far
 # function pointers.  Their blocks were sized as counts of 0x70, so a
 # block grown with GMEM_ZEROINIT was cleared from the 1994 end of its
