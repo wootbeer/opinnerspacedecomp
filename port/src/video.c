@@ -92,6 +92,16 @@ void video_frame_stats(void)
     stats.on = 1;
 }
 
+void video_minimize(void)
+{
+    SDL_MinimizeWindow(window);
+}
+
+void video_restore(void)
+{
+    SDL_RestoreWindow(window);
+}
+
 void video_close(void)
 {
     if (stats.on)

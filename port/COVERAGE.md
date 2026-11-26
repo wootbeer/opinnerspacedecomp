@@ -12,9 +12,8 @@ run. Sizes are rough estimates of new code.
 |---|---|---|---|---|
 | First start without INSPACE.INI (6:06d8, "Some game settings are missing") | yes, first launch | a message box, then the game writes its settings | as 1994 (its installer wrote the INI, so players rarely saw it) | decision: a port-side default INI, ~40 lines |
 | Help: WinHelp viewer (Help menu, F1/F2, Navigation's Help, Game Settings' and Display Options' Help; 2:190a, 9:328e) | yes | nothing (logged) | not ported | medium-large: ~700 lines (HLP B+ tree, \|SYSTEM, \|CTXOMAP, \|TOPIC text, a window with links and Back) |
-| Moving, minimizing, maximizing windows (caption drag, system menu Move/Size/Minimize/Maximize/Restore; seg02 SC_MINIMIZE pauses) | yes, windowed | the frame does not move; Minimize does nothing | stub (logged) | small-medium: move/size loop ~150 lines; minimize needs a platform "iconic" state |
-| Message box icon (MB_ICONEXCLAMATION) | yes | box without the "!" icon | approximation | small: ~40 lines plus a 32x32 picture of Windows 3.1's |
-| Plus Pack dialog's Order button (WinExec `NOTEPAD C:\SPACE\ORDER.TXT`, 10:5f96) | yes, on exit (the first time, then every 13th) | nothing; 1994 opened Notepad, which reported ORDER.TXT missing (it is not in the user's data) | WinExec stub | small: open the file with the host's viewer, ~20 lines |
+| Resizing windows (sizing border, system menu Size) | yes, windowed | the frame keeps its size | stub (logged) | small: the move loop (user.c) with an edge per hit-test code |
+| Message box icon (MB_ICONEXCLAMATION and the others) | yes | the port's own 32x32 stand-in, not USER.EXE's picture (the user's data has none) | approximation | none: needs Windows 3.1's USER.EXE |
 | Restore of saves written in the early port layout (t17's GAMES\*.SAV, 1212 bytes) | only with such files | Restore re-opens with the same game selected | as 1994 for a short file (6:930a fails quietly) | none |
 | Ordinal 10 modes 8, 11 and 10:02f4 (ordering dialogs 10:0664, 10:124a: 'R' at the title, Benefits' Order.., Escape at an expired trial) | no: unregistered only (`CopyCheck=1`) | nothing (logged "not ported") | not ported | medium: ~400 lines with the oracle |
 | Ordinal 10 mode 2 (10:3346), mode 9 (10:5b24, only from mode 10) | no: no caller | - | not ported | medium |

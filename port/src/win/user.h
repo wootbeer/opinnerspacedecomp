@@ -24,7 +24,9 @@
 #define WM_HSCROLL 0x0114
 #define DM_GETDEFID (WM_USER + 0)
 
+#define WS_MINIMIZE 0x20000000L
 #define WS_DISABLED 0x08000000L
+#define WS_MAXIMIZE 0x01000000L
 #define WS_BORDER 0x00800000L
 #define WS_DLGFRAME 0x00400000L
 #define WS_VSCROLL 0x00200000L
@@ -93,6 +95,10 @@ void button_click(HWND h);
 #define HTMENU 5
 #define HTBORDER 18
 
+#define SIZE_RESTORED 0
+#define SIZE_MINIMIZED 1
+#define SIZE_MAXIMIZED 2
+
 #define SC_SIZE 0xF000
 #define SC_MOVE 0xF010
 #define SC_MOUSEMENU 0xF090
@@ -136,12 +142,16 @@ typedef struct {
     char text[WND_TEXT];
     void *data;             /* state of a built-in control (controls.c) */
     uint8_t *saved;         /* the screen under a CS_SAVEBITS window while it is shown */
+    RECT normal;            /* where a maximized window is restored to */
     HMENU sysmenu;          /* the window's own copy of the system menu (menu.c) */
     WORD words[8];
     LONG longs[4];
 } Wnd;
 
 Wnd *wnd_get(HWND h);
+BOOL IsZoomed(HWND h);
+/* The host window was minimized (on) or shown again: SC_MINIMIZE or SC_RESTORE. */
+void win_host_minimized(int on);
 void win_pump(void);        /* SDL events, ended sounds and the test clock (app_tick) */
 int wnd_is_child(const Wnd *w);
 int wnd_visible(const Wnd *w);   /* shown, and its parents too */

@@ -818,8 +818,12 @@ in ispace_room.h.
   nothing otherwise (Windows' rule). Still logged, for headless runs.
 - **Approximate [inferred]:** margins, button size (10 x 1.5 System
   characters) and the 400-pixel text width are not Windows 3.1's
-  measured values; Windows 3.1 also showed the icon (MB_ICONEXCLAMATION
-  and the others), which needs USER.EXE's icon pictures: none is drawn.
+  measured values. The icon (MB_ICONHAND, QUESTION, EXCLAMATION,
+  ASTERISK) is the port's own 32x32 stand-in at the top left, the text
+  beside it: a red disc with a white X, a white disc with a black "?" or
+  "!" or a blue "i". Windows 3.1's pictures are in its USER.EXE; the
+  user's data has only the programs' own icons (INSPACE.EXE, FACTORY.EXE,
+  BACKUP.EXE, ISPACE.DLL's three program icons).
 - **Command Mode question (10:a96c), fixed silently:** its four strings
   (0xb22-0xb25, about 260 characters) are joined in the 200-byte `b1`.
   In 1994 the overflow ran into the unused `b0` above it (b1 at
@@ -874,10 +878,29 @@ in ispace_room.h.
   on to the game window and asked to leave the wave.
 - **System menu**: Windows 3.1's (Restore, Move, Size, Minimize,
   Maximize, Close Alt+F4, Switch To... Ctrl+Esc), a copy per window with
-  WS_SYSMENU made by GetSystemMenu; Restore always gray (no window is
-  minimized or maximized in the port), Size/Minimize/Maximize gray
-  without WS_THICKFRAME/MINIMIZEBOX/MAXIMIZEBOX. DefWindowProc's Move,
-  Size, Minimize, Maximize, Restore and Switch To log and do nothing.
+  WS_SYSMENU made by GetSystemMenu; Restore gray unless the window is
+  minimized or maximized, Size/Minimize/Maximize gray without
+  WS_THICKFRAME/MINIMIZEBOX/MAXIMIZEBOX or in that state, Move gray when
+  maximized. DefWindowProc:
+  - **Move** (SC_MOVE; a caption drag is SC_MOVE + HTCAPTION, as in
+    Windows): Windows 3.1's outline drag (full-window drag came with
+    Windows 95), an inverted halftone frame 4 pixels wide; mouse until the
+    button is released; from the menu, the cursor on the caption's middle,
+    arrow keys 8 pixels, Enter or a click to place, Esc to cancel. Then
+    WM_MOVE. The uncovered desktop is painted black, as the screen is
+    before the first window.
+  - **Minimize** sets WS_MINIMIZE (IsIconic), minimises the host window
+    and sends WM_SIZE SIZE_MINIMIZED (32x32, the icon) [the icon is not
+    drawn]. Minimising the host window posts WM_SYSCOMMAND SC_MINIMIZE to
+    the application's main window (the owner of the active window), and
+    showing it again SC_RESTORE, as opening the icon did; seg02 pauses on
+    SC_MINIMIZE (2:0d78) and resumes when not iconic (2:11f8).
+  - **Maximize** saves the window's place, sets WS_MAXIMIZE (IsZoomed) and
+    gives it WM_GETMINMAXINFO's ptMaxSize at ptMaxPosition, within the
+    tracking sizes, then WM_SIZE SIZE_MAXIMIZED. The windowed main window
+    handles SC_MAXIMIZE itself first (2:0d78: full screen when g_001e).
+  - **Restore** undoes either, WM_SIZE SIZE_RESTORED.
+  - Size and Switch To still log and do nothing.
 - **Look** [uncertain: sizes from Windows 3.1's metrics as far as known,
   the rest approximated]: System font (Liberation Sans Bold, as in
   captions); bar 18 pixels (SM_CYMENU) with a black line under it, titles
@@ -991,7 +1014,10 @@ in ispace_room.h.
     (the registered name in INSPACE.EXE 5000/143), 1 with the user's
     INSPACE.EXE (" - "), so never with these files (the title says
     "Plus Edition"). Ported (cheap: 10:5f96 again); Order Form runs
-    WinExec("NOTEPAD <Path>ORDER.TXT"), a stub in the port.
+    WinExec("NOTEPAD <Path>ORDER.TXT"): the port opens the file with the
+    host's viewer (a file URL); without it (the user's data has none) it
+    logs that Notepad would report it missing and returns 33, a success,
+    as Notepad started. Other programs give 2 (not found), logged.
   - 8, Order Inner Space Now! (template 693, 10:0664) then Important
     Information (988, 10:124a): 'R' on the desk and Order.. of mode 12,
     both only while DS:920c is 0 or 1 (unregistered). 10:0664 takes a

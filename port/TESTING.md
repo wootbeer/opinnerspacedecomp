@@ -56,7 +56,15 @@ Checks that need a person, real hardware or the original game. Items move to
       and Remove were always grey).
 - [ ] After leaving a wave through the gate, the debriefing draws (it was a
       black screen).
-- [ ] Windowed mode: the window can't be moved, minimised or maximised yet.
+- [ ] Windowed mode (`Full=0`): drag a window by its title bar (an outline
+      follows, as in Win3.1); Alt+Space then M and the arrow keys; Minimize
+      from the system menu and restore from the taskbar (the game pauses and
+      resumes); minimise with the desktop's own title-bar button; Maximize
+      then Restore. Resizing a window is not done yet.
+- [ ] Message box icons are the port's own simple drawings (Windows' own
+      icons aren't in the game files).
+- [ ] Put an ORDER.TXT in the data folder and press Order in the Plus Pack
+      dialog: it should open in your text viewer (Linux and Windows).
 - [ ] Waves look smoother. At 36 a wave starts at 34.5 fps and settles at
       35.7 after about 45 s; that is the 1994 game's own timing.
 - [ ] Title logo, briefing, landing and the exit-question delay now draw as

@@ -1,7 +1,7 @@
-/* MessageBox: a modal dialog with the text word-wrapped in the System
- * font and a row of push buttons, as Windows 3.1 drew it.  The layout's
- * sizes are approximations (port/NOTES-port.md "Message boxes"); the
- * box has no icon. */
+/* MessageBox: a modal dialog with the type's icon, the text word-wrapped
+ * in the System font and a row of push buttons, as Windows 3.1 drew it.
+ * The layout's sizes are approximations and the icons are the port's own
+ * stand-ins for USER.EXE's (port/NOTES-port.md "Message boxes"). */
 #include <SDL3/SDL_log.h>
 
 #include "user.h"
@@ -16,6 +16,9 @@
 #define SS_NOPREFIX 0x80
 #define TEXT_ID 0xffff
 #define TEXT_MAX_WIDTH 400      /* 5/8 of the screen [inferred] */
+#define ICON_SIZE 32
+#define DWL_USER 8              /* the box's icon (MB_ICONHAND >> 4 to MB_ICONASTERISK >> 4) */
+#define DWL_ICON_AT 12          /* where it is drawn */
 
 /* The buttons of each MB_ type, left to right. */
 static const int buttons[][4] = {
@@ -71,10 +74,43 @@ static void add(HWND control)
     SendMessage(control, WM_SETFONT, wnd_system_font(), 0);
 }
 
+/* The icons, drawn: a red stop disc with a white X, and a white disc with
+ * a black "?" or "!" or a blue "i". */
+static const struct {
+    COLORREF disc, glyph;
+    char text[2];
+} icons[] = {{0}, {RGB(255, 0, 0), RGB(255, 255, 255), "X"}, {RGB(255, 255, 255), RGB(0, 0, 0), "?"},
+             {RGB(255, 255, 255), RGB(0, 0, 0), "!"}, {RGB(255, 255, 255), RGB(0, 0, 255), "i"}};
+
+static int icon_of(UINT type)
+{
+    unsigned i = (type & MB_ICONMASK) >> 4;
+
+    return i < SDL_arraysize(icons) ? (int)i : 0;
+}
+
+static void paint_icon(HDC dc, int kind, int x, int y)
+{
+    HBRUSH disc = CreateSolidBrush(icons[kind].disc);
+    HGDIOBJ old_brush = SelectObject(dc, disc), old_pen = SelectObject(dc, GetStockObject(BLACK_PEN));
+    HFONT old_font = SelectObject(dc, wnd_system_font());
+    DWORD ext = GetTextExtent(dc, icons[kind].text, 1);
+
+    Ellipse(dc, (int16_t)x, (int16_t)y, (int16_t)(x + ICON_SIZE), (int16_t)(y + ICON_SIZE));
+    SetBkMode(dc, TRANSPARENT);
+    SetTextColor(dc, icons[kind].glyph);
+    TextOut(dc, (int16_t)(x + (ICON_SIZE - LOWORD(ext)) / 2), (int16_t)(y + (ICON_SIZE - HIWORD(ext)) / 2),
+            icons[kind].text, 1);
+    SelectObject(dc, old_font);
+    SelectObject(dc, old_pen);
+    SelectObject(dc, old_brush);
+    DeleteObject(disc);
+}
+
 static void lay_out(HWND h, const Box *box)
 {
     const int *ids = buttons[box->type & MB_TYPEMASK];
-    int n = button_count(ids), def = (int)(box->type & MB_DEFMASK) >> 8, tw, th, bw, bh, gap, cw, ch, w, ht, x, i;
+    int n = button_count(ids), def = (int)(box->type & MB_DEFMASK) >> 8, tw, th, tx, ty, bw, bh, gap, cw, ch, w, ht, x, i;
     HDC dc = GetDC(h);
     HFONT old = SelectObject(dc, wnd_system_font());
     TEXTMETRIC tm;
@@ -89,10 +125,15 @@ static void lay_out(HWND h, const Box *box)
     bw = 10 * cw;
     bh = ch * 3 / 2;
     gap = 2 * cw;
-    w = SDL_max(tw, n * bw + (n - 1) * gap) + 2 * gap;
+    tx = icon_of(box->type) ? gap + ICON_SIZE + gap : gap;
+    ty = ch + SDL_max(0, (ICON_SIZE - th) / 2);
+    th = SDL_max(th, icon_of(box->type) ? ICON_SIZE : 0);
+    w = SDL_max(tx - gap + tw, n * bw + (n - 1) * gap) + 2 * gap;
     ht = ch + th + ch + bh + ch;
-    add(CreateWindow("Static", box->text, WS_CHILD | WS_VISIBLE | SS_NOPREFIX, (int16_t)gap, (int16_t)ch,
-                        (int16_t)tw, (int16_t)th, h, (HMENU)TEXT_ID, 0, NULL));
+    SetWindowLong(h, DWL_USER, icon_of(box->type));
+    SetWindowLong(h, DWL_ICON_AT, MAKELONG(gap, ch));
+    add(CreateWindow("Static", box->text, WS_CHILD | WS_VISIBLE | SS_NOPREFIX, (int16_t)tx, (int16_t)ty,
+                        (int16_t)tw, (int16_t)(th - (ty - ch)), h, (HMENU)TEXT_ID, 0, NULL));
     for (i = 0, x = (w - n * bw - (n - 1) * gap) / 2; i < n; i++, x += bw + gap)
         add(CreateWindow("Button", label(ids[i]),
                             WS_CHILD | WS_VISIBLE | WS_TABSTOP | (i ? 0 : WS_GROUP) | (i == def ? BS_DEFPUSHBUTTON : 0),
@@ -111,7 +152,19 @@ static void lay_out(HWND h, const Box *box)
  * when OK is the only one, and nothing otherwise. */
 static BOOL box_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
 {
+    PAINTSTRUCT ps;
+    DWORD at;
+    int kind;
+
     switch (msg) {
+    case WM_PAINT:
+        if (!(kind = (int)GetWindowLong(h, DWL_USER)))
+            return 0;
+        BeginPaint(h, &ps);
+        at = (DWORD)GetWindowLong(h, DWL_ICON_AT);
+        paint_icon(ps.hdc, kind, LOWORD(at), HIWORD(at));
+        EndPaint(h, &ps);
+        return 1;
     case WM_INITDIALOG:
         lay_out(h, (const Box *)lp);
         return 0;

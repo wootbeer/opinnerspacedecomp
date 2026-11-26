@@ -188,6 +188,10 @@ void win_pump(void)
         case SDL_EVENT_MOUSE_BUTTON_UP:
             on_button(&ev.button);
             break;
+        case SDL_EVENT_WINDOW_MINIMIZED:
+        case SDL_EVENT_WINDOW_RESTORED:
+            win_host_minimized(ev.type == SDL_EVENT_WINDOW_MINIMIZED);
+            break;
         case SDL_EVENT_WINDOW_EXPOSED:
         case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
             video_expose();

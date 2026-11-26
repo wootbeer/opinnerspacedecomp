@@ -1,5 +1,8 @@
 /* KERNEL: global memory, files, DOS paths and system queries (the clock:
  * user.c). */
+#include <SDL3/SDL_filesystem.h>
+#include <SDL3/SDL_log.h>
+#include <SDL3/SDL_misc.h>
 #include <SDL3/SDL_stdinc.h>
 #include <ctype.h>
 #include <stdio.h>
@@ -286,12 +289,50 @@ void OutputDebugString(LPCSTR s)
         fputs(s, stderr);
 }
 
+/* A host path as a file URL, unreserved bytes and separators kept. */
+static void file_url(const char *path, char *out, size_t size)
+{
+    static const char keep[] = "-._~/:\\";
+    size_t n = (size_t)SDL_snprintf(out, size, path[0] == '/' ? "file://" : "file:///");
+
+    for (; *path && n + 4 < size; path++) {
+        if (isalnum((unsigned char)*path) || strchr(keep, *path))
+            out[n++] = *path;
+        else
+            n += (size_t)SDL_snprintf(out + n, size - n, "%%%02X", (unsigned char)*path);
+    }
+    out[n] = 0;
+}
+
+/* No Windows program runs, but "NOTEPAD file" (the Plus Pack dialog's
+ * Order button, 10:5f96) opens the file with the host's viewer.  Notepad
+ * started even without the file (and said it was missing), so that is a
+ * success too, as is any instance handle (>= 32).  Other programs are
+ * not found (2). */
 UINT WinExec(LPCSTR cmd, UINT show)
 {
-    (void)cmd;
+    char prog[128], file[260], host[1024], url[3200];
+    const char *name, *p;
+
     (void)show;
-    STUB();
-    return 2;
+    file[0] = 0;
+    if (SDL_sscanf(cmd, "%127s %259s", prog, file) < 1)
+        return 2;
+    for (name = p = prog; *p; p++)
+        if (*p == '\\' || *p == ':')
+            name = p + 1;
+    if (SDL_strcasecmp(name, "NOTEPAD") && SDL_strcasecmp(name, "NOTEPAD.EXE")) {
+        win_stub("WinExec: a Windows program");
+        return 2;
+    }
+    if (!dos_to_host(file, host, sizeof host) || !SDL_GetPathInfo(host, NULL)) {
+        SDL_Log("WinExec: %s: Notepad would report %s missing", cmd, file);
+        return 33;
+    }
+    file_url(host, url, sizeof url);
+    if (!SDL_OpenURL(url))
+        SDL_Log("WinExec: %s: %s", url, SDL_GetError());
+    return 33;
 }
 
 void win_stub(const char *name)

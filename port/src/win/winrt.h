@@ -21,6 +21,7 @@
 #define VK_RBUTTON 0x02
 #define IDNO 7
 #define DSTINVERT 0x00550009L
+#define PATINVERT 0x005A0049L
 
 /* Calls not implemented yet log their name once. */
 void win_stub(const char *name);

@@ -287,10 +287,15 @@ static int restore_under(Wnd *w)
 }
 
 /* Marks what lies under r (screen) for repainting, as Windows does when
- * a window above goes away or moves. */
+ * a window above goes away or moves.  The desktop is black, as the
+ * screen is before the first window. */
 static void uncover(const RECT *r)
 {
+    HDC dc = GetDC(0);
     int i;
+
+    FillRect(dc, r, GetStockObject(BLACK_BRUSH));
+    ReleaseDC(0, dc);
 
     for (i = 0; i < MAX_WINDOWS; i++) {
         Wnd *w = wnd_get(windows[i]);
@@ -302,19 +307,24 @@ static void uncover(const RECT *r)
 /* A sizable or overlapped window's size is kept within the tracking
  * sizes its WM_GETMINMAXINFO gives (DefWindowProc's WM_WINDOWPOSCHANGING,
  * and CreateWindow). */
+static void minmax_info(Wnd *w, MINMAXINFO *mm)
+{
+    memset(mm, 0, sizeof *mm);
+    mm->ptMaxSize.x = mm->ptMaxTrackSize.x = SCREEN_W + 2 * FRAME;
+    mm->ptMaxSize.y = mm->ptMaxTrackSize.y = SCREEN_H + 2 * FRAME;
+    mm->ptMaxPosition.x = mm->ptMaxPosition.y = -FRAME;
+    mm->ptMinTrackSize.x = MINTRACK_X;
+    mm->ptMinTrackSize.y = MINTRACK_Y;
+    w->proc(w->hwnd, WM_GETMINMAXINFO, 0, (LPARAM)mm);
+}
+
 static void track_limits(Wnd *w, int *cx, int *cy)
 {
     MINMAXINFO mm;
 
     if (wnd_is_child(w) || !(w->style & WS_THICKFRAME || !(w->style & WS_POPUP)))
         return;
-    memset(&mm, 0, sizeof mm);
-    mm.ptMaxSize.x = mm.ptMaxTrackSize.x = SCREEN_W + 2 * FRAME;
-    mm.ptMaxSize.y = mm.ptMaxTrackSize.y = SCREEN_H + 2 * FRAME;
-    mm.ptMaxPosition.x = mm.ptMaxPosition.y = -FRAME;
-    mm.ptMinTrackSize.x = MINTRACK_X;
-    mm.ptMinTrackSize.y = MINTRACK_Y;
-    w->proc(w->hwnd, WM_GETMINMAXINFO, 0, (LPARAM)&mm);
+    minmax_info(w, &mm);
     *cx = SDL_clamp(*cx, mm.ptMinTrackSize.x, mm.ptMaxTrackSize.x);
     *cy = SDL_clamp(*cy, mm.ptMinTrackSize.y, mm.ptMaxTrackSize.y);
 }
@@ -523,8 +533,16 @@ void InvalidateRect(HWND h, const RECT *r, BOOL erase)
 
 BOOL IsIconic(HWND h)
 {
-    (void)h;
-    return 0;
+    Wnd *w = wnd_get(h);
+
+    return w && w->style & WS_MINIMIZE;
+}
+
+BOOL IsZoomed(HWND h)
+{
+    Wnd *w = wnd_get(h);
+
+    return w && w->style & WS_MAXIMIZE;
 }
 
 BOOL IsWindowEnabled(HWND h)
@@ -1034,6 +1052,194 @@ static HBRUSH sys_brush(int i)
     return made[i & 31];
 }
 
+/* System commands: Move, Minimize, Maximize, Restore. */
+static void send_size(Wnd *w, WPARAM type)
+{
+    w->proc(w->hwnd, WM_SIZE, type, MAKELONG(w->client.right - w->client.left, w->client.bottom - w->client.top));
+}
+
+static void send_move(Wnd *w)
+{
+    Wnd *p = wnd_is_child(w) ? wnd_get(w->parent) : NULL;
+
+    w->proc(w->hwnd, WM_MOVE, 0, MAKELONG(w->client.left - (p ? p->client.left : 0),
+                                          w->client.top - (p ? p->client.top : 0)));
+}
+
+/* Moves w's frame to screen position (x, y) and repaints it there. */
+static void move_to(Wnd *w, int x, int y, int cx, int cy)
+{
+    Wnd *p = wnd_is_child(w) ? wnd_get(w->parent) : NULL;
+
+    if (p) {
+        x -= p->client.left;
+        y -= p->client.top;
+    }
+    if (place(w, x, y, cx, cy))
+        invalidate_tree(w, &w->rect, 1);
+}
+
+/* The 640x480 screen is all the port shows, so a minimized window is the
+ * host window minimized; the icon Windows drew is not drawn. */
+static void minimize(Wnd *w)
+{
+    if (w->style & WS_MINIMIZE)
+        return;
+    w->style |= WS_MINIMIZE;
+    video_minimize();
+    w->proc(w->hwnd, WM_SIZE, SIZE_MINIMIZED, MAKELONG(32, 32));
+}
+
+static void maximize(Wnd *w)
+{
+    MINMAXINFO mm;
+
+    if (w->style & WS_MINIMIZE) {
+        w->style &= ~WS_MINIMIZE;
+        video_restore();
+    }
+    if (!(w->style & WS_MAXIMIZE)) {
+        w->normal = w->rect;
+        w->style |= WS_MAXIMIZE;
+        minmax_info(w, &mm);
+        move_to(w, mm.ptMaxPosition.x, mm.ptMaxPosition.y, mm.ptMaxSize.x, mm.ptMaxSize.y);
+    }
+    invalidate_tree(w, &w->rect, 1);
+    send_size(w, SIZE_MAXIMIZED);
+    send_move(w);
+}
+
+static void restore(Wnd *w)
+{
+    RECT r = w->normal;
+
+    if (w->style & WS_MINIMIZE) {
+        w->style &= ~WS_MINIMIZE;
+        video_restore();
+        invalidate_tree(w, &w->rect, 1);
+        send_size(w, w->style & WS_MAXIMIZE ? SIZE_MAXIMIZED : SIZE_RESTORED);
+    } else if (w->style & WS_MAXIMIZE) {
+        w->style &= ~WS_MAXIMIZE;
+        move_to(w, r.left, r.top, r.right - r.left, r.bottom - r.top);
+        send_size(w, SIZE_RESTORED);
+        send_move(w);
+    }
+}
+
+/* The host window was minimized or shown again: the application's main
+ * window (the owner of the active window) is told, as Windows 3.1 told
+ * it when its icon was made or opened. */
+void win_host_minimized(int on)
+{
+    Wnd *w = wnd_get(active);
+
+    while (w && wnd_get(w->parent))
+        w = wnd_get(w->parent);
+    if (w && on != !!(w->style & WS_MINIMIZE))
+        PostMessage(w->hwnd, WM_SYSCOMMAND, on ? SC_MINIMIZE : SC_RESTORE, 0);
+}
+
+/* Windows 3.1's drag frame: a halftone FRAME pixels wide, inverted. */
+static void drag_frame(HDC dc, const RECT *r)
+{
+    int16_t cx = (int16_t)(r->right - r->left), cy = (int16_t)(r->bottom - r->top);
+
+    PatBlt(dc, r->left, r->top, cx, FRAME, PATINVERT);
+    PatBlt(dc, r->left, (int16_t)(r->bottom - FRAME), cx, FRAME, PATINVERT);
+    PatBlt(dc, r->left, (int16_t)(r->top + FRAME), FRAME, (int16_t)(cy - 2 * FRAME), PATINVERT);
+    PatBlt(dc, (int16_t)(r->right - FRAME), (int16_t)(r->top + FRAME), FRAME, (int16_t)(cy - 2 * FRAME), PATINVERT);
+}
+
+/* SC_MOVE: Windows 3.1 moves an outline (full drag came with Windows 95)
+ * until the button is released, Enter or a click (from the keyboard), or
+ * Esc puts it back.  From the keyboard the cursor starts on the caption's
+ * middle and the arrow keys move it 8 pixels. */
+static void move_loop(Wnd *w, WPARAM cmd, LPARAM lp)
+{
+    static const uint8_t halftone[16] = {0xaa, 0, 0x55, 0, 0xaa, 0, 0x55, 0, 0xaa, 0, 0x55, 0, 0xaa, 0, 0x55, 0};
+    HWND h = w->hwnd, old_capture;
+    int by_mouse = (cmd & 0x0f) == HTCAPTION, done = 0, cancel = 0;
+    RECT start = w->rect, r = start;
+    POINT anchor, at;
+    HBITMAP bm;
+    HBRUSH brush;
+    HGDIOBJ old_brush;
+    HDC dc;
+    MSG m;
+
+    if (w->style & WS_MAXIMIZE)
+        return;
+    if (by_mouse) {
+        anchor.x = (int16_t)LOWORD(lp);
+        anchor.y = (int16_t)HIWORD(lp);
+    } else {
+        anchor.x = (int16_t)((start.left + start.right) / 2);
+        anchor.y = (int16_t)(start.top + FRAME + CAPTION_H / 2);
+        SetCursorPos(anchor.x, anchor.y);
+    }
+    bm = CreateBitmap(8, 8, 1, 1, halftone);
+    brush = CreatePatternBrush(bm);
+    dc = GetDC(0);
+    old_brush = SelectObject(dc, brush);
+    old_capture = SetCapture(h);
+    drag_frame(dc, &r);
+    while (!done && !cancel) {
+        if (!GetMessage(&m, 0, 0, 0)) {
+            PostQuitMessage((int16_t)m.wParam);
+            cancel = 1;
+            break;
+        }
+        switch (m.message) {
+        case WM_KEYDOWN:
+            done = m.wParam == VK_RETURN;
+            cancel = m.wParam == VK_ESCAPE;
+            if (done || cancel)
+                input_eat_key_up((int)m.wParam);
+            GetCursorPos(&at);
+            at.x = (int16_t)(at.x + 8 * ((m.wParam == VK_RIGHT) - (m.wParam == VK_LEFT)));
+            at.y = (int16_t)(at.y + 8 * ((m.wParam == VK_DOWN) - (m.wParam == VK_UP)));
+            SetCursorPos(at.x, at.y);
+            break;
+        case WM_MOUSEMOVE:
+            at = m.pt;
+            break;
+        case WM_LBUTTONUP:
+            done = by_mouse;
+            continue;
+        case WM_LBUTTONDOWN:
+            done = !by_mouse;
+            continue;
+        case WM_CHAR:
+        case WM_KEYUP:
+        case WM_SYSKEYDOWN:
+        case WM_SYSKEYUP:
+        case WM_SYSCHAR:
+        case WM_RBUTTONDOWN:
+        case WM_RBUTTONUP:
+            continue;
+        default:
+            DispatchMessage(&m);
+            continue;
+        }
+        drag_frame(dc, &r);
+        r = start;
+        OffsetRect(&r, (int16_t)(at.x - anchor.x), (int16_t)(at.y - anchor.y));
+        drag_frame(dc, &r);
+    }
+    drag_frame(dc, &r);
+    ReleaseCapture();
+    if (old_capture)
+        SetCapture(old_capture);
+    SelectObject(dc, old_brush);
+    ReleaseDC(0, dc);
+    DeleteObject(brush);
+    DeleteObject(bm);
+    if (!cancel && IsWindow(h) && (r.left != start.left || r.top != start.top)) {
+        move_to(w, r.left, r.top, r.right - r.left, r.bottom - r.top);
+        send_move(w);
+    }
+}
+
 LRESULT DefWindowProc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
 {
     Wnd *w = wnd_get(h);
@@ -1056,6 +1262,8 @@ LRESULT DefWindowProc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
     case WM_NCLBUTTONDOWN:
         if (wp == HTMENU || wp == HTSYSMENU)
             SendMessage(h, WM_SYSCOMMAND, SC_MOUSEMENU + (wp == HTSYSMENU ? HTSYSMENU : 0), lp);
+        else if (wp == HTCAPTION)
+            SendMessage(h, WM_SYSCOMMAND, SC_MOVE + HTCAPTION, lp);
         return 0;
     case WM_SYSKEYDOWN:
         if (wp == VK_F4 && lp & KF_ALT)
@@ -1102,8 +1310,20 @@ LRESULT DefWindowProc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
         case SC_MOUSEMENU:
             menu_syscommand(top_level(w)->hwnd, wp, lp);
             break;
+        case SC_MOVE:
+            move_loop(w, wp, lp);
+            break;
+        case SC_MINIMIZE:
+            minimize(w);
+            break;
+        case SC_MAXIMIZE:
+            maximize(w);
+            break;
+        case SC_RESTORE:
+            restore(w);
+            break;
         default:
-            win_stub("DefWindowProc: WM_SYSCOMMAND move, size, minimize, maximize, restore, task list");
+            win_stub("DefWindowProc: WM_SYSCOMMAND size, task list");
             break;
         }
         return 0;

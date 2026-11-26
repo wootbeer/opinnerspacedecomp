@@ -27,6 +27,9 @@ Framebuffer *video_framebuffer(void);
 void video_show(void);
 /* The window lost its picture (exposed, resized): shown again. */
 void video_expose(void);
+/* The host window minimised or shown again (Win16 SC_MINIMIZE, SC_RESTORE). */
+void video_minimize(void);
+void video_restore(void);
 /* --frame-stats: every 5 seconds, the pictures the game finished and
  * the time between them, on the log. */
 void video_frame_stats(void);

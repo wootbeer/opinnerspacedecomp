@@ -305,16 +305,17 @@ HMENU GetSystemMenu(HWND h, BOOL revert)
     return w->sysmenu;
 }
 
-/* What the window's state allows (no window is minimized or maximized
- * in the port). */
+/* What the window's style and state allow. */
 static void sysmenu_state(HWND h, HMENU m)
 {
     DWORD style = wnd_get(h)->style;
+    int resized = (style & (WS_MINIMIZE | WS_MAXIMIZE)) != 0;
 
-    EnableMenuItem(m, SC_RESTORE, MF_GRAYED);
-    EnableMenuItem(m, SC_SIZE, style & WS_THICKFRAME ? 0 : MF_GRAYED);
-    EnableMenuItem(m, SC_MINIMIZE, style & WS_MINIMIZEBOX ? 0 : MF_GRAYED);
-    EnableMenuItem(m, SC_MAXIMIZE, style & WS_MAXIMIZEBOX ? 0 : MF_GRAYED);
+    EnableMenuItem(m, SC_RESTORE, resized ? 0 : MF_GRAYED);
+    EnableMenuItem(m, SC_MOVE, style & WS_MAXIMIZE ? MF_GRAYED : 0);
+    EnableMenuItem(m, SC_SIZE, style & WS_THICKFRAME && !resized ? 0 : MF_GRAYED);
+    EnableMenuItem(m, SC_MINIMIZE, style & WS_MINIMIZEBOX && !(style & WS_MINIMIZE) ? 0 : MF_GRAYED);
+    EnableMenuItem(m, SC_MAXIMIZE, style & WS_MAXIMIZEBOX && !(style & WS_MAXIMIZE) ? 0 : MF_GRAYED);
 }
 
 void menu_window_gone(Wnd *w)
