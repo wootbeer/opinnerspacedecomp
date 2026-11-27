@@ -10,7 +10,6 @@ run. Sizes are rough estimates of new code.
 
 | Item | Reachable? | What the player sees | Status | Size |
 |---|---|---|---|---|
-| First start without INSPACE.INI (6:06d8, "Some game settings are missing") | yes, first launch | a message box, then the game writes its settings | as 1994 (its installer wrote the INI, so players rarely saw it) | decision: a port-side default INI, ~40 lines |
 | Help: WinHelp viewer (Help menu, F1/F2, Navigation's Help, Game Settings' and Display Options' Help; 2:190a, 9:328e) | yes | nothing (logged) | not ported | medium-large: ~700 lines (HLP B+ tree, \|SYSTEM, \|CTXOMAP, \|TOPIC text, a window with links and Back) |
 | Resizing windows (sizing border, system menu Size) | yes, windowed | the frame keeps its size | stub (logged) | small: the move loop (user.c) with an edge per hit-test code |
 | Message box icon (MB_ICONEXCLAMATION and the others) | yes | the port's own 32x32 stand-in, not USER.EXE's picture (the user's data has none) | approximation | none: needs Windows 3.1's USER.EXE |
@@ -52,7 +51,7 @@ ambulance and room 105 with Ambulance Options (buying) and Ship Options
 (Ctrl+Alt+X) to Game Over and Champions of Inner Space, the exit
 question, Save Game, Game Settings (Alt+G), pause, the right-button
 menu, Command Mode (F12), frame-rate keys, a gamepad as the joystick,
-INI Quick/Enhance/BadVideo variants, the limited (unregistered)
+INI Quick/Enhance/BadVideo variants, a first start without INSPACE.INI (the port writes the installer's, profile.c), the limited (unregistered)
 version, the demo, and the Inner Demon sub-game on the ambulance
 room's monitor (seg18). Functions entered over all runs: 661 of 859 in
 the game code, 877 of 1003 in port/src/win. Not reached by script: the

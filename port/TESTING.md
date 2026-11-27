@@ -24,6 +24,14 @@ Checks that need a person, real hardware or the original game. Items move to
       after resizing or uncovering it while a dialog or pause is up.
 - [ ] No audio gaps over long waves.
 
+- [ ] First start with no INSPACE.INI on Windows and Linux: no "settings
+      missing" box, and INSPACE.INI appears in the game folder (nothing in
+      AppData or ~/.local/share). An INSPACE.INI from an earlier port run
+      sits in the old settings folder; move it into the game folder to keep
+      it.
+- [ ] Difficulty: a fresh start uses the installer's Normal (Complex=2);
+      an INI the game wrote itself has no Complex key and plays Gentle.
+
 ## Saves
 - [ ] A save made by the port loads in the original 1994 game (same layout,
       untested because the original can't run here).

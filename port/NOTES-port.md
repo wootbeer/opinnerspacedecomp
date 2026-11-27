@@ -409,6 +409,31 @@ the overrides; `src/inspace/` is unchanged.
 - **`huge` and `_lread`/`_lwrite` sizes.** `huge` is dropped. The 0x7fff-byte chunking in fn_06_9e66 is harmless natively.
 - **Runtime types that differ natively.** `time()`, `stat()` and `utime()` use the host's runtime types. The original's `time_t` was 32 bits; check any place that stores these values in 32-bit globals.
 
+## INSPACE.INI on the first start (port/src/win/profile.c)
+
+- **1994.** INSPACE.INI lived in the Windows directory (bare name to
+  the profile calls; the port's C:\WINDOWS is the game folder).  The
+  installer, BACKUP.EXE ("IS Installer"; unpacked seg 2 0x10f0-0x12b4,
+  0x2b3c-0x2be9, 0x340d-0x362a), wrote [Inner Space] SoundFX, VoiceFX,
+  Music =1 per part installed; LocalPath and Path (the install folder,
+  default C:\SPACE\), ShipPath, SndPath, RacePath (folder + subfolder
+  from INSTALL.INI [Dirs] on the master disk), Games, Dead; ThePlayer
+  from the personalize dialog; Detail 0-3 from a one-second CPU loop
+  (>0x55730 rounds: 3); Full (Full Screen, the default radio: 1);
+  Complex (difficulty radio 0x8e-0x92, default 0x90: 2; Braking=0 only
+  for Gentle and Easier); FrameRateSet 20/36/54/72 (default 36).  No
+  Language or MainShip [inferred: Language came from INSTALL.INI].
+  Without the INI, 6:06d8 runs GRMSETUP.EXE if present (none ships),
+  else shows "Some game settings are missing" and writes the paths,
+  Dead, Games, Language=ENG, MainShip=TRANSFORMER, ThePlayer=your name;
+  Complex then defaults to 0 (Gentle) in 6:11ec.
+- **Port.** With no INSPACE.INI, win_init writes the installer's
+  defaults first (profile_first_start, one table), Language and
+  MainShip as 6:06d8 writes them, plus commented [Port] examples.  An
+  existing INI is never changed: a missing Path still gives the 1994
+  box and regeneration; missing other keys take the game's defaults,
+  none of which breaks the port.
+
 ## ISPACE.DLL (port/src/win/ispace*.c)
 
 Native versions of the DLL's routines, written from its disassembly
@@ -1128,7 +1153,7 @@ in ispace_room.h.
   mode 2 answers 0, a registered copy, so nothing has to be put in the
   Windows folder (Android users have none). Mode 10 still reads the
   name (" - " in the user's INSPACE.EXE). With the check on, WIN.INI
-  (settings folder) [windows] PDev=743 makes this copy registered, as the
+  (game folder) [windows] PDev=743 makes this copy registered, as the
   original on Windows NT [inferred: what the installer writes there]. The flag is cached in
   DS:01ac, which palette mode 0 also writes (a palette handle) when its
   second word is set; the game never sets it.

@@ -59,6 +59,8 @@ int dos_match(const char *name, const char *pattern);
  * value and its length (0: not set). */
 int port_option(const char *name);
 int port_setting(const char *name, char *buf, int size);
+/* Writes the installer's INSPACE.INI when there is none. */
+void profile_first_start(void);
 
 /* Modules and resources (module.c).  A resource name or type is a
  * string or MAKEINTRESOURCE(n). */

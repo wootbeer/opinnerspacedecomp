@@ -4,8 +4,8 @@
  * Drives: each of C: to Z: may be a host folder: the platform's folder
  * roots (Windows: its drives, by letter; elsewhere the user's home as C:),
  * replaced by INSPACE.INI [Port] DriveC=<folder> (any letter).  C:\SPACE
- * (the data folder) and C:\WINDOWS (the settings folder) are mounted on
- * C: whatever C: is.
+ * and C:\WINDOWS (both the data folder: nothing goes to the user's
+ * settings folders) are mounted on C: whatever C: is.
  *
  * Names: the game sees 8.3 names in upper case, as under DOS.  A host
  * name that is a valid 8.3 name when upper-cased is shown so; any other
@@ -37,7 +37,7 @@ static const struct {
     const char *(*folder)(void);
 } mounts[] = {
     {"SPACE", platform_data_dir},
-    {"WINDOWS", platform_pref_dir},
+    {"WINDOWS", platform_data_dir},
 };
 #define N_MOUNTS ((int)(sizeof mounts / sizeof mounts[0]))
 

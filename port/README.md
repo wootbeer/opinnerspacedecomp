@@ -102,8 +102,9 @@ Command line:
 
 Game data (INSPACE.EXE and the other original files) is read from `data/`
 or the folder in `INSPACE_DATA`; it is not part of the repository. The game
-sees it as `C:\SPACE\`; `C:\WINDOWS\` (INSPACE.INI) is the platform's
-settings folder (SDL pref path). The rest of the game's drives are the
+sees it as `C:\SPACE\`; `C:\WINDOWS\` (INSPACE.INI, WIN.INI) is the
+same folder, so the port writes nothing to the user's settings folders
+(AppData, ~/.local/share). The rest of the game's drives are the
 user's folders: see "Drives and file names".
 
 Windows: `cmake -S port -B build-win -DCMAKE_TOOLCHAIN_FILE=<mingw.cmake>
@@ -111,7 +112,14 @@ Windows: `cmake -S port -B build-win -DCMAKE_TOOLCHAIN_FILE=<mingw.cmake>
 
 ## Settings
 
-Port options live in INSPACE.INI (the settings folder) under `[Port]`;
+On the first start, with no INSPACE.INI in the game folder, the port
+writes the one the 1994 installer left (all parts in `C:\SPACE\`, Normal
+difficulty and speed, full screen, the player "your name") with commented
+`[Port]` examples, so the game starts as an installed copy without its
+"Some game settings are missing" box. An existing INSPACE.INI is never
+rewritten; delete it to start afresh.
+
+Port options live in INSPACE.INI (the game folder) under `[Port]`;
 the switches are off unless set to 1.
 
 - `CopyCheck=1`: the original copy check (ISPACE.DLL ordinal 24, mode 2).
@@ -221,7 +229,7 @@ game's DOS paths onto host folders:
   letter) points a drive at any folder. The game asks for the drive in
   its New Game dialog, which lists the drives that exist.
 - **Mounts.** `C:\SPACE` (the game's own folder, a race track in the
-  game) is always the data folder and `C:\WINDOWS` the settings folder,
+  game) and `C:\WINDOWS` are always the data folder,
   whatever C: is. They are listed in C:\ and hide a host folder of the
   same name. As the original did in its folder, the game writes into
   the data folder: saved games (`GAMES\*.SAV`, `LASTGAME.SAV` after each

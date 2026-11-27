@@ -9,6 +9,7 @@ int win_init(void)
 {
     char exe[1024];
 
+    profile_first_start();
     gdi_init();
     controls_register();
     dialog_register();

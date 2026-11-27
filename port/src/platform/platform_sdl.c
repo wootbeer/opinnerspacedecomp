@@ -173,15 +173,6 @@ const void *platform_asset(const char *name, size_t *size)
     return SDL_LoadFile(path, size);
 }
 
-const char *platform_pref_dir(void)
-{
-    static char *dir;
-
-    if (!dir)
-        dir = SDL_GetPrefPath("SDi", "Inner Space");
-    return dir ? dir : "./";
-}
-
 typedef struct {
     const char *want;
     char found[256];

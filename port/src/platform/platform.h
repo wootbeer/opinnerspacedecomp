@@ -47,8 +47,6 @@ const char *platform_data_dir(void);
  * executable; NULL if missing.  The data stays loaded. */
 const void *platform_asset(const char *name, size_t *size);
 
-/* Writable folder for settings (INSPACE.INI), ending in a separator. */
-const char *platform_pref_dir(void);
 
 /* Finds path on disk ignoring the case of each name in it ('/' separated).
  * Names that do not exist are kept as given (for new files).  Returns 1

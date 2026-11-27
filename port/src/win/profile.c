@@ -1,5 +1,6 @@
 /* Private profile (INI) files.  A bare file name (INSPACE.INI) lives in
  * the Windows folder, which is the platform's writable settings folder. */
+#include <SDL3/SDL_log.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,7 +26,7 @@ static void ini_path(LPCSTR file, char *out, size_t size)
     else
         snprintf(dos, sizeof dos, "%s\\%s", WIN_DIR, file);
     if (!dos_to_host(dos, out, size))
-        snprintf(out, size, "%s%s", platform_pref_dir(), file);
+        snprintf(out, size, "%s%s", platform_data_dir(), file);
 }
 
 static Ini *ini_load(LPCSTR file)
@@ -229,6 +230,65 @@ UINT GetProfileInt(LPCSTR section, LPCSTR key, int16_t def)
 int16_t GetProfileString(LPCSTR section, LPCSTR key, LPCSTR def, LPSTR buf, int16_t size)
 {
     return GetPrivateProfileString(section, key, def, buf, size, "WIN.INI");
+}
+
+/* A new INSPACE.INI as the 1994 installer (BACKUP.EXE, "IS Installer")
+ * left it with its default choices: all parts, C:\SPACE\, Normal
+ * difficulty and speed, full screen, the highest detail (a fast machine).
+ * The installer took Language from its disk and wrote no MainShip: both
+ * as the game's own 6:06d8 writes them.  The [Port] lines are examples. */
+static const struct {
+    const char *section, *key, *value;
+} first_ini[] = {
+    {"Inner Space", "SoundFX", "1"},
+    {"Inner Space", "VoiceFX", "1"},
+    {"Inner Space", "Music", "1"},
+    {"Inner Space", "LocalPath", GAME_DIR},
+    {"Inner Space", "Path", GAME_DIR},
+    {"Inner Space", "ShipPath", GAME_DIR "SHIPS\\"},
+    {"Inner Space", "SndPath", GAME_DIR "SOUNDS\\"},
+    {"Inner Space", "Games", "GAMES"},
+    {"Inner Space", "RacePath", GAME_DIR "GAMES\\"},
+    {"Inner Space", "Dead", "RETIRED"},
+    {"Inner Space", "Language", "ENG"},
+    {"Inner Space", "MainShip", "TRANSFORMER"},
+    {"Inner Space", "ThePlayer", "your name"},
+    {"Inner Space", "Detail", "3"},
+    {"Inner Space", "Full", "1"},
+    {"Inner Space", "Complex", "2"},
+    {"Inner Space", "FrameRateSet", "36"},
+    {"Port", ";CopyCheck", "1"},
+    {"Port", ";SoundFont", ""},
+    {"Port", ";DriveD", ""},
+};
+
+void profile_first_start(void)
+{
+    char path[1024];
+    Ini *ini;
+    FILE *fp;
+    size_t i;
+
+    ini_path("INSPACE.INI", path, sizeof path);
+    fp = fopen(path, "r");
+    if (fp) {
+        fclose(fp);
+        return;
+    }
+    ini = calloc(1, sizeof *ini);
+    if (!ini)
+        return;
+    for (i = 0; i < sizeof first_ini / sizeof first_ini[0]; i++) {
+        if (i == 0 || strcmp(first_ini[i].section, first_ini[i - 1].section)) {
+            if (i)
+                ini->line[ini->n++][0] = 0;
+            snprintf(ini->line[ini->n++], LINE_LEN, "[%s]", first_ini[i].section);
+        }
+        snprintf(ini->line[ini->n++], LINE_LEN, "%s=%s", first_ini[i].key, first_ini[i].value);
+    }
+    ini_save(ini, "INSPACE.INI");
+    free(ini);
+    SDL_Log("INSPACE.INI: none, wrote the installer's settings to %s", path);
 }
 
 /* Port settings, listed in port/README.md: INSPACE.INI [Port] name=1
