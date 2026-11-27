@@ -25,6 +25,8 @@ add_executable(inspace
     src/win/gdi.c
     src/win/handles.c
     src/win/help.c
+    src/win/hlpfile.c
+    src/win/winhelp.c
     src/win/icon.c
     src/win/input.c
     src/win/ispace.c

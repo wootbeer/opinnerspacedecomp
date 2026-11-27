@@ -129,6 +129,10 @@ the switches are off unless set to 1.
   "limited inner space" and the New Game dialog offers only TRANSFORMER
   and fewer ships. Off by default so that no files in the Windows folder
   are needed (Android has none).
+- `HelpInGameFolder=1`: Game Settings', Display Options' and Joystick's
+  Help show the game's own help file (C:\SPACE\ENG_HELP.HLP) in place of
+  the missing files under SOUNDS\ (a 1994 bug). Off: the 1994 "Cannot
+  find the file" box.
 - `DriveC=<folder>` (any letter C-Z): the host folder the game sees as
   that drive, an absolute path in the host's form. It replaces the
   platform's choice for that letter ("Drives and file names").
@@ -144,9 +148,15 @@ the switches are off unless set to 1.
 
 The game's help (the Help menu, the Navigation window's Help button,
 Game Settings' and Joystick's Help) is a Windows 3.1 help file,
-ENG_HELP.HLP in the data folder. The port has no help viewer yet: each
-request is logged with its topic and the game goes on, as it did when
-WinHelp could not find the file (NOTES-port.md "Help").
+ENG_HELP.HLP in the data folder. The port reads it at run time and shows
+it in a WinHelp 3.1 style window over the game: Contents, Back, << and >>
+buttons, green underlined jumps. Mouse, or keys: Tab / Shift+Tab pick a
+jump, Return follows it, arrows and Page Up/Down scroll, Backspace or Left
+goes back, Escape closes (so the pad works: Y Tab, A Return, B Escape,
+d-pad). The game pauses while help is open, as it did when WinHelp was
+the active program. Game Settings' and Joystick's Help look for files
+under SOUNDS\ that were never there: as in 1994 they say "Cannot find
+the file" (NOTES-port.md "Help").
 
 ## Gamepad
 

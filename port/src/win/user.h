@@ -118,6 +118,11 @@ void OffsetRect(RECT *r, int16_t dx, int16_t dy);
 void UnionRect(RECT *d, const RECT *a, const RECT *b);
 HDC GetWindowDC(HWND h);
 
+/* The help viewer's windows (winhelp.c) belong to another task, as
+ * WINHELP.EXE's did: GetWindowTask tells them from the game's. */
+#define WINHELP_INSTANCE 0xfffe
+#define WINHELP_TASK 2
+
 /* Room for a window's text, its NUL included (the language DLL's longest
  * text for a dialog's edit field is 2816 bytes). */
 #define WND_TEXT 4096

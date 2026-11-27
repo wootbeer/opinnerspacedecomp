@@ -89,7 +89,14 @@ Checks that need a person, real hardware or the original game. Items move to
 - [ ] Cloak/shield (Caps Lock) shows the ship's cloak frames.
 - [ ] New Ship Body dialog after the ambulance picks you up (never reached
       in a real test run).
-- [ ] Help buttons and the Help menu do nothing visible yet (logged only).
+- [ ] Help: the Help menu and Navigation's Help open ENG_HELP.HLP in the
+      port's viewer. In a wave/at Navigation, F1 and the keys after it
+      responded a few seconds late in test runs (instant at the title);
+      check with real input. Small fonts readable? Clicking the game while
+      help is open doesn't bring the game forward (Esc closes help).
+- [ ] Game Settings / Display Options / Joystick Help show "Cannot find the
+      file" as in 1994 (they look under SOUNDS\); with `[Port]
+      HelpInGameFolder=1` they should open the right topic.
 - [ ] Room 105 shows the textured tower fronts and 2 px circuit lines;
       rooms 110 and 115 show the discs (pentagram platform, pedestal).
 - [ ] Lines the game draws with wide pens elsewhere are now 2-3 px thick
@@ -100,8 +107,6 @@ Checks that need a person, real hardware or the original game. Items move to
       modern pad is found (off by default).
 - [ ] Scope the ideas from smashport (per-user save folder, file check at
       setup, settings menu, remapping, display filters, replays).
-- [ ] Help: build a small native viewer for the user's ENG_HELP.HLP
-      (38 topics, WinHelp 3.1, uncompressed)?
 
 ## Done
 - Esc on the right-button menu in a wave no longer asks to leave the wave

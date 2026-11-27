@@ -872,8 +872,9 @@ WORD SetClassWord(HWND h, int16_t index, WORD v)
 
 HTASK GetWindowTask(HWND h)
 {
-    (void)h;
-    return 1;
+    const Wnd *w = wnd_get(h);
+
+    return w && top_level(w)->inst == WINHELP_INSTANCE ? WINHELP_TASK : 1;
 }
 
 int16_t GetDlgCtrlID(HWND h)

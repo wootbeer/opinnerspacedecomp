@@ -10,7 +10,7 @@ run. Sizes are rough estimates of new code.
 
 | Item | Reachable? | What the player sees | Status | Size |
 |---|---|---|---|---|
-| Help: WinHelp viewer (Help menu, F1/F2, Navigation's Help, Game Settings' and Display Options' Help; 2:190a, 9:328e) | yes | nothing (logged) | not ported | medium-large: ~700 lines (HLP B+ tree, \|SYSTEM, \|CTXOMAP, \|TOPIC text, a window with links and Back) |
+| Help: WinHelp viewer (Help menu, F1/F2, Navigation's Help, Game Settings' and Display Options' Help; 2:190a, 9:328e) | yes | native viewer of the user's ENG_HELP.HLP (hlpfile.c, winhelp.c): topics, fonts, jumps, Contents/Back/<</>>, keyboard and pad | ported | small: Search, popups as windows, compressed files, tables, pictures |
 | Resizing windows (sizing border, system menu Size) | yes, windowed | the frame keeps its size | stub (logged) | small: the move loop (user.c) with an edge per hit-test code |
 | Message box icon (MB_ICONEXCLAMATION and the others) | yes | the port's own 32x32 stand-in, not USER.EXE's picture (the user's data has none) | approximation | none: needs Windows 3.1's USER.EXE |
 | Restore of saves written in the early port layout (t17's GAMES\*.SAV, 1212 bytes) | only with such files | Restore re-opens with the same game selected | as 1994 for a short file (6:930a fails quietly) | none |

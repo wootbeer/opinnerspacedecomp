@@ -1231,7 +1231,7 @@ in ispace_room.h.
   frees and loads both, reopens the mixer (9:04e0 restarting) and loads
   the sounds again. Controls the device cannot use are grayed.
 - **Help** runs WinHelp on <SndPath><Language>_HELP.HLP, contexts 15 and
-  0x20 (help.c: logged; see "Help"). **Joystick..** runs the Joystick dialog
+  0x20 (missing: see "Help"). **Joystick..** runs the Joystick dialog
   (template 975, 9:40da; "Joystick" below).
 - **Checked against the DLL** with the oracle (tools/dll_oracle/options.txt):
   the three dialog procedures called with WM_INITDIALOG, every scroll code
@@ -1875,14 +1875,48 @@ clock (1 ms timer resolution).
   Day, Ordering Instructions, Why Register Inner Space?); |CTXOMAP maps
   context numbers 1-37 to them (35 is Joystick Settings, which the
   Joystick dialog would have found in ENG_HELP.HLP).
-- **Now:** WinHelp logs the file, the topic and whether the file exists,
-  and returns TRUE, as Windows 3.1 did whether the file was there or
-  not (WINHELP.EXE reported a missing file itself) [inferred].
-- **Recommended:** a small native viewer that reads the user's own .HLP
-  at run time (nothing of it in the port): the B+ tree directory,
-  |SYSTEM, |CTXOMAP for the context numbers, |TTLBTREE for titles and
-  |TOPIC's uncompressed records (paragraph text with bold and the
-  jump hotspots of its formatting codes); LZ77 and phrase compression,
-  which this file does not use, can wait. Shown in a plain window with
-  links and Back, opened on the asked context; a missing file gets
-  Windows 3.1's message.
+- **Now:** a native viewer for the user's own file (hlpfile.c, winhelp.c;
+  nothing of the file is in the port). hlpfile.c reads, bounds-checked,
+  the B+ tree directory, |SYSTEM (3.1 only, title), |FONT, |CTXOMAP,
+  |CONTEXT (jump hashes), |TTLBTREE and |TOPIC: the 4 KB blocks joined
+  without their 12-byte headers; a TOPICPOS is block << 14 plus the offset
+  in the block, header included; a TOPICOFFSET (|CTXOMAP, |CONTEXT,
+  |TTLBTREE, the browse sequence) is block << 15 plus the TopicLength of
+  the display records since the block's first record (checked: all 38
+  titles' offsets agree). Display records (0x20): TopicSize, TopicLength,
+  4 bytes, a bits word and its fields (indents and spacing in 10-twip
+  units), then one command of LinkData1 at each NUL of LinkData2 (0x80
+  font, 0x81 line, 0x82 paragraph, 0x83 tab, 0x89 hotspot end, 0xE2/0xE3
+  popup/jump by hash, 0xC8/0xCC macros, 0xEA-0xEF other files, 0xFF end).
+  Compressed files (|SYSTEM flags 4 or 8), 3.0 files, tables (0x23) and
+  pictures are not read: "not a Windows 3.1 help file the port can show".
+- **Viewer:** one top-level window (class MS_WINHELP) with the file's title,
+  buttons Contents, Back, << and >> (the file's BrowseButtons()), the
+  topic word-wrapped with its fonts, colours, indents and alignment, jumps
+  green and underlined. Popups (0xE2) open as jumps; macro and other-file
+  hotspots only beep. No Search, History, menu bar, non-scrolling region
+  or hand cursor [simplified]. Keys: Tab / Shift+Tab pick a jump (shown
+  inverted), Return follows, arrows / Page Up / Page Down / Home / End
+  scroll, C, B, < and > (Alt too) press the buttons, Backspace and Left go
+  back (the pad's d-pad left), Escape or Alt+F4 close. HELP_CONTEXT,
+  HELP_INDEX/HELP_CONTENTS, HELP_HELPONHELP (contents) and HELP_QUIT; a
+  context the file does not map opens Contents. A second call raises the
+  window and goes to the topic (Back returns).
+- **The game while help is open:** the viewer's windows are another task
+  (GetWindowTask 2, as WINHELP.EXE's): the game's idle check (2:0430)
+  sees another task's window active, so it stops the game (2:09c4) and
+  calls 10:8686 as on Windows 3.1, and starts it again when help closes.
+  The viewer paints at once after each input (UpdateWindow), as
+  WINHELP.EXE's own message loop did, rather than waiting behind the
+  game's windows in the port's one loop.
+- **Missing file:** a MessageBox "Cannot find the file <path>." [inferred
+  wording]; WinHelp still returns TRUE. The DLL's <SndPath> files are
+  missing for every player (a 1994 bug: contexts 15, 0x20 and 0x23 are
+  ENG_HELP.HLP's Game Settings, Display Options and Joystick Settings), so
+  the box is the default; INSPACE.INI [Port] HelpInGameFolder=1 shows
+  C:\SPACE\<Language>_HELP.HLP in place of a missing file.
+- **Checked:** ASan/UBSan run (open, Tab, Return, scroll, Back, click,
+  browse, Escape, reopen, Alt+F4): no findings in the viewer. In the
+  Navigation window the game takes F1 and the input after it with a delay
+  of a few seconds of the test clock (the game's own loop; not looked
+  into).
