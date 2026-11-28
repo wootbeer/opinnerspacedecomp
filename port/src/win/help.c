@@ -3,9 +3,9 @@
  * Joystick dialogs ask for files under SndPath, which are not there).
  * The file is shown by the port's viewer (winhelp.c).  As in Windows 3.1
  * the call succeeds whether the file is there or not: WINHELP.EXE, not
- * the caller, told the user about a missing file.  [Port]
- * HelpInGameFolder=1 looks for a missing file as the game's own help
- * file in the game folder (port/NOTES-port.md "Help"). */
+ * the caller, told the user about a missing file.  A missing file is
+ * looked for as the game's own help file in the game folder, unless
+ * [Port] HelpMissing=1 keeps 1994's box (port/NOTES-port.md "Help"). */
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_stdinc.h>
 
@@ -18,18 +18,18 @@ static int exists(const char *dos_path)
     return OpenFile(dos_path, &of, OF_EXIST) != HFILE_ERROR;
 }
 
-/* The file to show: the one asked for, or with HelpInGameFolder the
- * game's C:\SPACE\<Language>_HELP.HLP in its place when it is missing. */
+/* The file to show: the one asked for, or the game's
+ * C:\SPACE\<Language>_HELP.HLP in its place when it is missing. */
 static void resolve(const char *file, char *path, size_t size)
 {
     char language[5];
 
     SDL_strlcpy(path, file, size);
-    if (exists(path) || !port_option("HelpInGameFolder"))
+    if (exists(path) || port_option("HelpMissing"))
         return;
     GetPrivateProfileString("Inner Space", "Language", "", language, sizeof language, "INSPACE.INI");
     SDL_snprintf(path, size, "%s%s_HELP.HLP", GAME_DIR, language);
-    SDL_Log("help: %s is missing; %s instead (HelpInGameFolder)", file, path);
+    SDL_Log("help: %s is missing; %s instead", file, path);
 }
 
 BOOL WinHelp(HWND w, LPCSTR file, UINT cmd, DWORD data)

@@ -89,14 +89,15 @@ Checks that need a person, real hardware or the original game. Items move to
 - [ ] Cloak/shield (Caps Lock) shows the ship's cloak frames.
 - [ ] New Ship Body dialog after the ambulance picks you up (never reached
       in a real test run).
-- [ ] Help: the Help menu and Navigation's Help open ENG_HELP.HLP in the
-      port's viewer. In a wave/at Navigation, F1 and the keys after it
-      responded a few seconds late in test runs (instant at the title);
-      check with real input. Small fonts readable? Clicking the game while
-      help is open doesn't bring the game forward (Esc closes help).
-- [ ] Game Settings / Display Options / Joystick Help show "Cannot find the
-      file" as in 1994 (they look under SOUNDS\); with `[Port]
-      HelpInGameFolder=1` they should open the right topic.
+- [ ] Help: the Help menu and Navigation's Help button open ENG_HELP.HLP
+      in the port's viewer. F1 does nothing while the Navigation window is
+      active: the game only checks its keyboard shortcuts when its main
+      window is active (as in 1994, inferred). Small fonts readable?
+      Clicking the game while help is open doesn't bring the game forward
+      (Esc closes help).
+- [ ] Game Settings / Display Options / Joystick Help open their topics in
+      ENG_HELP.HLP (1994 looked under SOUNDS\ and showed "Cannot find the
+      file"; `[Port] HelpMissing=1` brings that back).
 - [ ] Room 105 shows the textured tower fronts and 2 px circuit lines;
       rooms 110 and 115 show the discs (pentagram platform, pedestal).
 - [ ] Lines the game draws with wide pens elsewhere are now 2-3 px thick

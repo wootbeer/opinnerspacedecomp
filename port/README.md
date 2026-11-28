@@ -129,10 +129,10 @@ the switches are off unless set to 1.
   "limited inner space" and the New Game dialog offers only TRANSFORMER
   and fewer ships. Off by default so that no files in the Windows folder
   are needed (Android has none).
-- `HelpInGameFolder=1`: Game Settings', Display Options' and Joystick's
-  Help show the game's own help file (C:\SPACE\ENG_HELP.HLP) in place of
-  the missing files under SOUNDS\ (a 1994 bug). Off: the 1994 "Cannot
-  find the file" box.
+- `HelpMissing=1`: Game Settings', Display Options' and Joystick's Help
+  show 1994's "Cannot find the file" box (they look under SOUNDS\, where
+  no help file is). Off: they open their topics in the game's own help
+  file (C:\SPACE\ENG_HELP.HLP).
 - `DriveC=<folder>` (any letter C-Z): the host folder the game sees as
   that drive, an absolute path in the host's form. It replaces the
   platform's choice for that letter ("Drives and file names").

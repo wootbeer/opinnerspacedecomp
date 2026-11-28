@@ -1913,10 +1913,12 @@ clock (1 ms timer resolution).
   wording]; WinHelp still returns TRUE. The DLL's <SndPath> files are
   missing for every player (a 1994 bug: contexts 15, 0x20 and 0x23 are
   ENG_HELP.HLP's Game Settings, Display Options and Joystick Settings), so
-  the box is the default; INSPACE.INI [Port] HelpInGameFolder=1 shows
-  C:\SPACE\<Language>_HELP.HLP in place of a missing file.
+  the port shows C:\SPACE\<Language>_HELP.HLP in place of a missing
+  file; INSPACE.INI [Port] HelpMissing=1 keeps the 1994 box.
 - **Checked:** ASan/UBSan run (open, Tab, Return, scroll, Back, click,
   browse, Escape, reopen, Alt+F4): no findings in the viewer. In the
-  Navigation window the game takes F1 and the input after it with a delay
-  of a few seconds of the test clock (the game's own loop; not looked
-  into).
+  Navigation window F1 does nothing: WinMain (2:0000) translates
+  MainAccel only while the main window is active, and IS_NAV is a
+  top-level window of its own (style 0x10cc0000, owned by the main
+  window), so 1994 behaved the same [inferred]. Navigation's Help button
+  opens help at once.
