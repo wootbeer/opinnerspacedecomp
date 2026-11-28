@@ -34,6 +34,7 @@ static const struct {
     {SDLK_EQUALS, 0xbb}, {SDLK_COMMA, 0xbc}, {SDLK_MINUS, 0xbd}, {SDLK_PERIOD, 0xbe},
     {SDLK_SLASH, 0xbf}, {SDLK_GRAVE, 0xc0}, {SDLK_LEFTBRACKET, 0xdb}, {SDLK_BACKSLASH, 0xdc},
     {SDLK_RIGHTBRACKET, 0xdd}, {SDLK_APOSTROPHE, 0xde},
+    {SDLK_AC_BACK, VK_ESCAPE},  /* Android's Back */
 };
 
 /* Characters of the keys that type one that is not their own code:

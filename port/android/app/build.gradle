@@ -1,0 +1,59 @@
+apply plugin: 'com.android.application'
+
+def sdl3 = findProperty('inspace.sdl3')
+if (!sdl3) {
+    throw new GradleException('Set inspace.sdl3 to the SDL3 source tree (port/android/gradle.properties)')
+}
+def fonts = layout.buildDirectory.dir('generated/fonts')
+
+android {
+    namespace 'org.inspace.port'
+    compileSdk 35
+    ndkVersion '28.2.13676358'
+
+    defaultConfig {
+        applicationId 'org.inspace.port'
+        minSdk 21
+        targetSdk 35
+        versionCode 1
+        versionName '0.1'
+        ndk {
+            abiFilters 'arm64-v8a', 'x86_64'
+        }
+        externalNativeBuild {
+            cmake {
+                arguments "-DINSPACE_SDL3_SOURCE=${sdl3}", '-DANDROID_STL=c++_static'
+                targets 'inspace', 'SDL3-shared'
+            }
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            path '../../CMakeLists.txt'
+            version '3.31.6'
+        }
+    }
+    sourceSets {
+        main {
+            java.srcDirs += "${sdl3}/android-project/app/src/main/java"
+            assets.srcDirs += fonts
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    lint {
+        abortOnError false
+    }
+}
+
+// The fonts that stand in for Windows' (port/README.md), with their
+// licence, as the assets the game loads from fonts/.
+def copyFonts = tasks.register('copyFonts', Copy) {
+    from('../../third_party/liberation') {
+        include '*.ttf', 'LICENSE'
+    }
+    into fonts.map { it.dir('fonts') }
+}
+preBuild.dependsOn copyFonts

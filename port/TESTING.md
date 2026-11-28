@@ -32,6 +32,13 @@ Checks that need a person, real hardware or the original game. Items move to
 - [ ] Difficulty: a fresh start uses the installer's Normal (Complex=2);
       an INI the game wrote itself has no Complex key and plays Gentle.
 
+- [ ] Android (debug APK built, never run): the first-start screen names
+      the game folder and "Import game folder..." copies a chosen folder in
+      (try an SD card or USB stick; on Android 11+ check that folder is
+      reachable over USB/adb). Taps land on the right buttons with black
+      bars; Back acts as Esc in dialogs; music plays, loops, pauses in the
+      background and resumes; fonts load; startup time; a gamepad.
+
 ## Saves
 - [ ] A save made by the port loads in the original 1994 game (same layout,
       untested because the original can't run here).

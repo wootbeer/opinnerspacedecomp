@@ -18,7 +18,9 @@ can work on.
   game controllers): `platform_sdl.c` on SDL3 for every platform,
   `platform_pad.c` (gamepads and joysticks, SDL3), and the music backends
   behind `platform_music.c` (`music_tsf.c` on a SoundFont, `music_win.c`
-  on Windows' MIDI output). Game code never calls the OS directly.
+  on Windows' MIDI output, `music_android.c` on Android's MediaPlayer).
+  Game code never calls the OS directly.
+- `android/` – the Android app (Gradle project; see "Android").
 
 - `src/game/` – the game logic, generated from the decomp (see
   `NOTES-port.md`).
@@ -101,7 +103,7 @@ Command line:
   frames). Example: `--pad "10:attach,1600:B,3600:LX=32767/100"`.
 
 Game data (INSPACE.EXE and the other original files) is read from `data/`
-or the folder in `INSPACE_DATA`; it is not part of the repository. The game
+or the folder in `INSPACE_DATA` (Android: see "Android"); it is not part of the repository. The game
 sees it as `C:\SPACE\`; `C:\WINDOWS\` (INSPACE.INI, WIN.INI) is the
 same folder, so the port writes nothing to the user's settings folders
 (AppData, ~/.local/share). The rest of the game's drives are the
@@ -109,6 +111,51 @@ user's folders: see "Drives and file names".
 
 Windows: `cmake -S port -B build-win -DCMAKE_TOOLCHAIN_FILE=<mingw.cmake>
 -DCMAKE_PREFIX_PATH=<SDL3 Windows install>`.
+
+## Android
+
+`android/` is a Gradle project (SDL3's android-project layout): the app
+`org.inspace.port`, labelled "Operation: Inner Space", for arm64-v8a and
+x86_64 (emulators), Android 5.0 (API 21) and later. `GameActivity` is
+SDL's `SDLActivity` loading `libinspace.so`, which `CMakeLists.txt`
+builds as a shared library with SDL3 from its source; SDL's Java
+classes come from that source tree too. No game files are in the APK,
+only the fonts (as assets, `fonts/`).
+
+Needs JDK 17 or later, Gradle 8.9 or later, the Android SDK (platform 35,
+build-tools 35), NDK 28.2.13676358, the SDK's CMake 3.31.6 and an SDL3
+source tree (3.2 or later):
+
+    cd port/android
+    ANDROID_HOME=<SDK> gradle -Pinspace.sdl3=<SDL3 source> assembleDebug
+
+The APK is `app/build/outputs/apk/debug/app-debug.apk`
+(`adb install` it). `inspace.sdl3` can also be set in
+`android/gradle.properties` or `~/.gradle/gradle.properties`.
+
+**Game files.** As on the desktop everything (the original files,
+INSPACE.INI, saved games) is in one folder, the app's own folder on the
+shared storage: `Android/data/org.inspace.port/files/` (full path
+normally `/storage/emulated/0/Android/data/org.inspace.port/files/`).
+It is the game's `C:\SPACE\` and `C:\WINDOWS\`, and drive C:. On the
+first start the app shows that folder and offers **Import game folder**:
+pick the folder of your copy that holds INSPACE.EXE (the system's folder
+picker) and the app copies it, with its subfolders, into its own. Or copy
+the files yourself:
+
+    adb push <your game folder>/. /sdcard/Android/data/org.inspace.port/files/
+
+(a computer over USB sees the same folder; Android 11 and later file
+managers on the phone may not be allowed into Android/data). The folder
+goes when the app is uninstalled, saved games with it.
+
+**Playing.** Full screen in landscape, the 640x480 picture scaled to fit
+with black bars; the screen stays on. A touch is the mouse (a tap is a
+left click where it lands); Back is Escape. Game controllers work as on
+the desktop ("Gamepad"). Music plays on Android's own MIDI synthesizer
+(MediaPlayer; `src/platform/music_android.c`), or on a SoundFont named by
+`[Port] SoundFont=` (a path on the device, e.g. a .sf2 in the game
+folder); it pauses while the app is in the background.
 
 ## Settings
 
@@ -141,8 +188,8 @@ the switches are off unless set to 1.
   GeneralUser GS; none comes with the port), an absolute path in the
   host's form. The music (the game's MAIN.MID, RACE.MID, ANTHEM.MID and
   DEMON.MID) is then played on it, on every platform. Without it Windows
-  plays the music on its own MIDI synthesizer and Linux plays none
-  (NOTES-port.md "Music").
+  and Android play the music on their own MIDI synthesizer and Linux
+  plays none (NOTES-port.md "Music").
 
 ## Help
 
@@ -237,8 +284,8 @@ game's DOS paths onto host folders:
 
 - **Drives.** On Windows the drives are the real ones (C: is C:\, D: is
   D:\ ...). On Linux C: is the user's home folder and there are no
-  other drives. Android will use the folders the user grants (not done
-  yet; `platform_folder_roots`). INSPACE.INI `[Port] DriveC=` (any
+  other drives. On Android C: is the game folder (folders the user
+  grants are not done yet; `platform_folder_roots`). INSPACE.INI `[Port] DriveC=` (any
   letter) points a drive at any folder. The game asks for the drive in
   its New Game dialog, which lists the drives that exist.
 - **Mounts.** `C:\SPACE` (the game's own folder, a race track in the

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Operation: Inner Space</string>
+    <string name="setup_missing">The game files are not here yet. Put the files of your own copy of Operation: Inner Space (the folder with INSPACE.EXE, ISPACE.DLL, SOUNDS, SHIPS …) into this folder:\n\n%1$s\n\nwith a file manager or adb, or import the folder here.</string>
+    <string name="setup_import">Import game folder…</string>
+    <string name="setup_retry">Start</string>
+    <string name="setup_copying">Copying %1$s</string>
+    <string name="setup_failed">The import stopped: %1$s</string>
+</resources>

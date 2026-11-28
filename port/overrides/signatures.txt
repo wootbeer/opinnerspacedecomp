@@ -211,3 +211,12 @@ fix seg17.c fn_17_7614: fn_10_a332(g_6078, "button", 1, => fn_10_a332(g_6078, 0x
 fix seg17.c fn_17_76e4: fn_10_a332(g_6078, "button", 0, => fn_10_a332(g_6078, 0xbd2, 0,
 # The id written as a near-pointer cast of a number.
 fix seg17.c fn_17_8a92: fn_10_a332(s1, (char *)(g_4d92[g_4ed4[t]].f10 + 10000), 1); => fn_10_a332(s1, g_4d92[g_4ed4[t]].f10 + 10000, 1);
+
+# LoadCursor's first argument is a 16-bit HINSTANCE; NULL (a pointer
+# natively) is a conversion error under clang and GCC 14.
+fix seg06.c fn_06_033e: LoadCursor(NULL, IDC_WAIT) => LoadCursor(0, IDC_WAIT)
+fix seg06.c fn_06_033e: LoadCursor(NULL, IDC_ARROW) => LoadCursor(0, IDC_ARROW)
+fix seg06c.c fn_06_12b6: LoadCursor(NULL, IDC_ARROW) => LoadCursor(0, IDC_ARROW)
+fix seg06c.c fn_06_12b6: LoadCursor(NULL, IDC_ARROW) => LoadCursor(0, IDC_ARROW)
+fix seg06c.c fn_06_12b6: LoadCursor(NULL, IDC_ARROW) => LoadCursor(0, IDC_ARROW)
+fix seg06c.c fn_06_12b6: LoadCursor(NULL, IDC_ARROW) => LoadCursor(0, IDC_ARROW)

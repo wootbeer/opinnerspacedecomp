@@ -24,7 +24,8 @@ typedef struct {
 void platform_date(PlatformDate *out);
 
 /* Folder roots the game may explore: on Windows its drives ("C:/"), on
- * Linux the user's home, on Android (later) the folders the user granted.
+ * Linux the user's home, on Android the game folder (platform_data_dir;
+ * later the folders the user grants).
  * Returns the number written to roots, at most max. */
 int platform_folder_roots(char roots[][260], int max);
 
@@ -40,8 +41,15 @@ typedef void (*PlatformDirFn)(const PlatformDirEntry *entry, void *user);
 int platform_list_dir(const char *path, const char *pattern,
                       PlatformDirFn fn, void *user);
 
-/* Path of the folder holding the game's data files (INSPACE.EXE etc.). */
+/* Path of the folder holding the game's data files (INSPACE.EXE etc.):
+ * INSPACE_DATA if set, else "data", on Android the app's external files
+ * folder. */
 const char *platform_data_dir(void);
+
+/* How the picture is shown: 1 on phones and tablets (Android), the whole
+ * screen with the picture scaled to fit; 0 elsewhere, a window with the
+ * picture scaled by whole numbers. */
+int platform_full_screen(void);
 
 /* A file shipped with the port (the fonts), from the folder of the
  * executable; NULL if missing.  The data stays loaded. */

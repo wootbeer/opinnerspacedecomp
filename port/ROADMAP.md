@@ -7,7 +7,7 @@ point says otherwise.
 ## Files
 - The port keeps everything in the game folder, as 1994 did: saves,
   settings, race times. Nothing goes to the Windows user folder or
-  AppData. Android will need its app storage; that is the only exception.
+  AppData. On Android the game folder is the app's own storage (done).
 - Check the user's game files at start: recognise the release (Plus
   Edition v1.29 and others) and say clearly what is missing or wrong.
 

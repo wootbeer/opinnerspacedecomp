@@ -62,7 +62,7 @@ void fn_06_033e(void)
 {
     char buf[12];
 
-    SetCursor(LoadCursor(NULL, IDC_WAIT));
+    SetCursor(LoadCursor(0, IDC_WAIT));
     fn_06_0f1a(g_0020, buf);
     WritePrivateProfileString(app_name, "Full", buf, ini_name);
     fn_06_0f1a(g_90f6, buf);
@@ -117,7 +117,7 @@ void fn_06_033e(void)
         fn_06_0f1a(g_1d20.bottom, buf);
         WritePrivateProfileString(app_name, "ShowBottom", buf, ini_name);
     }
-    SetCursor(LoadCursor(NULL, IDC_ARROW));
+    SetCursor(LoadCursor(0, IDC_ARROW));
     g_8ff0 = g_8fee = g_8fea = g_012a = g_012c = g_8f6a = g_0128 = 0;
 }
 

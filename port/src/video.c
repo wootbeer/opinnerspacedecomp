@@ -25,7 +25,9 @@ static struct {
 
 int video_open(const char *title, int width, int height)
 {
-    window = SDL_CreateWindow(title, width, height, SDL_WINDOW_RESIZABLE);
+    int full = platform_full_screen();
+
+    window = SDL_CreateWindow(title, width, height, full ? SDL_WINDOW_FULLSCREEN : SDL_WINDOW_RESIZABLE);
     if (!window)
         return 0;
     renderer = SDL_CreateRenderer(window, NULL);
@@ -35,7 +37,8 @@ int video_open(const char *title, int width, int height)
      * game, whose pace is its own (NOTES-port.md "Game speed"). */
     SDL_SetRenderVSync(renderer, 0);
     SDL_SetRenderLogicalPresentation(renderer, width, height,
-                                     SDL_LOGICAL_PRESENTATION_INTEGER_SCALE);
+                                     full ? SDL_LOGICAL_PRESENTATION_LETTERBOX
+                                          : SDL_LOGICAL_PRESENTATION_INTEGER_SCALE);
     texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_XRGB8888,
                                 SDL_TEXTUREACCESS_STREAMING, width, height);
     if (!texture)

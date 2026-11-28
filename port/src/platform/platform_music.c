@@ -1,12 +1,14 @@
 /* platform_music_*: a .MID file played by TinySoundFont when the user
  * has named a SoundFont, else by the system's own MIDI synthesizer
- * (Windows; later Android's MediaPlayer), else not at all. */
+ * (Windows' MIDI output, Android's MediaPlayer), else not at all. */
 #include <SDL3/SDL_log.h>
 
 #include "platform/music.h"
 
-#ifdef _WIN32
+#if defined(_WIN32)
 static const MusicBackend *const system_music = &music_win;
+#elif defined(SDL_PLATFORM_ANDROID)
+static const MusicBackend *const system_music = &music_android;
 #else
 static const MusicBackend *const system_music = NULL;
 #endif

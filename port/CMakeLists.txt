@@ -1,13 +1,24 @@
 cmake_minimum_required(VERSION 3.16)
 project(inspace C)
 
+# Android (port/android/) builds SDL3 from its source along with the game,
+# which is the shared library SDLActivity loads.
+if(ANDROID)
+    add_subdirectory(${INSPACE_SDL3_SOURCE} SDL3 EXCLUDE_FROM_ALL)
+else()
+    find_package(SDL3 REQUIRED CONFIG)
+endif()
+
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
-find_package(SDL3 REQUIRED CONFIG)
-
 file(GLOB GAME_SOURCES src/game/*.c)
-add_executable(inspace
+if(ANDROID)
+    add_library(inspace SHARED)
+else()
+    add_executable(inspace)
+endif()
+target_sources(inspace PRIVATE
     src/main.c
     src/video.c
     src/platform/platform_sdl.c
@@ -73,6 +84,10 @@ if(WIN32)
     # The system's MIDI synthesizer (music_win.c).
     target_sources(inspace PRIVATE src/platform/music_win.c)
     target_link_libraries(inspace PRIVATE winmm)
+elseif(ANDROID)
+    # Android's synthesizer through MediaPlayer (music_android.c).
+    target_sources(inspace PRIVATE src/platform/music_android.c)
+    target_link_libraries(inspace PRIVATE m)
 elseif(NOT MSVC)
     target_link_libraries(inspace PRIVATE m)
 endif()
@@ -92,8 +107,10 @@ elseif(MSVC)
 endif()
 
 # The fonts that stand in for Windows' (port/README.md), next to the
-# executable.
+# executable (on Android in the app's assets, port/android/app/build.gradle).
 file(GLOB FONT_FILES third_party/liberation/*.ttf)
-add_custom_command(TARGET inspace POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:inspace>/fonts
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${FONT_FILES} $<TARGET_FILE_DIR:inspace>/fonts)
+if(NOT ANDROID)
+    add_custom_command(TARGET inspace POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:inspace>/fonts
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${FONT_FILES} $<TARGET_FILE_DIR:inspace>/fonts)
+endif()

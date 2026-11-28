@@ -70,7 +70,7 @@ int16_t fn_06_12b6(HINSTANCE hInst, HINSTANCE hPrev, WNDCLASS wc)
     wc.cbWndExtra = 0;
     wc.hInstance = hInst;
     wc.hIcon = LoadIcon(hInst, "GAME");
-    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+    wc.hCursor = LoadCursor(0, IDC_ARROW);
     wc.hbrBackground = GetStockObject(BLACK_BRUSH);
     wc.lpszMenuName = NULL;
     wc.lpszClassName = app_name;
@@ -122,7 +122,7 @@ int16_t fn_06_12b6(HINSTANCE hInst, HINSTANCE hPrev, WNDCLASS wc)
     wc.cbWndExtra = 0;
     wc.hInstance = hInst;
     wc.hIcon = LoadIcon(hInst, "GAME");
-    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+    wc.hCursor = LoadCursor(0, IDC_ARROW);
     wc.hbrBackground = GetStockObject(LTGRAY_BRUSH);
     wc.lpszMenuName = NULL;
     wc.lpszClassName = "IS_NAV";
@@ -135,7 +135,7 @@ int16_t fn_06_12b6(HINSTANCE hInst, HINSTANCE hPrev, WNDCLASS wc)
     wc.cbWndExtra = 0;
     wc.hInstance = hInst;
     wc.hIcon = LoadIcon(hInst, "GAME");
-    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+    wc.hCursor = LoadCursor(0, IDC_ARROW);
     wc.hbrBackground = GetStockObject(BLACK_BRUSH);
     wc.lpszMenuName = NULL;
     wc.lpszClassName = "IS_HELP";
@@ -148,7 +148,7 @@ int16_t fn_06_12b6(HINSTANCE hInst, HINSTANCE hPrev, WNDCLASS wc)
     wc.cbWndExtra = 0;
     wc.hInstance = hInst;
     wc.hIcon = 0;
-    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+    wc.hCursor = LoadCursor(0, IDC_ARROW);
     wc.hbrBackground = GetStockObject(BLACK_BRUSH);
     wc.lpszMenuName = NULL;
     wc.lpszClassName = "IS_INFO";

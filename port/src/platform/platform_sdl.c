@@ -57,8 +57,9 @@ void platform_date(PlatformDate *out)
     out->second = t->tm_sec;
 }
 
-/* Windows: its drives from C: on, as "C:/"; elsewhere the user's home
- * folder (it becomes drive C:, see port/README.md). */
+/* Windows: its drives from C: on, as "C:/"; Android: the game folder;
+ * elsewhere the user's home folder (it becomes drive C:, see
+ * port/README.md). */
 int platform_folder_roots(char roots[][260], int max)
 {
 #ifdef _WIN32
@@ -70,7 +71,11 @@ int platform_folder_roots(char roots[][260], int max)
             SDL_snprintf(roots[n++], 260, "%c:/", 'A' + i);
     return n;
 #else
+#ifdef SDL_PLATFORM_ANDROID
+    const char *home = SDL_GetAndroidExternalStoragePath();
+#else
     const char *home = SDL_GetUserFolder(SDL_FOLDER_HOME);
+#endif
 
     if (!home || max < 1)
         return 0;
@@ -161,7 +166,23 @@ const char *platform_data_dir(void)
 {
     const char *env = SDL_getenv("INSPACE_DATA");
 
-    return env ? env : "data";
+    if (env)
+        return env;
+#ifdef SDL_PLATFORM_ANDROID
+    env = SDL_GetAndroidExternalStoragePath();
+    return env ? env : ".";
+#else
+    return "data";
+#endif
+}
+
+int platform_full_screen(void)
+{
+#ifdef SDL_PLATFORM_ANDROID
+    return 1;
+#else
+    return 0;
+#endif
 }
 
 const void *platform_asset(const char *name, size_t *size)

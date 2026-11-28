@@ -4,6 +4,8 @@
 #ifndef MUSIC_H
 #define MUSIC_H
 
+#include <SDL3/SDL_platform_defines.h>
+
 #include "platform/platform.h"
 #include "tml.h"
 
@@ -20,6 +22,9 @@ typedef struct {
 extern const MusicBackend music_tsf;    /* music_tsf.c: TinySoundFont */
 #ifdef _WIN32
 extern const MusicBackend music_win;    /* music_win.c: Windows' MIDI output */
+#endif
+#ifdef SDL_PLATFORM_ANDROID
+extern const MusicBackend music_android;        /* music_android.c: MediaPlayer */
 #endif
 
 /* A MIDI file's messages played from a time to a time (milliseconds).

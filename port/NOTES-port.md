@@ -103,7 +103,7 @@
    - 197 `char` array subscripts. The original indexed with a signed char, so the fix is an explicit `(int)` cast, not unsigned.
    - 95 `&&` within `||` and 31 other precedence warnings.
    - 49 unused parameters.
-   - 6 pointer/integer conversions, all `LoadCursor(NULL, ...)`, and 5 calls passing a record pointer of another view's type; see "Far pointers" below.
+   - 5 calls passing a record pointer of another view's type; see "Far pointers" below.
 
 13. **Layout tricks added or resolved to make the code compile** (to revisit with the later steps):
    - A long passed for two int parameters is split with `LO16(x), HI16(x)`: `fn_10_6ee6` (3 callers), `fn_10_7328`, `fn_13_9a18`; the long fields (`g_96d2[].f_a9`, `g_7090[].f_03e`) are probably two ints.
@@ -425,8 +425,8 @@ the overrides; `src/inspace/` is unchanged.
   through another pointer type as a cast (`pointer slot cast`), and a
   long the decomp also saw as a far pointer as the long (`pointer view
   of a long`: REC_70 +6a, cleared by 10:0000 as `f_6a = 0`; the
-  8-byte pointer view wrote past the record). Left: `LoadCursor(NULL,
-  ...)` (6 sites; HINSTANCE is a 16-bit handle).
+  8-byte pointer view wrote past the record). `LoadCursor(NULL, ...)`
+  (6 sites; HINSTANCE is a 16-bit handle) takes 0 through `fix` entries.
 - **`huge` and `_lread`/`_lwrite` sizes.** `huge` is dropped. The 0x7fff-byte chunking in fn_06_9e66 is harmless natively.
 - **Runtime types that differ natively.** `time()`, `stat()` and `utime()` use the host's runtime types. The original's `time_t` was 32 bits; check any place that stores these values in 32-bit globals.
 
@@ -1752,17 +1752,21 @@ platform_music.c picks a backend each time a file is opened:
   SoundFont there is no music, logged once ("no music: no SoundFont
   set"). A SoundFont that does not load is logged once and Windows then
   uses its own synthesizer.
-- **Android** (not built yet) will add a third, music_android.c, as
-  Descent-GX plays MIDI: the .MID file's path handed through JNI to the
-  activity's MediaPlayer (setDataSource + prepare on open; seekTo(from)
-  + start on play, from the current position for PLATFORM_MUSIC_HERE;
-  pause; setVolume(left, right) from the 0-0xffff volumes; reset on
-  close), "ended" by polling getCurrentPosition() >= to (or the
-  completion listener for the file's end) from platform_music_ended,
-  which mci_notify calls with the input events. MediaPlayer's synthesizer
-  sets the channels' state on seekTo itself [inferred]. Its timing is coarser (tens of ms)
-  and its synthesizer is Android's own (Sonivox); `[Port] SoundFont=`
-  would still pick TinySoundFont.
+- **Android** (music_android.c): the .MID file played by an
+  android.media.MediaPlayer (Android's own synthesizer, Sonivox),
+  driven through JNI from the game's thread, as Descent-GX plays MIDI:
+  setDataSource(path) + prepare on open; seekTo(from) + start on play
+  (from where it is for PLATFORM_MUSIC_HERE); pause; setVolume(left,
+  right) from the 0-0xffff volumes (linear, both 0-1); release on close.
+  "Ended" is polled from platform_music_ended, which mci_notify calls
+  with the input events: play has reached `to` (getCurrentPosition) or
+  the file's end (no longer isPlaying); the player is then paused, so a
+  piece may sound a few tens of milliseconds past its end. MediaPlayer's
+  synthesizer sets the channels' state on seekTo itself [inferred].
+  While the app is in the background (SDL holds the game's thread in its
+  event pump) an SDL event watch pauses the player and resumes it on
+  return. `[Port] SoundFont=` still picks TinySoundFont. Untested on a
+  device so far.
 
 TinySoundFont and the Windows backend share music_seq.c (TinyMidiLoader
 reads the file into timed messages): play starts by resetting the 16
