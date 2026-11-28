@@ -15,14 +15,14 @@
 /* 4:0000 */
 void fn_04_0000(int16_t n)
 {
-    if (g_1df8[14][n].f_26 && g_238c == 0)
+    if (object_records[14][n].f_26 && g_238c == 0)
         fn_07_1208();
     if (g_7090[n].f_012) {
-        g_1df8[14][n].f_28 += g_7090[n].f_012;
-        if (g_1df8[14][n].f_28 > 15)
-            g_1df8[14][n].f_28 = 0;
-        if (g_1df8[14][n].f_28 < 0)
-            g_1df8[14][n].f_28 = 15;
+        object_records[14][n].f_28 += g_7090[n].f_012;
+        if (object_records[14][n].f_28 > 15)
+            object_records[14][n].f_28 = 0;
+        if (object_records[14][n].f_28 < 0)
+            object_records[14][n].f_28 = 15;
         fn_07_1208();
     }
 }
@@ -35,7 +35,7 @@ void fn_04_2da2(void)
 
     g_9eb5 = 1;
     for (i = 0; i <= g_9316; i++) {
-        if (g_1df8[14][i].f_18 != 0)
+        if (object_records[14][i].f_18 != 0)
             continue;
         if (g_7090[i].f_0da < 0)
             v = -1 - g_7090[i].f_0da;
@@ -79,11 +79,11 @@ void fn_04_2da2(void)
             g_7090[i].f_032.a = 12;
             g_7090[i].f_032.b = 0;
             g_7090[i].f_03c = g_7090[i].f_038 = 2;
-            if (g_1df8[14][i].f_51 == 0)
-                g_1df8[14][i].f_51 = 1;
+            if (object_records[14][i].f_51 == 0)
+                object_records[14][i].f_51 = 1;
         }
     }
-    g_1df8[14][main_ship].f_51 = 2;
+    object_records[14][main_ship].f_51 = 2;
 }
 
 /* Per-frame order and target update for racer n [inferred]. */
@@ -118,7 +118,7 @@ void fn_04_0078(int16_t n)
     }
     if (g_7090[n].f_032.a == 14 && g_7090[g_7090[n].f_032.b].flag == 0)
         g_7090[n].f_094 = 0;
-    if (g_9134 >= 2 && n == main_ship && g_8690 < g_1e50 && g_7090[main_ship].f_026[0] < 40)
+    if (g_9134 >= 2 && n == main_ship && g_8690 < now_ms && g_7090[main_ship].f_026[0] < 40)
         g_7090[main_ship].f_094 = 0;
     if (g_7090[n].f_038 == 1 && g_7090[n].f_032.a == 14 && g_8680[g_7090[n].f_032.b] == n
         && g_96d2[g_7090[n].f_04e].f_38 != 7) {
@@ -126,15 +126,15 @@ void fn_04_0078(int16_t n)
         g_7090[n].f_094 = 0;
     }
     if (g_92e8 != 0) {
-        if (g_1df8[14][main_ship].f_54 == 0 && g_7090[n].f_026[0] < 60) {
+        if (object_records[14][main_ship].f_54 == 0 && g_7090[n].f_026[0] < 60) {
             fn_03_06ec(main_ship, 14, 1, 0xb7);
             g_7090[1].f_032.a = 12;
             g_7090[1].f_038 = 2;
             g_7090[1].f_032.b = 0;
             g_7090[1].f_052 = 0;
-        } else if (g_1df8[14][main_ship].f_54 != 0 && g_7090[1].f_01e == 0) {
-            if (g_8e30 < g_1e50) {
-                g_1df8[14][main_ship].f_54 = 0;
+        } else if (object_records[14][main_ship].f_54 != 0 && g_7090[1].f_01e == 0) {
+            if (g_8e30 < now_ms) {
+                object_records[14][main_ship].f_54 = 0;
                 g_7090[1].f_01e = g_96d2[g_7090[1].f_04e].f_1e;
                 fn_03_06ec(main_ship, 14, 1, 0xb7);
                 g_7090[1].f_032.a = 12;
@@ -142,7 +142,7 @@ void fn_04_0078(int16_t n)
                 g_7090[1].f_032.b = 0;
                 g_7090[1].f_052 = 0;
             }
-            if (g_8e30 - 13000 < g_1e50 && g_7090[1].f_000 == 0) {
+            if (g_8e30 - 13000 < now_ms && g_7090[1].f_000 == 0) {
                 fn_03_06ec(main_ship, 14, 1, 0xb6);
                 g_7090[1].f_000 = 1;
             }
@@ -150,11 +150,11 @@ void fn_04_0078(int16_t n)
     }
     if (g_9320 == 7 && (!flow_interactive || n != main_ship)
         && (g_7090[n].f_052 != 4 || g_7090[n].f_032.a != 14)
-        && (g_7090[n].f_032.a != 4 || g_1df8[g_7090[n].f_032.a][g_7090[n].f_032.b].f_18 != 0)) {
+        && (g_7090[n].f_032.a != 4 || object_records[g_7090[n].f_032.a][g_7090[n].f_032.b].f_18 != 0)) {
         g_7090[n].f_052 = 4;
-        if (g_1df8[g_7090[n].f_054][g_7090[n].f_056].f_18 == 1 && n == main_ship) {
+        if (object_records[g_7090[n].f_054][g_7090[n].f_056].f_18 == 1 && n == main_ship) {
             for (i = 0; i <= g_9316; i++)
-                if (i != n && g_1df8[14][i].f_18 != 1 && g_7090[i].flag != 0) {
+                if (i != n && object_records[14][i].f_18 != 1 && g_7090[i].flag != 0) {
                     g_7090[n].f_056 = i;
                     break;
                 }
@@ -174,16 +174,16 @@ void fn_04_0078(int16_t n)
         }
     }
     if (g_9320 == 6 && g_7090[n].f_032.a != 12 && g_96d2[g_7090[n].f_04e].f_38 != 7)
-        g_7090[n].f_094 = g_1e50;
-    if (g_7090[n].f_094 < g_1e50 || g_1df8[g_7090[n].f_032.a][g_7090[n].f_032.b].f_18 != 0) {
-        if (g_1df8[g_7090[n].f_032.a][g_7090[n].f_032.b].f_18 != 0 && g_7090[n].f_052 != 0
+        g_7090[n].f_094 = now_ms;
+    if (g_7090[n].f_094 < now_ms || object_records[g_7090[n].f_032.a][g_7090[n].f_032.b].f_18 != 0) {
+        if (object_records[g_7090[n].f_032.a][g_7090[n].f_032.b].f_18 != 0 && g_7090[n].f_052 != 0
             && g_7090[n].f_052 != 7 && g_7090[n].f_054 != -1
-            && g_1df8[g_7090[n].f_054][g_7090[n].f_056].f_18 != 0) {
+            && object_records[g_7090[n].f_054][g_7090[n].f_056].f_18 != 0) {
             if (g_9320 == 7) {
-                if (g_1df8[g_7090[n].f_032.a][g_7090[n].f_032.b].f_18 != 1)
+                if (object_records[g_7090[n].f_032.a][g_7090[n].f_032.b].f_18 != 1)
                     goto skip;
                 for (i = 0; i <= g_9316; i++)
-                    if (i != n && g_1df8[14][i].f_18 != 1) {
+                    if (i != n && object_records[14][i].f_18 != 1) {
                         g_7090[n].f_056 = i;
                         break;
                     }
@@ -216,7 +216,7 @@ void fn_04_0078(int16_t n)
                 || g_96d2[g_7090[n].f_04e].f_38 == 7)) {
             fn_13_7ba2(n);
             if (g_7090[n].f_09c == 1)
-                g_7090[n].f_09c = g_1e50 + 5000;
+                g_7090[n].f_09c = now_ms + 5000;
             if (g_7090[n].f_038 != 4 && (g_9320 != 6 || g_96d2[g_7090[n].f_04e].f_38 == 7)) {
                 if (g_7090[n].f_052 < 1 && (n != main_ship || g_9134 == 0 || !flow_interactive)) {
                     g_7090[n].f_0ed = 0;
@@ -243,7 +243,7 @@ void fn_04_0078(int16_t n)
                 }
                 if (g_7090[n].f_006 != g_7090[n].f_032.a || g_7090[n].f_008 != g_7090[n].f_032.b
                     || g_7090[n].f_036 != g_7090[n].f_038 || g_7090[n].f_03a != g_7090[n].f_03c) {
-                    g_7090[n].f_0a4 = g_7090[n].f_0a8 = g_1e50;
+                    g_7090[n].f_0a4 = g_7090[n].f_0a8 = now_ms;
                     g_7090[n].f_032.a = g_7090[n].f_006;
                     g_7090[n].f_032.b = g_7090[n].f_008;
                     g_7090[n].f_038 = g_7090[n].f_036;
@@ -280,7 +280,7 @@ void fn_04_0078(int16_t n)
                     g_7090[n].f_052 = 20;
                 g_7090[n].f_0ed = 2;
                 g_7090[n].f_058 = n;
-                g_7090[n].f_094 = g_1e50;
+                g_7090[n].f_094 = now_ms;
                 g_7090[n].f_038 = 3;
                 fn_13_6900(n);
             }
@@ -288,7 +288,7 @@ void fn_04_0078(int16_t n)
             if (fn_13_371c(g_7090[n].f_032.a, g_7090[n].f_032.b) == 2)
                 fn_13_3678(n);
             fn_03_00f4(n, g_7090[n].f_032.a, g_7090[n].f_032.b);
-            g_7090[n].f_094 = g_1e50 + 3000;
+            g_7090[n].f_094 = now_ms + 3000;
         }
         fn_04_79ae(n);
     }
@@ -300,8 +300,8 @@ void fn_04_0078(int16_t n)
     if (type == 14 && g_7090[idx].f_0e8 && g_92e8 == 0)
         pos = g_7090[idx].f_14a;
     else
-        pos = g_1df8[type][idx].f_04;
-    dist = fn_08_285a(&a, &b, g_1df8[14][n].f_04, pos);
+        pos = object_records[type][idx].f_04;
+    dist = fn_08_285a(&a, &b, object_records[14][n].f_04, pos);
     if (g_7090[n].f_038 == 4) {
         if (dist < 400 && type == 14 && g_7090[n].f_032.a == type && g_7090[n].f_032.b == idx
             && (n != g_952e || g_9e49 < 1 || g_9e49 > 6)) {
@@ -314,7 +314,7 @@ void fn_04_0078(int16_t n)
         g_7090[n].f_061 = 1;
         g_7090[n].f_03a = 5;
     }
-    hd = g_1df8[14][n].f_28;
+    hd = object_records[14][n].f_28;
     if (n == g_952e && g_9e49 >= 1 && g_9e49 <= 6)
         return;
     if (g_7090[n].f_05f == 2 && g_7090[n].f_038 != 4) {
@@ -322,7 +322,7 @@ void fn_04_0078(int16_t n)
             if (dist < 160) {
                 flag = 1;
                 for (i = 0; i < g_9406[6]; i++)
-                    if (g_1df8[6][i].f_18 == 0 && g_6670[i + 4].r.left == 14 && g_6670[i + 4].r.top == n)
+                    if (object_records[6][i].f_18 == 0 && g_6670[i + 4].r.left == 14 && g_6670[i + 4].r.top == n)
                         flag = 0;
                 if (flag) {
                     g_7090[n].f_03a = 5;
@@ -344,24 +344,24 @@ void fn_04_0078(int16_t n)
     g_7090[n].f_0cc = g_7090[n].f_0cc - 1 < 0 ? 0 : g_7090[n].f_0cc - 1;
     g_7090[n].f_0d4 = g_7090[n].f_0d4 - 1 < 0 ? 0 : g_7090[n].f_0d4 - 1;
     if (g_7090[n].f_036 == 1) {
-        if (dist < 400 && (g_9208 > 1 || g_1df8[14][n].f_1a != 0)) {
-            if (n != main_ship && g_7090[n].f_0a4 + 19000 < g_1e50
+        if (dist < 400 && (g_9208 > 1 || object_records[14][n].f_1a != 0)) {
+            if (n != main_ship && g_7090[n].f_0a4 + 19000 < now_ms
                 && (g_7090[n].f_052 == 0
-                    || (g_7090[n].f_098 < g_1e50 && g_7090[n].f_052 != 4
+                    || (g_7090[n].f_098 < now_ms && g_7090[n].f_052 != 4
                         && g_7090[n].f_052 != 1 && g_7090[n].f_052 != 23))) {
                 if (g_7090[n].f_032.a == 14)
                     g_7090[n].f_0c2[g_7090[n].f_032.b] = -1;
                 g_7090[n].f_094 = 0;
                 g_7090[n].f_052 = -1;
                 fn_04_2f98(n, 1);
-                g_7090[n].f_0a4 = g_7090[n].f_0a8 = g_1e50;
+                g_7090[n].f_0a4 = g_7090[n].f_0a8 = now_ms;
                 g_7090[n].f_032.a = g_7090[n].f_006;
                 g_7090[n].f_032.b = g_7090[n].f_008;
                 g_7090[n].f_038 = g_7090[n].f_036;
                 g_7090[n].f_03c = g_7090[n].f_03a;
             }
             r = 0;
-            if (g_7090[n].f_0ca <= 0 && g_1df8[14][n].f_1a != 0)
+            if (g_7090[n].f_0ca <= 0 && object_records[14][n].f_1a != 0)
                 r = fn_04_5654(n);
             if (g_7090[n].f_03a == 2 && r == 0 && g_7090[n].f_0cc <= 0
                 && (type != 0 || g_7090[n].f_0b8[g_7090[n].f_018] != 5))
@@ -400,13 +400,13 @@ void fn_04_144c(int16_t n, int16_t flag)
     if (g_7090[n].f_148 < 0) {
         if (g_7090[n].f_148 == -2) {
             if (g_7090[n].f_032.a == 0) {
-                if (g_1df8[0][g_7090[n].f_032.b].f_18) {
+                if (object_records[0][g_7090[n].f_032.b].f_18) {
                     for (i = 0; i < g_9406[0]; i++)
-                        if (g_1df8[0][i].f_18 == 0) {
+                        if (object_records[0][i].f_18 == 0) {
                             g_7090[n].f_032.b = i;
                             break;
                         }
-                    if (g_1df8[0][g_7090[n].f_032.b].f_18) {
+                    if (object_records[0][g_7090[n].f_032.b].f_18) {
                         g_7090[n].f_032.a = 12;
                         g_7090[n].f_032.b = 0;
                     }
@@ -422,24 +422,24 @@ void fn_04_144c(int16_t n, int16_t flag)
         g_7090[n].f_148 = 0;
         g_7090[n].f_0da = 0;
     }
-    pos = fn_08_29ea(g_1df8[14][n].f_04);
-    pos.x += g_1df8[14][n].f_22 / 2;
-    pos.y += g_1df8[14][n].f_22 / 2;
+    pos = fn_08_29ea(object_records[14][n].f_04);
+    pos.x += object_records[14][n].f_22 / 2;
+    pos.y += object_records[14][n].f_22 / 2;
     if (g_8e34[n] != -1)
-        wp = fn_08_29ea(g_1df8[4][g_8e34[n]].f_04);
+        wp = fn_08_29ea(object_records[4][g_8e34[n]].f_04);
     else
-        wp = fn_08_29ea(g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_04);
+        wp = fn_08_29ea(object_records[8][g_7090[n].f_148 + g_9318 * 2].f_04);
     wp.x += 7 << g_9156;
     wp.y += 7 << g_9156;
     if (g_7090[n].f_148 < g_9ea2 - 1)
-        next = fn_08_29ea(g_1df8[8][g_7090[n].f_148 + g_9318 * 2 + 1].f_04);
+        next = fn_08_29ea(object_records[8][g_7090[n].f_148 + g_9318 * 2 + 1].f_04);
     else
-        next = fn_08_29ea(g_1df8[8][g_9318 * 2].f_04);
+        next = fn_08_29ea(object_records[8][g_9318 * 2].f_04);
     if (g_7090[n].f_148 > 0)
-        prev = fn_08_29ea(g_1df8[8][g_7090[n].f_148 + g_9318 * 2 - 1].f_04);
+        prev = fn_08_29ea(object_records[8][g_7090[n].f_148 + g_9318 * 2 - 1].f_04);
     else
-        prev = fn_08_29ea(g_1df8[8][g_9318 * 2 + g_9ea2 - 1].f_04);
-    vel = VIEW(POINT, g_1df8[14][n].f_0c, 0);
+        prev = fn_08_29ea(object_records[8][g_9318 * 2 + g_9ea2 - 1].f_04);
+    vel = VIEW(POINT, object_records[14][n].f_0c, 0);
     g_8e48[n] = dist = fn_08_35d0(d1.x = (pos.x - wp.x) * 2 >> g_9156,
                                   d1.y = (pos.y - wp.y) * 2 >> g_9156);
     spd = fn_08_35d0(vel.x, vel.y);
@@ -448,39 +448,39 @@ void fn_04_144c(int16_t n, int16_t flag)
     turn = 0;
     if (flag) {
         if (g_9eb4) {
-            if (!g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_52 && r2 < 0 || g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_52 && r2 > 0) {
+            if (!object_records[8][g_7090[n].f_148 + g_9318 * 2].f_52 && r2 < 0 || object_records[8][g_7090[n].f_148 + g_9318 * 2].f_52 && r2 > 0) {
                 /* both arms equal: CL drops the test but keeps the
                  * operand's (dead) computation, as the game does */
                 if (dist < (spd + 250) * 2)
                     turn = 2;
                 else
                     turn = 2;
-                if (!g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_52 && r2 < -35 || g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_52 && r2 > 35)
+                if (!object_records[8][g_7090[n].f_148 + g_9318 * 2].f_52 && r2 < -35 || object_records[8][g_7090[n].f_148 + g_9318 * 2].f_52 && r2 > 35)
                     turn = 3;
-                if ((!g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_52 && dist / -7 + 5 > r2 || g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_52 && dist / 7 - 5 < r2)
+                if ((!object_records[8][g_7090[n].f_148 + g_9318 * 2].f_52 && dist / -7 + 5 > r2 || object_records[8][g_7090[n].f_148 + g_9318 * 2].f_52 && dist / 7 - 5 < r2)
                     && dist < 400) {
                     turn = 4;
-                    g_1df8[14][n].f_0c = (int16_t)(g_1df8[14][n].f_0c * 5) / 6;
-                    g_1df8[14][n].f_0e = (int16_t)(g_1df8[14][n].f_0e * 5) / 6;
+                    object_records[14][n].f_0c = (int16_t)(object_records[14][n].f_0c * 5) / 6;
+                    object_records[14][n].f_0e = (int16_t)(object_records[14][n].f_0e * 5) / 6;
                 }
             } else {
                 turn = 0;
-                if ((!g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_52 && 1000 / dist + g_8e3c[n] * 6 + 14 > r2
-                     || g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_52 && -1000 / dist - g_8e3c[n] * 6 - 14 < r2) && dist < 800)
+                if ((!object_records[8][g_7090[n].f_148 + g_9318 * 2].f_52 && 1000 / dist + g_8e3c[n] * 6 + 14 > r2
+                     || object_records[8][g_7090[n].f_148 + g_9318 * 2].f_52 && -1000 / dist - g_8e3c[n] * 6 - 14 < r2) && dist < 800)
                     turn = 2;
-                else if ((!g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_52 && g_8e3c[n] * 6 + 40 > r2
-                          || g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_52 && -40 - g_8e3c[n] * 6 < r2) && dist < 1000)
+                else if ((!object_records[8][g_7090[n].f_148 + g_9318 * 2].f_52 && g_8e3c[n] * 6 + 40 > r2
+                          || object_records[8][g_7090[n].f_148 + g_9318 * 2].f_52 && -40 - g_8e3c[n] * 6 < r2) && dist < 1000)
                     turn = 1;
-                if ((!g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_52 && g_8e3c[n] * 6 + 52 < r2
-                     || g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_52 && -52 - g_8e3c[n] * 6 > r2) && dist > 70)
+                if ((!object_records[8][g_7090[n].f_148 + g_9318 * 2].f_52 && g_8e3c[n] * 6 + 52 < r2
+                     || object_records[8][g_7090[n].f_148 + g_9318 * 2].f_52 && -52 - g_8e3c[n] * 6 > r2) && dist > 70)
                     turn = -1;
-                if ((!g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_52 && g_8e3c[n] * 6 + 65 < r2
-                     || g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_52 && -65 - g_8e3c[n] * 6 > r2) && dist > 70)
+                if ((!object_records[8][g_7090[n].f_148 + g_9318 * 2].f_52 && g_8e3c[n] * 6 + 65 < r2
+                     || object_records[8][g_7090[n].f_148 + g_9318 * 2].f_52 && -65 - g_8e3c[n] * 6 > r2) && dist > 70)
                     turn = -2;
             }
         }
         if (dist / 4 - g_8e3c[n] * 7 + 80 < r1 && 140 - spd / 2 > dist && g_8e34[n] == -1) {
-            if (g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_52)
+            if (object_records[8][g_7090[n].f_148 + g_9318 * 2].f_52)
                 g_7090[n].f_03c = 3;
             else
                 g_7090[n].f_03c = 4;
@@ -495,10 +495,10 @@ void fn_04_144c(int16_t n, int16_t flag)
             }
         }
         if (g_8e34[n] != -1) {
-            wp = fn_08_29ea(g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_04);
+            wp = fn_08_29ea(object_records[8][g_7090[n].f_148 + g_9318 * 2].f_04);
             g_8e48[n] = dist = fn_08_35d0(d1.x = (pos.x - wp.x) * 2 >> g_9156,
                                           d1.y = (pos.y - wp.y) * 2 >> g_9156);
-            if (g_1df8[4][g_8e34[n]].f_18)
+            if (object_records[4][g_8e34[n]].f_18)
                 g_8e34[n] = -1;
             if (r1 < 0 && (int32_t)g_7090[n].f_01e * 100 / g_96d2[g_7090[n].f_04e].f_1e > 20)
                 g_8e34[n] = -1;
@@ -526,7 +526,7 @@ void fn_04_144c(int16_t n, int16_t flag)
             r2 = (((int32_t)d2.y * d1.x - (int32_t)d2.x * d1.y) << 7) / (dist * dist2);
             if (r3 > spd / -24 + r1 - 2) {
                 fn_10_754a(2, 8, g_7090[n].f_148 + g_9318 * 2, 1);
-                if (g_1df8[14][n].f_51 == 0) {
+                if (object_records[14][n].f_51 == 0) {
                     int16_t v;
 
                     if (g_7090[n].f_0da < 0)
@@ -536,7 +536,7 @@ void fn_04_144c(int16_t n, int16_t flag)
                     g_3d4c[(n * g_9ea0 + v) * g_9ea2 + g_7090[n].f_148 + 1] = g_1e68;
                     if (n == main_ship) {
                         for (i = 0; i <= g_9316; i++)
-                            if (g_1df8[14][i].f_18 == 0 && i != n
+                            if (object_records[14][i].f_18 == 0 && i != n
                                 && g_3d4c[(i * g_9ea0 + v) * g_9ea2 + g_7090[n].f_148 + 1] != 0)
                                 g_8e08[i] = g_3d4c[(i * g_9ea0 + v) * g_9ea2 + g_7090[n].f_148 + 1]
                                     - g_3d4c[(n * g_9ea0 + v) * g_9ea2 + g_7090[n].f_148 + 1];
@@ -578,34 +578,34 @@ void fn_04_144c(int16_t n, int16_t flag)
                     && (int16_t)((int32_t)g_7090[n].f_01e * 100 / g_96d2[g_7090[n].f_04e].f_1e) > rand() % 110) {
                     dist = fn_08_35d0(d1.x = (wp.x - pos.x) * 2 >> g_9156,
                                       d1.y = (wp.y - pos.y) * 2 >> g_9156);
-                    r1 = ((int32_t)g_1050[g_1df8[14][n].f_28].y * d1.y
-                          + (int32_t)g_1050[g_1df8[14][n].f_28].x * d1.x) * 10 / (dist * 8 / 5);
-                    r3 = ((int32_t)g_1df8[14][n].f_0e * d1.y + (int32_t)g_1df8[14][n].f_0c * d1.x) * 10
+                    r1 = ((int32_t)g_1050[object_records[14][n].f_28].y * d1.y
+                          + (int32_t)g_1050[object_records[14][n].f_28].x * d1.x) * 10 / (dist * 8 / 5);
+                    r3 = ((int32_t)object_records[14][n].f_0e * d1.y + (int32_t)object_records[14][n].f_0c * d1.x) * 10
                          / (dist * spd / 10);
-                    if (g_1df8[14][n].f_51 == 0 && g_7090[n].f_01e > 200
+                    if (object_records[14][n].f_51 == 0 && g_7090[n].f_01e > 200
                         && r1 < (8 - g_8e3c[n]) * 7 && r3 < 38 - g_8e3c[n] * 5)
                         fn_11_5ab6(n, 2);
                 }
                 g_8e34[n] = -1;
                 if ((int32_t)g_7090[n].f_01e * 100 / g_96d2[g_7090[n].f_04e].f_1e < rand() % 27 + 20)
                     for (i = 0; i < g_9ebf[g_9322]; i++)
-                        if (g_1df8[4][i].f_18 == 0
+                        if (object_records[4][i].f_18 == 0
                             && g_9ec2[g_9322][g_9eb9[g_9322] + g_9ebc[g_9322] + i] == g_7090[n].f_148)
                             g_8e34[n] = i;
             }
             g_1cca[n] = r2;
         }
     }
-    if (n == main_ship && g_1df8[14][n].f_51 && g_1e68 - g_9e70[n] > 600)
+    if (n == main_ship && object_records[14][n].f_51 && g_1e68 - g_9e70[n] > 600)
         g_7090[n].f_0da = -1 - g_9ea0;
     if (g_7090[n].f_0da < 0) {
-        if ((int16_t)(g_1df8[14][n].f_04.x + g_1df8[14][n].f_20) > (int16_t)(g_1df8[12][1].f_04.x + 350)
-            && g_1df8[14][n].f_04.x < (int16_t)(g_1df8[12][1].f_04.x + 2000)
-            && g_1df8[14][n].f_04.y + g_1df8[14][n].f_20 > g_9ea8[g_9322].x
-            && g_1df8[14][n].f_04.y < g_9ea8[g_9322].y
-            && (g_1df8[14][n].f_0c > 0 || g_7090[n].f_0da + g_9ea0 == -1)) {
+        if ((int16_t)(object_records[14][n].f_04.x + object_records[14][n].f_20) > (int16_t)(object_records[12][1].f_04.x + 350)
+            && object_records[14][n].f_04.x < (int16_t)(object_records[12][1].f_04.x + 2000)
+            && object_records[14][n].f_04.y + object_records[14][n].f_20 > g_9ea8[g_9322].x
+            && object_records[14][n].f_04.y < g_9ea8[g_9322].y
+            && (object_records[14][n].f_0c > 0 || g_7090[n].f_0da + g_9ea0 == -1)) {
             fn_10_754a(0x72, 14, n, 1);
-            if (g_1df8[14][n].f_51 == 0) {
+            if (object_records[14][n].f_51 == 0) {
                 g_9e80[n] = g_9e70[n];
                 g_9e70[n] = g_1e68;
                 if (g_9e90[n] == 0 || g_1e68 - g_9e80[n] < g_9e90[n])
@@ -615,7 +615,7 @@ void fn_04_144c(int16_t n, int16_t flag)
             if (g_7090[n].f_0da >= g_9ea0 && g_9eb5 == 0) {
                 g_9eb5 = 1;
                 for (i = 0; i <= g_9316; i++)
-                    if (g_1df8[14][i].f_18 == 0) {
+                    if (object_records[14][i].f_18 == 0) {
                         int16_t v;
 
                         if (g_7090[i].f_0da < 0)
@@ -648,7 +648,7 @@ void fn_04_144c(int16_t n, int16_t flag)
                     g_7090[n].f_03c = 2;
                     g_9eb5 = 1;
                 }
-                g_1df8[14][n].f_51 = 2;
+                object_records[14][n].f_51 = 2;
                 if (g_9eb5) {
                     fn_10_744c(0x14);
                     race_radar_background(0);
@@ -661,14 +661,14 @@ void fn_04_144c(int16_t n, int16_t flag)
                             g_7090[i].f_032.b = 0;
                             g_7090[i].f_038 = 2;
                             g_7090[i].f_03c = 2;
-                            if (g_1df8[14][i].f_51 == 0)
-                                g_1df8[14][i].f_51 = 1;
+                            if (object_records[14][i].f_51 == 0)
+                                object_records[14][i].f_51 = 1;
                         }
                 }
             }
         }
     }
-    g_7090[n].f_094 = g_1e50 + 60;
+    g_7090[n].f_094 = now_ms + 60;
 }
 
 /* Chooses racer n's next target: another racer, a pickup or object, or
@@ -710,13 +710,13 @@ void fn_04_2f98(int16_t n, int16_t k)
         g_7090[n].f_052 = 0;
     } else
         first = 0;
-    g_7090[n].f_094 = g_1e50 + 3000;
+    g_7090[n].f_094 = now_ms + 3000;
     cls = g_96d2[g_7090[n].f_04e].f_38;
-    if (g_1df8[7][0].f_18 == 0 && n == g_952e) {
+    if (object_records[7][0].f_18 == 0 && n == g_952e) {
         g_7090[n].f_052 = 7;
-        g_7090[n].f_098 = g_1e50 + 10000;
+        g_7090[n].f_098 = now_ms + 10000;
         g_7090[n].f_058 = n;
-        g_7090[n].f_09c = g_1e50 + 5000;
+        g_7090[n].f_09c = now_ms + 5000;
         g_7090[n].f_0ed = 0;
         return;
     }
@@ -739,7 +739,7 @@ void fn_04_2f98(int16_t n, int16_t k)
                 g_7090[n].f_0ed = 1;
                 return;
             }
-            if (g_7090[n].f_032.a != 11 || g_1df8[11][g_7090[n].f_032.b].f_18) {
+            if (g_7090[n].f_032.a != 11 || object_records[11][g_7090[n].f_032.b].f_18) {
                 g_7090[n].f_052 = 0x14;
                 return;
             }
@@ -767,8 +767,8 @@ void fn_04_2f98(int16_t n, int16_t k)
             ok = 0;
         else
             ok = 1;
-        if (g_1df8[14][i].f_18 == 0 && g_7090[i].flag && i != n && ok) {
-            sc = (int16_t)(fn_08_285a(&a, &b, g_1df8[14][i].f_04, g_1df8[14][n].f_04) + 300);
+        if (object_records[14][i].f_18 == 0 && g_7090[i].flag && i != n && ok) {
+            sc = (int16_t)(fn_08_285a(&a, &b, object_records[14][i].f_04, object_records[14][n].f_04) + 300);
             if (sc < 250)
                 arr[i]++;
             ratio = fn_04_5d9c(n, i);
@@ -884,8 +884,8 @@ void fn_04_2f98(int16_t n, int16_t k)
                     ok = 0;
                 else
                     ok = 1;
-                if (g_1df8[t][i].f_18 == 0 && ok) {
-                    sc = (int16_t)(fn_08_285a(&a, &b, g_1df8[t][i].f_04, g_1df8[14][n].f_04) + 300);
+                if (object_records[t][i].f_18 == 0 && ok) {
+                    sc = (int16_t)(fn_08_285a(&a, &b, object_records[t][i].f_04, object_records[14][n].f_04) + 300);
                     if (g_7090[n].f_032.a == t && g_7090[n].f_032.b == i)
                         sc = max(1, sc - 100) * 2 / 3;
                     switch (t) {
@@ -904,7 +904,7 @@ void fn_04_2f98(int16_t n, int16_t k)
                     case 4:
                     case 11:
                         if (t == 0) {
-                            if (g_1df8[0][i].f_54 && g_7090[n].f_026[0] < 50)
+                            if (object_records[0][i].f_54 && g_7090[n].f_026[0] < 50)
                                 sc = (sc + 200) * 2;
                             if (g_9000 > 1)
                                 sc -= sc / 4;
@@ -924,7 +924,7 @@ void fn_04_2f98(int16_t n, int16_t k)
                                 sc += 80000;
                         } else if (g_7090[n].f_01e < 150)
                             sc >>= 3;
-                        if (g_1df8[t][i].f_53 == 1) {
+                        if (object_records[t][i].f_53 == 1) {
                             if (cls == 2 || cls == 5)
                                 sc >>= 2;
                             if (cls == 6)
@@ -937,7 +937,7 @@ void fn_04_2f98(int16_t n, int16_t k)
                             }
                             for (j = 0; j <= g_9316; j++)
                                 if (j != n && g_7090[j].f_148 == t && g_7090[j].f_149 == i
-                                    && g_7090[j].flag && g_1df8[14][j].f_18 == 0 && cls != 6
+                                    && g_7090[j].flag && object_records[14][j].f_18 == 0 && cls != 6
                                     && (g_96d2[g_7090[j].f_04e].f_38 == cls || fn_13_2688(n, j) > -200)) {
                                     sc = (800 > fn_13_2688(n, j) + sc + 300 ? 800 : fn_13_2688(n, j) + sc + 300)
                                          * ((6 - g_7090[n].f_05d) * 2);
@@ -952,7 +952,7 @@ void fn_04_2f98(int16_t n, int16_t k)
                         }
                         break;
                     }
-                    if (g_1df8[t][i].f_53 != 1) {
+                    if (object_records[t][i].f_53 != 1) {
                         sc += 100;
                         if (n != main_ship)
                             sc = sc * max(10, g_967e) / 100;
@@ -983,7 +983,7 @@ void fn_04_2f98(int16_t n, int16_t k)
     best1 += best1 >> 2;
     sel5 = -1;
     for (t = 0; t <= g_9316; t++)
-        if (g_1df8[14][t].f_18 == 0 && g_7090[t].flag && t != n && t != sel1 && g_7090[t].f_038 == 1
+        if (object_records[14][t].f_18 == 0 && g_7090[t].flag && t != n && t != sel1 && g_7090[t].f_038 == 1
             && g_7090[t].f_032.a == 14 && g_7090[t].f_032.b == sel1 && g_8680[t] != n) {
             sel5 = t;
             if (fn_04_5d9c(sel1, t) < 60)
@@ -1008,8 +1008,8 @@ void fn_04_2f98(int16_t n, int16_t k)
     if (c[0] > 20000 && c[1] > 20000 && c[2] > 20000) {
         c[0] = c[1] = c[2] = c[3] = 90000;
         for (t = 0; t < g_9406[0]; t++)
-            if (g_1df8[0][t].f_18 == 0) {
-                if (g_1df8[0][t].f_53 == 1)
+            if (object_records[0][t].f_18 == 0) {
+                if (object_records[0][t].f_53 == 1)
                     c[2] = 100;
                 else
                     c[3] = 100;
@@ -1041,7 +1041,7 @@ void fn_04_2f98(int16_t n, int16_t k)
                 || g_96d2[g_7090[g_7090[sel1].f_032.b].f_04e].f_38 != cls
                    && (int16_t)(fn_13_2688(n, g_7090[sel1].f_032.b) + 100) < fn_13_2688(n, sel1))
             && g_7090[n].f_026[0] > 35
-            && g_1df8[g_7090[sel1].f_032.a][g_7090[sel1].f_032.b].f_18 == 0
+            && object_records[g_7090[sel1].f_032.a][g_7090[sel1].f_032.b].f_18 == 0
             && !(first && g_7090[sel1].f_032.a == g_7090[n].f_032.a && g_7090[sel1].f_032.b == g_7090[n].f_032.b)
             && (n != main_ship || g_7090[sel1].f_032.a != 3 && g_7090[sel1].f_032.a != 8
                 || g_7090[sel1].f_032.a == g_7090[n].f_032.a && g_7090[sel1].f_032.b == g_7090[n].f_032.b
@@ -1077,11 +1077,11 @@ d0:
                 g_7090[n].f_0cd = sel2;
                 fn_04_8346(n, 14, sel2, 13);
                 g_7090[n].f_052 = 4;
-                g_7090[n].f_098 = g_1e50 + 30000;
+                g_7090[n].f_098 = now_ms + 30000;
                 g_7090[n].f_058 = n;
                 g_8e00 = g_8e04 = g_9680 = g_9682 = g_7090[n].f_0ed = 0;
                 fn_03_06ec(sel2, 14, n, 0x67);
-                g_7090[n].f_094 = g_1e50 + 500;
+                g_7090[n].f_094 = now_ms + 500;
                 return;
             /* Reached only by `goto d1`; CL places it after the block
              * above [layout-only, inferred: the original may have used
@@ -1101,7 +1101,7 @@ d1:
                 else {
                     best5 = 30000;
                     for (t = 0; t < g_9318 * 2; t += 2) {
-                        sc = fn_08_285a(&a, &b, g_1df8[14][n].f_04, g_1df8[12][t].f_04);
+                        sc = fn_08_285a(&a, &b, object_records[14][n].f_04, object_records[12][t].f_04);
                         if (sc < best5) {
                             fn_13_9ae8(n);
                             best5 = sc;
@@ -1139,7 +1139,7 @@ d1:
                 return;
             }
             fn_13_9ae8(n);
-            if (g_7090[n].f_026[0] < 40 && sel4t == 0 && g_1df8[0][sel4i].f_54) {
+            if (g_7090[n].f_026[0] < 40 && sel4t == 0 && object_records[0][sel4i].f_54) {
                 fn_03_00f4(n, sel4t, sel4i);
                 fn_13_9ce0(n);
                 if (c[1] < 20000) {
@@ -1163,7 +1163,7 @@ d1:
             if ((9 - g_9334) * 20 > g_967e * 2 && n != main_ship && g_9000 < 2)
                 g_7090[n].f_036 = 3;
             g_7090[n].f_03a = 2;
-            if (sel4t == 0 && g_1df8[0][sel4i].f_2f < 0) {
+            if (sel4t == 0 && object_records[0][sel4i].f_2f < 0) {
                 g_7090[n].f_036 = 1;
                 fn_04_6e70(n);
             }
@@ -1199,7 +1199,7 @@ d1:
     best5 = 20000;
     if (g_1e68 > 800 || g_7090[n].f_006 == 8 && g_7090[n].f_008 == 0 && g_7090[n].f_036 == 3) {
         for (t = 0; t < g_9318 * 2; t += 2) {
-            sc = fn_08_285a(&a, &b, g_1df8[14][n].f_04, g_1df8[12][t].f_04);
+            sc = fn_08_285a(&a, &b, object_records[14][n].f_04, object_records[12][t].f_04);
             if (sc < best5) {
                 best5 = sc;
                 fn_03_06ec(main_ship, 14, n, 0xb7);
@@ -1212,7 +1212,7 @@ d1:
     } else {
         if (g_7090[n].f_036)      /* empty: leaves the dead imul [layout-only] */
             ;
-        g_7090[n].f_098 = g_1e50 + 3000;
+        g_7090[n].f_098 = now_ms + 3000;
         g_7090[n].f_058 = n;
         g_7090[n].f_006 = 8;
         g_7090[n].f_008 = 0;
@@ -1265,33 +1265,33 @@ void fn_04_0bde(int16_t n)
     if (kind == 14 && g_7090[idx].f_0e8) {
         tgt.x = g_7090[idx].f_14a.x;
         tgt.y = g_7090[idx].f_14a.y;
-    } else if (kind == 12 && !(idx & 1) && g_1df8[14][n].f_1a && g_1df8[8][idx].f_1a
-               && g_1df8[8][idx].f_00.y < g_1df8[14][n].f_00.y) {
-        tgt.y = g_1df8[kind][idx].f_04.y - 400;
-        scr = fn_08_29ea(g_1df8[12][idx].f_04);
-        if (g_1df8[14][n].f_00.x > scr.x)
-            tgt.x = g_1df8[kind][idx].f_04.x + 1400;
+    } else if (kind == 12 && !(idx & 1) && object_records[14][n].f_1a && object_records[8][idx].f_1a
+               && object_records[8][idx].f_00.y < object_records[14][n].f_00.y) {
+        tgt.y = object_records[kind][idx].f_04.y - 400;
+        scr = fn_08_29ea(object_records[12][idx].f_04);
+        if (object_records[14][n].f_00.x > scr.x)
+            tgt.x = object_records[kind][idx].f_04.x + 1400;
         else
-            tgt.x = g_1df8[kind][idx].f_04.x - 1400;
+            tgt.x = object_records[kind][idx].f_04.x - 1400;
         if (tgt.x < 0)
             tgt.x += (LO16(g_05a0)) * 8;
         else if (tgt.x > (int16_t)((LO16(g_05a0)) * 8))
             tgt.x -= (LO16(g_05a0)) * 8;
     } else
-        tgt = g_1df8[kind][idx].f_04;
-    d = fn_08_285a(&a, &b, g_1df8[14][n].f_04, tgt);
+        tgt = object_records[kind][idx].f_04;
+    d = fn_08_285a(&a, &b, object_records[14][n].f_04, tgt);
     if (g_7090[n].f_036 != 2 && d < 220) {
         if (kind == 14 && g_7090[n].f_052 == 5 || g_7090[n].f_052 == 20)
             g_7090[n].f_03a = 7;
         else if (kind == 9 && d < 180 && g_7090[n].f_032.a == 9 && g_7090[n].f_036 == 1
                  || kind == 14 && g_7090[idx].f_006 == 14 && g_7090[idx].f_008 == n
-                    && (fn_09_88ba(g_1df8[14][n].f_0c) > 34 || fn_09_88ba(g_1df8[14][n].f_0e) > 34)) {
+                    && (fn_09_88ba(object_records[14][n].f_0c) > 34 || fn_09_88ba(object_records[14][n].f_0e) > 34)) {
             fn_11_5ab6(n, 5);
             ok = 0;
         }
     }
     if (g_7090[n].f_036 == 1 && d > 100 && g_9208 > 1
-        && ((int32_t)g_1df8[14][n].f_0e * b + (int32_t)g_1df8[14][n].f_0c * a) / d < -50) {
+        && ((int32_t)object_records[14][n].f_0e * b + (int32_t)object_records[14][n].f_0c * a) / d < -50) {
         fn_11_5ab6(n, 5);
         ok = 0;
     }
@@ -1304,27 +1304,27 @@ void fn_04_0bde(int16_t n)
         g_7090[n].f_006 = kind = g_7090[n].f_032.a;
         g_7090[n].f_008 = idx = g_7090[n].f_032.b;
         if (g_7090[n].f_03a == 3) {
-            if (g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_52)
+            if (object_records[8][g_7090[n].f_148 + g_9318 * 2].f_52)
                 g_7090[n].f_149 += 2;
             else
                 g_7090[n].f_149 -= 2;
         } else if (g_7090[n].f_03a == 4) {
-            if (g_1df8[8][g_7090[n].f_148 + g_9318 * 2].f_52)
+            if (object_records[8][g_7090[n].f_148 + g_9318 * 2].f_52)
                 g_7090[n].f_149 -= 2;
             else
                 g_7090[n].f_149 += 2;
         }
         g_7090[n].f_036 = g_7090[n].f_03a = mode = 2;
         g_7090[n].f_061 = 1;
-        tgt = g_1df8[kind][idx].f_04;
+        tgt = object_records[kind][idx].f_04;
     }
-    old = g_1df8[14][n].f_28;
-    g_1df8[14][n].f_28 = steer_toward_direction(g_1df8[14][n].f_04.y, g_1df8[14][n].f_04.x,
-                                               tgt.y, tgt.x, g_1df8[14][n].f_28, mode, n,
+    old = object_records[14][n].f_28;
+    object_records[14][n].f_28 = steer_toward_direction(object_records[14][n].f_04.y, object_records[14][n].f_04.x,
+                                               tgt.y, tgt.x, object_records[14][n].f_28, mode, n,
                                                kind, idx, same);
-    if (g_1df8[14][n].f_28 != old)
+    if (object_records[14][n].f_28 != old)
         fn_13_6716(n);
-    if ((g_1df8[14][n].f_28 == old || (int16_t)(g_1df8[14][n].f_28 - old) == 1 || (int16_t)(g_1df8[14][n].f_28 - old) == -1
+    if ((object_records[14][n].f_28 == old || (int16_t)(object_records[14][n].f_28 - old) == 1 || (int16_t)(object_records[14][n].f_28 - old) == -1
          || g_9320 == 6 && g_7090[n].f_03c == 2 && fn_09_88ba(g_7090[n].f_149 < 5) && g_9eb5 == 0)
         && g_7090[n].f_038 != 5 && ok) {
         if (g_9320 != 6 || g_7090[n].f_061 || g_9eb5)
@@ -1349,20 +1349,20 @@ void fn_04_0bde(int16_t n)
         fn_11_5ab6(n, 2);
     if (g_7090[n].f_03a == 2 && g_7090[n].f_036 == 2) {
         if (!(g_7090[n].f_030 & 1) && g_932e > 1 && d < 220 && g_7090[n].f_01e > 200
-            && g_1df8[14][n].f_28 == old && kind == 0)
+            && object_records[14][n].f_28 == old && kind == 0)
             fn_11_5ab6(n, 2);
         else if ((d > 800 && g_7090[n].f_026[0] > 50 && g_7090[n].f_01e > 200 && ok
-                  || g_9320 == 6 && d > 500 && g_1df8[14][n].f_51 == 0 && g_7090[n].f_01e > 200)
-                 && g_1df8[14][n].f_28 == old) {
+                  || g_9320 == 6 && d > 500 && object_records[14][n].f_51 == 0 && g_7090[n].f_01e > 200)
+                 && object_records[14][n].f_28 == old) {
             if (rand() % 18 == 0 && g_9320 != 6
-                || g_9320 == 6 && g_1df8[14][n].f_51 == 0 && (!(rand() & 7) || g_7090[n].f_149 > 2))
+                || g_9320 == 6 && object_records[14][n].f_51 == 0 && (!(rand() & 7) || g_7090[n].f_149 > 2))
                 fn_11_5ab6(n, 2);
             g_7090[n].f_061 = 1;
         } else if (d < 400 && d > 80 && g_9208 > 1) {
-            if (g_1df8[kind][idx].f_53 && (g_1df8[kind][idx].f_54 == 0 || kind == 4))
+            if (object_records[kind][idx].f_53 && (object_records[kind][idx].f_54 == 0 || kind == 4))
                 for (i = 1; i < g_7090[n].cnt; i++)
                     if (g_7090[n].f_0b8[i] == 2) {
-                        if (g_1df8[14][n].f_36 != 10 && g_1df8[14][n].f_36 != g_7090[n].f_032.a
+                        if (object_records[14][n].f_36 != 10 && object_records[14][n].f_36 != g_7090[n].f_032.a
                             && (kind != 0 || (int32_t)g_7090[n].f_0ce + g_7090[n].f_0dc >= 400)
                             && (kind != 4 || g_96d2[g_7090[n].f_04e].f_1e - 50 >= g_7090[n].f_01e))
                             fn_04_584c(i, n, 0);
@@ -1370,11 +1370,11 @@ void fn_04_0bde(int16_t n)
                     }
         } else if (g_9134 == 2 && d < 100)
             fn_11_5ab6(n, 2);
-        if (g_1df8[14][n].f_1a == 0) {
-            SetRect(&r1, g_1df8[kind][idx].f_04.x - 0x90, g_1df8[kind][idx].f_04.y - 0x90,
-                    g_1df8[kind][idx].f_04.x + 0x180, g_1df8[kind][idx].f_04.y + 0x180);
-            SetRect(&r2, g_1df8[14][n].f_04.x, g_1df8[14][n].f_04.y,
-                    g_1df8[14][n].f_04.x + g_1df8[14][n].f_20, g_1df8[14][n].f_04.y + g_1df8[14][n].f_20);
+        if (object_records[14][n].f_1a == 0) {
+            SetRect(&r1, object_records[kind][idx].f_04.x - 0x90, object_records[kind][idx].f_04.y - 0x90,
+                    object_records[kind][idx].f_04.x + 0x180, object_records[kind][idx].f_04.y + 0x180);
+            SetRect(&r2, object_records[14][n].f_04.x, object_records[14][n].f_04.y,
+                    object_records[14][n].f_04.x + object_records[14][n].f_20, object_records[14][n].f_04.y + object_records[14][n].f_20);
             if (IntersectRect(&r3, &r1, &r2))
                 fn_13_16ac(n, kind << 8 | (char)idx);
         }
@@ -1408,19 +1408,19 @@ void fn_04_277a(void)
     }
     save.x = g_240c;
     save.y = g_2410;
-    g_240c = g_1df8[8][g_7090[main_ship].f_148 + g_9318 * 2].f_04.x - (LO16(g_90ea) << (g_9150 - 1));
-    g_2410 = g_1df8[8][g_7090[main_ship].f_148 + g_9318 * 2].f_04.y - (HI16(g_90ea) << (g_9150 - 1));
-    pos = fn_08_29ea(g_1df8[14][main_ship].f_04);
-    g_1cea = fn_08_29ea(g_1df8[8][g_7090[main_ship].f_148 + g_9318 * 2].f_04);
+    g_240c = object_records[8][g_7090[main_ship].f_148 + g_9318 * 2].f_04.x - (LO16(g_90ea) << (g_9150 - 1));
+    g_2410 = object_records[8][g_7090[main_ship].f_148 + g_9318 * 2].f_04.y - (HI16(g_90ea) << (g_9150 - 1));
+    pos = fn_08_29ea(object_records[14][main_ship].f_04);
+    g_1cea = fn_08_29ea(object_records[8][g_7090[main_ship].f_148 + g_9318 * 2].f_04);
     if (g_7090[main_ship].f_148 < g_9ea2 - 1)
-        g_1cee = fn_08_29ea(g_1df8[8][g_7090[main_ship].f_148 + g_9318 * 2 + 1].f_04);
+        g_1cee = fn_08_29ea(object_records[8][g_7090[main_ship].f_148 + g_9318 * 2 + 1].f_04);
     else
-        g_1cee = fn_08_29ea(g_1df8[8][g_9318 * 2].f_04);
+        g_1cee = fn_08_29ea(object_records[8][g_9318 * 2].f_04);
     if (g_7090[main_ship].f_148 > 0)
-        g_1cf2 = fn_08_29ea(g_1df8[8][g_7090[main_ship].f_148 + g_9318 * 2 - 1].f_04);
+        g_1cf2 = fn_08_29ea(object_records[8][g_7090[main_ship].f_148 + g_9318 * 2 - 1].f_04);
     else
-        g_1cf2 = fn_08_29ea(g_1df8[8][g_9318 * 2 + g_9ea2 - 1].f_04);
-    vel = VIEW(POINT, g_1df8[14][main_ship].f_0c, 0);
+        g_1cf2 = fn_08_29ea(object_records[8][g_9318 * 2 + g_9ea2 - 1].f_04);
+    vel = VIEW(POINT, object_records[14][main_ship].f_0c, 0);
     g_8e48[main_ship] = dist = fn_08_35d0(d1.x = (pos.x - g_1cea.x) * 2 >> g_9156,
                                        d1.y = (pos.y - g_1cea.y) * 2 >> g_9156);
     if (dist < 350 || rand() % 5 == 0) {
@@ -1434,7 +1434,7 @@ void fn_04_277a(void)
             r3 = (((int32_t)d2.y * d1.x - (int32_t)d2.x * d1.y) << 7) / (dist * dist2);
             if (r2 > r1) {
                 fn_10_744c(2);
-                if (g_1df8[14][main_ship].f_51 == 0) {
+                if (object_records[14][main_ship].f_51 == 0) {
                     int16_t v;
 
                     if (g_7090[main_ship].f_0da < 0)
@@ -1443,7 +1443,7 @@ void fn_04_277a(void)
                         v = g_7090[main_ship].f_0da;
                     g_3d4c[(main_ship * g_9ea0 + v) * g_9ea2 + g_7090[main_ship].f_148 + 1] = g_1e68;
                     for (i = 0; i <= g_9316; i++)
-                        if (g_1df8[14][i].f_18 == 0 && i != main_ship
+                        if (object_records[14][i].f_18 == 0 && i != main_ship
                             && g_3d4c[(i * g_9ea0 + v) * g_9ea2 + g_7090[main_ship].f_148 + 1] != 0)
                             g_8e08[i] = g_3d4c[(i * g_9ea0 + v) * g_9ea2 + g_7090[main_ship].f_148 + 1]
                                 - g_3d4c[(main_ship * g_9ea0 + v) * g_9ea2 + g_7090[main_ship].f_148 + 1];
@@ -1460,16 +1460,16 @@ void fn_04_277a(void)
             g_1d02 = r3;
         }
     }
-    if (g_1df8[14][main_ship].f_51 && g_1e68 - g_9e70[main_ship] > 600 && g_9eb5 == 0)
+    if (object_records[14][main_ship].f_51 && g_1e68 - g_9e70[main_ship] > 600 && g_9eb5 == 0)
         g_7090[main_ship].f_0da = -1 - g_9ea0;
     if (g_7090[main_ship].f_0da < 0) {
-        if ((int16_t)(g_1df8[14][main_ship].f_04.x + g_1df8[14][main_ship].f_20) > (int16_t)(g_1df8[12][1].f_04.x + 350)
-            && g_1df8[14][main_ship].f_04.x < (int16_t)(g_1df8[12][1].f_04.x + 2000)
-            && g_1df8[14][main_ship].f_04.y + g_1df8[14][main_ship].f_20 > g_9ea8[g_9322].x
-            && g_1df8[14][main_ship].f_04.y < g_9ea8[g_9322].y
-            && (g_1df8[14][main_ship].f_0c > 0 || g_7090[main_ship].f_0da + g_9ea0 == -1)) {
+        if ((int16_t)(object_records[14][main_ship].f_04.x + object_records[14][main_ship].f_20) > (int16_t)(object_records[12][1].f_04.x + 350)
+            && object_records[14][main_ship].f_04.x < (int16_t)(object_records[12][1].f_04.x + 2000)
+            && object_records[14][main_ship].f_04.y + object_records[14][main_ship].f_20 > g_9ea8[g_9322].x
+            && object_records[14][main_ship].f_04.y < g_9ea8[g_9322].y
+            && (object_records[14][main_ship].f_0c > 0 || g_7090[main_ship].f_0da + g_9ea0 == -1)) {
             fn_10_744c(0x72);
-            if (g_1df8[14][main_ship].f_51 == 0) {
+            if (object_records[14][main_ship].f_51 == 0) {
                 g_9e80[main_ship] = g_9e70[main_ship];
                 g_9e70[main_ship] = g_1e68;
                 if (g_9e90[main_ship] == 0 || g_1e68 - g_9e80[main_ship] < g_9e90[main_ship])
@@ -1490,9 +1490,9 @@ void fn_04_277a(void)
 /* 4:474c */
 void fn_04_474c(int16_t n, int16_t kind, int16_t m, int16_t ev)
 {
-    if (g_1d06 > g_1e50 || g_1df8[14][n].f_1a == 0)
+    if (g_1d06 > now_ms || object_records[14][n].f_1a == 0)
         return;
-    g_1d06 = g_1e50 + 20000;
+    g_1d06 = now_ms + 20000;
     if (ev == 5)
         fn_03_06ec(main_ship, 14, n, 0xa5);
     else if (ev == 2) {
@@ -1500,7 +1500,7 @@ void fn_04_474c(int16_t n, int16_t kind, int16_t m, int16_t ev)
             fn_03_06ec(main_ship, 14, n, 0xa6);
         else if (kind == 9)
             fn_03_06ec(main_ship, 14, n, 0xa7);
-        else if (kind == 0 && g_1df8[0][m].f_53 == 1)
+        else if (kind == 0 && object_records[0][m].f_53 == 1)
             fn_03_06ec(main_ship, 14, n, 0xa8);
         else if (kind == 0)
             fn_03_06ec(main_ship, 14, n, 0xa9);
@@ -1536,9 +1536,9 @@ void fn_04_4fc8(int16_t n)
     RECT rc2;
     RECT rc;
 
-    size = g_1df8[14][n].f_22;
+    size = object_records[14][n].f_22;
     changed = 1;
-    if (g_1df8[14][n].f_1a == 0) {
+    if (object_records[14][n].f_1a == 0) {
         g_7090[n].f_006 = g_7090[n].f_032.a;
         g_7090[n].f_008 = g_7090[n].f_032.b;
         g_7090[n].f_036 = g_7090[n].f_038;
@@ -1560,10 +1560,10 @@ void fn_04_4fc8(int16_t n)
                 else
                     g_7090[n].f_03a = 3;
             } else {
-                dx = (int16_t)(g_1df8[HIBYTE(v)][LOBYTE(v)].f_04.x - g_1df8[14][n].f_04.x);
-                dy = (int16_t)(g_1df8[HIBYTE(v)][LOBYTE(v)].f_04.y - g_1df8[14][n].f_04.y);
-                ex = (int16_t)(g_1df8[HIBYTE(v)][LOBYTE(v)].f_0c - g_1df8[14][n].f_0c);
-                ey = (int16_t)(g_1df8[HIBYTE(v)][LOBYTE(v)].f_0e - g_1df8[14][n].f_0e);
+                dx = (int16_t)(object_records[HIBYTE(v)][LOBYTE(v)].f_04.x - object_records[14][n].f_04.x);
+                dy = (int16_t)(object_records[HIBYTE(v)][LOBYTE(v)].f_04.y - object_records[14][n].f_04.y);
+                ex = (int16_t)(object_records[HIBYTE(v)][LOBYTE(v)].f_0c - object_records[14][n].f_0c);
+                ey = (int16_t)(object_records[HIBYTE(v)][LOBYTE(v)].f_0e - object_records[14][n].f_0e);
                 if ((c = dx * ey - dy * ex) > 0)
                     g_7090[n].f_03a = 4;
                 else
@@ -1572,9 +1572,9 @@ void fn_04_4fc8(int16_t n)
         } else {
             best = 350;
             for (i = 0; i < g_9406[9]; i++)
-                if (g_1df8[9][i].f_18 == 0 && g_1df8[9][i].f_1a != 0
+                if (object_records[9][i].f_18 == 0 && object_records[9][i].f_1a != 0
                     && (g_7090[n].f_032.a != 9 || g_7090[n].f_032.b != i)) {
-                    d = fn_08_285a(&a, &b, g_1df8[14][n].f_04, g_1df8[9][i].f_04);
+                    d = fn_08_285a(&a, &b, object_records[14][n].f_04, object_records[9][i].f_04);
                     if (d < best) {
                         best = d;
                         sel = i;
@@ -1584,10 +1584,10 @@ void fn_04_4fc8(int16_t n)
                 g_7090[n].f_006 = 9;
                 g_7090[n].f_008 = sel;
                 g_7090[n].f_036 = 3;
-                dx = (int16_t)(g_1df8[9][sel].f_04.x - g_1df8[14][n].f_04.x);
-                dy = (int16_t)(g_1df8[9][sel].f_04.y - g_1df8[14][n].f_04.y);
-                ex = (int16_t)(g_1df8[9][sel].f_0c - g_1df8[14][n].f_0c);
-                ey = (int16_t)(g_1df8[9][sel].f_0e - g_1df8[14][n].f_0e);
+                dx = (int16_t)(object_records[9][sel].f_04.x - object_records[14][n].f_04.x);
+                dy = (int16_t)(object_records[9][sel].f_04.y - object_records[14][n].f_04.y);
+                ex = (int16_t)(object_records[9][sel].f_0c - object_records[14][n].f_0c);
+                ey = (int16_t)(object_records[9][sel].f_0e - object_records[14][n].f_0e);
                 if ((c = dx * ey - dy * ex) > 0)
                     g_7090[n].f_03a = 4;
                 else
@@ -1596,9 +1596,9 @@ void fn_04_4fc8(int16_t n)
             } else
                 best = 18888;
             for (i = 0; i < g_9406[6]; i++)
-                if (g_1df8[6][i].f_18 == 0 && (g_6670[i + 4].r.left != 14 || g_6670[i + 4].r.top != n)
+                if (object_records[6][i].f_18 == 0 && (g_6670[i + 4].r.left != 14 || g_6670[i + 4].r.top != n)
                     && (g_6670[i + 4].f_04.x) != 0x1b) {
-                    d = fn_08_285a(&a, &b, g_1df8[14][n].f_04, g_1df8[6][i].f_04);
+                    d = fn_08_285a(&a, &b, object_records[14][n].f_04, object_records[6][i].f_04);
                     if (d < best) {
                         best = d;
                         sel = i;
@@ -1608,7 +1608,7 @@ void fn_04_4fc8(int16_t n)
                 for (i = 1; i <= g_7090[n].cnt; i++)
                     if (g_2f4c[g_7090[n].f_0b8[i]].f_4e) {
                         if (g_7090[n].f_0b8[i] != 2
-                            || g_1df8[14][n].f_36 == -1 && (g_2f4c[(g_6670[i + 4].f_04.x)].f_12 == 1
+                            || object_records[14][n].f_36 == -1 && (g_2f4c[(g_6670[i + 4].f_04.x)].f_12 == 1
                                                            || g_2f4c[(g_6670[i + 4].f_04.x)].f_12 == 5))
                             fn_04_584c(i, n, 0);
                         break;
@@ -1629,12 +1629,12 @@ void fn_04_4fc8(int16_t n)
             }
         }
     }
-    if (fn_13_371c(g_7090[n].f_032.a, g_7090[n].f_032.b) && g_1df8[14][n].f_1a == 0) {
-        SetRect(&rc, g_1df8[14][n].f_04.x - 800, g_1df8[14][n].f_04.y - 800,
-                g_1df8[14][n].f_04.x + g_1df8[14][n].f_22 + 800,
-                g_1df8[14][n].f_04.y + g_1df8[14][n].f_22 + 800);
+    if (fn_13_371c(g_7090[n].f_032.a, g_7090[n].f_032.b) && object_records[14][n].f_1a == 0) {
+        SetRect(&rc, object_records[14][n].f_04.x - 800, object_records[14][n].f_04.y - 800,
+                object_records[14][n].f_04.x + object_records[14][n].f_22 + 800,
+                object_records[14][n].f_04.y + object_records[14][n].f_22 + 800);
         if (IntersectRect(&rc2, (RECT *)&g_6670[g_7090[n].f_032.b / 2 - 4 + 4], &rc)
-            && g_7090[n].f_088 + 3000 < g_1e50)
+            && g_7090[n].f_088 + 3000 < now_ms)
             fn_12_2288(14, n);
     }
 }
@@ -1657,17 +1657,17 @@ void fn_04_5514(int16_t n)
     int32_t v;
     char unused2[16];
 
-    size = g_1df8[6][n].f_22;
-    if (g_1df8[6][n].f_1a) {
+    size = object_records[6][n].f_22;
+    if (object_records[6][n].f_1a) {
         v = l = fn_13_1076(6, n);
         if (l != -1) {
             g_6670[n + 4].f_10 = HIBYTE(l);
             g_6670[n + 4].f_12 = LOBYTE(l);
             if (g_6670[n + 4].r.left != g_6670[n + 4].f_10 || g_6670[n + 4].r.top != g_6670[n + 4].f_12) {
-                dx = (int16_t)(g_1df8[HIBYTE(v)][LOBYTE(v)].f_04.x - g_1df8[6][n].f_04.x);
-                dy = (int16_t)(g_1df8[HIBYTE(v)][LOBYTE(v)].f_04.y - g_1df8[6][n].f_04.y);
-                ex = (int16_t)(g_1df8[HIBYTE(v)][LOBYTE(v)].f_0c - g_1df8[6][n].f_0c);
-                ey = (int16_t)(g_1df8[HIBYTE(v)][LOBYTE(v)].f_0e - g_1df8[6][n].f_0e);
+                dx = (int16_t)(object_records[HIBYTE(v)][LOBYTE(v)].f_04.x - object_records[6][n].f_04.x);
+                dy = (int16_t)(object_records[HIBYTE(v)][LOBYTE(v)].f_04.y - object_records[6][n].f_04.y);
+                ex = (int16_t)(object_records[HIBYTE(v)][LOBYTE(v)].f_0c - object_records[6][n].f_0c);
+                ey = (int16_t)(object_records[HIBYTE(v)][LOBYTE(v)].f_0e - object_records[6][n].f_0e);
                 if (dx * ey - dy * ex > 0)
                     g_6670[n + 4].f_14 = 4;
                 else
@@ -1684,10 +1684,10 @@ void fn_04_584c(int16_t s, int16_t n, int16_t t)
 {
     int16_t k;
 
-    if (g_1df8[14][n].f_2e)
+    if (object_records[14][n].f_2e)
         return;
     if (n == main_ship && g_9134 == 0)
-        g_8e28 = g_1e50;
+        g_8e28 = now_ms;
     k = g_7090[n].f_0b8[s];
     if (g_2f4c[k].f_4a == 0)
         g_7090[n].f_0ca = g_7090[n].f_05e * 4 + g_2f4c[k].f_30;
@@ -1795,16 +1795,16 @@ int16_t fn_04_6a78(int16_t n, int16_t s)
     if (w == 2) {
         count = 0;
         for (i = 0; i < g_9406[3]; i++) {
-            if (g_1df8[3][i].f_18 == 0 && g_1df8[3][i].f_44 > 500
-                && fn_08_285a(&a, &b, g_1df8[3][i].f_04, g_1df8[14][n].f_04) < 320) {
+            if (object_records[3][i].f_18 == 0 && object_records[3][i].f_44 > 500
+                && fn_08_285a(&a, &b, object_records[3][i].f_04, object_records[14][n].f_04) < 320) {
                 count++;
                 if (count > 1)
                     break;
             }
         }
         for (i = 0; i < g_9406[8]; i++) {
-            if (g_1df8[8][i].f_18 == 0 && g_1df8[8][i].f_44 > 500
-                && fn_08_285a(&a, &b, g_1df8[8][i].f_04, g_1df8[14][n].f_04) < 320) {
+            if (object_records[8][i].f_18 == 0 && object_records[8][i].f_44 > 500
+                && fn_08_285a(&a, &b, object_records[8][i].f_04, object_records[14][n].f_04) < 320) {
                 count++;
                 if (count > 1)
                     break;
@@ -1867,7 +1867,7 @@ void fn_04_6e70(int16_t n)
         return;
     for (i = 1; i < g_7090[n].cnt; i++) {
         if (g_7090[n].f_0ae[i] > 0) {
-            if (g_7090[n].f_032.a == 0 && g_1df8[0][g_7090[n].f_032.b].f_2f < 0 && g_7090[n].f_0b8[i] == 5)
+            if (g_7090[n].f_032.a == 0 && object_records[0][g_7090[n].f_032.b].f_2f < 0 && g_7090[n].f_0b8[i] == 5)
                 v = 10000;
             else
                 v = fn_04_6a78(n, i);
@@ -1943,7 +1943,7 @@ int16_t fn_04_702e(int16_t n)
         return 0;
     if (g_7090[n].f_000 != 0 && g_7090[n].f_000 < 4)
         g_7090[n].f_000--;
-    if ((n == main_ship && !flow_interactive) || g_1df8[14][n].f_1a == 0)
+    if ((n == main_ship && !flow_interactive) || object_records[14][n].f_1a == 0)
         return 0;
     if (g_7090[n].f_000 != 0) {
         if (g_7090[n].f_000 == 4)
@@ -1956,7 +1956,7 @@ int16_t fn_04_702e(int16_t n)
     if (g_96d2[g_7090[n].f_04e].f_38 == 4 || g_934e < 7)
         return 0;
     for (j = 0; j < g_9316; j++) {
-        if (g_1df8[14][j].f_1a != 0 && j != n && (g_7090[n].f_062 + 8)[j] > 5
+        if (object_records[14][j].f_1a != 0 && j != n && (g_7090[n].f_062 + 8)[j] > 5
             && g_96d2[g_7090[n].f_04e].f_38 != 7) {
             if (g_96d2[g_7090[j].f_04e].f_38 == g_96d2[g_7090[n].f_04e].f_38
                 && g_7090[n].f_0ee[j] <= 8 && g_7090[n].f_0ee[j] != 4) {
@@ -1968,21 +1968,21 @@ int16_t fn_04_702e(int16_t n)
                     if (rand() % 3 == 0)
                         lstrcpy(buf, g_380c);
                     else if (g_7090[n].f_05e == 0)
-                        LoadString(g_9212, 0x29c, buf, 40);
+                        LoadString(lang_module, 0x29c, buf, 40);
                     else if (g_7090[n].f_05e < 3)
-                        LoadString(g_9212, 0x29d, buf, 40);
+                        LoadString(lang_module, 0x29d, buf, 40);
                     else if (g_7090[n].f_05e == 3)
-                        LoadString(g_9212, 0x29e, buf, 40);
+                        LoadString(lang_module, 0x29e, buf, 40);
                 } else {
                     mode = 0;
                     if (rand() % 3 == 0)
                         lstrcpy(buf, g_380c);
                     else if (g_7090[n].f_05d == 0)
-                        LoadString(g_9212, 0x29f, buf, 40);
+                        LoadString(lang_module, 0x29f, buf, 40);
                     else if (g_7090[n].f_05d < 2)
-                        LoadString(g_9212, 0x2a0, buf, 40);
+                        LoadString(lang_module, 0x2a0, buf, 40);
                     else if (g_7090[n].f_05d == 3)
-                        LoadString(g_9212, 0x2a1, buf, 40);
+                        LoadString(lang_module, 0x2a1, buf, 40);
                 }
                 if (g_7090[n].f_0ee[j] == 4) {
                     for (k = 0; k < 3; k++) {
@@ -2001,7 +2001,7 @@ int16_t fn_04_702e(int16_t n)
                     alt = 1;
                 else
                     alt = 0;
-                fn_10_a332(g_8d38, 0xbd9, 1, !(rand() & 1), (LPSTR)buf, alt, !found,
+                format_string(g_8d38, 0xbd9, 1, !(rand() & 1), (LPSTR)buf, alt, !found,
                            g_7090[n].f_0ee[j] + 0x351, found, (LPSTR)name, age, g_09d6);
                 if (locked && found)
                     fn_14_4074();
@@ -2011,7 +2011,7 @@ int16_t fn_04_702e(int16_t n)
                         g_7090[n].f_052 = 0;
                         g_7090[n].f_006 = g_7090[n].f_032.a = 14;
                         g_7090[n].f_008 = g_7090[n].f_032.b = j;
-                        g_7090[n].f_094 = g_1e50 + 8000;
+                        g_7090[n].f_094 = now_ms + 8000;
                         g_7090[n].f_038 = 1;
                         g_7090[n].f_036 = 1;
                         g_7090[n].f_03c = 2;
@@ -2026,12 +2026,12 @@ int16_t fn_04_702e(int16_t n)
                                     g_7090[k].f_052 = 0;
                                     g_7090[k].f_006 = g_7090[k].f_032.a = 14;
                                     g_7090[k].f_008 = g_7090[k].f_032.b = j;
-                                    g_7090[k].f_094 = g_1e50 + 15000;
+                                    g_7090[k].f_094 = now_ms + 15000;
                                 }
                                 if (g_96d2[g_7090[k].f_04e].f_38 == 0
                                     && (g_7090[n].f_0ee[j] == 3 || g_7090[n].f_0ee[j] == 1)) {
                                     g_7090[k].f_052 = 2;
-                                    g_7090[k].f_098 = g_1e50 + 20000;
+                                    g_7090[k].f_098 = now_ms + 20000;
                                     g_7090[k].f_054 = 14;
                                     g_7090[k].f_056 = j;
                                     g_7090[k].f_058 = n;
@@ -2052,7 +2052,7 @@ int16_t fn_04_702e(int16_t n)
                         else
                             g_7090[n].f_052 = 4;
                         fn_04_8346(n, 14, j, 8);
-                        g_7090[n].f_098 = g_1e50 + 20000;
+                        g_7090[n].f_098 = now_ms + 20000;
                         g_7090[n].f_054 = 14;
                         g_7090[n].f_056 = j;
                         g_7090[n].f_058 = n;
@@ -2094,7 +2094,7 @@ void fn_04_7e2a(void)
     if (g_92e8 || g_9320 == 6 || g_9320 == 7 || g_0992 + 20 > g_932a)
         return;
     if (g_3824[3][g_96d2[g_7090[main_ship].f_04e].f_38] < 150
-        && (g_1d0a < g_1e50 || g_1d0a == 0)
+        && (g_1d0a < now_ms || g_1d0a == 0)
         && g_9208 / 2 + 3 > g_9316 && g_7090[main_ship].f_0ce > 398) {
         f = 2;
         for (i = ce = c8 = 0; i <= g_9316; i++) {
@@ -2103,7 +2103,7 @@ void fn_04_7e2a(void)
                 if (g_7090[i].f_0cd == main_ship)
                     f = 0;
             }
-            if (g_7090[i].f_038 == 1 && g_7090[i].f_032.a == 14 && g_1df8[14][i].f_1a != 0) {
+            if (g_7090[i].f_038 == 1 && g_7090[i].f_032.a == 14 && object_records[14][i].f_1a != 0) {
                 ce++;
                 if (g_7090[i].f_032.b == main_ship)
                     ce++;
@@ -2115,21 +2115,21 @@ void fn_04_7e2a(void)
             if (g_7090[main_ship].f_026[0] < 40)
                 v++;
             if ((v = (int16_t)(f * v) / 2) > rand() % 720 && g_9334 > 0) {
-                if (g_1d0a != 0 && g_1d0a < g_1e50) {
+                if (g_1d0a != 0 && g_1d0a < now_ms) {
                     fn_13_adbe(main_ship, 3, 0x69);
                     g_1d0a = 0;
                     return;
                 }
                 if (g_1d0a == 0) {
                     fn_03_06ec(main_ship, 7, 0, 0x6b);
-                    g_1d0a = g_1e50 + 7000;
+                    g_1d0a = now_ms + 7000;
                     return;
                 }
             }
         }
     }
     if (g_3824[4][g_96d2[g_7090[main_ship].f_04e].f_38] > -50
-        && (g_1d0e < g_1e50 || g_1d0e == 0)
+        && (g_1d0e < now_ms || g_1d0e == 0)
         && g_9208 / 2 + 3 > g_9316 && g_7090[main_ship].f_026[0] < 60) {
         f = 2;
         for (i = c6 = c8 = 0; i <= g_9316; i++) {
@@ -2161,21 +2161,21 @@ void fn_04_7e2a(void)
             }
         }
         for (i = 0; i < g_9406[2]; i++)
-            if (g_1df8[2][i].f_18 == 0 && g_52ec[i].f_1c.a == 14 && g_52ec[i].f_1c.b == main_ship
+            if (object_records[2][i].f_18 == 0 && g_52ec[i].f_1c.a == 14 && g_52ec[i].f_1c.b == main_ship
                 && g_52ec[i].f_12 == 10)
                 c6++;
         if (f > 0) {
             chance = (g_3824[4][g_96d2[g_7090[main_ship].f_04e].f_38] / 120 + (c6 * 2 - c8) * 2
                       - g_7090[main_ship].f_026[0] / 15 + g_9334 / 2 - g_9316 + 5) * f / 2;
             if (c6 != 0 && rand() % 300 < chance) {
-                if (g_1d0e != 0 && g_1d0e < g_1e50) {
+                if (g_1d0e != 0 && g_1d0e < now_ms) {
                     fn_13_adbe(main_ship, 4, 0x6a);
                     g_1d0e = 0;
                     return;
                 }
                 if (g_1d0e == 0) {
                     fn_03_06ec(main_ship, 7, 0, 0x6c);
-                    g_1d0e = g_1e50 + 7000;
+                    g_1d0e = now_ms + 7000;
                     return;
                 }
             }
@@ -2216,10 +2216,10 @@ void fn_04_83ae(void)
         if (g_7090[i].flag && g_7090[i].f_0e8) {
             for (j = 0; j <= g_9316; j++) {
                 if (j != i && g_7090[j].flag && g_7090[j].f_032.a == 14 && g_7090[j].f_032.b == i) {
-                    d = fn_08_285a(&a, &b, g_1df8[14][i].f_04, g_7090[i].f_14a);
+                    d = fn_08_285a(&a, &b, object_records[14][i].f_04, g_7090[i].f_14a);
                     if (d > 350) {
-                        g_7090[i].f_14a.x = rand() % 4000 + g_1df8[14][i].f_04.x - 2000;
-                        g_7090[i].f_14a.y = rand() % 4000 + g_1df8[14][i].f_04.y - 2000;
+                        g_7090[i].f_14a.x = rand() % 4000 + object_records[14][i].f_04.x - 2000;
+                        g_7090[i].f_14a.y = rand() % 4000 + object_records[14][i].f_04.y - 2000;
                         if (g_7090[i].f_14a.x < 0)
                             g_7090[i].f_14a.x += (LO16(g_05a0)) * 8;
                         else if (g_7090[i].f_14a.x > (LO16(g_05a0)) * 8)
@@ -2257,7 +2257,7 @@ void fn_04_84de(void)
         g_967e += 30;
     count = 0;
     for (i = 0; i < 8; i++)
-        if (g_1df8[0][i].f_18 == 0)
+        if (object_records[0][i].f_18 == 0)
             count++;
     r = count * 10 / (g_9316 + 1);
     if (r < 15)
@@ -2282,7 +2282,7 @@ int16_t fn_04_8c80(void)
     best = -1;
     max = -1;
     for (i = 0; i <= g_9316; i++) {
-        if (g_7090[i].flag && g_1df8[14][i].f_18 == 0) {
+        if (g_7090[i].flag && object_records[14][i].f_18 == 0) {
             if (g_7090[i].f_0da < 0)
                 a = -g_7090[i].f_0da;
             else
@@ -2310,7 +2310,7 @@ int16_t fn_04_8d3a(void)
 
     best = 1000000;
     for (i = 0; i <= g_9316; i++) {
-        if (g_7090[i].flag && g_1df8[14][i].f_18 == 0 && g_1df8[14][i].f_51 == 2
+        if (g_7090[i].flag && object_records[14][i].f_18 == 0 && object_records[14][i].f_51 == 2
             && g_9e60[i] < best) {
             found = i;
             best = g_9e60[i];
@@ -2459,7 +2459,7 @@ void fn_04_5e8e(int16_t n, int16_t m, int16_t dmg, int16_t kind)
                 ok = 1;
                 for (i = 0; i <= g_9316; i++)
                     if (g_7090[i].f_05e == 1 && g_96d2[g_7090[i].f_04e].f_38 == 7
-                        && g_1df8[14][i].f_18 == 0 && g_7090[i].flag != 0)
+                        && object_records[14][i].f_18 == 0 && g_7090[i].flag != 0)
                         ok = 0;
                 if (ok)
                     fn_03_06ec(m, 14, n, 0x3b);
@@ -2467,7 +2467,7 @@ void fn_04_5e8e(int16_t n, int16_t m, int16_t dmg, int16_t kind)
                 g_7090[n].f_054 = 14;
                 g_7090[n].f_056 = m;
                 g_7090[n].f_0ed = 1;
-                g_7090[n].f_094 = g_1e50;
+                g_7090[n].f_094 = now_ms;
                 g_964a++;
                 g_9648 += 3;
             } else {
@@ -2487,7 +2487,7 @@ void fn_04_5e8e(int16_t n, int16_t m, int16_t dmg, int16_t kind)
             if (g_7090[n].f_0c2[m] > 2) {
                 g_7090[n].f_052 = 0x3e;
                 g_7090[n].f_0ed = 2;
-                g_7090[n].f_098 = g_1e50 + 20000;
+                g_7090[n].f_098 = now_ms + 20000;
                 g_7090[n].f_054 = 14;
                 g_7090[n].f_056 = m;
             } else
@@ -2509,7 +2509,7 @@ void fn_04_5e8e(int16_t n, int16_t m, int16_t dmg, int16_t kind)
             if (g_96d2[g_7090[n].f_04e].f_38 == 2)
                 for (i = 0; i <= g_9316; i++)
                     if (g_96d2[g_7090[i].f_04e].f_38 == 0 && i != main_ship && g_7090[i].flag
-                        && g_1df8[14][i].f_18 == 0 && g_7090[i].f_026[0] > 40 && i != m)
+                        && object_records[14][i].f_18 == 0 && g_7090[i].f_026[0] > 40 && i != m)
                         n = i;
             fn_03_00f4(n, 14, m);
             fn_13_915c(n);
@@ -2530,7 +2530,7 @@ void fn_04_5e8e(int16_t n, int16_t m, int16_t dmg, int16_t kind)
             if (g_96d2[g_7090[n].f_04e].f_38 == 2)
                 for (i = 0; i <= g_9316; i++)
                     if (g_96d2[g_7090[i].f_04e].f_38 == 0 && i != main_ship && g_7090[i].flag
-                        && g_1df8[14][i].f_18 == 0 && g_7090[i].f_026[0] > 40 && i != m)
+                        && object_records[14][i].f_18 == 0 && g_7090[i].f_026[0] > 40 && i != m)
                         n = i;
             fn_03_00f4(n, 14, m);
             fn_13_915c(n);
@@ -2576,7 +2576,7 @@ void race_position(void)
     int16_t mine;
     int16_t a;
 
-    if (g_1df8[14][main_ship].f_51 == 0) {
+    if (object_records[14][main_ship].f_51 == 0) {
         if (g_7090[main_ship].f_0da < 0)
             a = -g_7090[main_ship].f_0da;
         else
@@ -2584,7 +2584,7 @@ void race_position(void)
         mine = a * g_9ea2 + g_7090[main_ship].f_148;
         g_9684 = 1;
         for (i = 0; i <= g_9316; i++) {
-            if (g_7090[i].flag && g_1df8[14][i].f_18 == 0 && i != main_ship) {
+            if (g_7090[i].flag && object_records[14][i].f_18 == 0 && i != main_ship) {
                 if (g_7090[i].f_0da < 0)
                     a = -g_7090[i].f_0da;
                 else
@@ -2620,16 +2620,16 @@ int16_t fn_04_5654(int16_t n)
     if (g_7090[n].f_032.a == 14 && g_2f4c[g_7090[n].f_018].f_4a && g_7090[g_7090[n].f_032.b].f_0e2)
         fn_04_6e70(n);
     if (g_7090[n].f_05f != 3) {
-        if (g_1df8[g_7090[n].f_032.a][g_7090[n].f_032.b].f_1a)
-            p1 = g_1df8[g_7090[n].f_032.a][g_7090[n].f_032.b].f_00;
+        if (object_records[g_7090[n].f_032.a][g_7090[n].f_032.b].f_1a)
+            p1 = object_records[g_7090[n].f_032.a][g_7090[n].f_032.b].f_00;
         else
-            p1 = fn_08_29ea(g_1df8[g_7090[n].f_032.a][g_7090[n].f_032.b].f_04);
-        if (g_1df8[14][n].f_1a)
-            p2 = g_1df8[14][n].f_00;
+            p1 = fn_08_29ea(object_records[g_7090[n].f_032.a][g_7090[n].f_032.b].f_04);
+        if (object_records[14][n].f_1a)
+            p2 = object_records[14][n].f_00;
         else
-            p2 = fn_08_29ea(g_1df8[14][n].f_04);
+            p2 = fn_08_29ea(object_records[14][n].f_04);
         dir = fn_08_19b0(p1.x - p2.x, p1.y - p2.y);
-        c = g_1df8[14][n].f_28;
+        c = object_records[14][n].f_28;
         m = (int16_t)(c + 8) % 16;
         if (c == dir)
             r = 1;
@@ -2639,8 +2639,8 @@ int16_t fn_04_5654(int16_t n)
             return 0;
     }
     if (g_7090[n].f_0e8 || g_7090[n].f_010 > 0) {
-        if (g_8e28 + 3000 > g_1e50) {
-            if (g_1df8[14][n].f_2e == -2 && fn_11_4c72(n) && n == main_ship)
+        if (g_8e28 + 3000 > now_ms) {
+            if (object_records[14][n].f_2e == -2 && fn_11_4c72(n) && n == main_ship)
                 fn_03_332e(0x409, 0x416);
             if (g_7090[n].f_010 == 7 && fn_11_4b00(n) && n == main_ship)
                 fn_03_332e(0x408, 0x416);
@@ -2675,10 +2675,10 @@ void fn_04_4d00(int16_t n)
                 sel = -1;
                 count = 0;
                 for (i = 0; i < g_9406[2]; i++) {
-                    if (g_1df8[2][i].f_18 == 0 && g_52ec[i].f_1c.a == 14 && g_52ec[i].f_1c.b == n
+                    if (object_records[2][i].f_18 == 0 && g_52ec[i].f_1c.a == 14 && g_52ec[i].f_1c.b == n
                         && g_52ec[i].f_12 == 15) {
                         count++;
-                        d = fn_08_285a(&a, &b, g_1df8[14][n].f_04, g_1df8[2][i].f_04);
+                        d = fn_08_285a(&a, &b, object_records[14][n].f_04, object_records[2][i].f_04);
                         if (d < best)
                             sel = i;
                     }
@@ -2698,8 +2698,8 @@ void fn_04_4d00(int16_t n)
         best = 20000;
         sel = -1;
         for (j = 0; j < g_9406[4]; j++) {
-            if (g_1df8[4][j].f_18 == 0) {
-                d = fn_08_285a(&a, &b, g_1df8[14][n].f_04, g_1df8[4][j].f_04);
+            if (object_records[4][j].f_18 == 0) {
+                d = fn_08_285a(&a, &b, object_records[14][n].f_04, object_records[4][j].f_04);
                 if (d < best) {
                     best = d;
                     sel = j;
@@ -2710,7 +2710,7 @@ void fn_04_4d00(int16_t n)
             g_7090[n].f_006 = 4;
             g_7090[n].f_008 = sel;
             g_7090[n].f_036 = 2;
-            g_7090[n].f_094 = g_1e50 + 4000;
+            g_7090[n].f_094 = now_ms + 4000;
             g_7090[n].f_03a = 2;
             g_7090[n].f_052 = 0;
             return;
@@ -2729,10 +2729,10 @@ void fn_04_4d00(int16_t n)
             g_7090[n].f_03a = g_7090[n].f_036 = 2;
         }
     }
-    if (g_1df8[14][n].f_32 == 14 && g_7090[n].f_036 != 4
-        && !(g_7090[n].f_006 == 14 && g_1df8[14][n].f_34 == g_7090[n].f_008)) {
+    if (object_records[14][n].f_32 == 14 && g_7090[n].f_036 != 4
+        && !(g_7090[n].f_006 == 14 && object_records[14][n].f_34 == g_7090[n].f_008)) {
         g_7090[n].f_006 = 14;
-        g_7090[n].f_008 = g_1df8[14][n].f_34;
+        g_7090[n].f_008 = object_records[14][n].f_34;
         g_7090[n].f_03a = 2;
         g_7090[n].f_036 = 1;
         g_7090[n].f_052 = 0;
@@ -2754,13 +2754,13 @@ void fn_04_6700(int16_t n)
 
     type = g_7090[n].f_006;
     idx = g_7090[n].f_008;
-    if (g_1df8[type][idx].f_18 != 0)
+    if (object_records[type][idx].f_18 != 0)
         return;
     done = 0;
     for (i = 0; i <= g_9316; i++) {
-        if (g_1df8[14][i].f_18 == 0 && g_7090[i].flag && g_7090[i].f_052 != 14
+        if (object_records[14][i].f_18 == 0 && g_7090[i].flag && g_7090[i].f_052 != 14
             && g_7090[i].f_032.a == type && g_9320 != 6 && i != n && g_7090[i].f_032.b == idx
-            && g_1df8[type][idx].f_53 != 0
+            && object_records[type][idx].f_53 != 0
             && !(g_7090[i].f_148 == type && g_7090[i].f_149 == idx)) {
             if (g_96d2[g_7090[i].f_04e].f_38 == 7)
                 fn_03_06ec(i, 14, n, 0xbf);
@@ -2771,7 +2771,7 @@ void fn_04_6700(int16_t n)
         }
         k = g_96d2[g_7090[i].f_04e].f_38;
         if (g_7090[i].f_052 != 14 && !done
-            && (k == 2 || k == 5) && g_1df8[14][i].f_18 == 0 && g_7090[i].flag && i != n
+            && (k == 2 || k == 5) && object_records[14][i].f_18 == 0 && g_7090[i].flag && i != n
             && !(i == main_ship && flow_interactive)
             && !(g_7090[i].f_052 == 2 && k != 2)
             && (fn_13_2688(i, n) < 160 || g_7090[i].f_0c2[n] > 0)) {
@@ -2780,7 +2780,7 @@ void fn_04_6700(int16_t n)
                 && !(k == 2 && g_96d2[g_7090[n].f_04e].f_38 == 0)) {
                 g_7090[i].f_006 = g_7090[i].f_032.a = type;
                 g_7090[i].f_008 = g_7090[i].f_032.b = idx;
-                if (fn_08_285a(&a, &b, g_1df8[14][n].f_04, g_1df8[14][i].f_04) < 1900) {
+                if (fn_08_285a(&a, &b, object_records[14][n].f_04, object_records[14][i].f_04) < 1900) {
                     g_7090[i].f_038 = 2;
                     g_7090[i].f_036 = 2;
                     fn_03_06ec(n, 14, i, 0x17);
@@ -2789,19 +2789,19 @@ void fn_04_6700(int16_t n)
                 g_7090[i].f_03a = g_7090[i].f_03c = 2;
                 g_7090[i].f_054 = g_7090[i].f_052 = 14;
                 g_7090[i].f_056 = n;
-                g_7090[i].f_094 = g_1e50 + 500;
+                g_7090[i].f_094 = now_ms + 500;
                 if (i == main_ship) {
-                    LoadString(g_9212, 0x585, buf, 40);
+                    LoadString(lang_module, 0x585, buf, 40);
                     lstrcpy(g_8630, buf);
                     fn_03_1542(0, g_7090[i].f_006, g_7090[i].f_008, buf, 0);
                     lstrcat(g_8630, buf);
-                    LoadString(g_9212, 0x586, buf, 40);
+                    LoadString(lang_module, 0x586, buf, 40);
                     lstrcat(g_8630, buf);
                     fn_03_1542(0, 14, n, buf, 0);
                     lstrcat(g_8630, buf);
                     lstrcat(g_8630, ".");
                     g_058c = 1;
-                    g_05c0 = g_1e50 + 1200;
+                    g_05c0 = now_ms + 1200;
                 }
                 done = 1;
             }
@@ -2823,7 +2823,7 @@ void fn_04_7636(int16_t n, int16_t type, int16_t idx, int16_t quiet)
     int16_t found;
 
     found = 0;
-    g_2384 = g_1e50 + 5000;
+    g_2384 = now_ms + 5000;
     k = g_96d2[g_7090[n].f_04e].f_38;
     if (type == 14 && g_96d2[g_7090[idx].f_04e].f_38 == 7) {
         g_7090[n].f_006 = type;
@@ -2954,14 +2954,14 @@ void fn_04_79ae(int16_t n)
         flag = 1;
     sel = -1;
     for (i = 0; i <= g_9316; i++) {
-        if (g_1df8[14][i].f_18 == 0 && i != n && g_7090[i].f_032.a == 14 && g_7090[i].f_032.b == n
+        if (object_records[14][i].f_18 == 0 && i != n && g_7090[i].f_032.a == 14 && g_7090[i].f_032.b == n
             && g_7090[i].f_038 == 1
-            && fn_08_285a(&a, &b, g_1df8[14][i].f_04, g_1df8[14][n].f_04) < 500)
+            && fn_08_285a(&a, &b, object_records[14][i].f_04, object_records[14][n].f_04) < 500)
             sel = i;
     }
     if (!flag && g_7090[n].f_038 == 2
-        && fn_08_285a(&a, &b, g_1df8[14][n].f_04,
-                      g_1df8[g_7090[n].f_032.a][g_7090[n].f_032.b].f_04) < 150) {
+        && fn_08_285a(&a, &b, object_records[14][n].f_04,
+                      object_records[g_7090[n].f_032.a][g_7090[n].f_032.b].f_04) < 150) {
         if (g_7090[n].f_0e9) {
             if (fn_11_4b00(n))
                 msg = 0x408;
@@ -3054,12 +3054,12 @@ int16_t fn_04_8626(int16_t type, int16_t idx, int16_t flag)
 
     k = 10;
     g_968a = v = 0;
-    near_ = g_9686 = g_8e28 + 2000 > g_1e50;
-    if (g_7090[main_ship].f_038 == 1 && g_8e28 + 3000 > g_1e50
+    near_ = g_9686 = g_8e28 + 2000 > now_ms;
+    if (g_7090[main_ship].f_038 == 1 && g_8e28 + 3000 > now_ms
         && g_7090[main_ship].f_032.a == type && g_7090[main_ship].f_032.b == idx)
         near_ = g_9686 = 1;
     v = g_9688 = 0;
-    if (type == 14 || g_1df8[type][idx].f_53 != 0)
+    if (type == 14 || object_records[type][idx].f_53 != 0)
         v = 30;
     else if (type == 9 || (type == 8 && g_3d50[idx].f_1c == 2)
              || (type == 2 && g_52ec[idx].f_12 == 15))
@@ -3068,13 +3068,13 @@ int16_t fn_04_8626(int16_t type, int16_t idx, int16_t flag)
         v = -200;
     if (v != 0 && near_ != 0)
         v += 25;
-    dist = fn_08_285a(&dx, &dy, g_1df8[type][idx].f_04, g_1df8[14][main_ship].f_04);
-    heading = g_1df8[14][main_ship].f_28;
+    dist = fn_08_285a(&dx, &dy, object_records[type][idx].f_04, object_records[14][main_ship].f_04);
+    heading = object_records[14][main_ship].f_28;
     ang = fn_08_19b0(-dx, -dy);
     rel = (int16_t)((heading - ang) * 360) / 16;
     cosv = fn_06_720c(rel);
-    vx = g_1df8[14][main_ship].f_0c;
-    vy = g_1df8[14][main_ship].f_0e;
+    vx = object_records[14][main_ship].f_0c;
+    vy = object_records[14][main_ship].f_0e;
     speed = fn_08_35d0(vx, vy);
     closing = -((dx * vx + dy * vy) / dist);
     appr = closing * 128 / speed;
@@ -3113,10 +3113,10 @@ int16_t fn_04_8626(int16_t type, int16_t idx, int16_t flag)
         if (type == 12 && appr > 75 && cosv > 75)
             v += (int16_t)(appr / 3 + cosv / 5) + 10;
         if (appr > 105 || cosv > 105 || (appr > 80 && cosv > 80)
-            || (appr > 55 && cosv > 55 && g_1df8[type][idx].f_53 == 1)) {
+            || (appr > 55 && cosv > 55 && object_records[type][idx].f_53 == 1)) {
             if (dist < 360) {
                 g_9688 = 1;
-                if (g_1df8[type][idx].f_53 == 1)
+                if (object_records[type][idx].f_53 == 1)
                     v += (int16_t)(appr / 3 + cosv / 5);
             }
         }
@@ -3167,9 +3167,9 @@ int16_t fn_04_59bc(void)
     int16_t btype;
     int16_t bidx;
 
-    dt1 = g_1e50 - g_52d8;
-    dt2 = g_1e50 - g_8e44;
-    dt3 = g_1e50 - g_8e28;
+    dt1 = now_ms - g_52d8;
+    dt2 = now_ms - g_8e44;
+    dt3 = now_ms - g_8e28;
     flag = 1;
     if (g_7090[main_ship].f_052 == 1) {
         for (i = 0; i <= g_9316; i++)
@@ -3202,13 +3202,13 @@ int16_t fn_04_59bc(void)
         }
     }
     if (g_7090[main_ship].f_052 != 0) {
-        if ((g_7090[main_ship].f_098 + 20000 < g_1e50
+        if ((g_7090[main_ship].f_098 + 20000 < now_ms
              && g_1e68 / 10 - g_7090[g_7090[main_ship].f_056].f_044[0] > 25) || flag)
             g_7090[main_ship].f_052 = -1;
     }
     if (g_7090[main_ship].f_052 == -1)
         g_7090[main_ship].f_052 = 0;
-    pt = g_1df8[14][main_ship].f_04;
+    pt = object_records[14][main_ship].f_04;
     best = -40;
     j = 0;
     for (i = 0; i < g_9146; i++) {
@@ -3246,7 +3246,7 @@ int16_t fn_04_59bc(void)
             g_9686 = 1;
         if (g_9686)
             g_7090[main_ship].f_036 = 1;
-        else if ((g_1df8[btype][bidx].f_53 || btype == 12) && s9688)
+        else if ((object_records[btype][bidx].f_53 || btype == 12) && s9688)
             g_7090[main_ship].f_036 = 2;
         else if (s968a) {
             g_7090[main_ship].f_036 = 4;
@@ -3286,7 +3286,7 @@ void fn_04_485c(int16_t n, int16_t unused)
     if (g_96d2[g_7090[n].f_04e].f_38 == 6)
         return;
     for (j = 0; j <= g_9316; j++) {
-        if (g_1df8[14][j].f_18 == 0 && j != n && g_7090[j].flag) {
+        if (object_records[14][j].f_18 == 0 && j != n && g_7090[j].flag) {
         for (i = skip = 0; i <= g_9316; i++) {
             if ((g_7090[i].f_052 == 5 || g_7090[i].f_052 == 1) && g_7090[i].f_056 == j) {
                 skip = 1;
@@ -3312,7 +3312,7 @@ void fn_04_485c(int16_t n, int16_t unused)
             if (g_7090[j].f_038 == 4)
                 score++;
             for (i = c2 = c1 = 0; i <= g_9316; i++) {
-                if (g_1df8[14][i].f_18 == 0 && i != n && i != j && g_7090[i].flag
+                if (object_records[14][i].f_18 == 0 && i != n && i != j && g_7090[i].flag
                     && g_7090[i].f_032.a == 14 && g_7090[i].f_032.b == j && g_7090[i].f_038 == 1) {
                     thr += fn_13_2688(n, i) / 45;
                     if (fn_04_5d9c(j, i) < (int16_t)(++c1 * 40))
@@ -3330,7 +3330,7 @@ void fn_04_485c(int16_t n, int16_t unused)
             if (g_7090[n].f_05e + g_7090[n].f_05d < 3)
                 score++;
             if (score > 1) {
-                d = fn_08_285a(&a, &b, g_1df8[14][n].f_04, g_1df8[14][j].f_04);
+                d = fn_08_285a(&a, &b, object_records[14][n].f_04, object_records[14][j].f_04);
                 if (d < 1000)
                     thr -= 10;
                 if (g_96d2[g_7090[j].f_04e].f_38 == g_96d2[g_7090[n].f_04e].f_38
@@ -3369,8 +3369,8 @@ void fn_04_485c(int16_t n, int16_t unused)
                     g_7090[n].f_054 = 14;
                     g_7090[n].f_056 = j;
                     g_7090[n].f_058 = n;
-                    g_7090[n].f_098 = g_1e50 + 18000;
-                    g_7090[n].f_094 = g_1e50 + 300;
+                    g_7090[n].f_098 = now_ms + 18000;
+                    g_7090[n].f_094 = now_ms + 300;
                     return;
                 }
             }

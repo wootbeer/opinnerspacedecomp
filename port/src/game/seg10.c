@@ -10,13 +10,13 @@ int16_t fn_10_6d38(LPCSTR s)
 /* 10:6e26 */
 void fn_10_6e26(void)
 {
-    g_fp_3c50(g_920e, 0, 0, 0, 0, 0, 2);
+    g_fp_3c50(game_palette, 0, 0, 0, 0, 0, 2);
 }
 
 /* 10:6ec6 */
 HBITMAP fn_10_6ec6(int16_t a)
 {
-    return ((HBITMAP (*)(int16_t, int16_t, int16_t))g_fp_3c40)(g_920e, a, g_13dc);
+    return ((HBITMAP (*)(int16_t, int16_t, int16_t))g_fp_3c40)(game_palette, a, main_dc);
 }
 
 /* 10:6b54 */
@@ -57,25 +57,25 @@ void fn_10_86a8(void)
 /* 10:6e00 */
 void fn_10_6e00(void)
 {
-    g_920e = g_fp_3c50(0, 0, 0, 0, 0, 0, 0);
+    game_palette = g_fp_3c50(0, 0, 0, 0, 0, 0, 0);
 }
 
 /* 10:6ea0 */
 void fn_10_6ea0(uint16_t a)
 {
-    g_fp_3c50(g_920e, 0, 0, 0, 0, a, 7);
+    g_fp_3c50(game_palette, 0, 0, 0, 0, a, 7);
 }
 
 /* 10:6e4c */
 void fn_10_6e4c(void)
 {
-    g_fp_3c50(g_920e, g_0016, g_13dc, 0, 0, 0, 3);
+    g_fp_3c50(game_palette, main_window, main_dc, 0, 0, 0, 3);
 }
 
 /* 10:6e76 */
 void fn_10_6e76(int32_t a)
 {
-    g_fp_3c50(g_920e, 0, 0, 0, HI16(a), LO16(a), 1);
+    g_fp_3c50(game_palette, 0, 0, 0, HI16(a), LO16(a), 1);
     fn_10_6e4c();
 }
 
@@ -113,17 +113,17 @@ void fn_10_4672(int16_t a, int16_t b)
     rows = bmp.bmHeight / cell;
     n = 16;
     bits = bmp.bmPlanes * bmp.bmBitsPixel;
-    dc = CreateCompatibleDC(g_13dc);
+    dc = CreateCompatibleDC(main_dc);
     ob = SelectObject(dc, g_928a);
-    if (g_920e)
-        pal = SelectPalette(dc, g_920e, 0);
+    if (game_palette)
+        pal = SelectPalette(dc, game_palette, 0);
     if (!g_39e8[a]) {
-        g_39e8[a] = CreateCompatibleDC(g_13dc);
-        g_3ad0[a] = CreateCompatibleBitmap(g_13dc, (cell + b) * n + b,
+        g_39e8[a] = CreateCompatibleDC(main_dc);
+        g_3ad0[a] = CreateCompatibleBitmap(main_dc, (cell + b) * n + b,
                                            (cell + b) * rows + b);
         g_3974[a] = SelectObject(g_39e8[a], g_3ad0[a]);
-        if (g_920e)
-            g_3a5c[a] = SelectPalette(g_39e8[a], g_920e, 0);
+        if (game_palette)
+            g_3a5c[a] = SelectPalette(g_39e8[a], game_palette, 0);
     }
     PatBlt(g_39e8[a], 0, 0, (cell + b) * n + b, (cell + b) * rows + b,
            BLACKNESS);
@@ -186,7 +186,7 @@ void fn_10_949c(int16_t a, int16_t b, int16_t c, int16_t d, int16_t e, int16_t f
 /* 10:993a */
 void fn_10_993a(int16_t a, int16_t b)
 {
-    g_fp_3c7c(g_920e, a, b, g_0016, g_13dc);
+    g_fp_3c7c(game_palette, a, b, main_window, main_dc);
 }
 
 /* 10:73e2 */
@@ -212,20 +212,20 @@ void fn_10_6d7a(int16_t a, int16_t b, int16_t c)
 {
     int16_t r;
 
-    ((FP7I)g_fp_3c50)(g_920e, 0, 0, a, b, c, 6);
+    ((FP7I)g_fp_3c50)(game_palette, 0, 0, a, b, c, 6);
 }
 
 /* 10:6da6 */
 void fn_10_6da6(int16_t a, int16_t b)
 {
-    ((FP7I)g_fp_3c50)(g_920e, 0, g_13dc, 0, a, b, 4);
+    ((FP7I)g_fp_3c50)(game_palette, 0, main_dc, 0, a, b, 4);
     fn_10_6e4c();
 }
 
 /* 10:6dd4 */
 void fn_10_6dd4(int16_t a)
 {
-    ((FP7I)g_fp_3c50)(g_920e, 0, g_13dc, 0, a, 0, 5);
+    ((FP7I)g_fp_3c50)(game_palette, 0, main_dc, 0, a, 0, 5);
     fn_10_6e4c();
 }
 
@@ -267,7 +267,7 @@ HBITMAP fn_10_7370(int16_t a, int16_t b, int16_t c, int16_t d, int16_t e, int16_
 {
     int16_t r;
 
-    return g_fp_3c44(g_13dc, a, b, c, d, e, g_920e, f, g);
+    return g_fp_3c44(main_dc, a, b, c, d, e, game_palette, f, g);
 }
 
 /* 10:7d58 */
@@ -290,9 +290,9 @@ void fn_10_6bca(int16_t a, int16_t b, int16_t c, int16_t d, int16_t e, int16_t f
 }
 
 /* 10:73a6 */
-int16_t fn_10_73a6(int16_t a, int32_t b, int16_t c, int16_t d, int16_t e, int16_t f, int16_t g, char h, char i)
+int16_t fn_10_73a6(int16_t a, char *b, int16_t c, int16_t d, int16_t e, int16_t f, int16_t g, char h, char i)
 {
-    return g_fp_3c34(g_920e, a, b, g_13dc, c, d, e, f, g, h, i);
+    return g_fp_3c34(game_palette, a, b, main_dc, c, d, e, f, g, h, i);
 }
 
 /* Plays sound a at a position given by mode d (0 none, 1 object c of
@@ -320,47 +320,47 @@ void fn_10_754a(int16_t a, int16_t b, int16_t c, int16_t d)
             case 0x6a:
                 a = 0x20;
                 g_9292 = 0x21;
-                g_3c88 = g_1e50 + 1000;
+                g_3c88 = now_ms + 1000;
                 break;
             case 0x6b:
                 a = 0x39;
                 g_9292 = 0x3a;
-                g_3c88 = g_1e50 + 420;
+                g_3c88 = now_ms + 420;
                 break;
             case 0x6c:
                 a = 0x38;
                 g_9292 = 0x39;
-                g_3c88 = g_1e50 + 385;
+                g_3c88 = now_ms + 385;
                 break;
             case 0x6d:
                 a = 0x35;
                 g_9292 = 0x39;
-                g_3c88 = g_1e50 + 385;
+                g_3c88 = now_ms + 385;
                 break;
             case 0x71:
                 a = 0x24;
                 g_9292 = 0x25;
-                g_3c88 = g_1e50 + 660;
+                g_3c88 = now_ms + 660;
                 break;
             case 0x72:
                 a = 0x1a;
                 g_9292 = 0x1a;
-                g_3c88 = g_1e50 + 200;
+                g_3c88 = now_ms + 200;
                 break;
             case 0x73:
                 a = 0x42;
                 g_9292 = 0x43;
-                g_3c88 = g_1e50 + 700;
+                g_3c88 = now_ms + 700;
                 break;
             case 0x74:
                 a = 0x42;
                 g_9292 = 0x66;
-                g_3c88 = g_1e50 + 400;
+                g_3c88 = now_ms + 400;
                 break;
             case 0x76:
                 a = 0x23;
                 g_9292 = 0x25;
-                g_3c88 = g_1e50 + 400;
+                g_3c88 = now_ms + 400;
                 break;
             default:
                 g_3c88 = 0;
@@ -375,11 +375,11 @@ void fn_10_754a(int16_t a, int16_t b, int16_t c, int16_t d)
         q.p.b = (VIEW(union {
         int32_t l;
         POINT pt;
-    }, g_1df8[g_9324][main_ship].f_04, 0).pt.x - ((int16_t)g_90ea / 2 << g_9150)) >> 3;
+    }, object_records[g_9324][main_ship].f_04, 0).pt.x - ((int16_t)g_90ea / 2 << g_9150)) >> 3;
         q.p.a = (VIEW(union {
         int32_t l;
         POINT pt;
-    }, g_1df8[g_9324][main_ship].f_04, 0).pt.y - (HI16(g_90ea) / 2 << g_9150)) >> 3;
+    }, object_records[g_9324][main_ship].f_04, 0).pt.y - (HI16(g_90ea) / 2 << g_9150)) >> 3;
     }
     switch (d) {
     case 1:
@@ -388,7 +388,7 @@ void fn_10_754a(int16_t a, int16_t b, int16_t c, int16_t d)
         p = VIEW(union {
         int32_t l;
         POINT pt;
-    }, g_1df8[b][c].f_04, 0).pt;
+    }, object_records[b][c].f_04, 0).pt;
         break;
     case 2:
         if (g_6098[c].f_84)
@@ -429,10 +429,10 @@ void fn_10_754a(int16_t a, int16_t b, int16_t c, int16_t d)
     if (d != 0 && d != 4 && d != 5) {
         p = fn_08_29ea(p);
         if (g_9156 != 1 && !subgame_active) {
-            dd.x = p.x - g_1df8[g_9324][main_ship].f_00.x;
-            dd.y = p.y - g_1df8[g_9324][main_ship].f_00.y;
-            p.x = (dd.x * 2 >> g_9156) + g_1df8[g_9324][main_ship].f_00.x;
-            p.y = (dd.y * 2 >> g_9156) + g_1df8[g_9324][main_ship].f_00.y;
+            dd.x = p.x - object_records[g_9324][main_ship].f_00.x;
+            dd.y = p.y - object_records[g_9324][main_ship].f_00.y;
+            p.x = (dd.x * 2 >> g_9156) + object_records[g_9324][main_ship].f_00.x;
+            p.y = (dd.y * 2 >> g_9156) + object_records[g_9324][main_ship].f_00.y;
         }
     }
     q.l = 0x10001L;
@@ -440,7 +440,7 @@ void fn_10_754a(int16_t a, int16_t b, int16_t c, int16_t d)
         pos = VIEW(int32_t, g_88c0, 0);
     else
         pos = g_90ea;
-    if (g_fp_3c5c(a, p, r, q.l, pos, g_1e50, "")) {
+    if (g_fp_3c5c(a, p, r, q.l, pos, now_ms, "")) {
         g_921c = a;
         g_928c = b;
         g_928e = c;
@@ -471,11 +471,11 @@ void fn_10_7944(int16_t a, int16_t b, int16_t c, int16_t d, LPCSTR e)
         q.p.a = (VIEW(union {
         int32_t l;
         POINT pt;
-    }, g_1df8[g_9324][main_ship].f_04, 0).pt.x - ((int16_t)g_90ea / 2 << g_9150)) >> 3;
+    }, object_records[g_9324][main_ship].f_04, 0).pt.x - ((int16_t)g_90ea / 2 << g_9150)) >> 3;
         q.p.b = (VIEW(union {
         int32_t l;
         POINT pt;
-    }, g_1df8[g_9324][main_ship].f_04, 0).pt.y - (HI16(g_90ea) / 2 << g_9150)) >> 3;
+    }, object_records[g_9324][main_ship].f_04, 0).pt.y - (HI16(g_90ea) / 2 << g_9150)) >> 3;
     }
     switch (d) {
     case 1:
@@ -484,7 +484,7 @@ void fn_10_7944(int16_t a, int16_t b, int16_t c, int16_t d, LPCSTR e)
         p = VIEW(union {
         int32_t l;
         POINT pt;
-    }, g_1df8[b][c].f_04, 0).pt;
+    }, object_records[b][c].f_04, 0).pt;
         break;
     case 2:
         if (g_6098[c].f_84)
@@ -511,15 +511,15 @@ void fn_10_7944(int16_t a, int16_t b, int16_t c, int16_t d, LPCSTR e)
     if (d != 0) {
         p = fn_08_29ea(p);
         if (g_9156 != 1) {
-            dd.x = p.x - g_1df8[g_9324][main_ship].f_00.x;
-            dd.y = p.y - g_1df8[g_9324][main_ship].f_00.y;
-            p.x = (dd.x * 2 >> g_9156) + g_1df8[g_9324][main_ship].f_00.x;
-            p.y = (dd.y * 2 >> g_9156) + g_1df8[g_9324][main_ship].f_00.y;
+            dd.x = p.x - object_records[g_9324][main_ship].f_00.x;
+            dd.y = p.y - object_records[g_9324][main_ship].f_00.y;
+            p.x = (dd.x * 2 >> g_9156) + object_records[g_9324][main_ship].f_00.x;
+            p.y = (dd.y * 2 >> g_9156) + object_records[g_9324][main_ship].f_00.y;
         }
     }
     if (b == g_9324 && c == main_ship && g_7090[main_ship].flag)
-        g_fp_3c5c(0x69, p, 1, MAKELONG(q.p.b, q.p.a), g_90ea, g_1e50, "");
-    if (g_fp_3c5c(a, p, r, MAKELONG(q.p.b, q.p.a), g_90ea, g_1e50, e)) {
+        g_fp_3c5c(0x69, p, 1, MAKELONG(q.p.b, q.p.a), g_90ea, now_ms, "");
+    if (g_fp_3c5c(a, p, r, MAKELONG(q.p.b, q.p.a), g_90ea, now_ms, e)) {
         g_921c = a;
         g_928c = b;
         g_928e = c;
@@ -542,11 +542,11 @@ void fn_10_7b48(void)
     q.a = (VIEW(union {
         int32_t l;
         POINT pt;
-    }, g_1df8[g_9324][main_ship].f_04, 0).pt.x - ((int16_t)g_90ea / 2 << g_9150)) >> 3;
+    }, object_records[g_9324][main_ship].f_04, 0).pt.x - ((int16_t)g_90ea / 2 << g_9150)) >> 3;
     q.b = (VIEW(union {
         int32_t l;
         POINT pt;
-    }, g_1df8[g_9324][main_ship].f_04, 0).pt.y - (HI16(g_90ea) / 2 << g_9150)) >> 3;
+    }, object_records[g_9324][main_ship].f_04, 0).pt.y - (HI16(g_90ea) / 2 << g_9150)) >> 3;
     if (g_3c88 && GetCurrentTime() > g_3c88) {
         if (g_920a > 1 || (g_9218 == 14 && g_921a == main_ship)
             || (g_921c == g_9216 && g_9218 == g_928c && g_921a == g_928e)
@@ -565,7 +565,7 @@ void fn_10_7b48(void)
         p = VIEW(union {
         int32_t l;
         POINT pt;
-    }, g_1df8[g_928c][g_928e].f_04, 0).pt;
+    }, object_records[g_928c][g_928e].f_04, 0).pt;
         if (g_928c == 5)
             k++;
         break;
@@ -592,10 +592,10 @@ void fn_10_7b48(void)
     if (g_9290 != 0) {
         p = fn_08_29ea(p);
         if (g_9156 != 1) {
-            dd.x = p.x - g_1df8[g_9324][main_ship].f_00.x;
-            dd.y = p.y - g_1df8[g_9324][main_ship].f_00.y;
-            p.x = (dd.x * 2 >> g_9156) + g_1df8[g_9324][main_ship].f_00.x;
-            p.y = (dd.y * 2 >> g_9156) + g_1df8[g_9324][main_ship].f_00.y;
+            dd.x = p.x - object_records[g_9324][main_ship].f_00.x;
+            dd.y = p.y - object_records[g_9324][main_ship].f_00.y;
+            p.x = (dd.x * 2 >> g_9156) + object_records[g_9324][main_ship].f_00.x;
+            p.y = (dd.y * 2 >> g_9156) + object_records[g_9324][main_ship].f_00.y;
         }
     }
     if (g_fp_3c58(p, q.a, q.b, g_90ea))
@@ -689,7 +689,7 @@ int16_t fn_10_82a2(int16_t a)
         a = 6;
         hwnd = g_9532;
     } else {
-        hwnd = g_0016;
+        hwnd = main_window;
     }
     if (a == 5 || a == 7) {
         v1 = g_90f4;
@@ -712,8 +712,8 @@ int16_t fn_10_82a2(int16_t a)
         else
             v0 = 0;
     }
-    r = g_fp_3c64(hwnd, g_39e8[5], g_920e, v1, v0, 0, a);
-    g_1e50 = GetCurrentTime();
+    r = g_fp_3c64(hwnd, g_39e8[5], game_palette, v1, v0, 0, a);
+    now_ms = GetCurrentTime();
     g_3b94 = GetCurrentTime() + 500;
     fn_10_7f88();
     if (a == 5 || a == 6) {
@@ -734,9 +734,9 @@ int16_t fn_10_82a2(int16_t a)
             int16_t flag;
             int16_t i;
 
-            g_9134 = GetPrivateProfileInt(g_9690, "PlayMode", 0, g_96a9);
-            GetPrivateProfileString(g_9690, "ThePlayer", "", g_380c, 20, g_96a9);
-            GetPrivateProfileString(g_9690, "Restore", "", buf, 9, g_96a9);
+            g_9134 = GetPrivateProfileInt(app_name, "PlayMode", 0, ini_name);
+            GetPrivateProfileString(app_name, "ThePlayer", "", g_380c, 20, ini_name);
+            GetPrivateProfileString(app_name, "Restore", "", buf, 9, ini_name);
             flag = 0;
             for (i = 0; lstrlen(buf) > i; i++)
                 if (buf[i] == ' ')
@@ -749,7 +749,7 @@ int16_t fn_10_82a2(int16_t a)
         g_104c[0].b = 0;
         g_104c[0].a = 0;
         g_951c = 0;
-        GetPrivateProfileString(g_9690, "Drive", "C", buf, 20, g_96a9);
+        GetPrivateProfileString(app_name, "Drive", "C", buf, 20, ini_name);
         g_94ac = buf[0] - 'C';
         g_9516 = 0;
     } else {
@@ -789,12 +789,12 @@ void fn_10_6ee6(int16_t a, int16_t b, char *s, int16_t c, int16_t d, int16_t e, 
         h = 1;
     else
         h = 0;
-    g_3ad0[a] = g_fp_3c30(g_920e, b, (int32_t)s, g_13dc, c, d, e, f, g, h,
+    g_3ad0[a] = g_fp_3c30(game_palette, b, s, main_dc, c, d, e, f, g, h,
                           (char)i, (char)j, (char)k, l);
-    g_39e8[a] = CreateCompatibleDC(g_13dc);
+    g_39e8[a] = CreateCompatibleDC(main_dc);
     g_3974[a] = SelectObject(g_39e8[a], g_3ad0[a]);
-    if (g_920e)
-        g_3a5c[a] = SelectPalette(g_39e8[a], g_920e, 0);
+    if (game_palette)
+        g_3a5c[a] = SelectPalette(g_39e8[a], game_palette, 0);
     if (!subgame_active && flag && (g_9156 != 2 || l))
         fn_10_6308(a, -1, -1, -1);
 }
@@ -807,7 +807,7 @@ void fn_10_740c(void)
     int16_t u;
 
     h = GetActiveWindow();
-    t = GetWindowTask(g_0016);
+    t = GetWindowTask(main_window);
     if (GetWindowTask(h) == t)
         g_fp_3c54(g_05a0, 9);
 }
@@ -829,14 +829,14 @@ void fn_10_5cfa(void)
 HBITMAP fn_10_9526(RECT *a, HGLOBAL b, int16_t c, int32_t d, int16_t e, int32_t f,
     int16_t g, int16_t h, int16_t i, int16_t x, int16_t y, int16_t k)
 {
-    return g_fp_3c78(g_13dc, g_920e, a, b, c, d, e, f, g, h, i, x, y, k);
+    return g_fp_3c78(main_dc, game_palette, a, b, c, d, e, f, g, h, i, x, y, k);
 }
 
 /* 10:6fec */
-HBITMAP fn_10_6fec(int16_t a, int32_t b, int16_t c, int16_t d, int16_t e, int16_t f, int16_t g, int16_t h,
+HBITMAP fn_10_6fec(int16_t a, char *b, int16_t c, int16_t d, int16_t e, int16_t f, int16_t g, int16_t h,
     char i, char j, char k, int16_t l)
 {
-    return g_fp_3c30(g_920e, a, b, g_13dc, c, d, e, f, g, h, i, j, k, l);
+    return g_fp_3c30(game_palette, a, b, main_dc, c, d, e, f, g, h, i, j, k, l);
 }
 
 /* 10:7dd4 */
@@ -846,12 +846,12 @@ int16_t fn_10_7dd4(int16_t *a, int16_t *b, int16_t *c, int16_t *d, int16_t *e, i
 }
 
 /* 10:7328 */
-void fn_10_7328(int16_t a, int32_t b, int16_t c, int16_t d, char e, char f, int16_t g, int16_t h,
-                    char i, char m)
+void fn_10_7328(int16_t a, char *b, int16_t c, int16_t d, char e, char f, int16_t g, int16_t h,
+    char i, char m)
 {
     int16_t r;
 
-    g_fp_3c38(g_920e, a, b, g_13dc, m, c, d, e, f, g, h, i, g_9156);
+    g_fp_3c38(game_palette, a, b, main_dc, m, c, d, e, f, g, h, i, g_9156);
 }
 
 /* 10:6b70 */
@@ -865,9 +865,9 @@ void fn_10_6b70(int16_t a)
         FreeLibrary(g_9210);
         g_9210 = 0;
     }
-    if (g_9212) {
-        FreeLibrary(g_9212);
-        g_9212 = 0;
+    if (lang_module) {
+        FreeLibrary(lang_module);
+        lang_module = 0;
     }
 }
 
@@ -906,7 +906,7 @@ void fn_10_94c4(int16_t a, int16_t b, int32_t c, int16_t d, int16_t e, char *f)
         l = 0xa0009L;
         break;
     }
-    g_fp_3c74(g_13dc, g_920e, l, b, c, d, e, f);
+    g_fp_3c74(main_dc, game_palette, l, b, c, d, e, f);
 }
 
 /* 10:9764 */
@@ -934,10 +934,10 @@ void fn_10_7f18(void)
     g_0592 = 2;
     fn_10_744c(0x6e);
     fn_10_7480(-2, 1);
-    g_fp_3c64(g_0016, 0, 0, g_8ffa, g_8ffc, 0, 0);
+    g_fp_3c64(main_window, 0, 0, g_8ffa, g_8ffc, 0, 0);
     fn_06_0b3e();
     fn_10_7f88();
-    g_1e50 = GetCurrentTime();
+    now_ms = GetCurrentTime();
     g_3b94 = GetCurrentTime() + 500;
     fn_10_7480(-3, 1);
 }
@@ -966,8 +966,8 @@ void fn_10_7480(int16_t a, int16_t b)
         a = 2;
     if (a >= 0) {
         g_9220 = a;
-        if (g_2384 < g_1e50)
-            g_2384 = g_1e50 + 9000;
+        if (g_2384 < now_ms)
+            g_2384 = now_ms + 9000;
     }
     if (g_9210)
         g_fp_3c54(MAKELONG(pt.x, pt.y), 11);
@@ -981,12 +981,12 @@ void fn_10_7f88(void)
     HPALETTE pal;
 
     old = g_9156;
-    nw = GetPrivateProfileInt(g_9690, "Size", 1, g_96a9);
+    nw = GetPrivateProfileInt(app_name, "Size", 1, ini_name);
     if (nw != old) {
         if (g_39e8[40]) {
-            g_13dc = GetDC(g_0016);
-            if (g_920e)
-                pal = SelectPalette(g_13dc, g_920e, 0);
+            main_dc = GetDC(main_window);
+            if (game_palette)
+                pal = SelectPalette(main_dc, game_palette, 0);
             if (nw < old) {
                 if ((int16_t)(nw - old) != -1)
                     fn_10_9a2a(-1);
@@ -997,9 +997,9 @@ void fn_10_7f88(void)
                 fn_10_9a2a(1);
             }
             if (pal)
-                SelectPalette(g_13dc, pal, 0);
-            ReleaseDC(g_0016, g_13dc);
-            g_13dc = 0;
+                SelectPalette(main_dc, pal, 0);
+            ReleaseDC(main_window, main_dc);
+            main_dc = 0;
         } else {
             g_103c = g_92e2 = 1;
         }
@@ -1013,7 +1013,7 @@ void fn_10_87de(void)
     char buf[10];
 
     if (!g_11aa && (g_920c == -1 || g_920c == 3)) {
-        n = GetPrivateProfileInt(g_9690, "PlusCount", 13, g_96a9);
+        n = GetPrivateProfileInt(app_name, "PlusCount", 13, ini_name);
         n++;
         if (n > 12) {
             n = 0;
@@ -1021,7 +1021,7 @@ void fn_10_87de(void)
             fn_10_82a2(14);
         }
         fn_06_0f1a(n, buf);
-        WritePrivateProfileString(g_9690, "PlusCount", buf, g_96a9);
+        WritePrivateProfileString(app_name, "PlusCount", buf, ini_name);
     }
 }
 
@@ -1029,11 +1029,11 @@ void fn_10_87de(void)
 void fn_10_39a8(int16_t a)
 {
     if (!g_39e8[5]) {
-        g_3ad0[5] = g_fp_3c30(g_920e, -1000, (int32_t)(char *)"", g_13dc,
+        g_3ad0[5] = g_fp_3c30(game_palette, -1000, "", main_dc,
                               0, 6, 0, 0, 0, 0, 0, 0, 0, 0);
-        g_39e8[5] = CreateCompatibleDC(g_13dc);
-        if (g_920e)
-            g_3a5c[5] = SelectPalette(g_39e8[5], g_920e, 0);
+        g_39e8[5] = CreateCompatibleDC(main_dc);
+        if (game_palette)
+            g_3a5c[5] = SelectPalette(g_39e8[5], game_palette, 0);
         g_3974[5] = SelectObject(g_39e8[5], g_3ad0[5]);
         if (a)
             fn_10_6308(5, -1, -1, -1);
@@ -1096,22 +1096,22 @@ int16_t fn_10_6308(int16_t a, int16_t b, int16_t c, int16_t d)
                                      (h << g_9156) >> 1);
         if ((a != 7 && a != 6) || g_9156 != 2) {
             SelectObject(g_39e8[a], g_3974[a]);
-            if (g_920e && g_3a5c[a])
+            if (game_palette && g_3a5c[a])
                 SelectPalette(g_39e8[a], g_3a5c[a], 0);
             DeleteDC(g_39e8[a]);
         } else {
             SelectObject(g_39e8[a], g_3974[a]);
         }
     } else {
-        dc1 = CreateCompatibleDC(g_13dc);
-        dc2 = CreateCompatibleDC(g_13dc);
-        nbm = CreateCompatibleBitmap(g_13dc, (w << g_9156) >> 1,
+        dc1 = CreateCompatibleDC(main_dc);
+        dc2 = CreateCompatibleDC(main_dc);
+        nbm = CreateCompatibleBitmap(main_dc, (w << g_9156) >> 1,
                                      (h << g_9156) >> 1);
     }
-    if (g_920e)
-        pal1 = SelectPalette(dc1, g_920e, 0);
-    if (g_920e)
-        pal2 = SelectPalette(dc2, g_920e, 0);
+    if (game_palette)
+        pal1 = SelectPalette(dc1, game_palette, 0);
+    if (game_palette)
+        pal2 = SelectPalette(dc2, game_palette, 0);
     ob2 = SelectObject(dc2, c);
     ob1 = SelectObject(dc1, nbm);
     PatBlt(dc1, 0, 0, (w << g_9156) >> 1, (h << g_9156) >> 1, BLACKNESS);
@@ -1122,7 +1122,7 @@ int16_t fn_10_6308(int16_t a, int16_t b, int16_t c, int16_t d)
     fn_10_9962(1, dc1, 0, 0, (w << g_9156) >> 1, (h << g_9156) >> 1, dc2,
                0, 0, w, h, SRCCOPY);
     SelectObject(dc2, ob2);
-    if (g_920e)
+    if (game_palette)
         SelectPalette(dc2, pal2, 0);
     DeleteDC(dc2);
     if ((a != 7 && a != 6) || g_9156 != 2) {
@@ -1140,7 +1140,7 @@ int16_t fn_10_6308(int16_t a, int16_t b, int16_t c, int16_t d)
         return 0;
     }
     SelectObject(dc1, ob1);
-    if (g_920e)
+    if (game_palette)
         SelectObject(dc1, pal1);
     DeleteDC(dc1);
     return nbm;
@@ -1177,18 +1177,18 @@ int16_t fn_10_6c02(int16_t a, int16_t b, int16_t c)
     int16_t r;
 
     got = 0;
-    if (!g_13dc) {
+    if (!main_dc) {
         got = 1;
-        g_13dc = GetDC(g_0016);
-        if (g_920e)
-            old = SelectPalette(g_13dc, g_920e, 0);
+        main_dc = GetDC(main_window);
+        if (game_palette)
+            old = SelectPalette(main_dc, game_palette, 0);
     }
-    r = g_fp_3c28(g_920e, a, g_07de, g_13dc, b, c);
+    r = g_fp_3c28(game_palette, a, g_07de, main_dc, b, c);
     if (got) {
         if (old)
-            SelectPalette(g_13dc, old, 0);
-        ReleaseDC(g_0016, g_13dc);
-        g_13dc = 0;
+            SelectPalette(main_dc, old, 0);
+        ReleaseDC(main_window, main_dc);
+        main_dc = 0;
     }
     return r;
 }
@@ -1203,8 +1203,8 @@ void fn_10_506c(void)
     w = 32;
     h = 6;
     if (!g_39e8[32]) {
-        g_39e8[32] = CreateCompatibleDC(g_13dc);
-        g_3ad0[32] = CreateCompatibleBitmap(g_13dc, g_92ec[0] << 5, 32);
+        g_39e8[32] = CreateCompatibleDC(main_dc);
+        g_3ad0[32] = CreateCompatibleBitmap(main_dc, g_92ec[0] << 5, 32);
         g_3974[32] = SelectObject(g_39e8[32], g_3ad0[32]);
     }
     for (i = 0; i < g_92ec[0]; i++)
@@ -1220,20 +1220,20 @@ int16_t fn_10_6c96(int16_t a, char *b, int16_t c, int16_t d, int16_t e)
     int16_t r;
 
     got = 0;
-    if (!g_13dc) {
+    if (!main_dc) {
         got = 1;
-        g_13dc = GetDC(g_0016);
-        if (g_920e)
-            old = SelectPalette(g_13dc, g_920e, 0);
+        main_dc = GetDC(main_window);
+        if (game_palette)
+            old = SelectPalette(main_dc, game_palette, 0);
     }
     if (e)
         c -= 150;
-    r = g_fp_3c28(g_920e, a, b, g_13dc, c, d - 150);
+    r = g_fp_3c28(game_palette, a, b, main_dc, c, d - 150);
     if (got) {
         if (old)
-            SelectPalette(g_13dc, old, 0);
-        ReleaseDC(g_0016, g_13dc);
-        g_13dc = 0;
+            SelectPalette(main_dc, old, 0);
+        ReleaseDC(main_window, main_dc);
+        main_dc = 0;
     }
     return r;
 }
@@ -1245,10 +1245,10 @@ void sprite_dc_restore(void)
 
     for (i = 0; i < 58; i++) {
         if (g_3b9c[i]) {
-            g_39e8[i] = CreateCompatibleDC(g_13dc);
+            g_39e8[i] = CreateCompatibleDC(main_dc);
             SelectObject(g_39e8[i], g_3ad0[i]);
-            if (g_920e)
-                SelectPalette(g_39e8[i], g_920e, 0);
+            if (game_palette)
+                SelectPalette(g_39e8[i], game_palette, 0);
         }
     }
 }
@@ -1264,7 +1264,7 @@ void sprite_dc_release(void)
                 && i != 7 && i != 6 && i != 9 && i != 8) {
                 g_3b9c[i] = 1;
                 SelectObject(g_39e8[i], g_3974[i]);
-                if (g_920e)
+                if (game_palette)
                     SelectPalette(g_39e8[i], g_3a5c[i], 0);
                 DeleteDC(g_39e8[i]);
                 g_39e8[i] = 0;
@@ -1289,7 +1289,7 @@ int16_t fn_10_7896(int16_t a, POINT pt)
         return 1;
     if (a == 4)
         return 1;
-    d = fn_08_285a(&i, &j, pt, g_1df8[g_9324][main_ship].f_04);
+    d = fn_08_285a(&i, &j, pt, object_records[g_9324][main_ship].f_04);
     if (d > 800)
         return -1;
     if (d > 340)
@@ -1319,10 +1319,10 @@ void fn_10_5c42(void)
         fn_10_5cfa();
     g_3c60[0] = (HGDIOBJ)fn_10_7032(0, 16, 0);
     if (!g_39e8[34]) {
-        g_39e8[34] = CreateCompatibleDC(g_13dc);
-        g_3ad0[34] = CreateCompatibleBitmap(g_13dc, n << 4, n << 4);
-        if (g_920e)
-            g_3a5c[34] = SelectPalette(g_39e8[34], g_920e, 0);
+        g_39e8[34] = CreateCompatibleDC(main_dc);
+        g_3ad0[34] = CreateCompatibleBitmap(main_dc, n << 4, n << 4);
+        if (game_palette)
+            g_3a5c[34] = SelectPalette(g_39e8[34], game_palette, 0);
         g_3974[34] = SelectObject(g_39e8[34], g_3ad0[34]);
         PatBlt(g_39e8[34], 0, 0, n << 4, n << 4, BLACKNESS);
     }
@@ -1346,7 +1346,7 @@ int16_t fn_10_7032(int16_t a, int16_t b, int16_t c)
     int16_t s;
     int16_t t;
 
-    bm = g_fp_3c3c(g_920e, 1, 1, a, 5, c);
+    bm = g_fp_3c3c(game_palette, 1, 1, a, 5, c);
     if (subgame_active) {
         s = g_9156 * 6 + 3;
         t = 9;
@@ -1357,14 +1357,14 @@ int16_t fn_10_7032(int16_t a, int16_t b, int16_t c)
     }
     if (b < 16)
         return bm;
-    dc1 = CreateCompatibleDC(g_13dc);
-    if (g_920e)
-        pal1 = SelectPalette(dc1, g_920e, 0);
+    dc1 = CreateCompatibleDC(main_dc);
+    if (game_palette)
+        pal1 = SelectPalette(dc1, game_palette, 0);
     ob1 = SelectObject(dc1, bm);
-    dc2 = CreateCompatibleDC(g_13dc);
-    nbm = CreateCompatibleBitmap(g_13dc, s << 4, s * 2);
-    if (g_920e)
-        pal2 = SelectPalette(dc2, g_920e, 0);
+    dc2 = CreateCompatibleDC(main_dc);
+    nbm = CreateCompatibleBitmap(main_dc, s << 4, s * 2);
+    if (game_palette)
+        pal2 = SelectPalette(dc2, game_palette, 0);
     ob2 = SelectObject(dc2, nbm);
     PatBlt(dc2, 0, 0, s << 4, s * 2, BLACKNESS);
     fn_10_9962(0, dc2, 0, 0, s * 5, s * 2, dc1, 0, 0, t * 5, t * 2, SRCCOPY);
@@ -1387,7 +1387,7 @@ int16_t fn_10_7032(int16_t a, int16_t b, int16_t c)
         }
     }
     if (dc1) {
-        if (g_920e)
+        if (game_palette)
             SelectPalette(dc1, pal1, 0);
         SelectObject(dc1, ob1);
         if (bm)
@@ -1396,7 +1396,7 @@ int16_t fn_10_7032(int16_t a, int16_t b, int16_t c)
         dc1 = bm = 0;
     }
     if (dc2) {
-        if (g_920e)
+        if (game_palette)
             SelectPalette(dc2, pal2, 0);
         SelectObject(dc2, ob2);
         DeleteDC(dc2);
@@ -1443,7 +1443,7 @@ void fn_10_9a2a(int16_t d)
     }
     if (g_934c == 0) {
         g_9518 = 1;
-        g_934c = CreateDialog(g_9212, MAKEINTRESOURCE(0x65), g_0016, fn_09_90fe);
+        g_934c = CreateDialog(lang_module, MAKEINTRESOURCE(0x65), main_window, fn_09_90fe);
     }
     if ((nz = d + g_9156) == 1 && d == 1)
         g_103a = flag = 1;
@@ -1473,19 +1473,19 @@ void fn_10_9a2a(int16_t d)
     fn_10_5c42();
     for (i = g_9326; i <= g_9324; i++) {
         for (j = 0; j < (&g_92ec[0])[i]; j++) {
-            if (g_9156 == 0 && i == g_9324 && (g_1df8[i][j].f_22 & 1)) {
-                g_1df8[i][j].f_22++;
-                g_1df8[i][j].f_24--;
+            if (g_9156 == 0 && i == g_9324 && (object_records[i][j].f_22 & 1)) {
+                object_records[i][j].f_22++;
+                object_records[i][j].f_24--;
             }
-            g_1df8[i][j].f_22 = (int16_t)(g_1df8[i][j].f_22 << (d + 1)) >> 1;
-            g_1df8[i][j].f_24 = (int16_t)(g_1df8[i][j].f_24 << (d + 1)) >> 1;
+            object_records[i][j].f_22 = (int16_t)(object_records[i][j].f_22 << (d + 1)) >> 1;
+            object_records[i][j].f_24 = (int16_t)(object_records[i][j].f_24 << (d + 1)) >> 1;
             if (i == 3 && d == 1 && g_9156 > 0
-                && g_1df8[i][j].f_22 < 12 << g_9156)
-                g_1df8[i][j].f_24 = 4;
-            if (i == 3 && g_9156 == 1 && g_1df8[i][j].f_22 < 12 << g_9156
+                && object_records[i][j].f_22 < 12 << g_9156)
+                object_records[i][j].f_24 = 4;
+            if (i == 3 && g_9156 == 1 && object_records[i][j].f_22 < 12 << g_9156
                 && g_8fe8 && !g_90f0)
-                g_1df8[i][j].f_24 = 4;
-            g_1df8[i][j].f_12 = g_1df8[i][j].f_24;
+                object_records[i][j].f_24 = 4;
+            object_records[i][j].f_12 = object_records[i][j].f_24;
         }
     }
     if (flag || g_9156 == 2 && g_8fe8) {
@@ -1504,14 +1504,14 @@ void fn_10_9a2a(int16_t d)
                 g_96d2[g_7090[i].f_04e].f_2a = v;
                 w = g_6e24[g_7090[i].f_0d6].f_7b;
             } else {
-                v = g_1df8[g_9324][i].f_22;
+                v = object_records[g_9324][i].f_22;
                 g_96d2[g_7090[i].f_04e].f_2a = v;
-                w = g_1df8[g_9324][i].f_24;
+                w = object_records[g_9324][i].f_24;
             }
             g_92e4 = 1;
-            g_1df8[g_9324][i].f_22 = v << g_9156 >> 1;
-            g_1df8[g_9324][i].f_24 = w << g_9156 >> 1;
-            g_1df8[g_9324][i].f_12 = g_1df8[g_9324][i].f_24;
+            object_records[g_9324][i].f_22 = v << g_9156 >> 1;
+            object_records[g_9324][i].f_24 = w << g_9156 >> 1;
+            object_records[g_9324][i].f_12 = object_records[g_9324][i].f_24;
             if (!a)
                 fn_08_2cd8(i, 0);
             if (!b)
@@ -1533,9 +1533,9 @@ void fn_10_9a2a(int16_t d)
                         t = 0;
                     res = fn_10_18b0(g_3d50[i].f_22, g_3d50[i].f_20, g_3d50[i].f_2a,
                                      t, g_3d50[i].f_30);
-                    g_1df8[8][i].f_24 = g_4d90[g_3d50[i].f_30].f_09 << g_9156 >> 1;
-                    g_1df8[8][i].f_22 = g_4d90[g_3d50[i].f_30].f_08 << g_9156 >> 1;
-                    g_1df8[8][i].f_20 = g_1df8[8][i].f_22 << 3;
+                    object_records[8][i].f_24 = g_4d90[g_3d50[i].f_30].f_09 << g_9156 >> 1;
+                    object_records[8][i].f_22 = g_4d90[g_3d50[i].f_30].f_08 << g_9156 >> 1;
+                    object_records[8][i].f_20 = object_records[8][i].f_22 << 3;
                     if (g_3d50[i].f_0a > 0 && g_2f4c[g_3d50[i].f_0a].f_12)
                         fn_10_533a(g_3d50[i].f_0a);
                     g_3d50[i].f_1e = res;
@@ -1570,17 +1570,17 @@ void fn_10_9a2a(int16_t d)
         fn_10_5d3c(i);
     }
     fn_06_0f1a(g_9156, buf3);
-    WritePrivateProfileString(g_9690, "Size", buf3, g_96a9);
+    WritePrivateProfileString(app_name, "Size", buf3, ini_name);
     if (flow_interactive)
-        WritePrivateProfileString(g_9690, "SetSize", buf3, g_96a9);
+        WritePrivateProfileString(app_name, "SetSize", buf3, ini_name);
     if (g_934c) {
         g_8f64 = 0;
         DestroyWindow(g_934c);
         g_9518 = 0;
         g_934c = 0;
-        PostMessage(g_0016, 0x978, 0, 0L);
+        PostMessage(main_window, 0x978, 0, 0L);
     }
-    PatBlt(g_13dc, 0, 0, g_90ea, HI16(g_90ea), BLACKNESS);
+    PatBlt(main_dc, 0, 0, g_90ea, HI16(g_90ea), BLACKNESS);
     g_931e = saved;
 }
 
@@ -1620,19 +1620,19 @@ void fn_10_5b30(void)
     a = 6;
     b = 32;
     if (!g_9288)
-        g_9288 = CreateCompatibleDC(g_13dc);
+        g_9288 = CreateCompatibleDC(main_dc);
     if (g_39e8[13]) {
         SelectObject(g_39e8[13], g_3974[13]);
-        if (g_920e)
+        if (game_palette)
             SelectPalette(g_39e8[13], g_3a5c[13], 0);
         DeleteObject(g_3ad0[13]);
         DeleteDC(g_39e8[13]);
     }
-    g_39e8[13] = CreateCompatibleDC(g_13dc);
-    g_3ad0[13] = CreateCompatibleBitmap(g_13dc, (b + a) * g_9406[0] + a, a * 2 + b);
+    g_39e8[13] = CreateCompatibleDC(main_dc);
+    g_3ad0[13] = CreateCompatibleBitmap(main_dc, (b + a) * g_9406[0] + a, a * 2 + b);
     g_3974[13] = SelectObject(g_39e8[13], g_3ad0[13]);
-    if (g_920e)
-        g_3a5c[13] = SelectPalette(g_39e8[13], g_920e, 0);
+    if (game_palette)
+        g_3a5c[13] = SelectPalette(g_39e8[13], game_palette, 0);
     PatBlt(g_39e8[13], 0, 0, (b + a) * g_9406[0] + a, b * a * 2, BLACKNESS);
 }
 
@@ -1650,13 +1650,13 @@ int16_t fn_10_9672(void)
     time(&t);
     tm = localtime(&t);
     now = tm->tm_hour * 100 + tm->tm_min + 1;
-    if ((v = GetPrivateProfileInt(g_9690, "Lunch", 1200, g_96a9)) < now && (int16_t)(v + 30) > now)
+    if ((v = GetPrivateProfileInt(app_name, "Lunch", 1200, ini_name)) < now && (int16_t)(v + 30) > now)
         g_9214 = 3;
-    else if ((v = GetPrivateProfileInt(g_9690, "Breakfast", 800, g_96a9)) < now && (int16_t)(v + 30) > now)
+    else if ((v = GetPrivateProfileInt(app_name, "Breakfast", 800, ini_name)) < now && (int16_t)(v + 30) > now)
         g_9214 = 4;
-    else if ((v = GetPrivateProfileInt(g_9690, "Coffee", 1000, g_96a9)) < now && (int16_t)(v + 30) > now)
+    else if ((v = GetPrivateProfileInt(app_name, "Coffee", 1000, ini_name)) < now && (int16_t)(v + 30) > now)
         g_9214 = 1;
-    else if ((v = GetPrivateProfileInt(g_9690, "Tea", 1530, g_96a9)) < now && (int16_t)(v + 30) > now)
+    else if ((v = GetPrivateProfileInt(app_name, "Tea", 1530, ini_name)) < now && (int16_t)(v + 30) > now)
         g_9214 = 2;
     else
         g_9214 = 0;
@@ -1678,25 +1678,25 @@ void fn_10_7e1c(int16_t d)
     int16_t u2;
 
     if (g_0a7c) {
-        g_870c = g_1e50 + 5000;
+        g_870c = now_ms + 5000;
         g_0a76 = 4;
         PostMessage(g_0a7c, WM_PAINT, 0, 0L);
     }
-    g_059c += d * 2;
-    if (d < 0 && g_059c > 1000)
-        g_059c = 104;
-    g_059c = g_059c < 4 ? 4 : g_059c;
-    if (g_059c > 104)
-        g_059c = 1200;
-    g_059e = g_059c / 4;
-    g_05c4 = 1000 / g_059c;
-    q = 10000 / g_059c;
+    frame_rate += d * 2;
+    if (d < 0 && frame_rate > 1000)
+        frame_rate = 104;
+    frame_rate = frame_rate < 4 ? 4 : frame_rate;
+    if (frame_rate > 104)
+        frame_rate = 1200;
+    g_059e = frame_rate / 4;
+    frame_ms = 1000 / frame_rate;
+    q = 10000 / frame_rate;
     r = q % 10;
     if (r > 4)
-        g_05c4++;
-    g_05c8 = g_05c4 - 1;
-    fn_06_0f1a(g_059c, buf);
-    WritePrivateProfileString(g_9690, "FrameRateSet", buf, g_96a9);
+        frame_ms++;
+    frame_min_ms = frame_ms - 1;
+    fn_06_0f1a(frame_rate, buf);
+    WritePrivateProfileString(app_name, "FrameRateSet", buf, ini_name);
 }
 
 /* Copies surface 40 + g_7094[i].f4c into a new surface 40 + i sized from
@@ -1710,16 +1710,16 @@ void fn_10_86e2(int16_t i)
     int16_t s;
 
     w = g_96d2[g_7090[i].f_04e].f_2a;
-    n = g_1df8[g_9324]->f_24;
+    n = object_records[g_9324]->f_24;
     d = i + 40;
     s = g_7090[i].f_050 + 40;
     if (g_39e8[d])
         fn_10_0552(d, 0);
-    g_3ad0[d] = CreateCompatibleBitmap(g_13dc, w * 16 + n * 17, n * 2 + w);
-    g_39e8[d] = CreateCompatibleDC(g_13dc);
+    g_3ad0[d] = CreateCompatibleBitmap(main_dc, w * 16 + n * 17, n * 2 + w);
+    g_39e8[d] = CreateCompatibleDC(main_dc);
     g_3974[d] = SelectObject(g_39e8[d], g_3ad0[d]);
-    if (g_920e)
-        g_3a5c[d] = SelectPalette(g_39e8[d], g_920e, 0);
+    if (game_palette)
+        g_3a5c[d] = SelectPalette(g_39e8[d], game_palette, 0);
     BitBlt(g_39e8[d], 0, 0, w * 16 + n * 17, n * 2 + w, g_39e8[s], 0, 0, SRCCOPY);
 }
 
@@ -1759,10 +1759,10 @@ void fn_10_5102(void)
             }
             if (!g_39e8[n]) {
                 g_3ad0[n] = fn_10_6c02(id, x, y);
-                g_39e8[n] = CreateCompatibleDC(g_13dc);
+                g_39e8[n] = CreateCompatibleDC(main_dc);
                 g_3974[n] = SelectObject(g_39e8[n], g_3ad0[n]);
-                if (g_920e)
-                    g_3a5c[n] = SelectPalette(g_39e8[n], g_920e, 0);
+                if (game_palette)
+                    g_3a5c[n] = SelectPalette(g_39e8[n], game_palette, 0);
                 fn_10_740c();
                 fn_10_6308(n, -1, -1, -1);
             }
@@ -1801,18 +1801,18 @@ void fn_10_3ea2(void)
     if (g_39e8[1])
         return;
     for (i = 0; i < 2; i++) {
-        g_1df8[8]->f_24 = 6;
-        m = g_1df8[8]->f_24;
-        w = g_1df8[8]->f_22 = 0x22;
+        object_records[8]->f_24 = 6;
+        m = object_records[8]->f_24;
+        w = object_records[8]->f_22 = 0x22;
         u = (w + m) * 2;
-        g_39e8[i + 1] = CreateCompatibleDC(g_13dc);
-        dc1 = CreateCompatibleDC(g_13dc);
-        dc2 = CreateCompatibleDC(g_13dc);
+        g_39e8[i + 1] = CreateCompatibleDC(main_dc);
+        dc1 = CreateCompatibleDC(main_dc);
+        dc2 = CreateCompatibleDC(main_dc);
         if (i == 0) {
             bm1 = fn_10_6c02(0xd2, 3, -1);
             bm2 = fn_10_6c02(0x334, 0, -1);
             GetObject(bm2, sizeof(BITMAP), &bmp);
-            g_3ad0[1] = CreateCompatibleBitmap(g_13dc, w * 4 + m * 5, m * 2 + w);
+            g_3ad0[1] = CreateCompatibleBitmap(main_dc, w * 4 + m * 5, m * 2 + w);
         } else {
             bm1 = fn_10_6d38("BW_BLOCKS");
             bm2 = fn_10_6d38("BW_MBLOCKS");
@@ -1821,10 +1821,10 @@ void fn_10_3ea2(void)
         ob1 = SelectObject(dc1, bm1);
         ob2 = SelectObject(dc2, bm2);
         g_3974[i + 1] = SelectObject(g_39e8[i + 1], g_3ad0[i + 1]);
-        if (i == 0 && g_920e) {
-            pal1 = SelectPalette(dc1, g_920e, 0);
-            pal2 = SelectPalette(dc2, g_920e, 0);
-            g_3a5c[1] = SelectPalette(g_39e8[1], g_920e, 0);
+        if (i == 0 && game_palette) {
+            pal1 = SelectPalette(dc1, game_palette, 0);
+            pal2 = SelectPalette(dc2, game_palette, 0);
+            g_3a5c[1] = SelectPalette(g_39e8[1], game_palette, 0);
         }
         PatBlt(g_39e8[i + 1], 0, 0, w * 4 + m * 5, m * 2 + w, BLACKNESS);
         for (j = 0; j < 2; j++) {
@@ -1863,10 +1863,10 @@ void fn_10_3ea2(void)
                    g_39e8[i + 1], (m + 2) * 2 + w, m, w - 5, w, SRCCOPY);
     }
     bm1 = fn_10_6d38("OUT_SIGN");
-    dc1 = CreateCompatibleDC(g_13dc);
+    dc1 = CreateCompatibleDC(main_dc);
     ob1 = SelectObject(dc1, bm1);
-    if (g_920e)
-        pal1 = SelectPalette(dc1, g_920e, 0);
+    if (game_palette)
+        pal1 = SelectPalette(dc1, game_palette, 0);
     BitBlt(g_39e8[1], m + 2, m + 10, 26, 13, dc1, 26, 0, SRCCOPY);
     BitBlt(g_39e8[1], (m + 3) * 2 + w, m + 10, 26, 13, dc1, 26, 0, SRCCOPY);
     SelectObject(dc1, ob1);
@@ -1900,7 +1900,7 @@ void fn_10_58ce(int16_t a)
         return;
     if (g_9656 && subgame_active)
         return;
-    j = g_1df8[9]->f_00.x;
+    j = object_records[9]->f_00.x;
     w = 0x25;
     m = 5;
     if (g_8fe8)
@@ -1908,26 +1908,26 @@ void fn_10_58ce(int16_t a)
     else
         v = 0;
     g_928a = fn_10_6c02(0x154, v, -1);
-    dc = CreateCompatibleDC(g_13dc);
+    dc = CreateCompatibleDC(main_dc);
     ob = SelectObject(dc, g_928a);
-    if (g_920e)
-        pal = SelectPalette(dc, g_920e, 0);
+    if (game_palette)
+        pal = SelectPalette(dc, game_palette, 0);
     if (!subgame_active) {
-        g_3ad0[22] = CreateCompatibleBitmap(g_13dc, w * 9 + m * 10, m * 2 + w);
-        g_39e8[22] = CreateCompatibleDC(g_13dc);
+        g_3ad0[22] = CreateCompatibleBitmap(main_dc, w * 9 + m * 10, m * 2 + w);
+        g_39e8[22] = CreateCompatibleDC(main_dc);
         g_3974[22] = SelectObject(g_39e8[22], g_3ad0[22]);
-        if (g_920e)
-            g_3a5c[22] = SelectPalette(g_39e8[22], g_920e, 0);
+        if (game_palette)
+            g_3a5c[22] = SelectPalette(g_39e8[22], game_palette, 0);
         PatBlt(g_39e8[22], 0, 0, w * 9 + m * 10, m * 2 + w, BLACKNESS);
         for (i = 0; i < 9; i++)
             BitBlt(g_39e8[22], (m + w) * i + m, m, w, w, dc, w * i, 0, SRCCOPY);
     } else {
-        g_9658 = CreateCompatibleBitmap(g_13dc, 0xfc / (4 - g_9156 * 3),
+        g_9658 = CreateCompatibleBitmap(main_dc, 0xfc / (4 - g_9156 * 3),
                                         0x1c / (4 - g_9156 * 3));
-        g_9656 = CreateCompatibleDC(g_13dc);
+        g_9656 = CreateCompatibleDC(main_dc);
         g_965a = SelectObject(g_9656, g_9658);
-        if (g_920e)
-            g_965c = SelectPalette(g_9656, g_920e, 0);
+        if (game_palette)
+            g_965c = SelectPalette(g_9656, game_palette, 0);
         PatBlt(g_9656, 0, 0, 0xfc / (4 - g_9156 * 3), 0x1c / (4 - g_9156 * 3),
                BLACKNESS);
         SetStretchBltMode(g_9656, 3);
@@ -1990,21 +1990,21 @@ void fn_10_565a(void)
     }
     for (k = 0; k < n; k++) {
         g_928a = fn_10_6c02(id - k * 2, 0, -1);
-        dc = CreateCompatibleDC(g_13dc);
+        dc = CreateCompatibleDC(main_dc);
         ob = SelectObject(dc, g_928a);
-        if (g_920e)
-            pal = SelectPalette(dc, g_920e, 0);
+        if (game_palette)
+            pal = SelectPalette(dc, game_palette, 0);
         if (k == 0) {
             if (g_9214 == 0)
-                g_3ad0[4] = CreateCompatibleBitmap(g_13dc, w * 5 + m * 6, m * 2 + w);
+                g_3ad0[4] = CreateCompatibleBitmap(main_dc, w * 5 + m * 6, m * 2 + w);
             else if (g_9214 == 3 || g_9214 == 4)
-                g_3ad0[4] = CreateCompatibleBitmap(g_13dc, w * 2 + m * 3, m * 2 + w);
+                g_3ad0[4] = CreateCompatibleBitmap(main_dc, w * 2 + m * 3, m * 2 + w);
             else
-                g_3ad0[4] = CreateCompatibleBitmap(g_13dc, m * 2 + w, m * 2 + w);
-            g_39e8[4] = CreateCompatibleDC(g_13dc);
+                g_3ad0[4] = CreateCompatibleBitmap(main_dc, m * 2 + w, m * 2 + w);
+            g_39e8[4] = CreateCompatibleDC(main_dc);
             g_3974[4] = SelectObject(g_39e8[4], g_3ad0[4]);
-            if (g_920e)
-                g_3a5c[4] = SelectPalette(g_39e8[4], g_920e, 0);
+            if (game_palette)
+                g_3a5c[4] = SelectPalette(g_39e8[4], game_palette, 0);
         }
         if (g_9214 == 0) {
             PatBlt(g_39e8[4], 0, 0, w * 5 + m * 6, m * 2 + w, BLACKNESS);
@@ -2038,16 +2038,16 @@ void fn_10_5202(void)
     HPALETTE pal;
 
     bm = fn_10_6c02(200, 0, -1);
-    dc = CreateCompatibleDC(g_13dc);
+    dc = CreateCompatibleDC(main_dc);
     ob = SelectObject(dc, bm);
-    if (g_920e)
-        pal = SelectPalette(dc, g_920e, 0);
+    if (game_palette)
+        pal = SelectPalette(dc, game_palette, 0);
     x = 0;
-    g_3ad0[12] = CreateCompatibleBitmap(g_13dc, 270, h = 22);
-    g_39e8[12] = CreateCompatibleDC(g_13dc);
+    g_3ad0[12] = CreateCompatibleBitmap(main_dc, 270, h = 22);
+    g_39e8[12] = CreateCompatibleDC(main_dc);
     g_3974[12] = SelectObject(g_39e8[12], g_3ad0[12]);
-    if (g_920e)
-        g_3a5c[12] = SelectPalette(g_39e8[12], g_920e, 0);
+    if (game_palette)
+        g_3a5c[12] = SelectPalette(g_39e8[12], game_palette, 0);
     PatBlt(g_39e8[12], 0, 0, 270, h, BLACKNESS);
     for (i = 0; i <= 5; i++) {
         u = (i + 5) * 6;
@@ -2096,31 +2096,31 @@ void fn_10_3a2e(void)
     m = 5;
     if (g_90f0 || g_8fe8) {
         bm1 = fn_10_6c02(0x32, 3, -1);
-        dc1 = CreateCompatibleDC(g_13dc);
+        dc1 = CreateCompatibleDC(main_dc);
         ob1 = SelectObject(dc1, bm1);
-        if (g_920e)
-            pal1 = SelectPalette(dc1, g_920e, 0);
+        if (game_palette)
+            pal1 = SelectPalette(dc1, game_palette, 0);
     }
     g_0740 = 0;
     bm2 = fn_10_6d38("ROCKS");
-    dc2 = CreateCompatibleDC(g_13dc);
+    dc2 = CreateCompatibleDC(main_dc);
     ob2 = SelectObject(dc2, bm2);
     g_3ad0[6] = CreateBitmap(m * 19 + a * 18, m * 2 + a, 1, 1, NULL);
-    g_3ad0[7] = CreateCompatibleBitmap(g_13dc, m * 19 + a * 18, m * 2 + a);
+    g_3ad0[7] = CreateCompatibleBitmap(main_dc, m * 19 + a * 18, m * 2 + a);
     g_3ad0[8] = CreateBitmap(b * 18 + m * 19, m * 2 + b, 1, 1, NULL);
-    g_3ad0[9] = CreateCompatibleBitmap(g_13dc, b * 18 + m * 19, m * 2 + b);
+    g_3ad0[9] = CreateCompatibleBitmap(main_dc, b * 18 + m * 19, m * 2 + b);
     for (i = 0; i < 2; i++) {
-        g_39e8[i + 6] = CreateCompatibleDC(g_13dc);
+        g_39e8[i + 6] = CreateCompatibleDC(main_dc);
         g_3974[i + 6] = SelectObject(g_39e8[i + 6], g_3ad0[i + 6]);
-        if (g_920e && i)
-            g_3a5c[7] = SelectPalette(g_39e8[7], g_920e, 0);
+        if (game_palette && i)
+            g_3a5c[7] = SelectPalette(g_39e8[7], game_palette, 0);
         PatBlt(g_39e8[i + 6], 0, 0, m * 19 + a * 18, m * 2 + a, BLACKNESS);
     }
     for (i = 0; i < 2; i++) {
-        g_39e8[i + 8] = CreateCompatibleDC(g_13dc);
+        g_39e8[i + 8] = CreateCompatibleDC(main_dc);
         g_3974[i + 8] = SelectObject(g_39e8[i + 8], g_3ad0[i + 8]);
-        if (g_920e && i)
-            g_3a5c[9] = SelectPalette(g_39e8[9], g_920e, 0);
+        if (game_palette && i)
+            g_3a5c[9] = SelectPalette(g_39e8[9], game_palette, 0);
         PatBlt(g_39e8[i + 8], 0, 0, b * 18 + m * 19, m * 2 + b, BLACKNESS);
     }
     for (i = 0; i < 18; i++) {
@@ -2180,13 +2180,13 @@ void fn_10_42ee(void)
     int16_t u2;
 
     if (!g_39e8[29]) {
-        dc = CreateCompatibleDC(g_13dc);
-        if (g_920e)
-            old = SelectPalette(dc, g_920e, 0);
-        g_39e8[29] = CreateCompatibleDC(g_13dc);
-        if (g_920e)
-            g_3a5c[29] = SelectPalette(g_13dc, g_920e, 0);
-        g_3ad0[29] = CreateCompatibleBitmap(g_13dc, 0x59, 0x21);
+        dc = CreateCompatibleDC(main_dc);
+        if (game_palette)
+            old = SelectPalette(dc, game_palette, 0);
+        g_39e8[29] = CreateCompatibleDC(main_dc);
+        if (game_palette)
+            g_3a5c[29] = SelectPalette(main_dc, game_palette, 0);
+        g_3ad0[29] = CreateCompatibleBitmap(main_dc, 0x59, 0x21);
         g_3974[29] = SelectObject(g_39e8[29], g_3ad0[29]);
         PatBlt(g_39e8[29], 0, 0, 0x59, 0x21, BLACKNESS);
         for (i = 0; i < 3; i++) {
@@ -2195,7 +2195,7 @@ void fn_10_42ee(void)
             SelectObject(dc, ob);
             DeleteObject(bm);
         }
-        if (g_920e)
+        if (game_palette)
             SelectPalette(dc, old, 0);
         DeleteObject(dc);
         fn_10_6308(29, -1, -1, -1);
@@ -2218,20 +2218,20 @@ void race_marker_strip(void)
         bm = fn_10_6c02(0x1a4, 0, -1);
         w = 14;
         h = 4;
-        dc = CreateCompatibleDC(g_13dc);
+        dc = CreateCompatibleDC(main_dc);
         ob = SelectObject(dc, bm);
-        if (g_920e)
-            pal = SelectPalette(dc, g_920e, 0);
-        g_3ad0[30] = CreateCompatibleBitmap(g_13dc, w * 4 + h * 5, h * 2 + w);
-        g_39e8[30] = CreateCompatibleDC(g_13dc);
+        if (game_palette)
+            pal = SelectPalette(dc, game_palette, 0);
+        g_3ad0[30] = CreateCompatibleBitmap(main_dc, w * 4 + h * 5, h * 2 + w);
+        g_39e8[30] = CreateCompatibleDC(main_dc);
         g_3974[30] = SelectObject(g_39e8[30], g_3ad0[30]);
-        if (g_920e)
-            g_3a5c[30] = SelectPalette(g_39e8[30], g_920e, 0);
+        if (game_palette)
+            g_3a5c[30] = SelectPalette(g_39e8[30], game_palette, 0);
         PatBlt(g_39e8[30], 0, 0, w * 4 + h * 5, h * 2 + w, BLACKNESS);
         for (i = 0; i < 4; i++)
             BitBlt(g_39e8[30], (h + w) * i + h, h, w, w, dc, i * w, 0, SRCCOPY);
         SelectObject(dc, ob);
-        if (g_920e)
+        if (game_palette)
             SelectPalette(dc, pal, 0);
         DeleteDC(dc);
         DeleteObject(bm);
@@ -2307,22 +2307,22 @@ void fn_10_a118(REC_PILOT *src, LPSTR dst)
     fn_11_3fd4(name, 1);
     if (src->f_032 == src->f_160) {
         if (src->f_160 == 1)
-            LoadString(g_9212, 0x9c7, line, 60);
+            LoadString(lang_module, 0x9c7, line, 60);
         else
-            LoadString(g_9212, 0x9c5, line, 60);
+            LoadString(lang_module, 0x9c5, line, 60);
     } else if (src->f_160 == 0) {
-        LoadString(g_9212, 0x9c6, line, 60);
+        LoadString(lang_module, 0x9c6, line, 60);
     } else {
-        fn_10_a332(line, 0x9c4, 1, src->f_160);
+        format_string(line, 0x9c4, 1, src->f_160);
     }
-    fn_10_a332(dst, 0xbb8, 1, 1, src->f_024, mins, 0x9c9, secs, 0x9c8,
+    format_string(dst, 0xbb8, 1, 1, src->f_024, mins, 0x9c9, secs, 0x9c8,
                src->f_032, 0x13e, (LPSTR)line);
     if (src->f_15a || src->f_15c)
-        fn_10_a332(dst, 0xbb9, 0, src->f_156 + src->f_158, 0x9d3, src->f_15a,
+        format_string(dst, 0xbb9, 0, src->f_156 + src->f_158, 0x9d3, src->f_15a,
                    src->f_15a, 0x9d3, src->f_15c, src->f_15c, 0x9d3);
-    fn_10_a332(dst, 0xbba, 0, v / 10, fn_09_88ba(v % 10), src->f_15e + 0x137);
+    format_string(dst, 0xbba, 0, v / 10, fn_09_88ba(v % 10), src->f_15e + 0x137);
     if (g_9460)
-        fn_10_a332(dst, 0xbd3, 0, same, !same, (LPSTR)name, !sum, sum, sum,
+        format_string(dst, 0xbd3, 0, same, !same, (LPSTR)name, !sum, sum, sum,
                    0x130);
 }
 
@@ -2335,7 +2335,7 @@ void fn_10_a118(REC_PILOT *src, LPSTR dst)
  * two ids, %D fn_03_1542 text, %R random string id, %% percent; ^F ^M
  * ^N ^P markers are skipped. */
 /* 10:a332 */
-void fn_10_a332(LPSTR out, int16_t id, int16_t n, ...)
+void format_string(LPSTR out, int16_t id, int16_t n, ...)
 {
     int16_t i;
     int16_t len;
@@ -2358,7 +2358,7 @@ void fn_10_a332(LPSTR out, int16_t id, int16_t n, ...)
     i = 0;
     count = outpos = 0;
     va_start(ap, n);
-    LoadString(g_9212, id, fmt, 0x82);
+    LoadString(lang_module, id, fmt, 0x82);
     len = lstrlen(fmt);
     if (n == 0)
         outpos = lstrlen(out);
@@ -2396,7 +2396,7 @@ void fn_10_a332(LPSTR out, int16_t id, int16_t n, ...)
             case 'A':
             case 'S':
             case 'V':
-                LoadString(g_9212, (int16_t)va_arg(ap, int), buf, 0x50);
+                LoadString(lang_module, (int16_t)va_arg(ap, int), buf, 0x50);
                 if (on) {
                     if (buf[lstrlen(buf) - 2] == '^')
                         buf[lstrlen(buf) - 2] = 0;
@@ -2440,7 +2440,7 @@ void fn_10_a332(LPSTR out, int16_t id, int16_t n, ...)
                     val += (int16_t)va_arg(ap, int);
                     if (on) {
                         out[outpos++] = ' ';
-                        LoadString(g_9212, val, buf, 0x50);
+                        LoadString(lang_module, val, buf, 0x50);
                         out[outpos] = 0;
                         lstrcat(out + outpos, buf);
                         outpos = lstrlen(buf) + outpos;
@@ -2463,7 +2463,7 @@ void fn_10_a332(LPSTR out, int16_t id, int16_t n, ...)
                                 break;
                             } else if (fmt[j + 1] == '>') {
                                 if (count > 0) {
-                                    LoadString(g_9212, 0x31d, buf, 0x14);
+                                    LoadString(lang_module, 0x31d, buf, 0x14);
                                     out[outpos] = 0;
                                     lstrcat(out + outpos, buf);
                                     outpos += lstrlen(buf);
@@ -2498,7 +2498,7 @@ void fn_10_a332(LPSTR out, int16_t id, int16_t n, ...)
                 ids[1] = (int16_t)va_arg(ap, int);
                 if (val > 1)
                     val = 1;
-                LoadString(g_9212, ids[val], buf, 0x50);
+                LoadString(lang_module, ids[val], buf, 0x50);
                 if (on) {
                     out[outpos] = 0;
                     lstrcat(out + outpos, buf);
@@ -2526,7 +2526,7 @@ void fn_10_a332(LPSTR out, int16_t id, int16_t n, ...)
             case 'R':
                 val = rand() % (int16_t)va_arg(ap, int);
                 val += (int16_t)va_arg(ap, int);
-                LoadString(g_9212, val, buf, 0x50);
+                LoadString(lang_module, val, buf, 0x50);
                 if (on) {
                     out[outpos] = 0;
                     lstrcat(out + outpos, buf);
@@ -2557,21 +2557,21 @@ int16_t fn_10_a96c(void)
     char b1[400];
     char b2[200];
 
-    v = GetPrivateProfileInt(g_9690, "StratAsk", 0, g_96a9);
+    v = GetPrivateProfileInt(app_name, "StratAsk", 0, ini_name);
     if (v == 0 || v == 1) {
         fn_10_744c(0x2c);
-        LoadString(g_9212, 0xb22, b1, 200);
-        LoadString(g_9212, 0xb23, b2, 200);
+        LoadString(lang_module, 0xb22, b1, 200);
+        LoadString(lang_module, 0xb23, b2, 200);
         lstrcat(b1, b2);
-        LoadString(g_9212, 0xb24, b2, 200);
+        LoadString(lang_module, 0xb24, b2, 200);
         lstrcat(b1, b2);
-        LoadString(g_9212, 0xb25, b2, 200);
+        LoadString(lang_module, 0xb25, b2, 200);
         lstrcat(b1, b2);
-        r = MessageBox(g_0016, b1, g_9690, MB_YESNO | MB_ICONEXCLAMATION);
+        r = MessageBox(main_window, b1, app_name, MB_YESNO | MB_ICONEXCLAMATION);
         if (r != IDYES)
             return 0;
         fn_06_0f1a(v += 10, b1);
-        WritePrivateProfileString(g_9690, "StratAsk", b1, g_96a9);
+        WritePrivateProfileString(app_name, "StratAsk", b1, ini_name);
     }
     return 1;
 }
@@ -2627,9 +2627,9 @@ int16_t fn_10_8568(int16_t a)
     ask = 1;
     fn_10_7480(-2, 1);
     if (a == 1 || a == -1 || a == 3) {
-        ask = GetPrivateProfileInt(g_9690, "SavePrompt", 1, g_96a9);
+        ask = GetPrivateProfileInt(app_name, "SavePrompt", 1, ini_name);
         if (!ask) {
-            GetPrivateProfileString(g_9690, "Restore", "", buf, 9, g_96a9);
+            GetPrivateProfileString(app_name, "Restore", "", buf, 9, ini_name);
             if (buf[3] == ' ' || !buf[0])
                 ask = 1;
         }
@@ -2637,8 +2637,8 @@ int16_t fn_10_8568(int16_t a)
     if (ask) {
         fn_10_744c(0x6e);
         fn_10_744c(0x13);
-        r = g_fp_3c64(g_0016, g_39e8[5], g_920e, 0, 0, 0, 3);
-        g_1e50 = GetCurrentTime();
+        r = g_fp_3c64(main_window, g_39e8[5], game_palette, 0, 0, 0, 3);
+        now_ms = GetCurrentTime();
         g_3b94 = GetCurrentTime() + 500;
     } else
         r = 1;
@@ -2649,13 +2649,13 @@ int16_t fn_10_8568(int16_t a)
         case 3:
             fn_06_99b6();
             if (a == 1)
-                DestroyWindow(g_0016);
+                DestroyWindow(main_window);
             break;
         case -1:
         case 0:
             fn_06_885c(1, 0);
             if (a == -1)
-                DestroyWindow(g_0016);
+                DestroyWindow(main_window);
             break;
         }
     }
@@ -2683,30 +2683,30 @@ void fn_10_4412(int16_t a, int16_t b, int16_t c, int16_t d)
     GetObject(bm, sizeof(BITMAP), &bmp);
     h = bmp.bmHeight;
     if (h & 1)
-        g_1df8[b]->f_24 = 5;
+        object_records[b]->f_24 = 5;
     else
-        g_1df8[b]->f_24 = 6;
-    dc = CreateCompatibleDC(g_13dc);
+        object_records[b]->f_24 = 6;
+    dc = CreateCompatibleDC(main_dc);
     ob = SelectObject(dc, bm);
-    w = h * d + g_1df8[b]->f_24 * (d + 1);
-    g_39e8[a] = CreateCompatibleDC(g_13dc);
-    g_3ad0[a] = CreateCompatibleBitmap(g_13dc, w, g_1df8[b]->f_24 * 2 + h);
+    w = h * d + object_records[b]->f_24 * (d + 1);
+    g_39e8[a] = CreateCompatibleDC(main_dc);
+    g_3ad0[a] = CreateCompatibleBitmap(main_dc, w, object_records[b]->f_24 * 2 + h);
     g_3974[a] = SelectObject(g_39e8[a], g_3ad0[a]);
-    if (g_920e) {
-        pal = SelectPalette(dc, g_920e, 0);
-        g_3a5c[a] = SelectPalette(g_39e8[a], g_920e, 0);
+    if (game_palette) {
+        pal = SelectPalette(dc, game_palette, 0);
+        g_3a5c[a] = SelectPalette(g_39e8[a], game_palette, 0);
     }
-    PatBlt(g_39e8[a], 0, 0, w, g_1df8[b]->f_24 * 2 + h, BLACKNESS);
+    PatBlt(g_39e8[a], 0, 0, w, object_records[b]->f_24 * 2 + h, BLACKNESS);
     if (d == 1) {
-        BitBlt(g_39e8[a], g_1df8[b]->f_24, g_1df8[b]->f_24, h, h, dc, 0, 0,
+        BitBlt(g_39e8[a], object_records[b]->f_24, object_records[b]->f_24, h, h, dc, 0, 0,
                SRCCOPY);
     } else {
         SetStretchBltMode(g_39e8[a], 3);
-        x = g_1df8[b]->f_24;
+        x = object_records[b]->f_24;
         for (i = 0; i < d; i++) {
             u = (i - d) * 2 + h;
-            fn_10_9962(0, g_39e8[a], x, g_1df8[b]->f_24, u, u, dc, 0, 0, h, h, SRCCOPY);
-            x += g_1df8[b]->f_24 + h;
+            fn_10_9962(0, g_39e8[a], x, object_records[b]->f_24, u, u, dc, 0, 0, h, h, SRCCOPY);
+            x += object_records[b]->f_24 + h;
         }
     }
     SelectObject(dc, ob);
@@ -2746,8 +2746,8 @@ void fn_10_533a(int16_t a)
     for (i = 0x30; i < 0x39; i++) {
         if (!g_39e8[i]) {
             g_2f4c[a].f_04 = i;
-            g_1df8[6]->f_22 = g_2f4c[a].f_00;
-            g_1df8[6]->f_24 = g_2f4c[a].f_02;
+            object_records[6]->f_22 = g_2f4c[a].f_00;
+            object_records[6]->f_24 = g_2f4c[a].f_02;
             if (g_2f4c[a].f_0e == 4) {
                 fn_10_4412(i, 6, g_2f4c[a].f_06, g_2f4c[a].f_2e);
             } else {
@@ -2979,7 +2979,7 @@ int16_t fn_10_885e(int16_t a)
     g_922c = 1;
     g_922a = g_11aa = g_920c = flag = 0;
     if (a != 0) {
-        GetProfileString(g_9690, "CDDrive", "", drv, 40);
+        GetProfileString(app_name, "CDDrive", "", drv, 40);
         if (drv[0]) {
             r = g_fp_3c68(drv, buf, 21);
             if (r == 0) {
@@ -2996,7 +2996,7 @@ int16_t fn_10_885e(int16_t a)
                 break;
             }
             wsprintf(msg, g_8e68, (LPSTR)drv);
-            MessageBox(0, msg, g_9690, MB_ICONEXCLAMATION);
+            MessageBox(0, msg, app_name, MB_ICONEXCLAMATION);
             return -10;
         }
     }
@@ -3071,37 +3071,37 @@ int16_t fn_10_6656(void)
     char msg[40];
 
     lstrcpy(path, g_8f7a);
-    GetPrivateProfileString(g_9690, "Language", "", text, 5, g_96a9);
+    GetPrivateProfileString(app_name, "Language", "", text, 5, ini_name);
     lstrcat(path, text);
     lstrcat(path, "_LANG.DLL");
     if (OpenFile(path, &of, OF_EXIST) == -1) {
         lstrcpy(text, "Can't find ");
         lstrcat(text, path);
         lstrcat(text, ". Try reinstalling, do not preserve previous settings.");
-        MessageBox(0, text, g_9690, MB_ICONEXCLAMATION);
+        MessageBox(0, text, app_name, MB_ICONEXCLAMATION);
         return 0;
     }
-    g_9212 = LoadLibrary(path);
-    if (g_9212 < 32) {
+    lang_module = LoadLibrary(path);
+    if (lang_module < 32) {
         lstrcpy(text, path);
         lstrcat(text, " is faulty");
-        MessageBox(0, text, g_9690, MB_ICONEXCLAMATION);
+        MessageBox(0, text, app_name, MB_ICONEXCLAMATION);
         return 0;
     }
     lstrcpy(path, g_8f7a);
     lstrcat(path, "ISPACE.DLL");
     if (OpenFile(path, &of, OF_EXIST) == -1) {
-        LoadString(g_9212, 0x845, text, 40);
+        LoadString(lang_module, 0x845, text, 40);
         lstrcat(text, path);
         lstrcat(text, "!");
-        MessageBox(0, text, g_9690, MB_ICONEXCLAMATION);
+        MessageBox(0, text, app_name, MB_ICONEXCLAMATION);
     }
     g_9210 = LoadLibrary(path);
     if ((HINSTANCE)g_9210 < 32) {
         lstrcpy(text, path);
-        LoadString(g_9212, 0x7ea, msg, 40);
+        LoadString(lang_module, 0x7ea, msg, 40);
         lstrcat(text, msg);
-        MessageBox(0, text, g_9690, MB_ICONEXCLAMATION);
+        MessageBox(0, text, app_name, MB_ICONEXCLAMATION);
         return 0;
     }
     ok = 1;
@@ -3130,9 +3130,9 @@ int16_t fn_10_6656(void)
     GETPROC(g_fp_3c84, 0x29);
     if (!ok) {
         lstrcpy(text, path);
-        LoadString(g_9212, 0x7ea, msg, 40);
+        LoadString(lang_module, 0x7ea, msg, 40);
         lstrcat(text, msg);
-        MessageBox(0, text, g_9690, MB_ICONEXCLAMATION);
+        MessageBox(0, text, app_name, MB_ICONEXCLAMATION);
         return 0;
     }
     /* g_fp_3c54 returns int here */
@@ -3181,30 +3181,30 @@ void fn_10_5d3c(int16_t n)
         lst = g_9324;
     }
     i = 0;
-    w = g_1df8[lst][n].f_22;
+    w = object_records[lst][n].f_22;
     v = g_96d2[g_7090[n].f_04e].f_44;
-    dc1[i] = CreateCompatibleDC(g_13dc);
-    if (g_920e)
-        pal1[i] = SelectPalette(dc1[i], g_920e, 0);
+    dc1[i] = CreateCompatibleDC(main_dc);
+    if (game_palette)
+        pal1[i] = SelectPalette(dc1[i], game_palette, 0);
     old1[i] = SelectObject(dc1[i], bm[i] = fn_10_6ec6(g_3c60[i]));
-    dc2[i] = CreateCompatibleDC(g_13dc);
+    dc2[i] = CreateCompatibleDC(main_dc);
     old2[i] = SelectObject(dc2[i], g_3c60[i]);
-    if (g_920e)
-        pal2[i] = SelectPalette(dc2[i], g_920e, 0);
+    if (game_palette)
+        pal2[i] = SelectPalette(dc2[i], game_palette, 0);
     if (g_7090[n].f_0e4) {
         fn_10_16ba(g_7090[n].f_04e);
         for (i = 0; i < 5; i++) {
             if (i < 5)
                 pt = g_96d2[g_7090[n].f_04e].f_50[i];
             BitBlt(g_39e8[34], sz * i, sz * n * 2, sz, sz, g_39e8[40 + n],
-                   g_1df8[g_9324][n].f_24 + (g_1df8[g_9324][n].f_24 + w) * i + pt.x,
-                   g_1df8[g_9324][n].f_24 + pt.y, SRCCOPY);
+                   object_records[g_9324][n].f_24 + (object_records[g_9324][n].f_24 + w) * i + pt.x,
+                   object_records[g_9324][n].f_24 + pt.y, SRCCOPY);
         }
         if (g_96d2[g_7090[n].f_04e].f_48) {
             BitBlt(g_39e8[34], 0, (n * 2 + 1) * sz, sz * 5, sz, dc2[0], 0, v * sz, SRCCOPY);
             SelectObject(g_39e8[34], g_3974[34]);
             bm3 = fn_10_6ec6(g_3ad0[34]);
-            dc3 = CreateCompatibleDC(g_13dc);
+            dc3 = CreateCompatibleDC(main_dc);
             old3 = SelectObject(dc3, bm3);
             g_3974[34] = SelectObject(g_39e8[34], g_3ad0[34]);
             BitBlt(g_39e8[34], 0, (n * 2 + 1) * sz, sz * 5, sz, dc3, 0, 0, SRCAND);
@@ -3293,10 +3293,10 @@ HBITMAP world_map(int16_t w, int16_t h, int16_t a, int16_t map, int16_t c, int16
     int16_t i;
 
     if (c == -1 && !e) {
-        dc = CreateCompatibleDC(g_13dc);
-        SelectObject(dc, bm = CreateCompatibleBitmap(g_13dc, w, h));
-        if (g_920e)
-            oldpal = SelectPalette(dc, g_920e, 0);
+        dc = CreateCompatibleDC(main_dc);
+        SelectObject(dc, bm = CreateCompatibleBitmap(main_dc, w, h));
+        if (game_palette)
+            oldpal = SelectPalette(dc, game_palette, 0);
         PatBlt(dc, 0, 0, w, h, BLACKNESS);
     } else
         dc = g_93d0;
@@ -3341,16 +3341,16 @@ HBITMAP world_map(int16_t w, int16_t h, int16_t a, int16_t map, int16_t c, int16
                 y = (int16_t)((int32_t)(((VIEWP(POINT (*)[0x28], g_9f40[0][0].a, 0)[map][g_9eb9[map] + g_9ebc[map] + i].y)) / 8 - HI16(g_05a0) / 2) * h / HI16(g_05a0)) + h / 2;
                 StretchBlt(dc, x - max(w / 100, 2), y - max(w / 100, 2),
                            max(w / 50, 3), max(w / 50, 3),
-                           g_39f0, g_1df8[4]->f_24, g_1df8[4]->f_24, g_1df8[4]->f_22, g_1df8[4]->f_22,
+                           g_39f0, object_records[4]->f_24, object_records[4]->f_24, object_records[4]->f_22, object_records[4]->f_22,
                            SRCCOPY);
             }
             x = (int16_t)((int32_t)(((g_a120[map].x)) / 8 - (LO16(g_05a0)) / 2) * w / (LO16(g_05a0))) + w / 2;
             y = (int16_t)((int32_t)(((VIEWP(POINT (*)[0x28], g_9f40[0][0].a, 0)[map][0].y)) / 8 - HI16(g_05a0) / 2) * h / HI16(g_05a0)) + h / 2;
-            StretchBlt(dc, x - (int16_t)(g_1df8[14][main_ship].f_20 / 8 * w) / 3200,
-                       y - (int16_t)(g_1df8[14][main_ship].f_20 / 8 * w) / 800,
-                       (int16_t)(g_1df8[14][main_ship].f_20 / 8 * w) / 1600, (int16_t)(g_1df8[14][main_ship].f_20 / 8 * w) / 1600,
-                       g_3a38[main_ship], g_1df8[14][main_ship].f_22 * 4 + g_1df8[14][main_ship].f_24 * 5,
-                       g_1df8[14][main_ship].f_24, g_1df8[14][main_ship].f_22, g_1df8[14][main_ship].f_22, SRCCOPY);
+            StretchBlt(dc, x - (int16_t)(object_records[14][main_ship].f_20 / 8 * w) / 3200,
+                       y - (int16_t)(object_records[14][main_ship].f_20 / 8 * w) / 800,
+                       (int16_t)(object_records[14][main_ship].f_20 / 8 * w) / 1600, (int16_t)(object_records[14][main_ship].f_20 / 8 * w) / 1600,
+                       g_3a38[main_ship], object_records[14][main_ship].f_22 * 4 + object_records[14][main_ship].f_24 * 5,
+                       object_records[14][main_ship].f_24, object_records[14][main_ship].f_22, object_records[14][main_ship].f_22, SRCCOPY);
         }
         SelectObject(dc, g_500c);
         x = (int16_t)((int32_t)(((g_a120[map].x)) / 8 - (LO16(g_05a0)) / 2 + ((40))) * w / (LO16(g_05a0))) + w / 2;
@@ -3374,7 +3374,7 @@ HBITMAP world_map(int16_t w, int16_t h, int16_t a, int16_t map, int16_t c, int16
     SelectObject(dc, oldpen);
     if (c == -1 && !e) {
         SelectObject(dc, bm);
-        if (g_920e)
+        if (game_palette)
             SelectPalette(dc, oldpal, 0);
         DeleteDC(dc);
     }

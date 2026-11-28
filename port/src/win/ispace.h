@@ -113,7 +113,7 @@ int16_t ispace_lum_image(int r, int g, int b);
 /* Image loader, ordinal 1 (5:0402), and ordinal 2 (6:0000; the
  * calibration strip in ispace_img.c, the surfaces in ispace_surface.c). */
 int16_t ispace_load_image(int16_t pal, int16_t id, char *name, int16_t dc, int16_t b, int16_t c);
-int16_t ispace_build_surface(int16_t pal, int16_t a, int32_t name, int16_t dc, int16_t e, int16_t f,
+int16_t ispace_build_surface(int16_t pal, int16_t a, char *name, int16_t dc, int16_t e, int16_t f,
                              int16_t g, int16_t h, int16_t i, int16_t j, char k, char l, char m,
                              int16_t n);
 int16_t ispace_image_height(void);        /* ordinal 5 (6:00b0) */
@@ -121,7 +121,7 @@ int16_t ispace_image_height(void);        /* ordinal 5 (6:00b0) */
 int16_t ispace_surface(int16_t pal, int16_t id, LPCSTR name, int16_t dc, int16_t f, int16_t i,
                        int16_t j, signed char k, signed char l, signed char m);
 /* Ordinal 12 (6:00c4): the image smoothed at twice its size. */
-int16_t ispace_smooth_image(int16_t pal, int16_t id, int32_t name, int16_t dc, int16_t w,
+int16_t ispace_smooth_image(int16_t pal, int16_t id, char *name, int16_t dc, int16_t w,
                             int16_t h, int16_t g, int16_t c, int16_t i, char a, char b);
 
 /* DS:1108-1144 and DS:1ca4-1cc2: the ramps image colours 0-9 (group 0,
@@ -141,7 +141,7 @@ int16_t ispace_set_of_color(int r, int g, int b);
 int16_t ispace_set_id(int k);
 /* Ordinal 17 (6:5538): one angle of an image drawn quickly into a sprite
  * sheet (ispace_quick.c). */
-int16_t ispace_quick_draw(int16_t pal, int16_t id, int32_t name, int16_t dc, int16_t border, int16_t c,
+int16_t ispace_quick_draw(int16_t pal, int16_t id, char *name, int16_t dc, int16_t border, int16_t c,
                           int16_t d, char cs1, char cs2, int16_t angle, int16_t hdc, char two, char scale);
 /* 6:78ba: ordinal 2's surface with n set, drawn quickly. */
 int16_t ispace_quick_surface(int16_t pal, int16_t id, int16_t dc, int16_t f, int16_t g, int16_t h, int16_t j,

@@ -11,8 +11,8 @@ int16_t fn_02_1ac8(void)
     int16_t r;
     RECT rc;
 
-    g_13dc = GetDC(g_0016);
-    GetClientRect(g_0016, &rc);
+    main_dc = GetDC(main_window);
+    GetClientRect(main_window, &rc);
     LO16(g_90ea) = rc.right < GetSystemMetrics(SM_CXSCREEN) ? rc.right : GetSystemMetrics(SM_CXSCREEN);
     g_0010 = rc.bottom < GetSystemMetrics(SM_CYSCREEN) ? rc.bottom : GetSystemMetrics(SM_CYSCREEN);
     HI16(g_90ea) = g_0010 - g_0a70;
@@ -25,8 +25,8 @@ int16_t fn_02_1ac8(void)
     g_0012 = CreateRectRgn(0, 0, LO16(g_90ea), HI16(g_90ea));
     srand(GetCurrentTime());
     r = fn_10_0000();
-    ReleaseDC(g_0016, g_13dc);
-    g_13dc = 0;
+    ReleaseDC(main_window, main_dc);
+    main_dc = 0;
     return r;
 }
 
@@ -36,17 +36,17 @@ void fn_02_1b96(void)
     int16_t u;
     HPALETTE old;
 
-    g_13dc = GetDC(g_0016);
-    if (g_920e) {
-        old = SelectPalette(g_13dc, g_920e, 0);
-        RealizePalette(g_13dc);
+    main_dc = GetDC(main_window);
+    if (game_palette) {
+        old = SelectPalette(main_dc, game_palette, 0);
+        RealizePalette(main_dc);
     }
     if (g_90f4 == 1)
         fn_09_0c06();
     if (old)
-        SelectPalette(g_13dc, old, 0);
-    ReleaseDC(g_0016, g_13dc);
-    g_13dc = 0;
+        SelectPalette(main_dc, old, 0);
+    ReleaseDC(main_window, main_dc);
+    main_dc = 0;
 }
 
 /* Draws one game frame [inferred] into the window DC (the pop-up g_9460
@@ -65,15 +65,15 @@ void fn_02_1c08(void)
         fn_13_4eca(buf);
         fn_13_4eca("\n\r");
     }
-    hwnd = g_9460 ? g_9460 : g_0016;
+    hwnd = g_9460 ? g_9460 : main_window;
     if (g_13de) {
         fn_02_1d58();
         return;
     }
     g_968c = 1;
-    g_13dc = GetDC(hwnd);
-    if (g_920e)
-        pal = SelectPalette(g_13dc, g_920e, 0);
+    main_dc = GetDC(hwnd);
+    if (game_palette)
+        pal = SelectPalette(main_dc, game_palette, 0);
     if (g_90f4 == 1) {
         fn_13_4eca("GameFrame 3 iMainSmart = ");
         fn_06_0f1a(main_ship, buf);
@@ -91,9 +91,9 @@ void fn_02_1c08(void)
         fn_13_4eca("\n\r");
     }
     if (pal)
-        SelectPalette(g_13dc, pal, 0);
-    ReleaseDC(hwnd, g_13dc);
-    g_13dc = 0;
+        SelectPalette(main_dc, pal, 0);
+    ReleaseDC(hwnd, main_dc);
+    main_dc = 0;
     g_968c = 0;
 }
 
@@ -103,11 +103,11 @@ void fn_02_1d58(void)
     int16_t u1;
     int16_t u2;
 
-    g_13dc = GetDC(g_0016);
-    SelectClipRgn(g_13dc, g_0012);
+    main_dc = GetDC(main_window);
+    SelectClipRgn(main_dc, g_0012);
     fn_10_01fe();
-    ReleaseDC(g_0016, g_13dc);
-    g_13dc = 0;
+    ReleaseDC(main_window, main_dc);
+    main_dc = 0;
     if (g_0012) {
         DeleteObject(g_0012);
         g_0012 = 0;

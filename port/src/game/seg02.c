@@ -17,7 +17,7 @@ int16_t WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR cmd, int16_t show)
     HACCEL acc;
     char buf[20];
 
-    lstrcpy(g_9690, "Inner Space");
+    lstrcpy(app_name, "Inner Space");
     lstrcpy(g_1d60, cmd);
     fn_11_3fd4(g_1d60, 1);
     SetCursorPos(GetSystemMetrics(SM_CXSCREEN) / 2, GetSystemMetrics(SM_CYSCREEN));
@@ -33,7 +33,7 @@ int16_t WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR cmd, int16_t show)
     }
     fn_06_1c0c();
     g_1d3c = GetCurrentTime();
-    acc = LoadAccelerators(g_9212, "MainAccel");
+    acc = LoadAccelerators(lang_module, "MainAccel");
     handled = 0;
     while (g_0018) {
         if (g_8f68 || (g_0d1e && !flow_interactive) || g_9460) {
@@ -57,8 +57,8 @@ int16_t WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR cmd, int16_t show)
         }
 dispatch:
         handled = 0;
-        if (GetActiveWindow() == g_0016)
-            handled = TranslateAccelerator(g_0016, acc, &msg);
+        if (GetActiveWindow() == main_window)
+            handled = TranslateAccelerator(main_window, acc, &msg);
         if (!handled) {
             if (g_9460 && IsDialogMessage(g_9460, &msg))
                 continue;
@@ -77,7 +77,7 @@ dispatch:
 /* 2:094c */
 int16_t fn_02_094c(UINT id)
 {
-    return LoadString(g_9212, id, g_8e68, 249);
+    return LoadString(lang_module, id, g_8e68, 249);
 }
 
 /* 2:1a5a */
@@ -108,9 +108,9 @@ void fn_02_1a9e(void)
 /* 2:11c0 */
 void fn_02_11c0(void)
 {
-    if (!IsIconic(g_0016)) {
+    if (!IsIconic(main_window)) {
         if (!g_0020)
-            GetWindowRect(g_0016, &g_1d20);
+            GetWindowRect(main_window, &g_1d20);
         g_8f6a = 1;
     }
 }
@@ -137,8 +137,8 @@ void fn_02_09c4(void)
 
     g_0592 = 2;
     g_8f68 = 0;
-    LoadString(g_9212, 0x7fc, buf, 80);
-    SetWindowText(g_0016, buf);
+    LoadString(lang_module, 0x7fc, buf, 80);
+    SetWindowText(main_window, buf);
 }
 
 /* 2:18b8 */
@@ -183,11 +183,11 @@ void fn_02_134c(int16_t unused, POINT pt)
     HMENU hm;
     HMENU hs;
 
-    hm = LoadMenu(g_9212, "PopupMenu");
+    hm = LoadMenu(lang_module, "PopupMenu");
     if (hm) {
         hs = GetSubMenu(hm, 0);
-        ClientToScreen(g_0016, &pt);
-        TrackPopupMenu(hs, 0, pt.x, pt.y, 0, g_0016, NULL);
+        ClientToScreen(main_window, &pt);
+        TrackPopupMenu(hs, 0, pt.x, pt.y, 0, main_window, NULL);
         DestroyMenu(hm);
     }
 }
@@ -196,16 +196,16 @@ void fn_02_134c(int16_t unused, POINT pt)
 void fn_02_16a2(void)
 {
     if (g_90f6)
-        SetWindowWord(g_0016, -12, 0);
+        SetWindowWord(main_window, -12, 0);
     fn_02_170e();
     if (g_90fa)
         DestroyMenu(g_90fa);
     if (g_9134)
-        g_90fa = LoadMenu(g_9212, MAKEINTRESOURCE(0x66));
+        g_90fa = LoadMenu(lang_module, MAKEINTRESOURCE(0x66));
     else
-        g_90fa = LoadMenu(g_9212, MAKEINTRESOURCE(0x65));
+        g_90fa = LoadMenu(lang_module, MAKEINTRESOURCE(0x65));
     if (g_90f6)
-        SetMenu(g_0016, g_90fa);
+        SetMenu(main_window, g_90fa);
 }
 
 /* Enables or greys the menu items (flags from fn_02_18b8) to match the
@@ -271,8 +271,8 @@ void fn_02_0a06(void)
     ks[VK_MENU] &= 0x7f;
     ks[VK_CAPITAL] &= 0x7f;
     SetKeyboardState(ks);
-    LoadString(g_9212, 0x921, buf, 80);
-    SetWindowText(g_0016, buf);
+    LoadString(lang_module, 0x921, buf, 80);
+    SetWindowText(main_window, buf);
     g_8f68 = 1;
 }
 
@@ -282,13 +282,13 @@ void fn_02_0fc4(void)
     int32_t style;
 
     g_0020 = 1;
-    style = GetWindowLong(g_0016, GWL_STYLE);
+    style = GetWindowLong(main_window, GWL_STYLE);
     style &= ~WS_OVERLAPPEDWINDOW;
-    SetWindowLong(g_0016, GWL_STYLE, style);
-    MoveWindow(g_0016, 0, 0, GetSystemMetrics(SM_CXSCREEN),
+    SetWindowLong(main_window, GWL_STYLE, style);
+    MoveWindow(main_window, 0, 0, GetSystemMetrics(SM_CXSCREEN),
                GetSystemMetrics(SM_CYSCREEN), TRUE);
     if (fn_06_1290("OnTop", 1))
-        SetWindowPos(g_0016, (HWND)-1, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+        SetWindowPos(main_window, (HWND)-1, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
 }
 
 /* 2:190a */
@@ -302,10 +302,10 @@ void fn_02_190a(DWORD ctx)
     else
         cmd = HELP_CONTEXT;
     lstrcpy(path, g_8f7a);
-    GetPrivateProfileString(g_9690, "Language", "", g_8e68, 5, g_96a9);
+    GetPrivateProfileString(app_name, "Language", "", g_8e68, 5, ini_name);
     lstrcat(path, g_8e68);
     lstrcat(path, "_HELP.HLP");
-    WinHelp(g_0016, path, cmd, ctx);
+    WinHelp(main_window, path, cmd, ctx);
 }
 
 /* 2:088e */
@@ -321,10 +321,10 @@ void fn_02_088e(void)
         g_1dc8 = x + g_1dc4;
         g_1dca = GetSystemMetrics(SM_CYCAPTION) + g_1dc6 + 345;
         fn_10_7480(-2, 0);
-        LoadString(g_9212, 0x886, buf, 80);
+        LoadString(lang_module, 0x886, buf, 80);
         CreateWindow("IS_HELP", buf, WS_VISIBLE | WS_CAPTION | WS_SYSMENU,
                      g_1dc4, g_1dc6, x, GetSystemMetrics(SM_CYCAPTION) + 345,
-                     g_0016, 0, g_8e66, NULL);
+                     main_window, 0, g_8e66, NULL);
         SetWindowPos(g_9460, (HWND)-1, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
     }
 }
@@ -394,23 +394,23 @@ void fn_02_0ba4(void)
     RECT rc;
 
     g_1038 = 0;
-    GetClientRect(g_0016, &rc);
+    GetClientRect(main_window, &rc);
     LO16(g_90ea) = rc.right < GetSystemMetrics(SM_CXSCREEN) ? rc.right : GetSystemMetrics(SM_CXSCREEN);
     g_0010 = rc.bottom < GetSystemMetrics(SM_CYSCREEN) ? rc.bottom : GetSystemMetrics(SM_CYSCREEN);
     g_0a70 = 0x55;
     HI16(g_90ea) = g_0010 - 0x55;
-    PatBlt(g_13dc, g_1df8[14][main_ship].f_00.x - 20, g_1df8[14][main_ship].f_00.y - 20,
-           g_1df8[14][main_ship].f_22 + 40, g_1df8[14][main_ship].f_22 + 40, BLACKNESS);
+    PatBlt(main_dc, object_records[14][main_ship].f_00.x - 20, object_records[14][main_ship].f_00.y - 20,
+           object_records[14][main_ship].f_22 + 40, object_records[14][main_ship].f_22 + 40, BLACKNESS);
     fn_07_11cc();
     fn_07_1208();
     g_8e58 = 0;
     g_8e5a = g_0010 - 0x55;
     fn_02_0ca4();
     if (g_0a78)
-        PatBlt(g_13dc, g_1d28.left, g_1d28.top, g_1d28.right, g_1d28.bottom, BLACKNESS);
+        PatBlt(main_dc, g_1d28.left, g_1d28.top, g_1d28.right, g_1d28.bottom, BLACKNESS);
     else
-        PatBlt(g_13dc, 0, 0, LO16(g_90ea), HI16(g_90ea), BLACKNESS);
-    PostMessage(g_0016, WM_PAINT, 0, 0L);
+        PatBlt(main_dc, 0, 0, LO16(g_90ea), HI16(g_90ea), BLACKNESS);
+    PostMessage(main_window, WM_PAINT, 0, 0L);
 }
 
 /* Timer tick [inferred]: handles a pending g_001c request, wiggles the
@@ -428,8 +428,8 @@ void fn_02_11f8(void)
     if (g_001c) {
         g_8f6a = g_001c = 0;
         if (g_8f6e)
-            PostMessage(g_0016, 0x8e2, 0, 0L);
-        PostMessage(g_0016, 0x914, 0, 0L);
+            PostMessage(main_window, 0x8e2, 0, 0L);
+        PostMessage(main_window, 0x914, 0, 0L);
         g_001e = 1;
         return;
     }
@@ -442,16 +442,16 @@ void fn_02_11f8(void)
     }
     if (g_8f66) {
         act = GetActiveWindow();
-        task = GetWindowTask(g_0016);
+        task = GetWindowTask(main_window);
         if (GetWindowTask(act) != task) {
             if (g_8e5c)
                 fn_10_8686();
-        } else if (!g_8e5c && !IsIconic(g_0016))
+        } else if (!g_8e5c && !IsIconic(main_window))
             fn_10_86a8();
-        if (act != g_0016 && act != g_934c && act != g_0d1e) {
+        if (act != main_window && act != g_934c && act != g_0d1e) {
             if (g_8f68)
                 fn_02_09c4();
-        } else if (!g_8f68 && !IsIconic(g_0016))
+        } else if (!g_8f68 && !IsIconic(main_window))
             fn_02_0a06();
     }
 }
@@ -492,11 +492,11 @@ void fn_02_1046(int16_t x, int16_t y)
     }
     if (g_001e) {
         if (g_0020) {
-            style = GetWindowLong(g_0016, GWL_STYLE);
+            style = GetWindowLong(main_window, GWL_STYLE);
             style |= WS_OVERLAPPEDWINDOW;
-            SetWindowLong(g_0016, GWL_STYLE, style);
-            SetWindowPos(g_0016, (HWND)-2, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
-            PostMessage(g_0016, WM_SYSCOMMAND, SC_RESTORE, 0L);
+            SetWindowLong(main_window, GWL_STYLE, style);
+            SetWindowPos(main_window, (HWND)-2, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+            PostMessage(main_window, WM_SYSCOMMAND, SC_RESTORE, 0L);
             g_0020 = 0;
         } else
             fn_02_0fc4();
@@ -516,14 +516,14 @@ void fn_02_0a74(UINT type, LPARAM lp)
     int16_t u4;
     RECT r;
 
-    if (IsIconic(g_0016))
+    if (IsIconic(main_window))
         return;
-    GetWindowRect(g_0016, &r);
+    GetWindowRect(main_window, &r);
     w = r.right - r.left;
     h = r.bottom - r.top;
     if (g_0020 && (r.left != 0 || r.top != 0 || GetSystemMetrics(SM_CXSCREEN) != w
                    || GetSystemMetrics(SM_CYSCREEN) != h)) {
-        MoveWindow(g_0016, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), 1);
+        MoveWindow(main_window, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), 1);
     } else {
         LO16(g_90ea) = (uint16_t)GetSystemMetrics(SM_CXSCREEN) < LOWORD(lp) ? GetSystemMetrics(SM_CXSCREEN) : LOWORD(lp);
         g_0010 = HI16(g_90ea) = (uint16_t)GetSystemMetrics(SM_CYSCREEN) < HIWORD(lp) ? GetSystemMetrics(SM_CYSCREEN) : HIWORD(lp);
@@ -537,7 +537,7 @@ void fn_02_0a74(UINT type, LPARAM lp)
         g_8f64 = 1;
     if (!g_0020) {
         g_8f6a = 1;
-        GetWindowRect(g_0016, &g_1d20);
+        GetWindowRect(main_window, &g_1d20);
     }
     if (subgame_active && g_90f4 == 1)
         fn_18_270e(LO16(g_90ea), g_0010);
@@ -577,7 +577,7 @@ int16_t fn_02_0d78(UINT wParam)
                     fn_10_82a2(12);
                 }
                 fn_10_87de();
-                DestroyWindow(g_0016);
+                DestroyWindow(main_window);
             }
             if (r == 0x251) {
                 if (g_90f4 == 2)
@@ -597,37 +597,37 @@ int16_t fn_02_0d78(UINT wParam)
             fn_02_0fc4();
         return 1;
     case SC_RESTORE:
-        MoveWindow(g_0016, g_1d20.left, g_1d20.top, g_1d20.right - g_1d20.left,
+        MoveWindow(main_window, g_1d20.left, g_1d20.top, g_1d20.right - g_1d20.left,
                    g_1d20.bottom - g_1d20.top, g_8f68 = 1);
         if (!g_0014) {
-            g_0014 = GetSystemMenu(g_0016, 0);
+            g_0014 = GetSystemMenu(main_window, 0);
             AppendMenu(g_0014, MF_SEPARATOR, 0, 0L);
-            LoadString(g_9212, 0x888, buf, 80);
+            LoadString(lang_module, 0x888, buf, 80);
             AppendMenu(g_0014, 0, 0x60, buf);
             if (g_90f6)
                 CheckMenuItem(g_0014, 0x60, MF_CHECKED);
-            DrawMenuBar(g_0016);
+            DrawMenuBar(main_window);
         }
         if (g_0020)
             fn_02_0fc4();
         if (g_8f66) {
-            LoadString(g_9212, 0x921, buf, 80);
-            SetWindowText(g_0016, buf);
+            LoadString(lang_module, 0x921, buf, 80);
+            SetWindowText(main_window, buf);
         }
         return 1;
     case 0x60:
-        hm = GetSystemMenu(g_0016, 0);
+        hm = GetSystemMenu(main_window, 0);
         if (g_90f6 = !g_90f6) {
-            SetWindowWord(g_0016, GWW_ID, g_90fa);
+            SetWindowWord(main_window, GWW_ID, g_90fa);
             CheckMenuItem(hm, 0x60, MF_CHECKED);
         } else {
-            SetWindowWord(g_0016, GWW_ID, 0);
+            SetWindowWord(main_window, GWW_ID, 0);
             CheckMenuItem(hm, 0x60, MF_UNCHECKED);
         }
-        DrawMenuBar(g_0016);
+        DrawMenuBar(main_window);
         break;
     case 0xc0:
-        PostMessage(g_0016, WM_COMMAND, 0xc0, 0L);
+        PostMessage(main_window, WM_COMMAND, 0xc0, 0L);
         return 0;
     }
 }
@@ -643,80 +643,80 @@ void fn_02_13b2(UINT id, LPARAM lParam)
     switch (id) {
     case 0x74:
     case 0x1eb:
-        PostMessage(g_0016, 0x99b, 0x49, 0L);
+        PostMessage(main_window, 0x99b, 0x49, 0L);
         break;
     case 0x191:
-        PostMessage(g_0016, 0x99b, 0x6b, 0L);
+        PostMessage(main_window, 0x99b, 0x6b, 0L);
         break;
     case 0x19b:
-        PostMessage(g_0016, 0x99b, 0x6d, 0L);
+        PostMessage(main_window, 0x99b, 0x6d, 0L);
         break;
     case 0x75:
-        PostMessage(g_0016, WM_KEYUP, 0x57, 0L);
+        PostMessage(main_window, WM_KEYUP, 0x57, 0L);
         break;
     case 0x76:
     case 0x1d7:
-        PostMessage(g_0016, 0x99b, 0x52, 0L);
+        PostMessage(main_window, 0x99b, 0x52, 0L);
         break;
     case 0x1b9:
-        PostMessage(g_0016, 0x99b, 0x41, 0L);
+        PostMessage(main_window, 0x99b, 0x41, 0L);
         break;
     case 0x1c3:
-        PostMessage(g_0016, 0x99b, 0x48, 0L);
+        PostMessage(main_window, 0x99b, 0x48, 0L);
         break;
     case 0x1cd:
-        PostMessage(g_0016, 0x99b, 0x45, 0L);
+        PostMessage(main_window, 0x99b, 0x45, 0L);
         break;
     case 0x1e1:
-        PostMessage(g_0016, 0x99b, 0x57, 0L);
+        PostMessage(main_window, 0x99b, 0x57, 0L);
         break;
     case 0x7c:
-        PostMessage(g_0016, 0x99e, 0x51, 0L);
+        PostMessage(main_window, 0x99e, 0x51, 0L);
         break;
     case 0x7d:
-        PostMessage(g_0016, 0x99e, 0x41, 0L);
+        PostMessage(main_window, 0x99e, 0x41, 0L);
         break;
     case 0x7e:
-        PostMessage(g_0016, 0x99e, 0x44, 0L);
+        PostMessage(main_window, 0x99e, 0x44, 0L);
         break;
     case 0x7f:
-        PostMessage(g_0016, 0x99e, 0x47, 0L);
+        PostMessage(main_window, 0x99e, 0x47, 0L);
         break;
     case 0x80:
-        PostMessage(g_0016, 0x99e, 0x53, 0L);
+        PostMessage(main_window, 0x99e, 0x53, 0L);
         break;
     case 0x81:
-        PostMessage(g_0016, 0x99e, 0x45, 0L);
+        PostMessage(main_window, 0x99e, 0x45, 0L);
         break;
     case 0x82:
-        PostMessage(g_0016, 0x99e, 0x48, 0L);
+        PostMessage(main_window, 0x99e, 0x48, 0L);
         break;
     case 0x73:
-        PostMessage(g_0016, 0x99e, 0x46, 0L);
+        PostMessage(main_window, 0x99e, 0x46, 0L);
         break;
     case 0x19c:
         if (g_0020) {
-            l = GetWindowLong(g_0016, GWL_STYLE);
-            SetWindowLong(g_0016, GWL_STYLE, l |= WS_OVERLAPPEDWINDOW);
+            l = GetWindowLong(main_window, GWL_STYLE);
+            SetWindowLong(main_window, GWL_STYLE, l |= WS_OVERLAPPEDWINDOW);
         }
-        PostMessage(g_0016, WM_SYSCOMMAND, SC_MINIMIZE, 0L);
+        PostMessage(main_window, WM_SYSCOMMAND, SC_MINIMIZE, 0L);
         break;
     case 0xe0:
-        PostMessage(g_0016, 0x8e2, 0, 0L);
+        PostMessage(main_window, 0x8e2, 0, 0L);
         break;
     case 0x68:
     case 0xc0:
         fn_10_7f18();
         break;
     case 0x67:
-        PostMessage(g_0016, WM_KEYUP, 0x1b, 0L);
+        PostMessage(main_window, WM_KEYUP, 0x1b, 0L);
         break;
     case 0x69:
-        PostMessage(g_0016, WM_KEYUP, 0x7b, 0L);
+        PostMessage(main_window, WM_KEYUP, 0x7b, 0L);
         break;
     case 0x6a:
     case 0xb0:
-        PostMessage(g_0016, WM_SYSCOMMAND, SC_CLOSE, 0L);
+        PostMessage(main_window, WM_SYSCOMMAND, SC_CLOSE, 0L);
         break;
     case 0x6b:
     case 0x1a6:
@@ -726,22 +726,22 @@ void fn_02_13b2(UINT id, LPARAM lParam)
             fn_10_8568(0);
         break;
     case 0x6c:
-        PostMessage(g_0016, WM_KEYUP, 0x51, 0L);
+        PostMessage(main_window, WM_KEYUP, 0x51, 0L);
         break;
     case 0x6d:
-        PostMessage(g_0016, WM_KEYUP, 0x41, 0L);
+        PostMessage(main_window, WM_KEYUP, 0x41, 0L);
         break;
     case 0x6e:
-        PostMessage(g_0016, WM_KEYUP, 0x44, 0L);
+        PostMessage(main_window, WM_KEYUP, 0x44, 0L);
         break;
     case 0x6f:
-        PostMessage(g_0016, WM_KEYUP, 0x47, 0L);
+        PostMessage(main_window, WM_KEYUP, 0x47, 0L);
         break;
     case 0x70:
-        PostMessage(g_0016, WM_KEYUP, 0x53, 0L);
+        PostMessage(main_window, WM_KEYUP, 0x53, 0L);
         break;
     case 0x71:
-        PostMessage(g_0016, WM_KEYUP, 0x45, 0L);
+        PostMessage(main_window, WM_KEYUP, 0x45, 0L);
         break;
     case 0xf0:
         if (g_0a7c) {
@@ -805,7 +805,7 @@ LONG fn_02_0224(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     }
     switch (msg) {
     case WM_CREATE:
-        g_0016 = hwnd;
+        main_window = hwnd;
         fn_06_18e0();
         g_001c = 1;
         break;
@@ -817,7 +817,7 @@ LONG fn_02_0224(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         } else {
             RECT rc;
 
-            GetWindowRect(g_0016, &rc);
+            GetWindowRect(main_window, &rc);
             mm->ptMinTrackSize.x = mm->ptMaxTrackSize.x = rc.right - rc.left;
             mm->ptMinTrackSize.y = mm->ptMaxTrackSize.y = rc.bottom - rc.top;
         }
@@ -828,13 +828,13 @@ LONG fn_02_0224(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         return DefWindowProc(hwnd, msg, wParam, lParam);
     case 0x9cf:
         fn_10_6e26();
-        g_13dc = GetDC(g_0016);
+        main_dc = GetDC(main_window);
         fn_10_6e00();
-        old = SelectPalette(g_13dc, g_920e, 0);
+        old = SelectPalette(main_dc, game_palette, 0);
         fn_10_6e76(0x20008L);
-        SelectPalette(g_13dc, old, 0);
-        ReleaseDC(g_0016, g_13dc);
-        PostMessage(g_0016, 0x9d0, g_13dc = 0, 0L);   /* g_13dc is an HDC */
+        SelectPalette(main_dc, old, 0);
+        ReleaseDC(main_window, main_dc);
+        PostMessage(main_window, 0x9d0, main_dc = 0, 0L);   /* g_13dc is an HDC */
         break;
     case 0x9d0:
         g_8f66 = 1;
@@ -882,12 +882,12 @@ LONG fn_02_0224(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         }
         break;
     case WM_PALETTECHANGED:
-        if (g_920e && wParam != hwnd) {
+        if (game_palette && wParam != hwnd) {
             HDC hdc;
             HPALETTE op;
 
             hdc = GetDC(hwnd);
-            op = SelectPalette(hdc, g_920e, 0);
+            op = SelectPalette(hdc, game_palette, 0);
             RealizePalette(hdc);
             UpdateColors(hdc);
             if (op)
@@ -897,12 +897,12 @@ LONG fn_02_0224(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         }
         break;
     case WM_QUERYNEWPALETTE:
-        if (g_920e) {
+        if (game_palette) {
             HDC hdc;
             HPALETTE op;
 
             hdc = GetDC(hwnd);
-            op = SelectPalette(hdc, g_920e, 0);
+            op = SelectPalette(hdc, game_palette, 0);
             RealizePalette(hdc);
             InvalidateRect(hwnd, NULL, 1);
             UpdateWindow(hwnd);
@@ -930,7 +930,7 @@ LONG fn_02_0224(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         break;
     case WM_RBUTTONDOWN:
         if (g_1212)
-            fn_02_134c(g_0016, MAKEPOINT(lParam));
+            fn_02_134c(main_window, MAKEPOINT(lParam));
         break;
     case WM_VSCROLL:
         fn_11_7798(wParam, lParam);
@@ -960,10 +960,10 @@ LONG fn_02_0224(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case 0x9c5:
         if (g_90f8 && g_8e5e) {
             if (GetCurrentTime() > g_1d3c + 4000)
-                DestroyWindow(g_0016);
+                DestroyWindow(main_window);
             break;
         }
-        if (!g_1212 || !g_8f68 || g_3b94 > g_1e50)
+        if (!g_1212 || !g_8f68 || g_3b94 > now_ms)
             break;
         if (g_968c) {    /* not volatile here */
             fn_11_6aa8(g_8e62 = msg, wParam, lParam);
@@ -983,15 +983,15 @@ LONG fn_02_0224(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             if (g_90f4 == 1 || g_90f4 == 7)
                 fn_02_0970();
             else
-                PostMessage(g_0016, 0x978, 0, 0L);
+                PostMessage(main_window, 0x978, 0, 0L);
         }
         return DefWindowProc(hwnd, msg, wParam, lParam);
     case 0x914:
-        ShowWindow(g_0016, SW_SHOWNORMAL);
-        SetActiveWindow(g_0016);
+        ShowWindow(main_window, SW_SHOWNORMAL);
+        SetActiveWindow(main_window);
         break;
     case WM_SETFOCUS:
-        if (IsIconic(g_0016) == 0 && g_8f68 == 0)
+        if (IsIconic(main_window) == 0 && g_8f68 == 0)
             fn_02_0a06();
         break;
     case WM_TIMER:

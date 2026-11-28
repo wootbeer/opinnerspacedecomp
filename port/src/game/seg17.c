@@ -56,7 +56,7 @@ void fn_17_8e60(int16_t i, LPSTR buf)
     } else {
         a = g_7090[i].f_05e;
         b = i;
-        LoadString(g_9212, 0x314, buf, 40);
+        LoadString(lang_module, 0x314, buf, 40);
         c = (int16_t)((i * 2 + 3) * (a + 2) * (i + 6) * (i + 7) * 2) / (int16_t)(a + 3) + 956;
         fn_06_0f1a(c, tmp);
         lstrcat(buf, " ");
@@ -78,13 +78,13 @@ void fn_17_14fc(void)
     else
         n = g_9322;
     hbm = world_map(g_6084.bottom - g_6084.top, g_6084.bottom - g_6084.top, 1, n, -1, -1, 0);
-    hdc = CreateCompatibleDC(g_13dc);
-    if (g_920e)
-        oldpal = SelectPalette(hdc, g_920e, 0);
+    hdc = CreateCompatibleDC(main_dc);
+    if (game_palette)
+        oldpal = SelectPalette(hdc, game_palette, 0);
     old = SelectObject(hdc, hbm);
-    BitBlt(g_13dc, g_6084.left, g_6084.top, g_6084.bottom - g_6084.top, g_6084.bottom - g_6084.top, hdc, 0, 0, SRCCOPY);
+    BitBlt(main_dc, g_6084.left, g_6084.top, g_6084.bottom - g_6084.top, g_6084.bottom - g_6084.top, hdc, 0, 0, SRCCOPY);
     SelectObject(hdc, old);
-    if (g_920e)
+    if (game_palette)
         SelectPalette(hdc, oldpal, 0);
     DeleteDC(hdc);
     DeleteObject(hbm);
@@ -104,7 +104,7 @@ void fn_17_7614(int16_t i)
         id = 0x820;
     else
         id = 0x821;
-    fn_10_a332(g_6078, "button", 1, g_4d90[g_4ed4[i]].f_12 + 10000, g_4d90[g_4ed4[i]].f_02,
+    format_string(g_6078, 0xbd1, 1, g_4d90[g_4ed4[i]].f_12 + 10000, g_4d90[g_4ed4[i]].f_02,
                0x819, 0x818, g_4d90[g_4ed4[i]].f_03 <= 0, g_4d90[g_4ed4[i]].f_03 > 0,
                g_4d90[g_4ed4[i]].f_03 == 1, g_2f4c[g_4d90[g_4ed4[i]].f_03].f_08, 0x81d,
                g_4d90[g_4ed4[i]].f_12 + 10000, id);
@@ -118,7 +118,7 @@ int16_t fn_17_108c(int16_t reset)
     if (reset)
         g_1890 = 0;
     if (g_1890) {
-        if (g_1890 < g_1e50)
+        if (g_1890 < now_ms)
             return 1;
         return 0;
     }
@@ -141,7 +141,7 @@ int16_t fn_17_108c(int16_t reset)
             g_9462++;
         break;
     case 2:
-        g_1890 = g_1e50 + 1000;
+        g_1890 = now_ms + 1000;
         break;
     }
     g_9474 = 0;
@@ -156,7 +156,7 @@ int16_t fn_17_1174(int16_t reset)
     if (reset)
         g_1894 = 0;
     if (g_1894) {
-        if (g_1894 < g_1e50)
+        if (g_1894 < now_ms)
             return 1;
         return 0;
     }
@@ -179,7 +179,7 @@ int16_t fn_17_1174(int16_t reset)
             g_9462++;
         break;
     case 2:
-        g_1894 = g_1e50 + 1000;
+        g_1894 = now_ms + 1000;
         break;
     }
     g_9474 = 0;
@@ -212,7 +212,7 @@ void fn_17_4204(void)
             cnt[2]++;
     }
     fn_13_218a(g_96d2[g_7090[main_ship].f_04e].f_38, name);
-    fn_10_a332(g_6078, "", 1, (LPSTR)name, !cnt[0], cnt[0], cnt[0], 0x9dd,
+    format_string(g_6078, 0xbd0, 1, (LPSTR)name, !cnt[0], cnt[0], cnt[0], 0x9dd,
                !cnt[2], cnt[2], cnt[2], 0x9de, cnt[1], cnt[1], 0x9d8);
 }
 
@@ -224,7 +224,7 @@ int16_t fn_17_15c6(int16_t reset)
     if (reset)
         g_18a4 = 0;
     if (g_18a4) {
-        if (g_18a4 < g_1e50)
+        if (g_18a4 < now_ms)
             return 1;
         return 0;
     }
@@ -247,7 +247,7 @@ int16_t fn_17_15c6(int16_t reset)
             fn_17_2c5a(0, 0);
         break;
     case 2:
-        g_18a4 = g_1e50 + 1000;
+        g_18a4 = now_ms + 1000;
         break;
     }
     g_9474 = 0;
@@ -262,7 +262,7 @@ int16_t fn_17_13ca(int16_t reset)
     if (reset)
         g_18a0 = 0;
     if (g_18a0) {
-        if (g_18a0 < g_1e50)
+        if (g_18a0 < now_ms)
             return 1;
         return 0;
     }
@@ -297,7 +297,7 @@ int16_t fn_17_13ca(int16_t reset)
             g_9462++;
         break;
     case 2:
-        g_18a0 = g_1e50 + 1000;
+        g_18a0 = now_ms + 1000;
         break;
     }
     g_9474 = 0;
@@ -312,7 +312,7 @@ int16_t fn_17_12f6(int16_t reset)
     if (reset)
         g_189c = 0;
     if (g_189c) {
-        if (g_189c < g_1e50)
+        if (g_189c < now_ms)
             return 1;
         return 0;
     }
@@ -335,7 +335,7 @@ int16_t fn_17_12f6(int16_t reset)
             fn_17_2c5a(0, 0);
         break;
     case 2:
-        g_189c = g_1e50 + 1000;
+        g_189c = now_ms + 1000;
         break;
     }
     g_9474 = 0;
@@ -391,16 +391,16 @@ void fn_17_0c2e(int16_t idx, int16_t x, int16_t y)
     COLORREF oldbk;
 
     hfont = CreateFont(12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, "Arial");
-    oldfont = SelectObject(g_13dc, hfont);
-    oldbk = SetBkColor(g_13dc, 0L);
-    SetBkMode(g_13dc, TRANSPARENT);
-    SetTextAlign(g_13dc, TA_CENTER);
-    oldtext = SetTextColor(g_13dc, 0x0200ff80L);
+    oldfont = SelectObject(main_dc, hfont);
+    oldbk = SetBkColor(main_dc, 0L);
+    SetBkMode(main_dc, TRANSPARENT);
+    SetTextAlign(main_dc, TA_CENTER);
+    oldtext = SetTextColor(main_dc, 0x0200ff80L);
     lstrcpy(buf, g_57a8[idx].f_0c);
-    TextOut(g_13dc, x + 0x20, y + 0x44, buf, lstrlen(buf));
-    SetBkColor(g_13dc, oldbk);
-    SetTextColor(g_13dc, oldtext);
-    SelectObject(g_13dc, oldfont);
+    TextOut(main_dc, x + 0x20, y + 0x44, buf, lstrlen(buf));
+    SetBkColor(main_dc, oldbk);
+    SetTextColor(main_dc, oldtext);
+    SelectObject(main_dc, oldfont);
     if (hfont) {
         DeleteObject(hfont);
         hfont = 0;
@@ -455,20 +455,20 @@ void fn_17_55e2(int16_t n)
     int16_t unused3;
 
     hfont = CreateFont(15, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, "Arial");
-    oldfont = SelectObject(g_13dc, hfont);
-    oldbk = SetBkColor(g_13dc, 0L);
-    SetBkMode(g_13dc, TRANSPARENT);
-    SetTextAlign(g_13dc, 0);
+    oldfont = SelectObject(main_dc, hfont);
+    oldbk = SetBkColor(main_dc, 0L);
+    SetBkMode(main_dc, TRANSPARENT);
+    SetTextAlign(main_dc, 0);
     if (n == -1) {
         fn_09_955c(0x30f2, buf);
         fn_11_3fd4(buf, 1);
     } else
         fn_09_955c(g_2f4c[n].f_08, buf);
-    oldtext = SetTextColor(g_13dc, 0x020080ffL);
-    TextOut(g_13dc, g_6084.left + 40, g_6084.top + 20, buf, lstrlen(buf));
-    SetBkColor(g_13dc, oldbk);
-    SetTextColor(g_13dc, oldtext);
-    SelectObject(g_13dc, oldfont);
+    oldtext = SetTextColor(main_dc, 0x020080ffL);
+    TextOut(main_dc, g_6084.left + 40, g_6084.top + 20, buf, lstrlen(buf));
+    SetBkColor(main_dc, oldbk);
+    SetTextColor(main_dc, oldtext);
+    SelectObject(main_dc, oldfont);
     if (hfont) {
         DeleteObject(hfont);
         hfont = 0;
@@ -481,7 +481,7 @@ void fn_17_60d8(void)
     if (++g_9144 >= g_9004) {
         fn_07_2206();
         g_9144 = 0;
-        g_1e50 = GetCurrentTime();
+        now_ms = GetCurrentTime();
         fn_17_0000(0, 0);
     }
 }
@@ -624,7 +624,7 @@ int16_t fn_17_1260(int16_t reset)
     if (reset)
         g_1898 = 0;
     if (g_1898) {
-        if (g_1898 < g_1e50)
+        if (g_1898 < now_ms)
             return 1;
         return 0;
     }
@@ -644,7 +644,7 @@ int16_t fn_17_1260(int16_t reset)
         }
         break;
     case 2:
-        g_1898 = g_1e50 + 1000;
+        g_1898 = now_ms + 1000;
         break;
     }
     g_9474 = 0;
@@ -705,7 +705,7 @@ int16_t fn_17_75c6(int16_t n)
 
     cnt = 0;
     for (i = 0; i < n; i++)
-        if (g_1df8[14][i].f_18 == 0 && g_7090[i].flag != 0)
+        if (object_records[14][i].f_18 == 0 && g_7090[i].flag != 0)
             cnt += 2;
     return cnt;
 }
@@ -745,12 +745,12 @@ void fn_17_646e(void)
     RECT rc;
 
     GetClientRect(g_9460, &rc);
-    g_13dc = GetDC(g_9460);
-    old = SelectObject(g_13dc, g_6094[0]);
-    h = HIWORD(GetTextExtent(g_13dc, s, 4));
-    SelectObject(g_13dc, old);
-    ReleaseDC(g_9460, g_13dc);
-    g_13dc = 0;
+    main_dc = GetDC(g_9460);
+    old = SelectObject(main_dc, g_6094[0]);
+    h = HIWORD(GetTextExtent(main_dc, s, 4));
+    SelectObject(main_dc, old);
+    ReleaseDC(g_9460, main_dc);
+    main_dc = 0;
     g_9470 = 9;
     for (i = 1; i < 27; i++)
         if (fn_10_5586(i)) {
@@ -786,12 +786,12 @@ void fn_17_65da(void)
     RECT rc;
 
     GetClientRect(g_9460, &rc);
-    g_13dc = GetDC(g_9460);
-    old = SelectObject(g_13dc, g_6094[0]);
-    h = HIWORD(GetTextExtent(g_13dc, s, 4));
-    SelectObject(g_13dc, old);
-    ReleaseDC(g_9460, g_13dc);
-    g_13dc = 0;
+    main_dc = GetDC(g_9460);
+    old = SelectObject(main_dc, g_6094[0]);
+    h = HIWORD(GetTextExtent(main_dc, s, 4));
+    SelectObject(main_dc, old);
+    ReleaseDC(g_9460, main_dc);
+    main_dc = 0;
     if (g_947a[4])
         DestroyWindow(g_947a[4]);
     g_946a = fn_17_8910(g_9466, 0, 0);
@@ -848,7 +848,7 @@ void fn_17_67e6(void)
     switch (g_9466) {
     case 0:
         for (i = j = 0; i <= g_9316; i++) {
-            if (g_1df8[14][i].f_18 == 0 && g_7090[i].flag != 0) {
+            if (object_records[14][i].f_18 == 0 && g_7090[i].flag != 0) {
                 if (g_9468 / 2 == j) {
                     g_9464 = i;
                     break;
@@ -883,7 +883,7 @@ void fn_17_67e6(void)
             break;
         }
         if (g_4ee0[0]) {
-            fn_10_a332(buf, (char *)g_4d90[g_4ed4[0]].f_12, 1);
+            format_string(buf, g_4d90[g_4ed4[0]].f_12, 1);
             if (lstrcmp(buf, text) == 0)
                 g_93aa = 8;
             else
@@ -1034,12 +1034,12 @@ void fn_17_67e6(void)
         RECT rc;
 
         GetClientRect(g_9460, &rc);
-        g_13dc = GetDC(g_9460);
-        old = SelectObject(g_13dc, g_6094[0]);
-        h = HIWORD(GetTextExtent(g_13dc, s, 4));
-        SelectObject(g_13dc, old);
-        ReleaseDC(g_9460, g_13dc);
-        g_13dc = 0;
+        main_dc = GetDC(g_9460);
+        old = SelectObject(main_dc, g_6094[0]);
+        h = HIWORD(GetTextExtent(main_dc, s, 4));
+        SelectObject(main_dc, old);
+        ReleaseDC(g_9460, main_dc);
+        main_dc = 0;
         g_947a[5] = CreateWindow("combobox", "", 0x50210003L, rc.right - 0xb4, rc.bottom - 0x3c,
                               0xaa, h * r + 0x1e, g_9460, (HMENU)0x6a, g_8e66, NULL);
         SendMessage(g_947a[5], WM_SETFONT, g_6094[0], 1L);
@@ -1082,7 +1082,7 @@ int16_t fn_17_2c5a(int16_t a, int16_t b)
         g_1912 = 0;
         g_1914 = 0;
         g_190a = VIEW(POINT, g_5000, 0);
-        g_1916 = g_1e50 + 500;
+        g_1916 = now_ms + 500;
         g_191a = 0;
         if (!b)
             return 0;
@@ -1090,24 +1090,24 @@ int16_t fn_17_2c5a(int16_t a, int16_t b)
     } else {
         if (a && g_1912 < 250)
             g_1912 = 250;
-        if (g_1916 > g_1e50)
+        if (g_1916 > now_ms)
             return 0;
-        g_1916 = g_1e50 + 50;
+        g_1916 = now_ms + 50;
     }
     if (g_0ba2) {
-        g_1916 = g_1e50 + 400;
+        g_1916 = now_ms + 400;
         if (!g_191a) {
-            g_191a = g_6090 + g_1e50;
+            g_191a = g_6090 + now_ms;
             if (!b)
-                PatBlt(g_13dc, g_190a.x + 4, g_190a.y + 2, 12, 12, BLACKNESS);
+                PatBlt(main_dc, g_190a.x + 4, g_190a.y + 2, 12, 12, BLACKNESS);
         }
     } else {
         hfont = CreateFont(13, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, g_06b0);
-        oldfont = SelectObject(g_13dc, hfont);
-        oldbk = SetBkColor(g_13dc, RGB(0, 0, 0));
-        SetBkMode(g_13dc, TRANSPARENT);
-        SetTextAlign(g_13dc, 0);
-        oldtext = SetTextColor(g_13dc, RGB(0, 255, 255));
+        oldfont = SelectObject(main_dc, hfont);
+        oldbk = SetBkColor(main_dc, RGB(0, 0, 0));
+        SetBkMode(main_dc, TRANSPARENT);
+        SetTextAlign(main_dc, 0);
+        oldtext = SetTextColor(main_dc, RGB(0, 255, 255));
         for (i = 0; i < n; i++) {
             wrap = 0;
             if (g_9478 && g_6078[g_1912] == ' ') {
@@ -1122,7 +1122,7 @@ int16_t fn_17_2c5a(int16_t a, int16_t b)
                     int16_t w;
 
                     word[len + 1] = 0;
-                    w = LOWORD(GetTextExtent(g_13dc, word, len)) + g_190a.x;
+                    w = LOWORD(GetTextExtent(main_dc, word, len)) + g_190a.x;
                     if (len > 5)
                         margin = 9;
                     else
@@ -1144,13 +1144,13 @@ int16_t fn_17_2c5a(int16_t a, int16_t b)
                 HBRUSH oldbr;
 
                 if (g_1912 && !b)
-                    PatBlt(g_13dc, g_190e.x + 4, g_190e.y + 2, 12, 18, BLACKNESS);
-                TextOut(g_13dc, g_190a.x, g_190a.y, g_6078 + g_1912, 1);
-                g_190a.x += LOWORD(GetTextExtent(g_13dc, g_6078 + g_1912, 1));
+                    PatBlt(main_dc, g_190e.x + 4, g_190e.y + 2, 12, 18, BLACKNESS);
+                TextOut(main_dc, g_190a.x, g_190a.y, g_6078 + g_1912, 1);
+                g_190a.x += LOWORD(GetTextExtent(main_dc, g_6078 + g_1912, 1));
                 if (!b) {
-                    oldbr = SelectObject(g_13dc, CreateSolidBrush(RGB(0, 255, 255)));
-                    PatBlt(g_13dc, g_190a.x + 4, g_190a.y + 2, 12, 12, PATCOPY);
-                    DeleteObject(SelectObject(g_13dc, oldbr));
+                    oldbr = SelectObject(main_dc, CreateSolidBrush(RGB(0, 255, 255)));
+                    PatBlt(main_dc, g_190a.x + 4, g_190a.y + 2, 12, 12, PATCOPY);
+                    DeleteObject(SelectObject(main_dc, oldbr));
                     g_190e = g_190a;
                 }
             }
@@ -1159,7 +1159,7 @@ int16_t fn_17_2c5a(int16_t a, int16_t b)
                 fn_10_744c(0x2b);
             if (!b && g_6078[g_1912] == 13 && g_6078[g_1912 - 1] == 10
                 && g_93aa != 15 && g_93aa != 17) {
-                g_1916 = g_1e50 + 900;
+                g_1916 = now_ms + 900;
                 break;
             }
             if (g_6078[g_1912] == 0) {
@@ -1167,21 +1167,21 @@ int16_t fn_17_2c5a(int16_t a, int16_t b)
                 break;
             }
         }
-        SetBkColor(g_13dc, oldbk);
-        SetTextColor(g_13dc, oldtext);
-        SelectObject(g_13dc, oldfont);
+        SetBkColor(main_dc, oldbk);
+        SetTextColor(main_dc, oldtext);
+        SelectObject(main_dc, oldfont);
         if (hfont) {
             DeleteObject(hfont);
             hfont = 0;
         }
         if (g_0ba2) {
-            if (g_191a && g_191a < g_1e50)
+            if (g_191a && g_191a < now_ms)
                 return 2;
             return 1;
         }
         return 0;
     }
-    if (g_191a && g_191a < g_1e50)
+    if (g_191a && g_191a < now_ms)
         return 2;
     return 1;
 }
@@ -1203,72 +1203,72 @@ void fn_17_458e(void)
     POINT pt;
 
     font = CreateFont(15, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, g_06b0);
-    oldfont = SelectObject(g_13dc, font);
-    oldbk = SetBkColor(g_13dc, 0L);
-    SetBkMode(g_13dc, TRANSPARENT);
-    SetTextAlign(g_13dc, 0);
+    oldfont = SelectObject(main_dc, font);
+    oldbk = SetBkColor(main_dc, 0L);
+    SetBkMode(main_dc, TRANSPARENT);
+    SetTextAlign(main_dc, 0);
     fn_09_955c(0x382, buf2);
-    oldtxt = SetTextColor(g_13dc, PALETTERGB(0, 214, 255));
-    TextOut(g_13dc, g_5000, g_6084.top + 20, buf2, lstrlen(buf2));
-    SetBkColor(g_13dc, oldbk);
-    SetTextColor(g_13dc, oldtxt);
-    SelectObject(g_13dc, oldfont);
+    oldtxt = SetTextColor(main_dc, PALETTERGB(0, 214, 255));
+    TextOut(main_dc, g_5000, g_6084.top + 20, buf2, lstrlen(buf2));
+    SetBkColor(main_dc, oldbk);
+    SetTextColor(main_dc, oldtxt);
+    SelectObject(main_dc, oldfont);
     if (font) {
         DeleteObject(font);
         font = 0;
     }
     font = CreateFont(13, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, g_06b0);
-    oldfont = SelectObject(g_13dc, font);
-    oldbk = SetBkColor(g_13dc, 0L);
-    SetBkMode(g_13dc, TRANSPARENT);
-    SetTextAlign(g_13dc, 0);
+    oldfont = SelectObject(main_dc, font);
+    oldbk = SetBkColor(main_dc, 0L);
+    SetBkMode(main_dc, TRANSPARENT);
+    SetTextAlign(main_dc, 0);
     me = g_96d2[g_7090[main_ship].f_04e].f_38;
-    oldtxt = SetTextColor(g_13dc, RGB(0, 255, 255));
+    oldtxt = SetTextColor(main_dc, RGB(0, 255, 255));
     pt.y = g_6084.top + 60;
     pt.x = g_5000;
     fn_09_955c(0x380, buf1);
     lstrcat(buf1, "S");
-    TextOut(g_13dc, pt.x, pt.y, buf1, lstrlen(buf1));
+    TextOut(main_dc, pt.x, pt.y, buf1, lstrlen(buf1));
     pt.y += 28;
     for (i = 0; i < 8; i++) {
         j = i;
         if (j != me && (rel = g_3824[j][me]) > 80) {
             fn_17_56fe(j, buf2);
-            TextOut(g_13dc, pt.x, pt.y, buf2, lstrlen(buf2));
+            TextOut(main_dc, pt.x, pt.y, buf2, lstrlen(buf2));
             pt.y += 18;
         }
     }
-    oldtxt = SetTextColor(g_13dc, PALETTERGB(192, 192, 192));
+    oldtxt = SetTextColor(main_dc, PALETTERGB(192, 192, 192));
     pt.y = g_6084.top + 60;
     pt.x = g_6084.left + 210;
     fn_09_955c(0x246, buf1);
-    TextOut(g_13dc, pt.x, pt.y, buf1, lstrlen(buf1));
+    TextOut(main_dc, pt.x, pt.y, buf1, lstrlen(buf1));
     pt.y += 28;
     for (i = 0; i < 8; i++) {
         j = i;
         if (j != me && (rel = g_3824[j][me]) < 80 && rel > -80) {
             fn_17_56fe(j, buf2);
-            TextOut(g_13dc, pt.x, pt.y, buf2, lstrlen(buf2));
+            TextOut(main_dc, pt.x, pt.y, buf2, lstrlen(buf2));
             pt.y += 18;
         }
     }
-    oldtxt = SetTextColor(g_13dc, PALETTERGB(255, 128, 60));
+    oldtxt = SetTextColor(main_dc, PALETTERGB(255, 128, 60));
     pt.y = g_6084.top + 60;
     pt.x = g_6084.left + 410;
     fn_09_955c(0x30ed, buf1);
-    TextOut(g_13dc, pt.x, pt.y, buf1, lstrlen(buf1));
+    TextOut(main_dc, pt.x, pt.y, buf1, lstrlen(buf1));
     pt.y += 36;
     for (i = 0; i < 8; i++) {
         j = i;
         if (j != me && (rel = g_3824[j][me]) < -80) {
             fn_17_56fe(j, buf2);
-            TextOut(g_13dc, pt.x, pt.y, buf2, lstrlen(buf2));
+            TextOut(main_dc, pt.x, pt.y, buf2, lstrlen(buf2));
             pt.y += 18;
         }
     }
-    SetBkColor(g_13dc, oldbk);
-    SetTextColor(g_13dc, oldtxt);
-    SelectObject(g_13dc, oldfont);
+    SetBkColor(main_dc, oldbk);
+    SetTextColor(main_dc, oldtxt);
+    SelectObject(main_dc, oldfont);
     if (font) {
         DeleteObject(font);
         font = 0;
@@ -1293,32 +1293,32 @@ void fn_17_51b0(void)
     int16_t rel2;
 
     hfont = CreateFont(15, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, g_06b0);
-    oldfont = SelectObject(g_13dc, hfont);
-    oldbk = SetBkColor(g_13dc, RGB(0, 0, 0));
-    SetBkMode(g_13dc, TRANSPARENT);
-    SetTextAlign(g_13dc, 0);
+    oldfont = SelectObject(main_dc, hfont);
+    oldbk = SetBkColor(main_dc, RGB(0, 0, 0));
+    SetBkMode(main_dc, TRANSPARENT);
+    SetTextAlign(main_dc, 0);
     side = g_96d2[g_7090[main_ship].f_04e].f_38;
     fn_13_218a(g_9468 - 1, name);
     if ((rel = g_3824[g_9468 - 1][side]) > 80 || g_9468 - side - 1 == 0)
-        oldtext = SetTextColor(g_13dc, PALETTERGB(0, 0xd6, 0xff));
+        oldtext = SetTextColor(main_dc, PALETTERGB(0, 0xd6, 0xff));
     else if (rel < -80)
-        oldtext = SetTextColor(g_13dc, PALETTERGB(0xff, 0x80, 0));
+        oldtext = SetTextColor(main_dc, PALETTERGB(0xff, 0x80, 0));
     else
-        oldtext = SetTextColor(g_13dc, PALETTERGB(0xc0, 0xc0, 0xc0));
-    TextOut(g_13dc, g_6084.left + 40, g_6084.top + 20, name, lstrlen(name));
-    SetBkColor(g_13dc, oldbk);
-    SetTextColor(g_13dc, oldtext);
-    SelectObject(g_13dc, oldfont);
+        oldtext = SetTextColor(main_dc, PALETTERGB(0xc0, 0xc0, 0xc0));
+    TextOut(main_dc, g_6084.left + 40, g_6084.top + 20, name, lstrlen(name));
+    SetBkColor(main_dc, oldbk);
+    SetTextColor(main_dc, oldtext);
+    SelectObject(main_dc, oldfont);
     if (hfont) {
         DeleteObject(hfont);
         hfont = 0;
     }
     hfont = CreateFont(13, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, g_06b0);
-    oldfont = SelectObject(g_13dc, hfont);
-    oldbk = SetBkColor(g_13dc, RGB(0, 0, 0));
-    SetBkMode(g_13dc, TRANSPARENT);
-    SetTextAlign(g_13dc, 0);
-    SetTextColor(g_13dc, RGB(0, 255, 255));
+    oldfont = SelectObject(main_dc, hfont);
+    oldbk = SetBkColor(main_dc, RGB(0, 0, 0));
+    SetBkMode(main_dc, TRANSPARENT);
+    SetTextAlign(main_dc, 0);
+    SetTextColor(main_dc, RGB(0, 255, 255));
     pt.y = g_6084.top + 60;
     pt.x = g_6084.left + 40;
     if (g_9468 - side - 1 == 0) {
@@ -1340,11 +1340,11 @@ void fn_17_51b0(void)
         lstrcat(buf, name);
         if (count == 1)
             buf[lstrlen(buf) - 1] = 0;
-        TextOut(g_13dc, pt.x, pt.y, buf, lstrlen(buf));
+        TextOut(main_dc, pt.x, pt.y, buf, lstrlen(buf));
         pt.y += 18;
         fn_09_955c(0x80a, buf);
         lstrcat(buf, g_09ee);
-        TextOut(g_13dc, pt.x, pt.y, buf, lstrlen(buf));
+        TextOut(main_dc, pt.x, pt.y, buf, lstrlen(buf));
         pt.y += 36;
         fn_13_218a(g_9468 - 1, buf);
         lstrcat(buf, " ");
@@ -1356,17 +1356,17 @@ void fn_17_51b0(void)
         else
             fn_09_9580(0x80d, buf);
         if (rel2 < 80) {
-            TextOut(g_13dc, pt.x, pt.y, buf, lstrlen(buf));
+            TextOut(main_dc, pt.x, pt.y, buf, lstrlen(buf));
             pt.y += 18;
             lstrcpy(buf, "");
         }
         fn_09_9580(0x33e, buf);
     }
     lstrcat(buf, g_09ee);
-    TextOut(g_13dc, pt.x, pt.y, buf, lstrlen(buf));
-    SetBkColor(g_13dc, oldbk);
-    SetTextColor(g_13dc, oldtext);
-    SelectObject(g_13dc, oldfont);
+    TextOut(main_dc, pt.x, pt.y, buf, lstrlen(buf));
+    SetBkColor(main_dc, oldbk);
+    SetTextColor(main_dc, oldtext);
+    SelectObject(main_dc, oldfont);
     if (hfont) {
         DeleteObject(hfont);
         hfont = 0;
@@ -1405,7 +1405,7 @@ void fn_17_3746(void)
     int16_t ia4;
 
     idx = g_9464;
-    l7c = 10L * g_1df8[14][idx].f_44;
+    l7c = 10L * object_records[14][idx].f_44;
     i96 = 1350 / g_7090[idx].f_014;
     l90 = g_7090[idx].f_00c;
     if (g_7090[idx].f_0d6 != -1)
@@ -1416,11 +1416,11 @@ void fn_17_3746(void)
     ia4 = g_7090[idx].f_00e;
     i9a = (int16_t)(l90 * 69 / ia4);
     l74 = l78 / ((int16_t)(i9a * 10) / 36);
-    l88 = ia4 * -3600L / (int16_t)(g_1df8[14][idx].f_44 * 3) + 100;
+    l88 = ia4 * -3600L / (int16_t)(object_records[14][idx].f_44 * 3) + 100;
     la2.v = l88 * l88 * l88 / -60000 - l88 * l88 / 200;
     l8c = (la2.v - l88 - 100) * 37 / 100 + 100;
     i9c = (int16_t)(l90 * l8c * 69 / (ia4 * 100L));
-    i9e = (int16_t)(g_1df8[14][idx].f_44 * 3) / (int16_t)(ia4 * 12);
+    i9e = (int16_t)(object_records[14][idx].f_44 * 3) / (int16_t)(ia4 * 12);
     if (g_7090[idx].f_0d6 != -1) {
         l94 = g_96d2[g_7090[idx].f_04e].f_12 * 100 / (20 - 3 * g_6e24[g_7090[idx].f_0d6].f_35)
             + g_96d2[g_7090[idx].f_04e].f_14 * 80 / (20 - 3 * g_6e24[g_7090[idx].f_0d6].f_36)
@@ -1432,7 +1432,7 @@ void fn_17_3746(void)
             l94 /= 3;
     } else
         l94 = g_96d2[g_7090[idx].f_04e].f_a6;
-    l84 = l94 * (int16_t)(g_1df8[14][idx].f_44 + 350) * 2 / 350 * 12600 / 3000;
+    l84 = l94 * (int16_t)(object_records[14][idx].f_44 + 350) * 2 / 350 * 12600 / 3000;
     for (i = 0; i < 7; i++) {
         fn_09_95ba(i + 0xfe);
         fn_09_95ba(0x221);
@@ -1490,7 +1490,7 @@ void fn_17_33ee(void)
     if (g_9464 == main_ship) {
         fn_06_0f54(g_7090[g_9464].f_0dc, 100, 2, buf3e);
         fn_06_1010(g_7090[g_9464].f_0ce, 100, 2, buf66);
-        fn_10_a332(g_6078, (char *)0xbdb, 0, g_91f8 < 1 ? 1 : g_91f8, (LPSTR)g_38c8, g_1e58,
+        format_string(g_6078, 0xbdb, 0, g_91f8 < 1 ? 1 : g_91f8, (LPSTR)g_38c8, g_1e58,
                    g_7090[main_ship].f_0d2, 0x9d3, g_7090[main_ship].f_0d0, 0x9d3,
                    (LPSTR)buf3e, (LPSTR)buf66);
         if (g_9460)
@@ -1500,13 +1500,13 @@ void fn_17_33ee(void)
     } else {
         if (g_96d2[g_7090[g_9464].f_04e].f_38 != 7 && g_7090[g_9464].f_0d6 >= 0
             && g_6e24[g_7090[g_9464].f_0d6].f_77 > 1)
-            fn_10_a332(g_6078, (char *)0xbda, 0, 0xe, g_9464, 3,
+            format_string(g_6078, 0xbda, 0, 0xe, g_9464, 3,
                        g_6e24[g_7090[g_9464].f_0d6].f_77 < 4,
                        g_6e24[g_7090[g_9464].f_0d6].f_77 == 2, 0x39a, 0x39b,
                        g_6e24[g_7090[g_9464].f_0d6].f_77 >= 4,
                        g_6e24[g_7090[g_9464].f_0d6].f_77 - 1);
         else
-            fn_10_a332(g_6078, (char *)0x399, 0, 0xe, g_9464, 3);
+            format_string(g_6078, 0x399, 0, 0xe, g_9464, 3);
         if (g_96d2[g_7090[g_9464].f_04e].f_38 != 7 && g_7090[g_9464].f_0d6 >= 0
             && g_6e24[g_7090[g_9464].f_0d6].f_77 > 1) {
             fn_09_95ba(0x7fe);
@@ -1533,7 +1533,7 @@ void fn_17_33ee(void)
             id2 = 0x317;
         else
             id2 = 0x318;
-        fn_10_a332(g_6078, (char *)0x31a, 0, id1,
+        format_string(g_6078, 0x31a, 0, id1,
                    id2 == id1 || (id2 == 0x318 && id1 == 0x319) ? 1 : 0,
                    0x800, 0x31b, id2);
         if (g_9460) {
@@ -1544,7 +1544,7 @@ void fn_17_33ee(void)
             fn_03_3498(g_8db0, g_8768, g_87b8);
             fn_06_0f54(g_7090[g_9464].f_0dc, 100, 2, buf3e);
             fn_06_1010(g_7090[g_9464].f_0ce, 100, 2, buf66);
-            fn_10_a332(g_6078, (char *)0xbde, 0, (LPSTR)g_8768, (LPSTR)g_87b8,
+            format_string(g_6078, 0xbde, 0, (LPSTR)g_8768, (LPSTR)g_87b8,
                        (LPSTR)buf3e, (LPSTR)buf66);
             lstrcpy(g_8d38, buff2);
             return;
@@ -1567,99 +1567,99 @@ void fn_17_4988(void)
     POINT pt;
 
     hfont = CreateFont(15, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, g_06b0);
-    oldfont = SelectObject(g_13dc, hfont);
-    oldbk = SetBkColor(g_13dc, RGB(0, 0, 0));
-    SetBkMode(g_13dc, TRANSPARENT);
-    SetTextAlign(g_13dc, 0);
+    oldfont = SelectObject(main_dc, hfont);
+    oldbk = SetBkColor(main_dc, RGB(0, 0, 0));
+    SetBkMode(main_dc, TRANSPARENT);
+    SetTextAlign(main_dc, 0);
     fn_15_84b0(30, g_6084.top + 20);
     fn_09_955c(g_9468 + 0x492, buf);
-    oldtext = SetTextColor(g_13dc, PALETTERGB(0, 0xd6, 0xff));
-    TextOut(g_13dc, 30, g_6084.top + 20, buf, lstrlen(buf));
-    SetBkColor(g_13dc, oldbk);
-    SetTextColor(g_13dc, oldtext);
-    SelectObject(g_13dc, oldfont);
+    oldtext = SetTextColor(main_dc, PALETTERGB(0, 0xd6, 0xff));
+    TextOut(main_dc, 30, g_6084.top + 20, buf, lstrlen(buf));
+    SetBkColor(main_dc, oldbk);
+    SetTextColor(main_dc, oldtext);
+    SelectObject(main_dc, oldfont);
     if (hfont) {
         DeleteObject(hfont);
         hfont = 0;
     }
     hfont = CreateFont(13, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, g_06b0);
-    oldfont = SelectObject(g_13dc, hfont);
-    oldbk = SetBkColor(g_13dc, RGB(0, 0, 0));
-    SetBkMode(g_13dc, TRANSPARENT);
-    SetTextAlign(g_13dc, 0);
-    oldtext = SetTextColor(g_13dc, RGB(0, 255, 255));
+    oldfont = SelectObject(main_dc, hfont);
+    oldbk = SetBkColor(main_dc, RGB(0, 0, 0));
+    SetBkMode(main_dc, TRANSPARENT);
+    SetTextAlign(main_dc, 0);
+    oldtext = SetTextColor(main_dc, RGB(0, 255, 255));
     pt.y = g_6084.top + 60;
     pt.x = 30;
     switch (g_9468) {
     case 0:
         fn_09_955c(0x310, line);
-        TextOut(g_13dc, pt.x, pt.y, line, lstrlen(line));
+        TextOut(main_dc, pt.x, pt.y, line, lstrlen(line));
         fn_09_955c(0x311, line);
-        TextOut(g_13dc, pt.x + 195, pt.y, line, lstrlen(line));
+        TextOut(main_dc, pt.x + 195, pt.y, line, lstrlen(line));
         pt.y += 28;
         for (i = 0; i < 9; i++) {
             fn_09_955c(i + 0x4c7, buf);
-            TextOut(g_13dc, pt.x, pt.y, buf, lstrlen(buf));
+            TextOut(main_dc, pt.x, pt.y, buf, lstrlen(buf));
             fn_09_955c(i + 0x52b, buf);
-            TextOut(g_13dc, pt.x + 195, pt.y, buf, lstrlen(buf));
+            TextOut(main_dc, pt.x + 195, pt.y, buf, lstrlen(buf));
             pt.y += 18;
         }
         break;
     case 1:
         fn_09_955c(0x493, line);
-        TextOut(g_13dc, pt.x, pt.y, line, lstrlen(line));
+        TextOut(main_dc, pt.x, pt.y, line, lstrlen(line));
         fn_09_955c(0x312, line);
-        TextOut(g_13dc, pt.x + 110, pt.y, line, lstrlen(line));
+        TextOut(main_dc, pt.x + 110, pt.y, line, lstrlen(line));
         fn_09_955c(0x313, line);
-        TextOut(g_13dc, pt.x + 220, pt.y, line, lstrlen(line));
+        TextOut(main_dc, pt.x + 220, pt.y, line, lstrlen(line));
         fn_09_955c(0x311, line);
-        TextOut(g_13dc, pt.x + 380, pt.y, line, lstrlen(line));
+        TextOut(main_dc, pt.x + 380, pt.y, line, lstrlen(line));
         pt.y += 28;
         for (i = 0; i < 9; i++) {
             fn_09_955c(i + 0x4d0, line);
-            TextOut(g_13dc, pt.x, pt.y, line, lstrlen(line));
+            TextOut(main_dc, pt.x, pt.y, line, lstrlen(line));
             fn_09_955c(i + 0x4d9, line);
-            TextOut(g_13dc, pt.x + 110, pt.y, line, lstrlen(line));
+            TextOut(main_dc, pt.x + 110, pt.y, line, lstrlen(line));
             fn_09_955c(i + 0x4e2, line);
-            TextOut(g_13dc, pt.x + 220, pt.y, line, lstrlen(line));
+            TextOut(main_dc, pt.x + 220, pt.y, line, lstrlen(line));
             fn_09_955c(i + 0x534, line);
-            TextOut(g_13dc, pt.x + 380, pt.y, line, lstrlen(line));
+            TextOut(main_dc, pt.x + 380, pt.y, line, lstrlen(line));
             pt.y += 18;
         }
         break;
     case 2:
         pt.y -= 10;
         fn_09_955c(0x310, line);
-        TextOut(g_13dc, pt.x, pt.y, line, lstrlen(line));
+        TextOut(main_dc, pt.x, pt.y, line, lstrlen(line));
         fn_09_955c(0x311, line);
-        TextOut(g_13dc, pt.x + 80, pt.y, line, lstrlen(line));
+        TextOut(main_dc, pt.x + 80, pt.y, line, lstrlen(line));
         pt.y += 28;
         for (i = 0; i < 11; i++) {
             fn_09_955c(i + 0x4b0, buf);
-            TextOut(g_13dc, pt.x, pt.y, buf, lstrlen(buf));
+            TextOut(main_dc, pt.x, pt.y, buf, lstrlen(buf));
             fn_09_955c(i + 0x514, buf);
-            TextOut(g_13dc, pt.x + 80, pt.y, buf, lstrlen(buf));
+            TextOut(main_dc, pt.x + 80, pt.y, buf, lstrlen(buf));
             pt.y += 18;
         }
         pt.y = g_6084.top + 60;
         pt.x = (g_6084.right - g_6084.left) / 2 + g_6084.left;
         fn_09_955c(0x310, line);
-        TextOut(g_13dc, pt.x, pt.y, line, lstrlen(line));
+        TextOut(main_dc, pt.x, pt.y, line, lstrlen(line));
         fn_09_955c(0x311, line);
-        TextOut(g_13dc, pt.x + 100, pt.y, line, lstrlen(line));
+        TextOut(main_dc, pt.x + 100, pt.y, line, lstrlen(line));
         pt.y += 28;
         for (i = 0; i < 11; i++) {
             fn_09_955c(i + 0x4bc, buf);
-            TextOut(g_13dc, pt.x, pt.y, buf, lstrlen(buf));
+            TextOut(main_dc, pt.x, pt.y, buf, lstrlen(buf));
             fn_09_955c(i + 0x520, buf);
-            TextOut(g_13dc, pt.x + 100, pt.y, buf, lstrlen(buf));
+            TextOut(main_dc, pt.x + 100, pt.y, buf, lstrlen(buf));
             pt.y += 18;
         }
         break;
     }
-    SetBkColor(g_13dc, oldbk);
-    SetTextColor(g_13dc, oldtext);
-    SelectObject(g_13dc, oldfont);
+    SetBkColor(main_dc, oldbk);
+    SetTextColor(main_dc, oldtext);
+    SelectObject(main_dc, oldfont);
     if (hfont) {
         DeleteObject(hfont);
         hfont = 0;
@@ -1682,7 +1682,7 @@ void fn_17_0000(int16_t a, int16_t b)
     if (g_93aa != 11)
         g_946c = -1;
     if (g_9462 == -3) {
-        PatBlt(g_13dc, g_6084.left, g_6084.top, g_6084.right - g_6084.left, g_6084.bottom - g_6084.top, BLACKNESS);
+        PatBlt(main_dc, g_6084.left, g_6084.top, g_6084.right - g_6084.left, g_6084.bottom - g_6084.top, BLACKNESS);
         fn_10_744c(0x6e);
         done = fn_17_20fa(1, 0, 1);
     }
@@ -1690,7 +1690,7 @@ void fn_17_0000(int16_t a, int16_t b)
         fn_17_03b2();
     if (g_9462 == -1) {
         if (g_93aa == 11) {
-            PatBlt(g_13dc, g_6084.left, g_6084.top, g_6084.right - g_6084.left, g_6084.bottom - g_6084.top, BLACKNESS);
+            PatBlt(main_dc, g_6084.left, g_6084.top, g_6084.right - g_6084.left, g_6084.bottom - g_6084.top, BLACKNESS);
             fn_10_744c(0x6e);
             done = fn_17_20fa(1, 1, 0);
             if (g_9462 == -1)
@@ -1701,7 +1701,7 @@ void fn_17_0000(int16_t a, int16_t b)
             }
         } else {
             b = f = 1;
-            g_1876 = g_1e50 - 10;
+            g_1876 = now_ms - 10;
         }
     }
     if (b) {
@@ -1711,7 +1711,7 @@ void fn_17_0000(int16_t a, int16_t b)
         if (!f) {
             fn_09_8d18(1, a);
             if (g_93aa)
-                g_1876 = g_1e50 - 10;
+                g_1876 = now_ms - 10;
             v = a;
         } else
             v = fn_09_8d18(0, 0);
@@ -1721,18 +1721,18 @@ void fn_17_0000(int16_t a, int16_t b)
             else {
                 fn_09_8d18(1, 1);
                 fn_09_8d18(0, 1);
-                g_1876 = g_1e50 - 10;
+                g_1876 = now_ms - 10;
             }
         }
     }
     v = fn_09_8d18(0, 0);
     if (g_93aa)
-        SelectClipRgn(g_13dc, g_93ae);
+        SelectClipRgn(main_dc, g_93ae);
     done = 0;
     switch (g_93aa) {
     case 0:
         if (v && !g_1876)
-            g_1876 = g_1e50 + 500;
+            g_1876 = now_ms + 500;
         break;
     case 1:
         done = fn_17_0600(0);
@@ -1827,12 +1827,12 @@ void fn_17_0000(int16_t a, int16_t b)
         break;
     case 18:
         if (!g_05ac) {
-            g_05ac = g_1e50;
+            g_05ac = now_ms;
             fn_17_6036();
         }
         return;
     }
-    if (g_1876 && g_1876 < g_1e50) {
+    if (g_1876 && g_1876 < now_ms) {
         g_1876 = 0;
         done = 1;
     }
@@ -1856,7 +1856,7 @@ int16_t fn_17_8910(int16_t a, HWND hwnd, int16_t b)
     case 0:
         count = 0;
         for (i = 0; i <= g_9316; i++) {
-            if (g_1df8[14][i].f_18 == 0 && g_7090[i].flag != 0)
+            if (object_records[14][i].f_18 == 0 && g_7090[i].flag != 0)
                 count += 2;
         }
         break;
@@ -1928,14 +1928,14 @@ void fn_17_8f1e(int16_t a, int16_t b, int16_t c, HWND hwnd, LPSTR buf)
     if (c != 0) {
         if (a == -1) {
             a = 0;
-            LoadString(g_9212, b + 800, s2, 110);
+            LoadString(lang_module, b + 800, s2, 110);
             lstrcpy(s1, s2);
             lstrcat(s1, " ");
             lstrcat(s1, buf);
         } else {
             lstrcpy(s1, buf);
             lstrcat(s1, " - ");
-            LoadString(g_9212, b + 800, s2, 110);
+            LoadString(lang_module, b + 800, s2, 110);
             lstrcat(s1, s2);
         }
         lstrcat(s1, "\t\t\t\t\t\t\t");
@@ -1973,7 +1973,7 @@ void fn_17_8a92(int16_t idx, int16_t kind, LPSTR out)
     switch (kind) {
     case 0:
         for (i = 0; i <= g_9316; i++) {
-            if (g_1df8[14][i].f_18 == 0 && g_7090[i].flag != 0) {
+            if (object_records[14][i].f_18 == 0 && g_7090[i].flag != 0) {
                 if (n == idx) {
                     fn_03_1542(0, 14, i, s1, 0);
                     lstrcpy(s2, s1);
@@ -1988,23 +1988,23 @@ void fn_17_8a92(int16_t idx, int16_t kind, LPSTR out)
         break;
     case 1:
         if (idx == 0) {
-            LoadString(g_9212, 0x30e3, s1, 110);
+            LoadString(lang_module, 0x30e3, s1, 110);
         } else {
             switch (g_9214) {
             case 0:
-                LoadString(g_9212, 0x335, s1, 110);
+                LoadString(lang_module, 0x335, s1, 110);
                 break;
             case 1:
-                LoadString(g_9212, 0xeb, s1, 110);
+                LoadString(lang_module, 0xeb, s1, 110);
                 break;
             case 3:
-                LoadString(g_9212, 0xef, s1, 110);
+                LoadString(lang_module, 0xef, s1, 110);
                 break;
             case 2:
-                LoadString(g_9212, 0xec, s1, 110);
+                LoadString(lang_module, 0xec, s1, 110);
                 break;
             case 4:
-                LoadString(g_9212, 0xf0, s1, 110);
+                LoadString(lang_module, 0xf0, s1, 110);
                 break;
             }
             fn_11_3fd4(s1, 1);
@@ -2012,74 +2012,74 @@ void fn_17_8a92(int16_t idx, int16_t kind, LPSTR out)
         break;
     case 2:
         if (idx == 0) {
-            LoadString(g_9212, 0x27a9, s1, 110);
+            LoadString(lang_module, 0x27a9, s1, 110);
         } else if (g_92ec[9] != 0 && idx == 1) {
-            LoadString(g_9212, 0x27ba, s1, 110);
+            LoadString(lang_module, 0x27ba, s1, 110);
         } else {
             t = idx - 1;
             if (g_92ec[9] != 0)
                 t--;
             if (g_4ee0[t] != 0)
-                fn_10_a332(s1, (char *)(g_4d90[g_4ed4[t]].f_12 + 10000), 1);
+                format_string(s1, g_4d90[g_4ed4[t]].f_12 + 10000, 1);
         }
         break;
     case 3:
         if (idx == 0) {
-            LoadString(g_9212, 0x338, s1, 110);
+            LoadString(lang_module, 0x338, s1, 110);
         } else {
-            LoadString(g_9212, 0x9e2, s1, 110);
+            LoadString(lang_module, 0x9e2, s1, 110);
             fn_11_3fd4(s1, 1);
         }
         break;
     case 4:
         if (idx == 0)
-            LoadString(g_9212, 0x140, s1, 110);
+            LoadString(lang_module, 0x140, s1, 110);
         else
             fn_13_218a(idx - 1, s1);
         break;
     case 5:
-        LoadString(g_9212, idx + 0x492, s1, 110);
+        LoadString(lang_module, idx + 0x492, s1, 110);
         break;
     case 6:
         if (idx == 0)
-            LoadString(g_9212, 0x4ae, s1, 110);
+            LoadString(lang_module, 0x4ae, s1, 110);
         else
-            LoadString(g_9212, 0x30e3, s1, 110);
+            LoadString(lang_module, 0x30e3, s1, 110);
         break;
     case 7:
         switch (idx) {
         case 0:
-            LoadString(g_9212, 0x2e1, s1, 110);
+            LoadString(lang_module, 0x2e1, s1, 110);
             break;
         case 1:
-            LoadString(g_9212, 0x2e4, s1, 110);
+            LoadString(lang_module, 0x2e4, s1, 110);
             break;
         case 2:
-            LoadString(g_9212, 0x2e4, s1, 110);
-            LoadString(g_9212, 0x841, s2, 110);
+            LoadString(lang_module, 0x2e4, s1, 110);
+            LoadString(lang_module, 0x841, s2, 110);
             lstrcat(s1, s2);
             break;
         case 3:
-            LoadString(g_9212, 0x2e5, s1, 110);
+            LoadString(lang_module, 0x2e5, s1, 110);
             break;
         case 4:
-            LoadString(g_9212, 0x2e5, s1, 110);
-            LoadString(g_9212, 0x841, s2, 110);
+            LoadString(lang_module, 0x2e5, s1, 110);
+            LoadString(lang_module, 0x841, s2, 110);
             lstrcat(s1, s2);
             break;
         case 5:
-            LoadString(g_9212, 0x2e6, s1, 110);
+            LoadString(lang_module, 0x2e6, s1, 110);
             break;
         case 6:
-            LoadString(g_9212, 0x2e6, s1, 110);
-            LoadString(g_9212, 0x841, s2, 110);
+            LoadString(lang_module, 0x2e6, s1, 110);
+            LoadString(lang_module, 0x841, s2, 110);
             lstrcat(s1, s2);
             break;
         }
         break;
     case 8:
         if (idx == 0) {
-            LoadString(g_9212, 0x80f, s1, 110);
+            LoadString(lang_module, 0x80f, s1, 110);
             lstrcat(s1, "S");
         } else {
             fn_14_3eda();
@@ -2097,7 +2097,7 @@ void fn_17_8a92(int16_t idx, int16_t kind, LPSTR out)
         for (i = 1; i < 27; i++) {
             if (fn_10_5586(i)) {
                 if (n == idx)
-                    LoadString(g_9212, i + 0xba, s1, 110);
+                    LoadString(lang_module, i + 0xba, s1, 110);
                 n++;
             }
         }
@@ -2145,7 +2145,7 @@ void fn_17_4068(int16_t i, LPSTR buf)
         id = 0x2d1;
     else
         id = 0x2d2;
-    fn_10_a332(buf, "n", 1, i == main_ship, i != main_ship, id);
+    format_string(buf, 0xbcf, 1, i == main_ship, i != main_ship, id);
 }
 
 /* 17:5008 */
@@ -2163,10 +2163,10 @@ void fn_17_5008(void)
     int16_t t;
 
     font = CreateFont(15, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, "Arial");
-    old = SelectObject(g_13dc, font);
-    oldbk = SetBkColor(g_13dc, RGB(0, 0, 0));
-    SetBkMode(g_13dc, TRANSPARENT);
-    SetTextAlign(g_13dc, 0);
+    old = SelectObject(main_dc, font);
+    oldbk = SetBkColor(main_dc, RGB(0, 0, 0));
+    SetBkMode(main_dc, TRANSPARENT);
+    SetTextAlign(main_dc, 0);
     if (g_93aa == 2) {
         if (g_9460 != 0 && (g_9468 + 1) % 2 != 0)
             SendMessage(g_947a[4], CB_GETLBTEXT, g_9468, (LPARAM)(LPSTR)buf);
@@ -2185,17 +2185,17 @@ void fn_17_5008(void)
     }
     if (g_93aa == 0x10 && g_9468 != 0)
         fn_17_7c2a();
-    oldtc = SetTextColor(g_13dc, PALETTERGB(0, 0xd6, 0xff));
+    oldtc = SetTextColor(main_dc, PALETTERGB(0, 0xd6, 0xff));
     if (g_93aa == 2 && (g_9460 == 0 || (g_9468 + 1) % 2 == 0))
         x = g_6084.right - 280;
     else if (g_93aa == 2)
         x = 20;
     else
         x = 35;
-    TextOut(g_13dc, x, g_6084.top + 20, buf, lstrlen(buf));
-    SetBkColor(g_13dc, oldbk);
-    SetTextColor(g_13dc, oldtc);
-    SelectObject(g_13dc, old);
+    TextOut(main_dc, x, g_6084.top + 20, buf, lstrlen(buf));
+    SetBkColor(main_dc, oldbk);
+    SetTextColor(main_dc, oldtc);
+    SelectObject(main_dc, old);
     if (font) {
         DeleteObject(font);
         font = 0;
@@ -2223,11 +2223,11 @@ void fn_17_7c2a(void)
     int16_t r;
 
     hfont = CreateFont(13, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, g_06b0);
-    oldfont = SelectObject(g_13dc, hfont);
-    oldbk = SetBkColor(g_13dc, RGB(0, 0, 0));
-    SetBkMode(g_13dc, TRANSPARENT);
-    SetTextAlign(g_13dc, 0);
-    SetTextColor(g_13dc, RGB(0, 255, 255));
+    oldfont = SelectObject(main_dc, hfont);
+    oldbk = SetBkColor(main_dc, RGB(0, 0, 0));
+    SetBkMode(main_dc, TRANSPARENT);
+    SetTextAlign(main_dc, 0);
+    SetTextColor(main_dc, RGB(0, 255, 255));
     pt.y = g_6084.top + 60;
     pt.x = g_6084.left + 30;
     fn_14_3eda();
@@ -2264,47 +2264,47 @@ void fn_17_7c2a(void)
     } else {
         fn_06_8eea((LPSTR)p);
     }
-    LoadString(g_9212, 0x833, line, 40);
+    LoadString(lang_module, 0x833, line, 40);
     lstrcat(line, p->f_004);
-    TextOut(g_13dc, pt.x, pt.y, line, lstrlen(line));
+    TextOut(main_dc, pt.x, pt.y, line, lstrlen(line));
     pt.y += 18;
-    LoadString(g_9212, 0x834, line, 40);
+    LoadString(lang_module, 0x834, line, 40);
     lstrcat(line, g_6e20[p->f_022].f_0a);
-    TextOut(g_13dc, pt.x, pt.y, line, lstrlen(line));
+    TextOut(main_dc, pt.x, pt.y, line, lstrlen(line));
     pt.y += 18;
-    LoadString(g_9212, 0x835, line, 40);
+    LoadString(lang_module, 0x835, line, 40);
     fn_13_218a(g_96d2[g_7090[g_9464].f_04e].f_38, buf);
     lstrcat(line, buf);
-    TextOut(g_13dc, pt.x, pt.y, line, lstrlen(line));
+    TextOut(main_dc, pt.x, pt.y, line, lstrlen(line));
     pt.y += 36;
-    LoadString(g_9212, 0x836, line, 40);
+    LoadString(lang_module, 0x836, line, 40);
     fn_06_0eb8(p->f_01e, buf);
     lstrcat(line, buf);
-    TextOut(g_13dc, pt.x, pt.y, line, lstrlen(line));
+    TextOut(main_dc, pt.x, pt.y, line, lstrlen(line));
     pt.y += 18;
-    LoadString(g_9212, 0x837, line, 40);
+    LoadString(lang_module, 0x837, line, 40);
     fn_06_0f1a(g_9468, buf);
     lstrcat(line, buf);
-    TextOut(g_13dc, pt.x, pt.y, line, lstrlen(line));
+    TextOut(main_dc, pt.x, pt.y, line, lstrlen(line));
     pt.y += 18;
-    LoadString(g_9212, 0x838, line, 40);
+    LoadString(lang_module, 0x838, line, 40);
     switch (g_6af8[g_9468 - 1].f_30) {
     case 0:
-        LoadString(g_9212, 0x839, buf, 40);
+        LoadString(lang_module, 0x839, buf, 40);
         lstrcat(line, buf);
         break;
     case 1:
-        LoadString(g_9212, 0x83a, buf, 40);
+        LoadString(lang_module, 0x83a, buf, 40);
         lstrcat(line, buf);
         break;
     case 2:
-        LoadString(g_9212, 0x83b, buf, 40);
+        LoadString(lang_module, 0x83b, buf, 40);
         lstrcat(line, buf);
         break;
     }
-    TextOut(g_13dc, pt.x, pt.y, line, lstrlen(line));
+    TextOut(main_dc, pt.x, pt.y, line, lstrlen(line));
     pt.y += 18;
-    LoadString(g_9212, 0x83c, line, 40);
+    LoadString(lang_module, 0x83c, line, 40);
     fn_06_0f1a(p->f_018 + 1, buf);
     lstrcat(line, buf);
     lstrcat(line, "/");
@@ -2322,19 +2322,19 @@ void fn_17_7c2a(void)
     lstrcat(line, "/");
     fn_06_0f1a(p->f_01d, buf);
     lstrcat(line, buf);
-    TextOut(g_13dc, pt.x, pt.y, line, lstrlen(line));
+    TextOut(main_dc, pt.x, pt.y, line, lstrlen(line));
     pt.y += 18;
-    LoadString(g_9212, 0x83d, line, 40);
+    LoadString(lang_module, 0x83d, line, 40);
     fn_15_6558(p->f_16f, buf);
     lstrcat(line, buf);
-    TextOut(g_13dc, pt.x, pt.y, line, lstrlen(line));
+    TextOut(main_dc, pt.x, pt.y, line, lstrlen(line));
     pt.y += 18;
     GlobalUnlock(h);
     GlobalFree(h);
     fn_14_4074();
-    SetBkColor(g_13dc, oldbk);
-    SetTextColor(g_13dc, oldtext);
-    SelectObject(g_13dc, oldfont);
+    SetBkColor(main_dc, oldbk);
+    SetTextColor(main_dc, oldtext);
+    SelectObject(main_dc, oldfont);
     if (hfont) {
         DeleteObject(hfont);
         hfont = 0;
@@ -2564,7 +2564,7 @@ int16_t fn_17_193c(int16_t reset)
         return 0;
     }
     if (g_18b0 != 0) {
-        if (g_18b0 < g_1e50)
+        if (g_18b0 < now_ms)
             return 1;
         return 0;
     }
@@ -2576,11 +2576,11 @@ int16_t fn_17_193c(int16_t reset)
         fn_17_30b0(g_93aa, 0x1194L);
         fn_17_55e2(-1);
         g_18b4 = k = 0;
-        old = SelectObject(g_13dc, (g_576c + 10)[0]);
-        SetStretchBltMode(g_13dc, 2);
-        fn_10_9962(0, g_13dc, g_6084.right / 2 - 200, g_5002 + 50, 13, 13, g_39e8[0],
-                   g_1df8[2]->f_24, g_1df8[2]->f_24, g_1df8[2]->f_22, g_1df8[2]->f_22, 0xc000caL);
-        SelectObject(g_13dc, old);
+        old = SelectObject(main_dc, (g_576c + 10)[0]);
+        SetStretchBltMode(main_dc, 2);
+        fn_10_9962(0, main_dc, g_6084.right / 2 - 200, g_5002 + 50, 13, 13, g_39e8[0],
+                   object_records[2]->f_24, object_records[2]->f_24, object_records[2]->f_22, object_records[2]->f_22, 0xc000caL);
+        SelectObject(main_dc, old);
         break;
     case 1:
         fn_17_55e2(-1);
@@ -2591,11 +2591,11 @@ int16_t fn_17_193c(int16_t reset)
             k = g_18b4;
         else
             k = 49 - g_18b4;
-        old = SelectObject(g_13dc, (g_576c + 10)[k / 5]);
-        SetStretchBltMode(g_13dc, 2);
-        fn_10_9962(0, g_13dc, g_6084.right / 2 - 200, g_5002 + 50, 13, 13, g_39e8[0],
-                   g_1df8[2]->f_24, g_1df8[2]->f_24, g_1df8[2]->f_22, g_1df8[2]->f_22, 0xc000caL);
-        SelectObject(g_13dc, old);
+        old = SelectObject(main_dc, (g_576c + 10)[k / 5]);
+        SetStretchBltMode(main_dc, 2);
+        fn_10_9962(0, main_dc, g_6084.right / 2 - 200, g_5002 + 50, 13, 13, g_39e8[0],
+                   object_records[2]->f_24, object_records[2]->f_24, object_records[2]->f_22, object_records[2]->f_22, 0xc000caL);
+        SelectObject(main_dc, old);
         if (g_9460 != 0 && g_9474 != 0) {
             g_9474 = 0;
             g_5000 = g_6084.right - 320;
@@ -2606,7 +2606,7 @@ int16_t fn_17_193c(int16_t reset)
         }
         break;
     case 2:
-        g_18b0 = g_1e50 + 1000;
+        g_18b0 = now_ms + 1000;
         break;
     }
     g_9474 = 0;
@@ -2706,9 +2706,9 @@ void fn_17_30b0(int16_t id, int32_t v)
             else
                 id += 0x12b;
         }
-        hres = FindResource(g_9212, MAKEINTRESOURCE(id), MAKEINTRESOURCE(5000));
-        size = SizeofResource(g_9212, hres);
-        hmem = LoadResource(g_9212, hres);
+        hres = FindResource(lang_module, MAKEINTRESOURCE(id), MAKEINTRESOURCE(5000));
+        size = SizeofResource(lang_module, hres);
+        hmem = LoadResource(lang_module, hres);
         p = LockResource(hmem);
         for (i = 0; i < size; i++)
             g_6078[i] = p[i];
@@ -2813,7 +2813,7 @@ void fn_17_76e4(void)
             if (g_4ee0[0]) {
                 if (!g_4ee0[1])
                     g_4ed4[1] = 0;
-                fn_10_a332(g_6078, "button", 0, g_9ebc[n], 0x9db,
+                format_string(g_6078, 0xbd2, 0, g_9ebc[n], 0x9db,
                            g_4d90[g_4ed4[j]].f_12 + 10000, g_4ee0[1],
                            g_4d90[g_4ed4[1]].f_12 + 10000);
             }
@@ -2857,7 +2857,7 @@ int16_t fn_17_7088(int16_t a)
     case 4:
         if (g_93aa == 13) {
             for (k = 0; k <= g_9316; k++) {
-                if (g_1df8[14][k].f_18 == 0 && g_7090[k].flag != 0 &&
+                if (object_records[14][k].f_18 == 0 && g_7090[k].flag != 0 &&
                     g_96d2[g_7090[k].f_04e].f_38 == g_9468 - 1) {
                     count++;
                     fn_17_72aa(a, fn_17_75c6(k), 0);
@@ -2894,7 +2894,7 @@ int16_t fn_17_7088(int16_t a)
     case 9:
         t = g_9472;
         for (k = 0; k <= g_9316; k++) {
-            if (g_1df8[14][k].f_18 == 0 && g_7090[k].flag != 0) {
+            if (object_records[14][k].f_18 == 0 && g_7090[k].flag != 0) {
                 for (i = 0; i < g_7090[k].cnt; i++) {
                     if (g_7090[k].f_0b8[i] == t) {
                         count++;
@@ -2933,35 +2933,35 @@ void pilot_panel_header(int16_t i)
             mood = 2;
     }
     font = CreateFont(15, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, "Arial");
-    old = SelectObject(g_13dc, font);
-    oldbk = SetBkColor(g_13dc, RGB(0, 0, 0));
-    SetBkMode(g_13dc, TRANSPARENT);
-    SetTextAlign(g_13dc, 0);
+    old = SelectObject(main_dc, font);
+    oldbk = SetBkColor(main_dc, RGB(0, 0, 0));
+    SetBkMode(main_dc, TRANSPARENT);
+    SetTextAlign(main_dc, 0);
     if (i == main_ship) {
         fn_09_955c(0x20b, buf);
-        oldtc = SetTextColor(g_13dc, PALETTERGB(0, 0xd6, 0xff));
+        oldtc = SetTextColor(main_dc, PALETTERGB(0, 0xd6, 0xff));
     } else {
         switch (mood) {
         case 0:
-            oldtc = SetTextColor(g_13dc, PALETTERGB(0xff, 0x80, 0));
+            oldtc = SetTextColor(main_dc, PALETTERGB(0xff, 0x80, 0));
             break;
         case 1:
-            oldtc = SetTextColor(g_13dc, PALETTERGB(0xd2, 0xd2, 0xd2));
+            oldtc = SetTextColor(main_dc, PALETTERGB(0xd2, 0xd2, 0xd2));
             break;
         case 2:
-            oldtc = SetTextColor(g_13dc, PALETTERGB(0, 0xaa, 0xff));
+            oldtc = SetTextColor(main_dc, PALETTERGB(0, 0xaa, 0xff));
             break;
         }
-        fn_10_a332(buf, "\r\x03", 1, mood + 0x245);
+        format_string(buf, 0x9d9, 1, mood + 0x245);
     }
-    TextOut(g_13dc, g_5000 - 330, g_5002, buf, lstrlen(buf));
-    fn_10_a332(buf, "\x03", 1, i == main_ship, i != main_ship,
+    TextOut(main_dc, g_5000 - 330, g_5002, buf, lstrlen(buf));
+    format_string(buf, 0x9da, 1, i == main_ship, i != main_ship,
                g_96d2[g_7090[g_9464].f_04e].f_38 == g_96d2[g_7090[main_ship].f_04e].f_38,
                0x210020fL);
-    TextOut(g_13dc, g_5000 - 330, g_5002 + 20, buf, lstrlen(buf));
-    SetBkColor(g_13dc, oldbk);
-    SetTextColor(g_13dc, oldtc);
-    SelectObject(g_13dc, old);
+    TextOut(main_dc, g_5000 - 330, g_5002 + 20, buf, lstrlen(buf));
+    SetBkColor(main_dc, oldbk);
+    SetTextColor(main_dc, oldtc);
+    SelectObject(main_dc, old);
     if (font) {
         DeleteObject(font);
         font = 0;
@@ -2987,11 +2987,11 @@ void ship_status_lines(int16_t flag)
     int16_t i;
 
     font = CreateFont(13, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, "Arial");
-    old = SelectObject(g_13dc, font);
-    oldbk = SetBkColor(g_13dc, RGB(0, 0, 0));
-    SetBkMode(g_13dc, TRANSPARENT);
-    SetTextAlign(g_13dc, 0);
-    oldtc = SetTextColor(g_13dc, RGB(0, 0xff, 0xff));
+    old = SelectObject(main_dc, font);
+    oldbk = SetBkColor(main_dc, RGB(0, 0, 0));
+    SetBkMode(main_dc, TRANSPARENT);
+    SetTextAlign(main_dc, 0);
+    oldtc = SetTextColor(main_dc, RGB(0, 0xff, 0xff));
     pt.x = g_5000 - 330;
     pt.y = g_5002 + 90;
     if (flag) {
@@ -3001,7 +3001,7 @@ void ship_status_lines(int16_t flag)
             fn_06_0f1a((&g_7090[g_9464].f_026[0])[i], tmp);
             lstrcat(buf, tmp);
             lstrcat(buf, "%");
-            TextOut(g_13dc, pt.x, pt.y, buf, lstrlen(buf));
+            TextOut(main_dc, pt.x, pt.y, buf, lstrlen(buf));
             pt.y += 18;
         }
         if (g_96d2[g_7090[g_9464].f_04e].f_28 != -1) {
@@ -3010,11 +3010,11 @@ void ship_status_lines(int16_t flag)
             fn_06_0f1a(g_7090[g_9464].f_026[3], tmp);
             lstrcat(buf, tmp);
             lstrcat(buf, "%");
-            TextOut(g_13dc, pt.x, pt.y, buf, lstrlen(buf));
+            TextOut(main_dc, pt.x, pt.y, buf, lstrlen(buf));
         }
         fn_17_4068(g_9464, buf);
         pt.y += 36;
-        TextOut(g_13dc, pt.x, pt.y, buf, lstrlen(buf));
+        TextOut(main_dc, pt.x, pt.y, buf, lstrlen(buf));
     } else {
         pt.y += 54;
         lstrcpy(buf, "");
@@ -3026,39 +3026,39 @@ void ship_status_lines(int16_t flag)
                 lstrcat(buf, tmp);
             }
             fn_09_9580(0x136, buf);
-            TextOut(g_13dc, pt.x, pt.y, buf, lstrlen(buf));
+            TextOut(main_dc, pt.x, pt.y, buf, lstrlen(buf));
             lstrcpy(buf, "");
         } else {
             pt.y += 18;
             if (flow_interactive != 0 && (g_91f8 == 0 || (g_91f8 < 2 && g_9460 != 0))) {
                 fn_09_955c(0x803, buf);
-                TextOut(g_13dc, pt.x, pt.y, buf, lstrlen(buf));
+                TextOut(main_dc, pt.x, pt.y, buf, lstrlen(buf));
                 lstrcpy(buf, "");
                 pt.y += 18;
                 fn_09_955c(0x804, buf);
                 lstrcat(buf, ". ");
-                TextOut(g_13dc, pt.x, pt.y, buf, lstrlen(buf));
+                TextOut(main_dc, pt.x, pt.y, buf, lstrlen(buf));
                 lstrcpy(buf, "");
             } else {
                 fn_09_955c(0x805, buf);
-                TextOut(g_13dc, pt.x, pt.y, buf, lstrlen(buf));
+                TextOut(main_dc, pt.x, pt.y, buf, lstrlen(buf));
             }
         }
         pt.y += 18;
         if (flow_interactive == 0 || g_9464 != main_ship || g_91f8 > 1 || (g_91f8 != 0 && g_9460 == 0)) {
-            fn_10_a332(buf, "\x80\x1a\x06", 1, g_7090[g_9464].f_05d + 0xf6,
+            format_string(buf, 0x9e0, 1, g_7090[g_9464].f_05d + 0xf6,
                        g_7090[g_9464].f_05d > 2, 0x21e021dL);
-            TextOut(g_13dc, pt.x, pt.y, buf, lstrlen(buf));
+            TextOut(main_dc, pt.x, pt.y, buf, lstrlen(buf));
             pt.y += 18;
-            fn_10_a332(buf, "\xc0" "E\x04", 1, g_7090[g_9464].f_05e + 0xfa,
+            format_string(buf, 0x9dc, 1, g_7090[g_9464].f_05e + 0xfa,
                        g_7090[g_9464].f_05e > 2, 0x21e021dL);
-            TextOut(g_13dc, pt.x, pt.y, buf, lstrlen(buf));
+            TextOut(main_dc, pt.x, pt.y, buf, lstrlen(buf));
             pt.y += 18;
         }
     }
-    SetBkColor(g_13dc, oldbk);
-    SetTextColor(g_13dc, oldtc);
-    SelectObject(g_13dc, old);
+    SetBkColor(main_dc, oldbk);
+    SetTextColor(main_dc, oldtc);
+    SelectObject(main_dc, old);
     if (font) {
         DeleteObject(font);
         font = 0;
@@ -3074,7 +3074,7 @@ void fn_17_03b2(void)
     g_9462 = 0;
     if (g_93aa >= 18 && g_9134 == 0)
         g_93aa = 1;
-    PatBlt(g_13dc, g_6084.left, g_6084.top, g_6084.right - g_6084.left, g_6084.bottom - g_6084.top, BLACKNESS);
+    PatBlt(main_dc, g_6084.left, g_6084.top, g_6084.right - g_6084.left, g_6084.bottom - g_6084.top, BLACKNESS);
     switch (g_93aa) {
     case 1:
         fn_17_0600(1);
@@ -3197,18 +3197,18 @@ int16_t fn_17_0600(int16_t reset)
             g_91f8++;
             fn_09_6624();
             g_91f8--;
-            g_187a = g_1e50 - 1;
+            g_187a = now_ms - 1;
             return 1;
         }
         g_187a = 0;
         g_187e = g_1880 = g_1882 = 0;
-        if (g_91fc && g_1df8[0][0].f_18)
+        if (g_91fc && object_records[0][0].f_18)
             do
                 g_1880++;
-            while (g_1df8[0][g_1880].f_18 && g_1880 < g_91fe);
+            while (object_records[0][g_1880].f_18 && g_1880 < g_91fe);
     }
     if (g_187a) {
-        if (g_187a < g_1e50)
+        if (g_187a < now_ms)
             return 1;
         return 0;
     }
@@ -3218,17 +3218,17 @@ int16_t fn_17_0600(int16_t reset)
             g_1882 += 3;
             y = (g_6084.top - g_6084.bottom) / 2 + g_6084.bottom + 20;
             hfont = CreateFont(0x26, 0x16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, g_06b0);
-            oldfont = SelectObject(g_13dc, hfont);
-            oldbk = SetBkColor(g_13dc, RGB(0, 0, 0));
-            SetBkMode(g_13dc, TRANSPARENT);
-            SetTextAlign(g_13dc, TA_CENTER);
-            oldtext = SetTextColor(g_13dc, RGB(0, 255, 255));
+            oldfont = SelectObject(main_dc, hfont);
+            oldbk = SetBkColor(main_dc, RGB(0, 0, 0));
+            SetBkMode(main_dc, TRANSPARENT);
+            SetTextAlign(main_dc, TA_CENTER);
+            oldtext = SetTextColor(main_dc, RGB(0, 255, 255));
             fn_09_955c(0x143, buf);
-            TextOut(g_13dc, (g_6084.right - g_6084.left) / 2 + g_6084.left, (g_6084.top - g_6084.bottom) / 2 + g_6084.bottom + 52,
+            TextOut(main_dc, (g_6084.right - g_6084.left) / 2 + g_6084.left, (g_6084.top - g_6084.bottom) / 2 + g_6084.bottom + 52,
                     buf, lstrlen(buf));
-            SetBkColor(g_13dc, oldbk);
-            SetTextColor(g_13dc, oldtext);
-            SelectObject(g_13dc, oldfont);
+            SetBkColor(main_dc, oldbk);
+            SetTextColor(main_dc, oldtext);
+            SelectObject(main_dc, oldfont);
             if (hfont) {
                 DeleteObject(hfont);
                 hfont = 0;
@@ -3238,7 +3238,7 @@ int16_t fn_17_0600(int16_t reset)
             left = (g_6084.right - total - g_6084.left) / 2;
             x = left - (g_1882 + 4) / 2 + g_187e * step + g_6084.left + 32;
             y = (g_6084.top - g_6084.bottom) / 2 - (g_1882 + 4) / 2 + g_6084.bottom + 52;
-            fn_10_9962(0, g_13dc, x, y, g_1882 + 4, g_1882 + 4, g_39e8[13],
+            fn_10_9962(0, main_dc, x, y, g_1882 + 4, g_1882 + 4, g_39e8[13],
                        (sz + org) * g_1880 + org, org, sz, sz, SRCCOPY);
             g_1882 += 3;
             if (g_1882 == 12)
@@ -3247,7 +3247,7 @@ int16_t fn_17_0600(int16_t reset)
                 fn_17_0c2e(g_1880, x, y);
                 do
                     g_1880++;
-                while (g_1880 < g_91fe && g_1df8[0][g_1880].f_18);
+                while (g_1880 < g_91fe && object_records[0][g_1880].f_18);
                 g_187e++;
                 g_1882 = 0;
             }
@@ -3270,22 +3270,22 @@ int16_t fn_17_0600(int16_t reset)
             g_5000 = (g_6084.right - g_6084.left) / 2 + g_6084.left - 265;
             g_5002 = y - 106;
             fn_17_2c5a(1, 1);
-            SetStretchBltMode(g_13dc, 3);
+            SetStretchBltMode(main_dc, 3);
             g_1880 = g_187e = 0;
-            if (g_91fc && g_1df8[0][0].f_18)
+            if (g_91fc && object_records[0][0].f_18)
                 do
                     g_1880++;
-                while (g_1880 < g_91fe && g_1df8[0][g_1880].f_18);
+                while (g_1880 < g_91fe && object_records[0][g_1880].f_18);
             while (g_1880 < g_91fe) {
                 total = step * g_91fc;
                 left = (g_6084.right - total - g_6084.left) / 2;
                 x = left + g_187e * step + g_6084.left;
-                fn_10_9962(0, g_13dc, x, y, 64, 64, g_39e8[13],
+                fn_10_9962(0, main_dc, x, y, 64, 64, g_39e8[13],
                            (sz + org) * g_1880 + org, org, sz, sz, SRCCOPY);
                 fn_17_0c2e(g_1880, x, y);
                 do
                     g_1880++;
-                while (g_1df8[0][g_1880].f_18 && g_1880 < g_91fe);
+                while (object_records[0][g_1880].f_18 && g_1880 < g_91fe);
                 g_187e++;
             }
             break;
@@ -3306,7 +3306,7 @@ int16_t fn_17_0600(int16_t reset)
         left = (g_6084.right - total - g_6084.left) / 2;
         x = left - (g_1884 + 4) / 2 + g_1880 * step + g_6084.left + 32;
         y = (g_6084.top - g_6084.bottom) / 2 - (g_1882 + 4) / 2 + g_6084.bottom + 52;
-        fn_10_9962(0, g_13dc, x, y, g_1884 + 4, g_1884 + 4, g_39e8[13],
+        fn_10_9962(0, main_dc, x, y, g_1884 + 4, g_1884 + 4, g_39e8[13],
                    (sz + org) * g_1880 + org - 2, org - 2, sz + 4, sz + 4, SRCCOPY);
         g_1884 = g_1882;
         g_1882 -= 4;
@@ -3320,10 +3320,10 @@ int16_t fn_17_0600(int16_t reset)
         if (g_1882 <= 0) {
             x = g_1880 * step + left + g_6084.left;
             y = (g_6084.top - g_6084.bottom) / 2 + g_6084.bottom + 20;
-            PatBlt(g_13dc, x - 6, y, 76, step, BLACKNESS);
+            PatBlt(main_dc, x - 6, y, 76, step, BLACKNESS);
             g_1884 = g_1882 = 60;
             if (++g_1880 >= g_91fe)
-                g_187a = g_1e50 + 1000;
+                g_187a = now_ms + 1000;
         }
         break;
     }
@@ -3348,22 +3348,22 @@ int16_t fn_17_0d22(int16_t reset)
         g_188a = 1;
     }
     if (g_1886) {
-        if (g_1886 < g_1e50)
+        if (g_1886 < now_ms)
             return 1;
         return 0;
     }
     switch (g_9462) {
     case 0:
-        b = g_1df8[4]->f_22;
+        b = object_records[4]->f_22;
         sz = min(g_188a * 36 / 20, 72);
         if (sz < 72)
             g_188e = g_188a * 2;
         pt.x = g_608c / 2 - sz / 2 - g_188e - 30;
         pt.y = (g_6084.top - g_6084.bottom) / 2 - sz / 2 + g_6084.bottom;
-        a = g_1df8[4]->f_24;
-        SetStretchBltMode(g_13dc, 3);
-        fn_10_9962(0, g_13dc, pt.x, pt.y, sz, sz, g_39f0, a, a, b, b, SRCCOPY);
-        PatBlt(g_13dc, sz + pt.x, pt.y, 2, sz, BLACKNESS);
+        a = object_records[4]->f_24;
+        SetStretchBltMode(main_dc, 3);
+        fn_10_9962(0, main_dc, pt.x, pt.y, sz, sz, g_39f0, a, a, b, b, SRCCOPY);
+        PatBlt(main_dc, sz + pt.x, pt.y, 2, sz, BLACKNESS);
         g_188a++;
         if (g_188a > 40) {
             g_9462++;
@@ -3375,15 +3375,15 @@ int16_t fn_17_0d22(int16_t reset)
     case 1:
         if (g_9460 != 0 && g_9474 != 0) {
             g_9474 = 0;
-            a = g_1df8[4]->f_24;
-            b = g_1df8[4]->f_22;
+            a = object_records[4]->f_24;
+            b = object_records[4]->f_22;
             pt.y = (g_6084.top - g_6084.bottom) / 2 + g_6084.bottom - 36;
             pt.x = g_608c / 2 - 146;
             g_5000 = pt.x + 132;
             g_5002 = pt.y - 17;
             fn_17_2c5a(1, 1);
-            SetStretchBltMode(g_13dc, 3);
-            fn_10_9962(0, g_13dc, pt.x, pt.y, 72, 72, g_39f0, a, a, b, b, SRCCOPY);
+            SetStretchBltMode(main_dc, 3);
+            fn_10_9962(0, main_dc, pt.x, pt.y, 72, 72, g_39f0, a, a, b, b, SRCCOPY);
         } else {
             r = fn_17_2c5a(0, 0);
             if (r == 1) {
@@ -3397,22 +3397,22 @@ int16_t fn_17_0d22(int16_t reset)
         }
         break;
     case 2:
-        b = g_1df8[4]->f_22;
+        b = object_records[4]->f_22;
         sz = min(g_188c * 36 / 20, 72);
-        a = g_1df8[4]->f_24;
+        a = object_records[4]->f_24;
         if (sz < 72)
             g_188e = g_188a * 2;
         pt.x = g_608c / 2 - sz / 2 - g_188e - 30;
         pt.y = (g_6084.top - g_6084.bottom) / 2 - sz / 2 + g_6084.bottom;
-        SetStretchBltMode(g_13dc, 3);
-        fn_10_9962(0, g_13dc, pt.x, pt.y, sz, sz, g_39f0, a - 3, a - 3, b + 6, b + 6, SRCCOPY);
-        PatBlt(g_13dc, pt.x - 10, pt.y, 10, sz, BLACKNESS);
-        PatBlt(g_13dc, pt.x - 20, pt.y - 20, sz + 20, 20, BLACKNESS);
+        SetStretchBltMode(main_dc, 3);
+        fn_10_9962(0, main_dc, pt.x, pt.y, sz, sz, g_39f0, a - 3, a - 3, b + 6, b + 6, SRCCOPY);
+        PatBlt(main_dc, pt.x - 10, pt.y, 10, sz, BLACKNESS);
+        PatBlt(main_dc, pt.x - 20, pt.y - 20, sz + 20, 20, BLACKNESS);
         g_188c = g_188a;
         g_188a -= 2;
         if (g_188a <= 7) {
-            PatBlt(g_13dc, pt.x - 4, pt.y - 4, sz + 8, sz + 8, BLACKNESS);
-            g_1886 = g_1e50 + 1000;
+            PatBlt(main_dc, pt.x - 4, pt.y - 4, sz + 8, sz + 8, BLACKNESS);
+            g_1886 = now_ms + 1000;
         }
         break;
     }
@@ -3472,23 +3472,23 @@ int16_t fn_17_1b3e(int16_t reset, int16_t kind)
         g_18c0 = g_18ba = 1;
     }
     if (g_18b6) {
-        if (g_18b6 < g_1e50)
+        if (g_18b6 < now_ms)
             return 1;
         return 0;
     }
     switch (g_9462) {
     case 0:
-        sz = g_1df8[kind][idx].f_22;
+        sz = object_records[kind][idx].f_22;
         size = min(base * g_18ba / 55, base * 2);
-        org = g_1df8[kind][idx].f_24;
+        org = object_records[kind][idx].f_24;
         if (size < (int16_t)(base * 2))
             g_18be = g_18ba;
         x = g_608c / 2 - size / 2 - g_18be - 30;
         y = (g_6084.top - g_6084.bottom) / 2 - size / 2 + g_6084.bottom;
-        SetStretchBltMode(g_13dc, 3);
-        fn_10_9962(0, g_13dc, x, y, size, size, g_39e8[spr], (org + sz) * (g_18c0 / 2) + org,
+        SetStretchBltMode(main_dc, 3);
+        fn_10_9962(0, main_dc, x, y, size, size, g_39e8[spr], (org + sz) * (g_18c0 / 2) + org,
                    org, sz, sz, SRCCOPY);
-        PatBlt(g_13dc, size + x, y, 2, size, BLACKNESS);
+        PatBlt(main_dc, size + x, y, 2, size, BLACKNESS);
         g_18ba++;
         if (++g_18c0 >= frames * 2)
             g_18c0 = 0;
@@ -3502,31 +3502,31 @@ int16_t fn_17_1b3e(int16_t reset, int16_t kind)
     case 1:
         if (g_9460 && g_9474) {
             g_9474 = 0;
-            sz = g_1df8[kind][idx].f_22;
-            org = g_1df8[kind][idx].f_24;
+            sz = object_records[kind][idx].f_22;
+            org = object_records[kind][idx].f_24;
             size = base * 2;
             x = g_608c / 2 - size / 2 - 140;
             y = (g_6084.top - g_6084.bottom) / 2 - size / 2 + g_6084.bottom;
             g_5000 = x + size + 90;
             g_5002 = y - 10;
             fn_17_2c5a(1, 1);
-            SetStretchBltMode(g_13dc, 3);
-            fn_10_9962(0, g_13dc, x, y, size, size, g_39e8[spr], (org + sz) * (frames / 2) + org,
+            SetStretchBltMode(main_dc, 3);
+            fn_10_9962(0, main_dc, x, y, size, size, g_39e8[spr], (org + sz) * (frames / 2) + org,
                        org, sz, sz, SRCCOPY);
             break;
         }
         if (kind != 3 && kind != 7) {
-            sz = g_1df8[kind][idx].f_22;
+            sz = object_records[kind][idx].f_22;
             size = min(base * g_18ba / 55, base * 2);
-            org = g_1df8[kind][idx].f_24;
+            org = object_records[kind][idx].f_24;
             if (size < (int16_t)(base * 2))
                 g_18be = g_18ba;
             x = g_608c / 2 - size / 2 - g_18be - 30;
             y = (g_6084.top - g_6084.bottom) / 2 - size / 2 + g_6084.bottom;
-            SetStretchBltMode(g_13dc, 3);
-            fn_10_9962(0, g_13dc, x, y, size, size, g_39e8[spr], (org + sz) * (g_18c0 / 2) + org,
+            SetStretchBltMode(main_dc, 3);
+            fn_10_9962(0, main_dc, x, y, size, size, g_39e8[spr], (org + sz) * (g_18c0 / 2) + org,
                        org, sz, sz, SRCCOPY);
-            PatBlt(g_13dc, size + x, y, 2, size, BLACKNESS);
+            PatBlt(main_dc, size + x, y, 2, size, BLACKNESS);
             if (++g_18c0 >= frames * 2)
                 g_18c0 = 0;
         }
@@ -3539,25 +3539,25 @@ int16_t fn_17_1b3e(int16_t reset, int16_t kind)
         }
         break;
     case 2:
-        sz = g_1df8[kind][idx].f_22;
+        sz = object_records[kind][idx].f_22;
         size = min(base * g_18bc / 55, base * 2);
-        org = g_1df8[kind][idx].f_24;
+        org = object_records[kind][idx].f_24;
         if (size < (int16_t)(base * 2))
             g_18be = g_18ba;
         x = g_608c / 2 - size / 2 - g_18be - 30;
         y = (g_6084.top - g_6084.bottom) / 2 - size / 2 + g_6084.bottom;
-        SetStretchBltMode(g_13dc, 3);
-        fn_10_9962(0, g_13dc, x, y, size, size, g_39e8[spr], (org + sz) * (g_18c0 / 2) + org - 2,
+        SetStretchBltMode(main_dc, 3);
+        fn_10_9962(0, main_dc, x, y, size, size, g_39e8[spr], (org + sz) * (g_18c0 / 2) + org - 2,
                    org - 2, sz + 4, sz + 4, SRCCOPY);
-        PatBlt(g_13dc, x - 4, y, 4, size, BLACKNESS);
-        PatBlt(g_13dc, x - 10, y - 10, size + 10, 10, BLACKNESS);
+        PatBlt(main_dc, x - 4, y, 4, size, BLACKNESS);
+        PatBlt(main_dc, x - 10, y - 10, size + 10, 10, BLACKNESS);
         g_18bc = g_18ba;
         g_18ba -= 2;
         if (--g_18c0 < 0)
             g_18c0 = frames * 2 - 1;
         if (g_18ba <= 8) {
-            PatBlt(g_13dc, x - 4, y - 4, size + 8, size + 8, BLACKNESS);
-            g_18b6 = g_1e50 + 1000;
+            PatBlt(main_dc, x - 4, y - 4, size + 8, size + 8, BLACKNESS);
+            g_18b6 = now_ms + 1000;
         }
         break;
     }
@@ -3596,16 +3596,16 @@ int16_t fn_17_20fa(int16_t reset, int16_t a, int16_t b)
         if (g_7090[g_9464].f_0d6 >= 0)
             size = g_6e24[g_7090[g_9464].f_0d6].f_7a;
         else
-            size = g_1df8[14][g_9464].f_22;
+            size = object_records[14][g_9464].f_22;
         g_9462 = 1;
-        pc = g_1df8[14][g_9464].f_22;
-        pe = g_1df8[14][g_9464].f_24;
+        pc = object_records[14][g_9464].f_22;
+        pe = object_records[14][g_9464].f_24;
         g_5000 = (size + 13) * 3 + g_1906.x;
         g_5002 = (g_6084.top - g_6084.bottom) / 2 + g_6084.bottom - 0x56;
-        SetStretchBltMode(g_13dc, 3);
-        PatBlt(g_13dc, g_5000, g_5002, g_6084.right - g_5000, g_6084.bottom - g_5002, BLACKNESS);
-        PatBlt(g_13dc, g_6084.left, g_5002, g_5000 - 100, g_6084.bottom - g_5002, BLACKNESS);
-        fn_10_9962(0, g_13dc, g_1906.x, g_1906.y, mult * size, mult * size, g_39e8[bmp],
+        SetStretchBltMode(main_dc, 3);
+        PatBlt(main_dc, g_5000, g_5002, g_6084.right - g_5000, g_6084.bottom - g_5002, BLACKNESS);
+        PatBlt(main_dc, g_6084.left, g_5002, g_5000 - 100, g_6084.bottom - g_5002, BLACKNESS);
+        fn_10_9962(0, main_dc, g_1906.x, g_1906.y, mult * size, mult * size, g_39e8[bmp],
                    pe, pe, pc, pc, SRCCOPY);
         pilot_panel_header(g_9464);
         fn_17_30b0(g_93aa, 3000L);
@@ -3619,23 +3619,23 @@ int16_t fn_17_20fa(int16_t reset, int16_t a, int16_t b)
             g_9462 = 0;
         else if (a) {
             if (++g_9464 > g_9316) {
-                g_18c2 = g_1e50 + 100;
+                g_18c2 = now_ms + 100;
                 return 1;
             }
             g_9462 = 0;
         } else
             g_9464 = 0;
         if (g_9464 > g_9316) {
-            g_18c2 = g_1e50 + 100;
+            g_18c2 = now_ms + 100;
             return 1;
         }
         if (g_7090[g_9464].f_0d6 != -1)
             size = g_6e24[g_7090[g_9464].f_0d6].f_7a;
         else
-            size = g_1df8[14][g_9464].f_22;
-        g_1df8[14][g_9464].f_1a = 1;
+            size = object_records[14][g_9464].f_22;
+        object_records[14][g_9464].f_1a = 1;
         fn_11_b09c(g_9464, 1);
-        g_1df8[14][g_9464].f_1a = 0;
+        object_records[14][g_9464].f_1a = 0;
         g_18c6 = 0;
         g_18fa = 1;
         g_18ca = 20;
@@ -3658,14 +3658,14 @@ int16_t fn_17_20fa(int16_t reset, int16_t a, int16_t b)
     if (g_39e8[bmp] == 0)
         return 1;
     if (g_18c2 != 0) {
-        if (g_18c2 < g_1e50)
+        if (g_18c2 < now_ms)
             return 1;
         return 0;
     }
     if (g_7090[g_9464].f_0d6 != -1)
         size = g_6e24[g_7090[g_9464].f_0d6].f_7a;
     else
-        size = g_1df8[14][g_9464].f_22;
+        size = object_records[14][g_9464].f_22;
     switch (g_9462) {
     case 0:
         h4 = g_18e6 * g_18d2 / g_18d6 + g_18e2;
@@ -3675,22 +3675,22 @@ int16_t fn_17_20fa(int16_t reset, int16_t a, int16_t b)
             h6 = g_18f2 / 100;
         else
             h6 = (g_18f6 * g_18da / g_18de + g_18f2) / 100;
-        pc = g_1df8[14][g_9464].f_22;
-        pe = g_1df8[14][g_9464].f_24;
+        pc = object_records[14][g_9464].f_22;
+        pe = object_records[14][g_9464].f_24;
         g_1904 = g_18ee * g_18d2 / g_18d6 + g_18ea;
         ha = (int16_t)(size * h4) / 100;
         g_1906.y = g_1904 - ha / 2;
         g_1906.x = (int16_t)(ha * h1c) / -100 / 2 + g_1902;
-        SetStretchBltMode(g_13dc, 3);
-        fn_10_9962(0, g_13dc, g_1906.x, g_1906.y, (int16_t)(ha * h1c) / 100, ha, g_39e8[bmp],
+        SetStretchBltMode(main_dc, 3);
+        fn_10_9962(0, main_dc, g_1906.x, g_1906.y, (int16_t)(ha * h1c) / 100, ha, g_39e8[bmp],
                    (pe + pc) * h6 + pe, pe, pc, pc, SRCCOPY);
-        PatBlt(g_13dc, g_1906.x - 20, g_1906.y - 20, 20, ha + 20, BLACKNESS);
+        PatBlt(main_dc, g_1906.x - 20, g_1906.y - 20, 20, ha + 20, BLACKNESS);
         g_1902 = (g_18d2 += h1e) / 10;
         g_18da++;
         if (g_18d2 >= g_18d6 && g_18de <= g_18da) {
-            g_1df8[14][obj].f_1a = 1;
+            object_records[14][obj].f_1a = 1;
             fn_11_b09c(obj, 0);
-            g_1df8[14][obj].f_1a = 0;
+            object_records[14][obj].f_1a = 0;
             g_18c6++;
             g_18ca = 100;
             g_18ce = 0;
@@ -3731,14 +3731,14 @@ int16_t fn_17_20fa(int16_t reset, int16_t a, int16_t b)
         g_946c = g_9464;
         if (g_9460 && g_9474) {
             g_9474 = 0;
-            pc = g_1df8[14][g_946c].f_22;
-            pe = g_1df8[14][g_946c].f_24;
+            pc = object_records[14][g_946c].f_22;
+            pe = object_records[14][g_946c].f_24;
             g_5000 = (size + 13) * 3 + g_1906.x;
             g_5002 = (g_6084.top - g_6084.bottom) / 2 + g_6084.bottom - 0x56;
             pilot_panel_header(g_9464);
             fn_17_2c5a(1, 1);
-            SetStretchBltMode(g_13dc, 3);
-            fn_10_9962(0, g_13dc, g_1906.x, g_1906.y, mult * size, mult * size, g_39e8[bmp],
+            SetStretchBltMode(main_dc, 3);
+            fn_10_9962(0, main_dc, g_1906.x, g_1906.y, mult * size, mult * size, g_39e8[bmp],
                        pe, pe, pc, pc, SRCCOPY);
             break;
         }
@@ -3746,8 +3746,8 @@ int16_t fn_17_20fa(int16_t reset, int16_t a, int16_t b)
             fn_10_565a();
         else if (r == 2 && !g_9460) {
             g_9462++;
-            PatBlt(g_13dc, g_5000, g_5002, g_6084.right - g_5000, g_6084.bottom - g_5002, BLACKNESS);
-            PatBlt(g_13dc, g_6084.left, g_5002, g_5000 - 100, g_6084.bottom - g_5002, BLACKNESS);
+            PatBlt(main_dc, g_5000, g_5002, g_6084.right - g_5000, g_6084.bottom - g_5002, BLACKNESS);
+            PatBlt(main_dc, g_6084.left, g_5002, g_5000 - 100, g_6084.bottom - g_5002, BLACKNESS);
         }
         break;
     case 2:
@@ -3758,25 +3758,25 @@ int16_t fn_17_20fa(int16_t reset, int16_t a, int16_t b)
             h6 = g_18f2 / 100;
         else
             h6 = (g_18f6 * g_18da / g_18de + g_18f2) / 100;
-        pc = g_1df8[14][g_9464].f_22;
-        pe = g_1df8[14][g_9464].f_24;
+        pc = object_records[14][g_9464].f_22;
+        pe = object_records[14][g_9464].f_24;
         g_1904 = g_18fe * g_18ee / g_18d6 + g_18ea;
         ha = (int16_t)(size * h4) / 100;
         g_1906.y = g_1904 - ha / 2;
         g_1906.x = (int16_t)(ha * h1c) / -100 / 2 + g_1902;
-        SetStretchBltMode(g_13dc, 3);
-        fn_10_9962(0, g_13dc, g_1906.x, g_1906.y, (int16_t)(ha * h1c) / 100, ha, g_39e8[bmp],
+        SetStretchBltMode(main_dc, 3);
+        fn_10_9962(0, main_dc, g_1906.x, g_1906.y, (int16_t)(ha * h1c) / 100, ha, g_39e8[bmp],
                    (pe + pc) * h6 + pe, pe, pc, pc, SRCCOPY);
-        PatBlt(g_13dc, g_1906.x - 20, g_1906.y - 20, (int16_t)(ha * h1c) / 100 + 20, 20, BLACKNESS);
-        PatBlt(g_13dc, g_1906.x - 20, ha + g_1906.y, (int16_t)(ha * h1c) / 100 + 20, 20, BLACKNESS);
-        PatBlt(g_13dc, g_1906.x - 20, g_1906.y - 20, 20, ha + 20, BLACKNESS);
+        PatBlt(main_dc, g_1906.x - 20, g_1906.y - 20, (int16_t)(ha * h1c) / 100 + 20, 20, BLACKNESS);
+        PatBlt(main_dc, g_1906.x - 20, ha + g_1906.y, (int16_t)(ha * h1c) / 100 + 20, 20, BLACKNESS);
+        PatBlt(main_dc, g_1906.x - 20, g_1906.y - 20, 20, ha + 20, BLACKNESS);
         g_1902 = (g_18d2 += h1e) / 10;
         g_18da++;
         g_18fe += h1e;
         if (g_18fe >= g_18d6 && g_18de <= g_18da) {
-            g_1df8[14][obj].f_1a = 1;
+            object_records[14][obj].f_1a = 1;
             fn_11_b09c(obj, 1);
-            g_1df8[14][obj].f_1a = 0;
+            object_records[14][obj].f_1a = 0;
             g_18fa = 1;
             g_18ca = 100;
             g_18ce = -80;
@@ -3795,11 +3795,11 @@ int16_t fn_17_20fa(int16_t reset, int16_t a, int16_t b)
                 fn_10_754a(0x15, g_6084.right / 2 + 250, HI16(g_90ea) / 2, 4);
             else {
                 g_9464++;
-                PatBlt(g_13dc, g_6084.left, g_6084.top, g_6084.right - g_6084.left, g_6084.bottom - g_6084.top, BLACKNESS);
+                PatBlt(main_dc, g_6084.left, g_6084.top, g_6084.right - g_6084.left, g_6084.bottom - g_6084.top, BLACKNESS);
                 if (g_9464 <= g_9316) {
-                    g_1df8[14][g_9464].f_1a = 1;
+                    object_records[14][g_9464].f_1a = 1;
                     fn_11_b09c(g_9464, 1);
-                    g_1df8[14][g_9464].f_1a = 0;
+                    object_records[14][g_9464].f_1a = 0;
                     g_9462 = 0;
                     g_18c6 = 0;
                     g_18fa = 1;
@@ -3819,7 +3819,7 @@ int16_t fn_17_20fa(int16_t reset, int16_t a, int16_t b)
                     g_1904 = g_18ea;
                     fn_10_754a(0x13, 100, HI16(g_90ea) / 2, 4);
                 } else
-                    g_18c2 = g_1e50 + 1000;
+                    g_18c2 = now_ms + 1000;
             }
         }
         break;
@@ -3843,7 +3843,7 @@ int16_t fn_17_16cc(int16_t reset, int16_t n)
         return 0;
     }
     if (g_18a8 != 0) {
-        if (g_18a8 < g_1e50)
+        if (g_18a8 < now_ms)
             return 1;
         return 0;
     }
@@ -3862,11 +3862,11 @@ int16_t fn_17_16cc(int16_t reset, int16_t n)
         GetObject(g_9490, sizeof(BITMAP), &bm);
         g_18ac.x = bm.bmWidth;
         g_18ac.y = bm.bmHeight;
-        hdc = CreateCompatibleDC(g_13dc);
+        hdc = CreateCompatibleDC(main_dc);
         old = SelectObject(hdc, g_9490);
-        oldpal = SelectPalette(hdc, g_920e, 0);
-        SetStretchBltMode(g_13dc, 3);
-        fn_10_9962(0, g_13dc, g_6084.right / 2 - g_18ac.x - 200, g_5002 + 50, g_18ac.x * 2, g_18ac.y * 2,
+        oldpal = SelectPalette(hdc, game_palette, 0);
+        SetStretchBltMode(main_dc, 3);
+        fn_10_9962(0, main_dc, g_6084.right / 2 - g_18ac.x - 200, g_5002 + 50, g_18ac.x * 2, g_18ac.y * 2,
                    hdc, 0, 0, g_18ac.x, g_18ac.y, SRCCOPY);
         SelectPalette(hdc, oldpal, 0);
         SelectObject(hdc, old);
@@ -3875,11 +3875,11 @@ int16_t fn_17_16cc(int16_t reset, int16_t n)
     case 1:
         if (g_9460 != 0 && g_9474 != 0) {
             fn_17_55e2(n);
-            hdc = CreateCompatibleDC(g_13dc);
+            hdc = CreateCompatibleDC(main_dc);
             old = SelectObject(hdc, g_9490);
-            oldpal = SelectPalette(hdc, g_920e, 0);
-            SetStretchBltMode(g_13dc, 3);
-            fn_10_9962(0, g_13dc, g_6084.right / 2 - g_18ac.x - 200, g_5002 + 50, g_18ac.x * 2, g_18ac.y * 2,
+            oldpal = SelectPalette(hdc, game_palette, 0);
+            SetStretchBltMode(main_dc, 3);
+            fn_10_9962(0, main_dc, g_6084.right / 2 - g_18ac.x - 200, g_5002 + 50, g_18ac.x * 2, g_18ac.y * 2,
                        hdc, 0, 0, g_18ac.x, g_18ac.y, SRCCOPY);
             SelectPalette(hdc, oldpal, 0);
             SelectObject(hdc, old);
@@ -3895,7 +3895,7 @@ int16_t fn_17_16cc(int16_t reset, int16_t n)
         }
         break;
     case 2:
-        g_18a8 = g_1e50 + 1000;
+        g_18a8 = now_ms + 1000;
         break;
     }
     g_9474 = 0;
@@ -3936,18 +3936,18 @@ void fn_17_8572(HWND hDlg)
     SendMessage(GetDlgItem(hDlg, 1), WM_SETFONT, g_6094[1], 1L);
     SendMessage(GetDlgItem(hDlg, 2), WM_SETFONT, g_6094[1], 1L);
     for (i = 0; i < g_9470; i++) {
-        LoadString(g_9212, 0x840, s1, 110);
+        LoadString(lang_module, 0x840, s1, 110);
         fn_17_8f1e(-1, i, 1, GetDlgItem(hDlg, 0x199), s1);
         fn_17_8910(i, GetDlgItem(hDlg, 0x199), 1);
     }
     for (i = 0; i < 9; i++) {
-        LoadString(g_9212, i + 0x52b, s1, 110);
+        LoadString(lang_module, i + 0x52b, s1, 110);
         fn_17_8f1e(0, 5, 1, GetDlgItem(hDlg, 0x199), s1);
-        LoadString(g_9212, i + 0x514, s1, 110);
+        LoadString(lang_module, i + 0x514, s1, 110);
         fn_17_8f1e(2, 5, 1, GetDlgItem(hDlg, 0x199), s1);
-        LoadString(g_9212, i + 0x51d, s1, 110);
+        LoadString(lang_module, i + 0x51d, s1, 110);
         fn_17_8f1e(2, 5, 1, GetDlgItem(hDlg, 0x199), s1);
-        LoadString(g_9212, i + 0x534, s1, 110);
+        LoadString(lang_module, i + 0x534, s1, 110);
         fn_17_8f1e(1, 5, 1, GetDlgItem(hDlg, 0x199), s1);
     }
     SendMessage(g_947a[4], CB_GETLBTEXT, g_9468, (LPARAM)(LPSTR)s2);
@@ -4019,15 +4019,15 @@ void fn_17_6116(void)
         SetFocus(g_947a[4]);
     g_608c = g_6084.right;
     g_608e = g_6084.bottom;
-    g_1e50 = GetCurrentTime();
-    g_13dc = GetDC(g_9460);
-    if (g_920e)
-        old = SelectPalette(g_13dc, g_920e, 0);
+    now_ms = GetCurrentTime();
+    main_dc = GetDC(g_9460);
+    if (game_palette)
+        old = SelectPalette(main_dc, game_palette, 0);
     fn_17_0000(0, 1);
     if (old)
-        SelectPalette(g_13dc, old, 0);
-    ReleaseDC(g_0016, g_13dc);
-    g_13dc = 0;
+        SelectPalette(main_dc, old, 0);
+    ReleaseDC(main_window, main_dc);
+    main_dc = 0;
 }
 
 /* Window procedure of the race/records window [inferred]. */
@@ -4060,7 +4060,7 @@ LRESULT fn_17_5782(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_CREATE:
         g_1920 = GetCurrentTime();
         g_191e = GetStockObject(2);
-        EnableWindow(g_0016, 0);
+        EnableWindow(main_window, 0);
         g_90f4 = 7;
         g_9460 = hwnd;
         fn_17_6116();
@@ -4096,11 +4096,11 @@ LRESULT fn_17_5782(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         MEASUREITEMSTRUCT *mis;
 
         mis = (MEASUREITEMSTRUCT *)lParam;
-        dc = GetDC(g_0016);
+        dc = GetDC(main_window);
         old = SelectObject(dc, g_6094[0]);
         GetTextMetrics(dc, &tm);
         SelectObject(dc, old);
-        ReleaseDC(g_0016, dc);
+        ReleaseDC(main_window, dc);
         mis->itemHeight = max((int16_t)(tm.tmExternalLeading + tm.tmHeight + 3), 14);
         if (g_9466 == 7)
             mis->itemHeight *= 2;
@@ -4117,7 +4117,7 @@ LRESULT fn_17_5782(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             fn_17_67e6();
             break;
         case 101:
-            res = DialogBox(g_9212, MAKEINTRESOURCE(0x194), g_9460, (DLGPROC)fn_17_8418);
+            res = DialogBox(lang_module, MAKEINTRESOURCE(0x194), g_9460, (DLGPROC)fn_17_8418);
             if (res) {
                 SendMessage(g_947a[3], 0x40e, g_9466 = res / 100 - 1, 0L);
                 fn_17_65da();
@@ -4169,75 +4169,75 @@ LRESULT fn_17_5782(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         }
         InvalidateRect(hwnd, NULL, TRUE);
         GetClientRect(hwnd, &rc);
-        g_13dc = hdc = BeginPaint(hwnd, &ps);
+        main_dc = hdc = BeginPaint(hwnd, &ps);
         fn_11_1774(2, 0, -5, g_1dc8 - g_1dc4 - 2, g_1dca - GetSystemMetrics(SM_CYCAPTION) - g_1dc6 - 2);
         if (g_93aa == 16 && g_9468 == 0) {
             fn_11_1774(4, x = 0x27, 0x4c, 0x26f, 0x124);
             fn_11_1774(-1, x, 0x4c, 0x26f, 0x5a);
             fn_09_955c(0x80e, buf);
-            fn_09_8bec(g_13dc, 0x3b, 0x4d, 0xd, 0, 0, buf);
+            fn_09_8bec(main_dc, 0x3b, 0x4d, 0xd, 0, 0, buf);
             fn_09_955c(0x80f, buf);
-            fn_09_8bec(g_13dc, 0x10d, 0x4d, 0xd, 0, 0, buf);
+            fn_09_8bec(main_dc, 0x10d, 0x4d, 0xd, 0, 0, buf);
             fn_09_955c(0x810, buf);
-            fn_09_8bec(g_13dc, 0x14b, 0x4d, 0xd, 0, 0, buf);
+            fn_09_8bec(main_dc, 0x14b, 0x4d, 0xd, 0, 0, buf);
             fn_09_955c(0x811, buf);
-            fn_09_8bec(g_13dc, 0x1c6, 0x4d, 0xd, 0, 0, buf);
+            fn_09_8bec(main_dc, 0x1c6, 0x4d, 0xd, 0, 0, buf);
             fn_09_955c(0x812, buf);
-            fn_09_8bec(g_13dc, 0x202, 0x4d, 0xd, 0, 0, buf);
+            fn_09_8bec(main_dc, 0x202, 0x4d, 0xd, 0, 0, buf);
         }
         if (g_9460) {
             if (g_93aa == 2 && ((g_9468 + 1) & 1)) {
                 fn_11_1774(4, x = 0x14, 0x4c, 0x264, 0x124);
                 fn_11_1774(-1, x, 0x4c, 0x264, 0x5a);
                 fn_09_955c(0x80e, buf);
-                fn_09_8bec(g_13dc, 0x28, 0x4d, 0xd, 0, 0, buf);
+                fn_09_8bec(main_dc, 0x28, 0x4d, 0xd, 0, 0, buf);
                 fn_09_955c(0x813, buf);
-                fn_09_8bec(g_13dc, 0xcd, 0x4d, 0xd, 0, 0, buf);
+                fn_09_8bec(main_dc, 0xcd, 0x4d, 0xd, 0, 0, buf);
                 fn_09_955c(0x816, buf);
-                fn_09_8bec(g_13dc, 0x10e, 0x4d, 0xd, 0, 0, buf);
+                fn_09_8bec(main_dc, 0x10e, 0x4d, 0xd, 0, 0, buf);
                 fn_09_955c(0x814, buf);
-                fn_09_8bec(g_13dc, 0x14a, 0x4d, 0xd, 0, 0, buf);
+                fn_09_8bec(main_dc, 0x14a, 0x4d, 0xd, 0, 0, buf);
                 fn_09_955c(0x816, buf);
-                fn_09_8bec(g_13dc, 0x186, 0x4d, 0xd, 0, 0, buf);
+                fn_09_8bec(main_dc, 0x186, 0x4d, 0xd, 0, 0, buf);
                 fn_09_955c(0x815, buf);
-                fn_09_8bec(g_13dc, 0x1d6, 0x4d, 0xd, 0, 0, buf);
+                fn_09_8bec(main_dc, 0x1d6, 0x4d, 0xd, 0, 0, buf);
                 fn_09_955c(0x816, buf);
-                fn_09_8bec(g_13dc, 0x212, 0x4d, 0xd, 0, 0, buf);
+                fn_09_8bec(main_dc, 0x212, 0x4d, 0xd, 0, 0, buf);
             }
         }
-        oldpen = SelectObject(g_13dc, CreatePen(PS_SOLID, 1, RGB(192, 192, 192)));
-        MoveTo(g_13dc, 6, rc.bottom - 0x20);
-        LineTo(g_13dc, rc.right - 6, rc.bottom - 0x20);
-        DeleteObject(SelectObject(g_13dc, oldpen));
-        oldbrush = SelectObject(g_13dc, GetStockObject(2));
-        PatBlt(g_13dc, 6, rc.bottom - 0x1f, rc.right - 0xc, 0x19, PATCOPY);
-        SelectObject(g_13dc, oldbrush);
-        oldfont = SelectObject(g_13dc, g_6094[1]);
-        oldbk = SetBkColor(g_13dc, RGB(128, 128, 128));
-        SetBkMode(g_13dc, TRANSPARENT);
-        SetTextAlign(g_13dc, 0);
-        oldtc = SetTextColor(g_13dc, PALETTERGB(0, 0, 0));
+        oldpen = SelectObject(main_dc, CreatePen(PS_SOLID, 1, RGB(192, 192, 192)));
+        MoveTo(main_dc, 6, rc.bottom - 0x20);
+        LineTo(main_dc, rc.right - 6, rc.bottom - 0x20);
+        DeleteObject(SelectObject(main_dc, oldpen));
+        oldbrush = SelectObject(main_dc, GetStockObject(2));
+        PatBlt(main_dc, 6, rc.bottom - 0x1f, rc.right - 0xc, 0x19, PATCOPY);
+        SelectObject(main_dc, oldbrush);
+        oldfont = SelectObject(main_dc, g_6094[1]);
+        oldbk = SetBkColor(main_dc, RGB(128, 128, 128));
+        SetBkMode(main_dc, TRANSPARENT);
+        SetTextAlign(main_dc, 0);
+        oldtc = SetTextColor(main_dc, PALETTERGB(0, 0, 0));
         fn_09_955c(0x211, text);
-        TextOut(g_13dc, xt = g_6084.right > 0x29e ? rc.left + 0xca : rc.left + 0x84,
+        TextOut(main_dc, xt = g_6084.right > 0x29e ? rc.left + 0xca : rc.left + 0x84,
                 rc.bottom - 0x1a, text, lstrlen(text));
-        SetTextAlign(g_13dc, 2);
+        SetTextAlign(main_dc, 2);
         fn_09_955c(0x212, text);
         if (g_6084.right <= 0x29e) {
             text[3] = ':';
             text[4] = 0;
         }
-        TextOut(g_13dc, rc.right - 0xe4, rc.bottom - 0x1a, text, lstrlen(text));
-        SetBkColor(g_13dc, oldbk);
-        SetTextColor(g_13dc, oldtc);
-        SelectObject(g_13dc, oldfont);
+        TextOut(main_dc, rc.right - 0xe4, rc.bottom - 0x1a, text, lstrlen(text));
+        SetBkColor(main_dc, oldbk);
+        SetTextColor(main_dc, oldtc);
+        SelectObject(main_dc, oldfont);
         if (g_948c) {
-            if (g_920e)
-                x = SelectPalette(g_13dc, (HPALETTE)g_920e, 0);
+            if (game_palette)
+                x = SelectPalette(main_dc, (HPALETTE)game_palette, 0);
             fn_17_0000(1, 0);
             if (x)
-                SelectPalette(g_13dc, (HPALETTE)x, 0);
+                SelectPalette(main_dc, (HPALETTE)x, 0);
         }
-        g_13dc = 0;
+        main_dc = 0;
         EndPaint(hwnd, &ps);
         break;
     }
@@ -4245,13 +4245,13 @@ LRESULT fn_17_5782(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         if (g_9460) {
             fn_06_717a();
             fn_17_6036();
-            SetActiveWindow(g_0016);
-            EnableWindow(g_0016, 1);
+            SetActiveWindow(main_window);
+            EnableWindow(main_window, 1);
             g_90f4 = 1;
             DestroyWindow(g_9460);
             g_9460 = 0;
             fn_10_7480(-3, 1);
-            SetActiveWindow(g_0016);
+            SetActiveWindow(main_window);
         }
         break;
     }

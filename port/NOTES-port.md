@@ -55,7 +55,7 @@
 ## Current state
 
 - 32 files are translated, with 842 functions and one definition each.
-- All 32 files compile without errors (gcc 13, `-std=c99 -Wall -Wextra -pedantic -fsigned-char -fwrapv -fsyntax-only`); 1313 warnings, see 11 and 12 below.
+- All 32 files compile without errors (gcc 13, `-std=c99 -Wall -Wextra -pedantic -fsigned-char -fwrapv -fsyntax-only`); 1142 warnings, see 11 and 12 below.
 - 1484 casts for 16-bit arithmetic (see `== 16-bit arithmetic casts by kind`). The check evaluates 21885 conditions and assignments: 817 differed from 1994 natively before the pass, none after.
 
 ## Needs human judgement
@@ -103,7 +103,7 @@
    - 197 `char` array subscripts. The original indexed with a signed char, so the fix is an explicit `(int)` cast, not unsigned.
    - 95 `&&` within `||` and 31 other precedence warnings.
    - 49 unused parameters.
-   - About 220 pointer/integer conversions. Most are string or near-pointer arguments passed where the prototype says int, and `(long)` casts of far pointers; see "Far pointers" below.
+   - 6 pointer/integer conversions, all `LoadCursor(NULL, ...)`, and 5 calls passing a record pointer of another view's type; see "Far pointers" below.
 
 13. **Layout tricks added or resolved to make the code compile** (to revisit with the later steps):
    - A long passed for two int parameters is split with `LO16(x), HI16(x)`: `fn_10_6ee6` (3 callers), `fn_10_7328`, `fn_13_9a18`; the long fields (`g_96d2[].f_a9`, `g_7090[].f_03e`) are probably two ints.
@@ -348,7 +348,16 @@ the overrides; `src/inspace/` is unchanged.
   read it through views of DS:1e4c-1e53 (the pointer and the game time
   g_1e50): with INSPACE.INI `JoyStick=1` a wave read through a wild
   pointer. g_1e4c is now a native pointer (`extern` and `fix` entries;
-  port_translate.py keeps a word view of a byte pointer as a VIEW).
+  its word view is a cast of the pointer, `((uint16_t *)g_1e4c)`).
+- **String ids written as literals (17:3ba6, 17:4354, 17:4068, 17:4204,
+  17:7614, 17:76e4).** Not a 1994 bug but the decomp's byte matching:
+  the 1994 code pushed string ids 0x9e0, 0x9dc, 0x9d9, 0x9da and
+  0xbcf-0xbd2 for 10:a332, which the decomp wrote as string literals
+  ("n", "button", "\x03", ...) whose DGROUP offsets were those numbers.
+  Natively the low word of the literal's address was taken as the id,
+  so the pilot panel header, the ship status lines and the briefing
+  texts of 17:4068-17:76e4 loaded no or the wrong strings. The ids are
+  the 1994 immediates now (`fix` entries).
 - **Empty directory paths (6:4368, 6:420a, 6:4190, 6:4748).**
   `path[lstrlen(path) - 1]` read the byte before the buffer when the path
   was empty; that byte was almost never `\`, so a `\` was appended. The
@@ -405,7 +414,19 @@ the overrides; `src/inspace/` is unchanged.
   wave 2, 3 min 41 s and 8 icons in the Restore dialog and the game; a
   port save, restored and saved again, differs only in what the played
   wave changed.
-- **Far-pointer arithmetic.** About 93 casts turn a far pointer into an integer, and 17 go the other way. These are segment:offset arithmetic and `(long)ptr` comparisons. Each must become plain pointer arithmetic.
+- **Pointers are plain C pointers.** `far`/`huge` are parser markers
+  that the merge drops; a far pointer kept in a long is a pointer where
+  the code uses it as one (overrides: g_1e4c, g_6078, the name
+  arguments of ordinals 2, 12 and 17 and their thunks 10:6fec, 10:73a6,
+  10:7328). The translator drops a call argument's cast between pointer
+  and integer that the parameter does not need (`(long)name` for a
+  pointer parameter, `(char *)0x4a0` for an int string id: `pointer/
+  integer cast dropped` in translate-notes), reads a far pointer's slot
+  through another pointer type as a cast (`pointer slot cast`), and a
+  long the decomp also saw as a far pointer as the long (`pointer view
+  of a long`: REC_70 +6a, cleared by 10:0000 as `f_6a = 0`; the
+  8-byte pointer view wrote past the record). Left: `LoadCursor(NULL,
+  ...)` (6 sites; HINSTANCE is a 16-bit handle).
 - **`huge` and `_lread`/`_lwrite` sizes.** `huge` is dropped. The 0x7fff-byte chunking in fn_06_9e66 is harmless natively.
 - **Runtime types that differ natively.** `time()`, `stat()` and `utime()` use the host's runtime types. The original's `time_t` was 32 bits; check any place that stores these values in 32-bit globals.
 

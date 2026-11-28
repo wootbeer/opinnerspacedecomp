@@ -422,6 +422,16 @@ class FileTranslator:
         return (mark + '(' + res[0], res[1], res[2] + ')')
 
     def view_cast(self, t, off, size, vt, path):
+        if off == 0 and isinstance(vt, Ptr) and vt.far and not isinstance(vt.to, Func):
+            # A far pointer read through a view of its slot: natively the
+            # slot is a pointer (another pointer type: cast it) or a long
+            # the decomp also saw as a pointer (it is used as the long).
+            if self.is_pointer(t):
+                self.counts['pointer slot cast'] += 1
+                return ('((%s)' % self.sp.typename(self.port_vt(vt)), path, ')')
+            if isinstance(t, (Prim, Win)) and t.size() == 4 and not Win.FIELDS.get(getattr(t, 'name', None)):
+                self.counts['pointer view of a long'] += 1
+                return ('', path, '')
         self.counts['VIEW'] += 1
         if isinstance(vt, Arr):
             return ('VIEWP(%s, ' % self.sp.typename(Ptr(vt.of, True)), path, ', %d)' % off)
@@ -750,6 +760,51 @@ class FileTranslator:
             self.note(node, 'call to %s: pointer cast to LONG -> LPARAM' % node.name.name)
             self.counts['lparam pointer'] += 1
 
+    @staticmethod
+    def is_pointer(t):
+        return isinstance(t, (Ptr, Arr)) or getattr(t, 'name', None) in ('LPSTR', 'LPCSTR')
+
+    def pointer_cast_operand(self, a, p, scope):
+        """The operand of a cast between pointer and integer that a call
+        argument needs no more: a near pointer passed for an int parameter
+        ((char *)0x4a0, the decomp's near-pointer prototypes), or a pointer
+        passed as a long for a pointer parameter.  Natively the cast would
+        turn an integer into a pointer or cut a pointer to 32 bits."""
+        if not isinstance(a, c_ast.Cast):
+            return None
+        try:
+            tt = self.m.tb.build(a.to_type, scope)
+        except Exception:
+            return None
+        want = self.is_pointer(p)
+        if self.is_pointer(tt) == want:
+            return None
+        x = a.expr
+        if isinstance(x, c_ast.Cast) and isinstance(x.expr, c_ast.Constant) and x.expr.type == 'string':
+            x = x.expr                      # (long)(char *)""
+        if isinstance(x, c_ast.Constant) and x.type == 'string':
+            is_ptr = True
+        else:
+            xt = self.typeof(x, scope)
+            is_ptr = self.is_pointer(xt.t) if xt is not None else None
+        # an operand of unknown type is taken for an int, never for a pointer
+        if is_ptr != want and not (is_ptr is None and not want):
+            return None
+        try:
+            return self.span(x)
+        except ValueError:
+            return None
+
+    def drop_pointer_casts(self, node, name, casts):
+        """Edit pointer_cast_operand's arguments in place: (argument span,
+        operand text or None) pairs."""
+        casts = [(a, x) for a, x in casts if x is not None]
+        for a, x in casts:
+            self.ed.add(a[0], a[1], [x])
+        if casts:
+            self.note(node, 'call to %s: pointer/integer cast dropped' % (name or 'pointer'))
+            self.counts['call adapted'] += 1
+
     def rewrite_call(self, node, scope, parent=None):
         ct = self.callee_type(node, scope)
         args = node.args.exprs if node.args else []
@@ -772,12 +827,15 @@ class FileTranslator:
             self.ed.add(self.toks[oi].pos, self.toks[ci].pos + 1, '(' + ov + ')')
             self.counts['call override'] += 1
             return
-        if ft.var:
-            return
         params = [t for _, t in ft.params]
+        if ft.var:
+            self.drop_pointer_casts(node, name, [(spans[k], self.pointer_cast_operand(a, p, scope))
+                                                 for k, (a, p) in enumerate(zip(args, params))])
+            return
         ats = [self.typeof(a, scope) for a in args]
         out = []
         changed = []
+        casts = []
         hoisted = self.hoist_shared_assignments(args, spans)
         if hoisted:
             changed.append('assignment read by another argument: done before the call')
@@ -811,7 +869,10 @@ class FileTranslator:
                     continue
             if pw == aw and not (pf and at is not None and not af and isinstance(at, Prim)) and \
                     not (pw == 1 and isinstance(p, Struct) and isinstance(at, Prim)):
-                out.append([spans[j]])
+                plain = self.pointer_cast_operand(args[j], p, scope)
+                out.append([plain if plain is not None else spans[j]])
+                if plain is not None:
+                    casts.append((spans[j], plain))
                 i += 1
                 j += 1
                 continue
@@ -892,7 +953,10 @@ class FileTranslator:
             self.counts['call too few'] += 1
             return
         if not changed:
+            self.drop_pointer_casts(node, name, casts)
             return
+        if casts:
+            changed.append('pointer/integer cast dropped')
         self.emit_call(node, parent, oi, ci, out, effects)
         for c in changed:
             self.note(node, 'call to %s: %s' % (name or 'pointer', c))

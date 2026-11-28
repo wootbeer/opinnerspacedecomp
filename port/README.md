@@ -221,9 +221,12 @@ machine. See NOTES-port.md "Game speed" (and `--frame-stats`).
 
 ## Quirks
 
-Original behaviour is the default. Crashes and memory-safety bugs are fixed;
-bugs whose fix would change gameplay noticeably stay as in the original,
-with the fix available as a setting. Each is listed in `QUIRKS.md` (to come).
+Gameplay is as in 1994 by default: bugs whose fix would change play stay,
+with the fix available as a setting. Crashes and memory-safety bugs are
+fixed. Where 1994 behaviour was only installer or set-up friction (the copy
+check, help files no player had), the port defaults to what works, with
+the 1994 behaviour available as a setting. QUIRKS.md lists the settings and what
+1994 did, the 1994 quirks the port keeps and the crashes it fixes silently.
 
 ## Drives and file names
 

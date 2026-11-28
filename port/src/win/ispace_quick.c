@@ -209,7 +209,7 @@ static int16_t quick_draw(int16_t pal, int16_t id, LPCSTR name, int16_t dc, int1
 }
 
 /* Ordinal 17 (6:5538). */
-int16_t ispace_quick_draw(int16_t pal, int16_t id, int32_t name, int16_t dc, int16_t border, int16_t c,
+int16_t ispace_quick_draw(int16_t pal, int16_t id, char *name, int16_t dc, int16_t border, int16_t c,
                           int16_t d, char cs1, char cs2, int16_t angle, int16_t hdc, char two, char scale)
 {
     (void)name;

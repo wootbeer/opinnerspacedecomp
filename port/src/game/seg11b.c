@@ -17,7 +17,7 @@ int32_t fn_11_1ab6(int32_t x)
         w = (LO16(g_05a0)) << 2;
         h = (HI16(g_05a0)) << 2;
     } else
-        w = LOWORD(g_951a == 0 ? VIEW(int32_t, g_1df8[g_9324][main_ship].f_04, 0) : VIEW(int32_t, g_6b50, 0));
+        w = LOWORD(g_951a == 0 ? VIEW(int32_t, object_records[g_9324][main_ship].f_04, 0) : VIEW(int32_t, g_6b50, 0));
     x >>= 3;
     w >>= 3;
     if ((int16_t)x > w) {
@@ -44,7 +44,7 @@ int32_t fn_11_1b44(int32_t y)
     if (g_094e)
         h = (HI16(g_05a0)) << 2;
     else
-        h = HIWORD(g_951a == 0 ? VIEW(int32_t, g_1df8[g_9324][main_ship].f_04, 0) : VIEW(int32_t, g_6b50, 0));
+        h = HIWORD(g_951a == 0 ? VIEW(int32_t, object_records[g_9324][main_ship].f_04, 0) : VIEW(int32_t, g_6b50, 0));
     y >>= 3;
     h >>= 3;
     if ((int16_t)y > h) {

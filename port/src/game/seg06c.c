@@ -19,12 +19,12 @@ int16_t fn_06_12b6(HINSTANCE hInst, HINSTANCE hPrev, WNDCLASS wc)
     char title[30];
 
     if (hPrev) {
-        GetInstanceData(hPrev, (BYTE *)&g_0016, 2);
-        if (IsWindow(g_0016)) {
+        GetInstanceData(hPrev, (BYTE *)&main_window, 2);
+        if (IsWindow(main_window)) {
             fn_06_1c0c();
-            PostMessage(g_0016, WM_SYSCOMMAND, SC_MAXIMIZE, 0L);
+            PostMessage(main_window, WM_SYSCOMMAND, SC_MAXIMIZE, 0L);
         } else
-            MessageBox(g_90fc, "Another version of game already running.", g_9690, MB_ICONEXCLAMATION);
+            MessageBox(g_90fc, "Another version of game already running.", app_name, MB_ICONEXCLAMATION);
         return 0;
     }
     GetModuleFileName(hInst, exe, 99);
@@ -36,14 +36,14 @@ int16_t fn_06_12b6(HINSTANCE hInst, HINSTANCE hPrev, WNDCLASS wc)
     for (i = 40; i >= 8 && !SetMessageQueue(i); i--)
         ;
     if (i < 16) {
-        MessageBox(g_90fc, "Insufficient memory to run game!", g_9690, MB_ICONEXCLAMATION);
+        MessageBox(g_90fc, "Insufficient memory to run game!", app_name, MB_ICONEXCLAMATION);
         return 0;
     }
     if (!SetTimer(g_90fc, 1, 1000, NULL)) {
-        MessageBox(g_90fc, "All timers used. Can't run game.", g_9690, MB_ICONEXCLAMATION);
+        MessageBox(g_90fc, "All timers used. Can't run game.", app_name, MB_ICONEXCLAMATION);
         return 0;
     }
-    KillTimer(g_0016, 1);
+    KillTimer(main_window, 1);
     g_8e66 = hInst;
     if (!fn_06_06d8(exe))
         return 0;
@@ -53,11 +53,11 @@ int16_t fn_06_12b6(HINSTANCE hInst, HINSTANCE hPrev, WNDCLASS wc)
     }
     if (fn_10_885e(1) == -10)
         return 0;
-    g_9132 = GetPrivateProfileInt(g_9690, "IgnoreRes", 0, g_96a9);
+    g_9132 = GetPrivateProfileInt(app_name, "IgnoreRes", 0, ini_name);
     if ((res = GetFreeSystemResources(GFSR_GDIRESOURCES)) < 30) {
-        fn_10_a332(text, 0xbe2, 0, res);
-        fn_10_a332(title, 0x9ed, 0);
-        if ((i = MessageBox(g_0016, text, title, MB_YESNO | MB_ICONEXCLAMATION)) == IDYES)
+        format_string(text, 0xbe2, 0, res);
+        format_string(title, 0x9ed, 0);
+        if ((i = MessageBox(main_window, text, title, MB_YESNO | MB_ICONEXCLAMATION)) == IDYES)
             return 0;
     }
     if (!fn_06_1b62())
@@ -73,7 +73,7 @@ int16_t fn_06_12b6(HINSTANCE hInst, HINSTANCE hPrev, WNDCLASS wc)
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
     wc.hbrBackground = GetStockObject(BLACK_BRUSH);
     wc.lpszMenuName = NULL;
-    wc.lpszClassName = g_9690;
+    wc.lpszClassName = app_name;
     if (!RegisterClass(&wc))
         return 0;
 
@@ -168,9 +168,9 @@ int16_t fn_06_12b6(HINSTANCE hInst, HINSTANCE hPrev, WNDCLASS wc)
     g_90f2 = (GetDeviceCaps(dc, 94) & 1) != 0;
     DeleteDC(dc);
     fn_06_17e0();
-    LoadString(g_9212, 0xb54, g_94e4, 40);
-    LoadString(g_9212, 0xb55, g_94fa, 40);
-    LoadString(g_9212, 0xb56, ver, 10);
+    LoadString(lang_module, 0xb54, g_94e4, 40);
+    LoadString(lang_module, 0xb55, g_94fa, 40);
+    LoadString(lang_module, 0xb56, ver, 10);
     if (ver[0] == '2')
         g_967a = 1;
     else
@@ -197,7 +197,7 @@ void fn_06_17e0(void)
     int16_t x;
     DWORD style;
 
-    g_90fa = LoadMenu(g_9212, MAKEINTRESOURCE(0x65));
+    g_90fa = LoadMenu(lang_module, MAKEINTRESOURCE(0x65));
     if (g_90f6)
         menu = g_90fa;
     else
@@ -215,12 +215,12 @@ void fn_06_17e0(void)
         h = GetSystemMetrics(SM_CYSCREEN);
     }
     if (!g_920c)
-        LoadString(g_9212, 0x922, title, 40);
+        LoadString(lang_module, 0x922, title, 40);
     else
-        LoadString(g_9212, 0x921, title, 40);
-    CreateWindow(g_9690, title, style, x, y, w, h, 0, menu, g_8e66, NULL);
+        LoadString(lang_module, 0x921, title, 40);
+    CreateWindow(app_name, title, style, x, y, w, h, 0, menu, g_8e66, NULL);
     if (g_0020 && fn_06_1290("OnTop", 1))
-        SetWindowPos(g_0016, (HWND)-1, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+        SetWindowPos(main_window, (HWND)-1, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
 }
 
 /* 6:18e0 */
@@ -228,7 +228,7 @@ void fn_06_18e0(void)
 {
     fn_06_190c();
     g_049e = g_90f4 = 0;
-    PostMessage(g_0016, 0x9cf, 0, 0L);
+    PostMessage(main_window, 0x9cf, 0, 0L);
 }
 
 /* The label (no goto) resets CL's register tracking: the game stores the
@@ -241,13 +241,13 @@ void fn_06_190c(void)
     int16_t unused2;
     HPALETTE old;
 
-    g_13dc = GetDC(g_0016);
+    main_dc = GetDC(main_window);
     fn_10_6e00();
-    old = SelectPalette(g_13dc, g_920e, 0);
+    old = SelectPalette(main_dc, game_palette, 0);
     fn_10_6e76(MAKELONG(-1000, 2));
-    SelectPalette(g_13dc, old, 0);
-    ReleaseDC(g_0016, g_13dc);
-    g_13dc = 0;
+    SelectPalette(main_dc, old, 0);
+    ReleaseDC(main_window, main_dc);
+    main_dc = 0;
 font:
     height = 14;
     g_90fe = CreateFont(14, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, PROOF_QUALITY,
@@ -272,15 +272,15 @@ void fn_06_19bc(void)
             DeleteObject(g_0012);
             g_0012 = 0;
         }
-        if (g_0016)
-            SetMenu(g_0016, 0);
+        if (main_window)
+            SetMenu(main_window, 0);
         if (g_90fa) {
             DestroyMenu(g_90fa);
             g_90fa = 0;
         }
         fn_10_0330();
         fn_06_033e();
-        KillTimer(g_0016, 1);
+        KillTimer(main_window, 1);
         if (g_90fe) {
             DeleteObject(g_90fe);
             g_90fe = 0;
@@ -296,9 +296,9 @@ int16_t fn_06_1b62(void)
     int16_t i;
 
     for (i = 0; i <= 14; i++) {
-        if ((g_9100[i] = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, 10 * (int32_t)sizeof *g_1df8[0])) == 0)
+        if ((g_9100[i] = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, 10 * (int32_t)sizeof *object_records[0])) == 0)
             return 0;
-        if ((g_1df8[i] = GlobalLock(g_9100[i])) == 0) {
+        if ((object_records[i] = GlobalLock(g_9100[i])) == 0) {
             GlobalFree(g_9100[i]);
             return 0;
         }
@@ -319,11 +319,11 @@ int16_t fn_06_1c0c(void)
     g_90f8 = 0;
     if (lstrcmp(g_1d60, "DEMO") == 0) {
         g_90f8 = 1;
-        PostMessage(g_0016, 0x9f0, 0, 0L);
+        PostMessage(main_window, 0x9f0, 0, 0L);
     }
     if (lstrcmp(g_1d60, "PLAY") == 0) {
         g_90f8 = 1;
-        PostMessage(g_0016, 0x9fa, 0, 0L);
+        PostMessage(main_window, 0x9fa, 0, 0L);
     }
     return g_90f8;
 }

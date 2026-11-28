@@ -43,16 +43,16 @@ void fn_06_1c72(int16_t a)
         g_0d20 = a;
         g_94b4 = g_0d1c;
         g_0d18[0] = g_94ac + 'C';
-        g_6af0.left = GetPrivateProfileInt(g_9690, "NavLeft", 30, g_96a9);
-        g_6af0.top = GetPrivateProfileInt(g_9690, "NavTop", 30, g_96a9);
-        g_6af0.right = GetPrivateProfileInt(g_9690, "NavRight", 560, g_96a9);
-        g_6af0.bottom = GetPrivateProfileInt(g_9690, "NavBottom", 350, g_96a9);
-        LoadString(g_9212, 0x85c, title, 70);
+        g_6af0.left = GetPrivateProfileInt(app_name, "NavLeft", 30, ini_name);
+        g_6af0.top = GetPrivateProfileInt(app_name, "NavTop", 30, ini_name);
+        g_6af0.right = GetPrivateProfileInt(app_name, "NavRight", 560, ini_name);
+        g_6af0.bottom = GetPrivateProfileInt(app_name, "NavBottom", 350, ini_name);
+        LoadString(lang_module, 0x85c, title, 70);
         CreateWindow("IS_NAV", title, style = 0x10cc0000L,
                      g_6af0.left, g_6af0.top, g_6af0.right, g_6af0.bottom,
-                     g_0016, 0, g_8e66, NULL);
-        if (g_13dc && g_90f4 != 2)
-            PatBlt(g_13dc, 0, 0, LO16(g_90ea), g_0010, BLACKNESS);
+                     main_window, 0, g_8e66, NULL);
+        if (main_dc && g_90f4 != 2)
+            PatBlt(main_dc, 0, 0, LO16(g_90ea), g_0010, BLACKNESS);
         if (g_9134 && !flow_interactive)
             fn_06_1e68(1);
     } else
@@ -67,13 +67,13 @@ void fn_06_1d9a(void)
     char unused[46];
 
     fn_10_7480(-1, 1);
-    LoadString(g_9212, 0x85d, str, 100);
+    LoadString(lang_module, 0x85d, str, 100);
     fn_15_6558(g_94ac, buf);
     lstrcat(str, buf);
     lstrcat(str, "...");
     fn_10_94c4(0, 6, RGB(0, 255, 0), LO16(g_90ea) / 2, g_0010 / 2 - 40, str);
     if (!flow_interactive) {
-        LoadString(g_9212, 0x85e, str, 100);
+        LoadString(lang_module, 0x85e, str, 100);
         fn_10_94c4(0, 6, RGB(0, 255, 0), LO16(g_90ea) / 2, g_0010 / 2, str);
     }
 }
@@ -88,8 +88,8 @@ void fn_06_1e68(int16_t start)
     if (start)
         g_1c34 = GetCurrentTime() + 1200;
     g_0d26 = 0;
-    if ((DWORD)g_1c34 < g_1e50) {
-        g_1c34 = g_1e50 + 600;
+    if ((DWORD)g_1c34 < now_ms) {
+        g_1c34 = now_ms + 600;
         if (!fn_06_301a()) {
             if (g_94b6 > g_94b4) {
                 x = 0;
@@ -116,13 +116,13 @@ void fn_06_2ebc(void)
     if (g_0d1e) {
         g_1d40 = GetCurrentTime() + 1000;
         fn_06_0f1a(g_6af0.left, buf);
-        WritePrivateProfileString(g_9690, "NavLeft", buf, g_96a9);
+        WritePrivateProfileString(app_name, "NavLeft", buf, ini_name);
         fn_06_0f1a(g_6af0.right - g_6af0.left, buf);
-        WritePrivateProfileString(g_9690, "NavRight", buf, g_96a9);
+        WritePrivateProfileString(app_name, "NavRight", buf, ini_name);
         fn_06_0f1a(g_6af0.top, buf);
-        WritePrivateProfileString(g_9690, "NavTop", buf, g_96a9);
+        WritePrivateProfileString(app_name, "NavTop", buf, ini_name);
         fn_06_0f1a(g_6af0.bottom - g_6af0.top, buf);
-        WritePrivateProfileString(g_9690, "NavBottom", buf, g_96a9);
+        WritePrivateProfileString(app_name, "NavBottom", buf, ini_name);
         for (i = 0; i < 2; i++) {
             if (g_6aec[i]) {
                 DeleteObject(g_6aec[i]);
@@ -135,15 +135,15 @@ void fn_06_2ebc(void)
         }
         if (!g_049e) {
             fn_10_7db8();
-            EnableWindow(g_0016, TRUE);
+            EnableWindow(main_window, TRUE);
         }
         if (g_0d1e) {
             DestroyWindow(g_0d1e);
             g_0d1e = 0;
         }
         if (!g_049e) {
-            ShowWindow(g_0016, SW_SHOW);
-            SetActiveWindow(g_0016);
+            ShowWindow(main_window, SW_SHOW);
+            SetActiveWindow(main_window);
         }
     }
 }
@@ -172,7 +172,7 @@ int16_t fn_06_301a(void)
     lstrcpy(path, g_6990);
     path[lstrlen(path) - 1] = 0;
     lstrcpy(path2, path);
-    LoadString(g_9212, 0x2f8, str, 40);
+    LoadString(lang_module, 0x2f8, str, 40);
     if (fn_16_5f0e(path, str)) {
         if (!flow_interactive)
             return 0;
@@ -186,7 +186,7 @@ int16_t fn_06_301a(void)
     } else {
         g_92e8 = 0;
         if (!g_094e) {
-            LoadString(g_9212, 0x2e3, str, 40);
+            LoadString(lang_module, 0x2e3, str, 40);
             if (fn_16_5f0e(path, str)) {
                 if (!g_0e32 || (g_90f8 && g_95ba == 0x209)) {
                     g_094e = 2;
@@ -196,7 +196,7 @@ int16_t fn_06_301a(void)
             }
         }
         if (!g_0950) {
-            LoadString(g_9212, 0x2e0, str, 40);
+            LoadString(lang_module, 0x2e0, str, 40);
             if (fn_16_5f0e(path, str)) {
                 if (!g_0e32 || (g_90f8 && g_95ba == 0x20a)) {
                     g_0950 = 2;
@@ -219,13 +219,13 @@ int16_t fn_06_301a(void)
             if (g_90f8 && g_8e5e) {
                 int16_t k;
 
-                if ((sel = GetPrivateProfileInt(g_9690, "DRacers", 0, g_96a9)) == 0)
+                if ((sel = GetPrivateProfileInt(app_name, "DRacers", 0, ini_name)) == 0)
                     g_094e = 1;
                 else
                     g_094e = sel + 1;
-                g_94a8 = GetPrivateProfileInt(g_9690, "DDiff", 0, g_96a9);
+                g_94a8 = GetPrivateProfileInt(app_name, "DDiff", 0, ini_name);
                 g_94aa = 2;
-                if ((k = GetPrivateProfileInt(g_9690, "DLaps", 0, g_96a9)) == 0) {
+                if ((k = GetPrivateProfileInt(app_name, "DLaps", 0, ini_name)) == 0) {
                     switch (k = rand() % 7) {
                     case 4:
                         g_9ea0 = 1;
@@ -252,22 +252,22 @@ int16_t fn_06_301a(void)
             } else {
                 sel = SendMessage(GetDlgItem(g_0d1e, 0x8d), CB_GETCURSEL, 0, 0L);
                 fn_06_0f1a(sel, str);
-                WritePrivateProfileString(g_9690, "Racers", str, g_96a9);
+                WritePrivateProfileString(app_name, "Racers", str, ini_name);
                 if (sel == 0)
                     g_094e = 1;
                 else
                     g_094e = sel + 1;
                 sel = SendMessage(GetDlgItem(g_0d1e, 0x8e), CB_GETCURSEL, 0, 0L);
                 fn_06_0f1a(sel, str);
-                WritePrivateProfileString(g_9690, "RaceDiff", str, g_96a9);
+                WritePrivateProfileString(app_name, "RaceDiff", str, ini_name);
                 g_94a8 = sel;
                 sel = SendMessage(GetDlgItem(g_0d1e, 0x90), CB_GETCURSEL, 0, 0L);
                 fn_06_0f1a(sel, str);
-                WritePrivateProfileString(g_9690, "RaceOpp", str, g_96a9);
+                WritePrivateProfileString(app_name, "RaceOpp", str, ini_name);
                 g_94aa = sel;
                 sel = SendMessage(GetDlgItem(g_0d1e, 0x8f), CB_GETCURSEL, 0, 0L);
                 fn_06_0f1a(sel, str);
-                WritePrivateProfileString(g_9690, "RaceLaps", str, g_96a9);
+                WritePrivateProfileString(app_name, "RaceLaps", str, ini_name);
                 switch (sel) {
                 case 0:
                     g_9ea0 = 1;
@@ -280,10 +280,10 @@ int16_t fn_06_301a(void)
                     break;
                 }
             }
-            LoadString(g_9212, 0x2e3, str, 40);
+            LoadString(lang_module, 0x2e3, str, 40);
             path2[lstrlen(path2) - lstrlen(str)] = 0;
             for (i = 0; i < 3; i++) {
-                LoadString(g_9212, 0x2e4 + i, str, 40);
+                LoadString(lang_module, 0x2e4 + i, str, 40);
                 if (fn_16_5f0e(path2, str)) {
                     g_094e += i << 2;
                     lstrcpy(g_38c8, str);
@@ -292,26 +292,26 @@ int16_t fn_06_301a(void)
             }
         } else if (g_0950) {
             if (g_90f8) {
-                g_94a8 = GetPrivateProfileInt(g_9690, "DuelDiff", 0, g_96a9);
+                g_94a8 = GetPrivateProfileInt(app_name, "DuelDiff", 0, ini_name);
                 g_0950 = g_94aa = 2;
             } else {
                 sel = SendMessage(GetDlgItem(g_0d1e, 0x91), CB_GETCURSEL, 0, 0L);
                 fn_06_0f1a(sel, str);
-                WritePrivateProfileString(g_9690, "Duelers", str, g_96a9);
+                WritePrivateProfileString(app_name, "Duelers", str, ini_name);
                 g_0950 = sel + 2;
                 sel = SendMessage(GetDlgItem(g_0d1e, 0x92), CB_GETCURSEL, 0, 0L);
                 fn_06_0f1a(sel, str);
-                WritePrivateProfileString(g_9690, "DuelDiff", str, g_96a9);
+                WritePrivateProfileString(app_name, "DuelDiff", str, ini_name);
                 g_94a8 = sel;
                 sel = SendMessage(GetDlgItem(g_0d1e, 0x94), CB_GETCURSEL, 0, 0L);
                 fn_06_0f1a(sel, str);
-                WritePrivateProfileString(g_9690, "DuelOpp", str, g_96a9);
+                WritePrivateProfileString(app_name, "DuelOpp", str, ini_name);
                 g_94aa = sel;
             }
-            LoadString(g_9212, 0x2e0, str, 40);
+            LoadString(lang_module, 0x2e0, str, 40);
             path2[lstrlen(path2) - lstrlen(str)] = 0;
             for (i = 0; i < 1; i++) {
-                LoadString(g_9212, 0x2ee + i, str, 40);
+                LoadString(lang_module, 0x2ee + i, str, 40);
                 if (fn_16_5f0e(path2, str)) {
                     g_0950 += i << 2;
                     lstrcpy(g_38c8, str);
@@ -330,7 +330,7 @@ int16_t fn_06_301a(void)
         g_968e = g_13de = 1;
     else {
         g_1e74 = 0;
-        g_1e70 = g_1e50;
+        g_1e70 = now_ms;
     }
     g_94b0 = 1;
     for (i = 0; i < g_94a4; i++) {
@@ -399,13 +399,13 @@ void fn_06_4368(char *dir, char *name)
     int16_t res;
 
     rel = 0;
-    saved = g_13dc;
+    saved = main_dc;
     if (!saved) {
         rel = 1;
-        g_13dc = GetDC(g_0d1e);
+        main_dc = GetDC(g_0d1e);
     }
-    if (g_920e)
-        pal = SelectPalette(g_13dc, g_920e, 0);
+    if (game_palette)
+        pal = SelectPalette(main_dc, game_palette, 0);
     lstrcpy(path, dir);
     res = 0;
     if (lstrlen(path) == 1) {
@@ -438,9 +438,9 @@ void fn_06_4368(char *dir, char *name)
         if (icon > 1 || !*name || !g_94c2) {
             if (icon > 1 || !*name)
                 g_94c0 = 1;
-            memdc = CreateCompatibleDC(g_13dc);
+            memdc = CreateCompatibleDC(main_dc);
             if (!g_94ba)
-                g_94ba = CreateCompatibleBitmap(g_13dc, 32, 32);
+                g_94ba = CreateCompatibleBitmap(main_dc, 32, 32);
             old = SelectObject(memdc, g_94ba);
             if (!g_94c2 || icon > 1)
                 PatBlt(memdc, 0, 0, 32, 32, BLACKNESS);
@@ -456,10 +456,10 @@ void fn_06_4368(char *dir, char *name)
         }
     }
     if (pal)
-        SelectPalette(g_13dc, pal, 0);
+        SelectPalette(main_dc, pal, 0);
     if (rel)
-        ReleaseDC(g_0d1e, g_13dc);
-    g_13dc = saved;
+        ReleaseDC(g_0d1e, main_dc);
+    main_dc = saved;
 }
 
 /* Lists the files matching mask in dir into list box 0x6b; returns their
@@ -520,8 +520,8 @@ int16_t fn_06_3f4c(char *path)
         lstrcat(dir, "\\");
     r = 0;
     if (!g_920c && flow_interactive) {
-        LoadString(g_9212, 0x2e4, s1, 40);
-        LoadString(g_9212, 0x2e3, s2, 40);
+        LoadString(lang_module, 0x2e4, s1, 40);
+        LoadString(lang_module, 0x2e3, s2, 40);
         lstrcat(s2, "\\");
         lstrcat(s1, s2);
         if (fn_16_5f0e(dir, s2)) {
@@ -529,7 +529,7 @@ int16_t fn_06_3f4c(char *path)
             if (fn_16_5f0e(dir, s1))
                 r = 0;
         }
-        LoadString(g_9212, 0x2e0, s2, 40);
+        LoadString(lang_module, 0x2e0, s2, 40);
         lstrcat(s2, "\\");
         if (fn_16_5f0e(dir, s2))
             r = 3;
@@ -537,7 +537,7 @@ int16_t fn_06_3f4c(char *path)
             return 3;
     }
     if (g_920c != -1 && g_920c != 2) {
-        LoadString(g_9212, 0x2f8, s2, 40);
+        LoadString(lang_module, 0x2f8, s2, 40);
         lstrcat(s2, "\\");
         if (fn_16_5f0e(dir, s2))
             r = 3;
@@ -666,29 +666,29 @@ void fn_06_5b4c(HDC hdc, int16_t frame)
         rel = 1;
         hdc = GetDC(g_0d1e);
     }
-    saved = g_13dc;
-    g_13dc = hdc;
-    if (g_920e)
-        pal = SelectPalette(g_13dc, g_920e, 0);
+    saved = main_dc;
+    main_dc = hdc;
+    if (game_palette)
+        pal = SelectPalette(main_dc, game_palette, 0);
     fn_11_1774(-1, rc.left, rc.bottom - 25, rc.right, rc.bottom);
     fn_11_3fd4(g_6a24, 3);
-    fn_09_8bec(g_13dc, 5, rc.bottom - 20, 14, 0, 0, g_6a24);
+    fn_09_8bec(main_dc, 5, rc.bottom - 20, 14, 0, 0, g_6a24);
     pt.y = 0x55;
     pt.x = rc.right - 0x60;
     if (frame) {
         fn_11_1774(4, pt.x, 0x55, pt.x + 0x48, 0x9d);
-        PatBlt(g_13dc, pt.x + 4, pt.y + 4, 64, 64, BLACKNESS);
+        PatBlt(main_dc, pt.x + 4, pt.y + 4, 64, 64, BLACKNESS);
     }
-    memdc = CreateCompatibleDC(g_13dc);
+    memdc = CreateCompatibleDC(main_dc);
     old = SelectObject(memdc, g_94ba);
-    StretchBlt(g_13dc, pt.x + 4, pt.y + 4, 64, 64, memdc, 0, 0, 32, 32, SRCCOPY);
+    StretchBlt(main_dc, pt.x + 4, pt.y + 4, 64, 64, memdc, 0, 0, 32, 32, SRCCOPY);
     SelectObject(memdc, old);
     DeleteDC(memdc);
     if (pal)
-        SelectPalette(g_13dc, pal, 0);
+        SelectPalette(main_dc, pal, 0);
     if (rel)
-        ReleaseDC(g_0d1e, g_13dc);
-    g_13dc = saved;
+        ReleaseDC(g_0d1e, main_dc);
+    main_dc = saved;
 }
 
 /* 6:5cbc */
@@ -1122,20 +1122,20 @@ void fn_06_5524(void)
         }
     lstrcpy(buf, g_6990);
     buf[lstrlen(buf) - 1] = 0;
-    LoadString(g_9212, 0x2f8, str, 40);
+    LoadString(lang_module, 0x2f8, str, 40);
     if (fn_16_5f0e(buf, str)) {
         int16_t r;
         char path[100];
 
         fn_06_2dba(0);
-        LoadString(g_9212, 0x2f9, buf, 40);
+        LoadString(lang_module, 0x2f9, buf, 40);
         lstrcat(buf, " ");
         lstrcpy(path, g_6990);
         path[1] = ' ';
         if ((r = fn_06_3f4c(path)) == 3)
-            LoadString(g_9212, 0x913, str, 60);
+            LoadString(lang_module, 0x913, str, 60);
         else
-            LoadString(g_9212, 0x2fa, str, 40);
+            LoadString(lang_module, 0x2fa, str, 40);
         lstrcat(buf, str);
         lstrcpy(g_6a24, buf);
         fn_06_4368("S", "");
@@ -1143,7 +1143,7 @@ void fn_06_5524(void)
         EnableWindow(GetDlgItem(g_0d1e, 1), 1);
     } else {
         duel = race = 0;
-        LoadString(g_9212, 0x2e3, str, 40);
+        LoadString(lang_module, 0x2e3, str, 40);
         if (fn_16_5f0e(buf, str))
             race = 1;
         if (race) {
@@ -1151,21 +1151,21 @@ void fn_06_5524(void)
             char path[100];
 
             fn_06_2dba(1);
-            LoadString(g_9212, 0x2fb, buf, 40);
+            LoadString(lang_module, 0x2fb, buf, 40);
             lstrcat(buf, g_09ee);
             lstrcpy(path, g_6990);
             path[1] = ' ';
             if ((r = fn_06_3f4c(path)) == 3)
-                LoadString(g_9212, 0x913, str, 60);
+                LoadString(lang_module, 0x913, str, 60);
             else
-                LoadString(g_9212, 0x2fc, str, 40);
+                LoadString(lang_module, 0x2fc, str, 40);
             lstrcat(buf, str);
             lstrcpy(g_6a24, buf);
             fn_06_4368("R", "");
             fn_06_5b4c(0, 0);
             EnableWindow(GetDlgItem(g_0d1e, 1), 1);
         } else {
-            LoadString(g_9212, 0x2e0, str, 40);
+            LoadString(lang_module, 0x2e0, str, 40);
             if (fn_16_5f0e(buf, str))
                 duel = 1;
             if (duel) {
@@ -1173,14 +1173,14 @@ void fn_06_5524(void)
                 char path[100];
 
                 fn_06_2dba(2);
-                LoadString(g_9212, 0x2fe, buf, 40);
+                LoadString(lang_module, 0x2fe, buf, 40);
                 lstrcat(buf, g_09ee);
                 lstrcpy(path, g_6990);
                 path[1] = ' ';
                 if ((r = fn_06_3f4c(path)) == 3)
-                    LoadString(g_9212, 0x913, str, 60);
+                    LoadString(lang_module, 0x913, str, 60);
                 else
-                    LoadString(g_9212, 0x2ff, str, 40);
+                    LoadString(lang_module, 0x2ff, str, 40);
                 lstrcat(buf, str);
                 lstrcpy(g_6a24, buf);
                 fn_06_4368("D", "");
@@ -1195,12 +1195,12 @@ void fn_06_5524(void)
                     char tmp[100];
                     int16_t r;
 
-                    LoadString(g_9212, 0x3aa, str, 60);
+                    LoadString(lang_module, 0x3aa, str, 60);
                     lstrcpy(buf, str);
-                    LoadString(g_9212, 0x3ae, str, 60);
+                    LoadString(lang_module, 0x3ae, str, 60);
                     lstrcat(buf, str);
                     lstrcat(buf, g_09ee);
-                    LoadString(g_9212, 0x3ab, str, 60);
+                    LoadString(lang_module, 0x3ab, str, 60);
                     lstrcat(buf, str);
                     lstrcpy(g_6a24, buf);
                     fn_06_5b4c(0, 0);
@@ -1212,7 +1212,7 @@ void fn_06_5524(void)
                     nexe += ndll;
                     if (!notfound && (g_69f4[idx].f_1d0 == 2 ||
                                       g_69f4[idx].f_14e + g_69f4[idx].f_150 > g_94a6)) {
-                        LoadString(g_9212, 0x2fd, buf, 400);
+                        LoadString(lang_module, 0x2fd, buf, 400);
                         lstrcat(buf, g_09ee);
                         if (g_69f4[idx].f_1d0 != 2) {
                             HWND h;
@@ -1230,15 +1230,15 @@ void fn_06_5524(void)
                         EnableWindow(GetDlgItem(g_0d1e, 1), 0);
                     } else {
                         EnableWindow(GetDlgItem(g_0d1e, 1), 1);
-                        fn_10_a332(buf, 0xbd4, 1, g_94a6 == 1, 0x808, 0x807, g_94a6, 0x9d3,
+                        format_string(buf, 0xbd4, 1, g_94a6 == 1, 0x808, 0x807, g_94a6, 0x9d3,
                                    nexe, 0x3ad);
                     }
                     if (notfound) {
-                        LoadString(g_9212, 0x3af, str, 60);
+                        LoadString(lang_module, 0x3af, str, 60);
                         lstrcat(buf, str);
                         lstrcat(buf, g_09ee);
                     } else
-                        fn_10_a332(buf, 0xbd5, 0, g_69f4[idx].f_150, 0x9ca,
+                        format_string(buf, 0xbd5, 0, g_69f4[idx].f_150, 0x9ca,
                                    g_69f4[idx].f_14e, 0x9ca);
                     lstrcpy(g_6a24, buf);
                     fn_06_5b4c(0, 0);
@@ -1294,11 +1294,11 @@ LRESULT fn_06_1f22(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_MEASUREITEM: {
         MEASUREITEMSTRUCT *mis;
 
-        dc = GetDC(g_0016);
+        dc = GetDC(main_window);
         oldfont = SelectObject(dc, g_90fe);
         GetTextMetrics(dc, &tm);
         SelectObject(dc, oldfont);
-        ReleaseDC(g_0016, dc);
+        ReleaseDC(main_window, dc);
         (mis = (MEASUREITEMSTRUCT *)lParam)->itemHeight =
             max((int16_t)(tm.tmHeight + tm.tmExternalLeading + 3), 14);
         break;
@@ -1382,7 +1382,7 @@ LRESULT fn_06_1f22(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_SYSCOMMAND:
         switch (cmd = wParam & 0xfff0) {
         case SC_CLOSE:
-            PostMessage(g_0016, WM_SYSCOMMAND, SC_CLOSE, 0L);
+            PostMessage(main_window, WM_SYSCOMMAND, SC_CLOSE, 0L);
             break;
         default:
             return DefWindowProc(hwnd, msg, wParam, lParam);
@@ -1407,18 +1407,18 @@ void fn_06_23d4(void)
     char buf[40];
     HGDIOBJ oldfont;
 
-    EnableWindow(g_0016, FALSE);
+    EnableWindow(main_window, FALSE);
     if (!g_6aec[0])
         g_6aec[0] = fn_10_6d38("FLDR");
     if (!g_6aec[1])
         g_6aec[1] = fn_10_6d38("FILES");
     GetClientRect(g_0d1e, &rc);
 
-    LoadString(g_9212, 0x85f, buf, 40);
+    LoadString(lang_module, 0x85f, buf, 40);
     hwnd = CreateWindow("button", buf, 0x50030000L, rc.right - 90, 15, 90, 26,
                         g_0d1e, (HMENU)1, g_8e66, NULL);
     fn_02_1a7a(hwnd);
-    LoadString(g_9212, 0x860, buf, 40);
+    LoadString(lang_module, 0x860, buf, 40);
     hwnd = CreateWindow("button", buf, 0x50010000L, rc.right - 90, 51, 90, 26,
                         g_0d1e, (HMENU)0x70, g_8e66, NULL);
     fn_02_1a7a(hwnd);
@@ -1430,12 +1430,12 @@ void fn_06_23d4(void)
                         g_0d1e, (HMENU)0x6b, g_8e66, NULL);
     SendMessage(GetDlgItem(g_0d1e, 0x6b), 0x416, 95, 0L);
     fn_02_1a7a(hwnd);
-    LoadString(g_9212, 0x861, buf, 40);
+    LoadString(lang_module, 0x861, buf, 40);
     hwnd = CreateWindow("button", buf, 0x50000007L, rc.right - 90, 120, 90, 40,
                         g_0d1e, (HMENU)0x8c, g_8e66, NULL);
     SendMessage(hwnd, WM_SETFONT, g_90fe, 1L);
     fn_02_1a7a(hwnd);
-    LoadString(g_9212, 0x862, buf, 40);
+    LoadString(lang_module, 0x862, buf, 40);
     hwnd = CreateWindow("button", buf, 0x50000007L, rc.right - 90, 120, 90, 40,
                         g_0d1e, (HMENU)0x93, g_8e66, NULL);
     SendMessage(hwnd, WM_SETFONT, g_90fe, 1L);
@@ -1445,106 +1445,106 @@ void fn_06_23d4(void)
     oldfont = SelectObject(hdc, g_90fe);
     h = HIWORD(GetTextExtent(hdc, test, 4));
     SelectObject(hdc, oldfont);
-    ReleaseDC(g_0016, hdc);
+    ReleaseDC(main_window, hdc);
 
     hwnd = CreateWindow("combobox", "", 0x50210003L, rc.right - 60, 120, 60,
                         ((g_94b8 = h) + 10) * 3, g_0d1e, (HMENU)0x8d, g_8e66, NULL);
     SendMessage(hwnd, WM_SETFONT, g_90fe, 0L);
     fn_02_1a7a(hwnd);
-    LoadString(g_9212, 0x863, buf, 40);
+    LoadString(lang_module, 0x863, buf, 40);
     /* the game stores the 0 into the hdc slot here [sic] */
     SendMessage(hwnd, CB_ADDSTRING, hdc = 0, (LPARAM)(LPSTR)buf);
-    LoadString(g_9212, 0x864, buf, 40);
+    LoadString(lang_module, 0x864, buf, 40);
     SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
-    LoadString(g_9212, 0x865, buf, 40);
+    LoadString(lang_module, 0x865, buf, 40);
     SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
-    LoadString(g_9212, 0x866, buf, 40);
+    LoadString(lang_module, 0x866, buf, 40);
     SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
-    SendMessage(hwnd, CB_SETCURSEL, sel = GetPrivateProfileInt(g_9690, "Racers", 1, g_96a9), 0L);
+    SendMessage(hwnd, CB_SETCURSEL, sel = GetPrivateProfileInt(app_name, "Racers", 1, ini_name), 0L);
 
     hwnd = CreateWindow("combobox", "", 0x50210003L, rc.right - 60, 120, 60,
                         (g_94b8 + 10) * 3, g_0d1e, (HMENU)0x91, g_8e66, NULL);
     SendMessage(hwnd, WM_SETFONT, g_90fe, 0L);
     fn_02_1a7a(hwnd);
-    LoadString(g_9212, 0x867, buf, 40);
+    LoadString(lang_module, 0x867, buf, 40);
     SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
-    LoadString(g_9212, 0x868, buf, 40);
+    LoadString(lang_module, 0x868, buf, 40);
     SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
-    LoadString(g_9212, 0x869, buf, 40);
+    LoadString(lang_module, 0x869, buf, 40);
     SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
-    SendMessage(hwnd, CB_SETCURSEL, sel = GetPrivateProfileInt(g_9690, "Duelers", 0, g_96a9), 0L);
+    SendMessage(hwnd, CB_SETCURSEL, sel = GetPrivateProfileInt(app_name, "Duelers", 0, ini_name), 0L);
 
     hwnd = CreateWindow("combobox", "", 0x50210003L, rc.right - 60, 150, 60,
                         (g_94b8 + 10) * 3, g_0d1e, (HMENU)0x8e, g_8e66, NULL);
     SendMessage(hwnd, WM_SETFONT, g_90fe, 0L);
     fn_02_1a7a(hwnd);
-    LoadString(g_9212, 0x86a, buf, 40);
+    LoadString(lang_module, 0x86a, buf, 40);
     SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
-    LoadString(g_9212, 0x86b, buf, 40);
+    LoadString(lang_module, 0x86b, buf, 40);
     SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
-    LoadString(g_9212, 0x86c, buf, 40);
+    LoadString(lang_module, 0x86c, buf, 40);
     SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
-    SendMessage(hwnd, CB_SETCURSEL, sel = GetPrivateProfileInt(g_9690, "RaceDiff", 0, g_96a9), 0L);
+    SendMessage(hwnd, CB_SETCURSEL, sel = GetPrivateProfileInt(app_name, "RaceDiff", 0, ini_name), 0L);
 
     hwnd = CreateWindow("combobox", "", 0x50210003L, rc.right - 60, 150, 60,
                         (g_94b8 + 10) * 3, g_0d1e, (HMENU)0x92, g_8e66, NULL);
     SendMessage(hwnd, WM_SETFONT, g_90fe, 0L);
     fn_02_1a7a(hwnd);
-    LoadString(g_9212, 0x86a, buf, 40);
+    LoadString(lang_module, 0x86a, buf, 40);
     SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
-    LoadString(g_9212, 0x86b, buf, 40);
+    LoadString(lang_module, 0x86b, buf, 40);
     SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
-    LoadString(g_9212, 0x86c, buf, 40);
+    LoadString(lang_module, 0x86c, buf, 40);
     SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
-    SendMessage(hwnd, CB_SETCURSEL, sel = GetPrivateProfileInt(g_9690, "DuelDiff", 0, g_96a9), 0L);
+    SendMessage(hwnd, CB_SETCURSEL, sel = GetPrivateProfileInt(app_name, "DuelDiff", 0, ini_name), 0L);
 
     hwnd = CreateWindow("combobox", "", 0x50210003L, rc.right - 60, 180, 60,
                         (g_94b8 + 10) * 3, g_0d1e, (HMENU)0x8f, g_8e66, NULL);
     SendMessage(hwnd, WM_SETFONT, g_90fe, 0L);
     fn_02_1a7a(hwnd);
-    LoadString(g_9212, 0x86d, buf, 40);
+    LoadString(lang_module, 0x86d, buf, 40);
     SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
-    LoadString(g_9212, 0x86e, buf, 40);
+    LoadString(lang_module, 0x86e, buf, 40);
     SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
-    LoadString(g_9212, 0x86f, buf, 40);
+    LoadString(lang_module, 0x86f, buf, 40);
     SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
-    SendMessage(hwnd, CB_SETCURSEL, sel = GetPrivateProfileInt(g_9690, "RaceLaps", 1, g_96a9), 0L);
+    SendMessage(hwnd, CB_SETCURSEL, sel = GetPrivateProfileInt(app_name, "RaceLaps", 1, ini_name), 0L);
 
     hwnd = CreateWindow("combobox", "", 0x50210003L, rc.right - 60, 180, 60,
                         (g_94b8 + 5) * 6, g_0d1e, (HMENU)0x90, g_8e66, NULL);
     SendMessage(hwnd, WM_SETFONT, g_90fe, 0L);
     fn_02_1a7a(hwnd);
-    LoadString(g_9212, 0x870, buf, 40);
+    LoadString(lang_module, 0x870, buf, 40);
     SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
-    LoadString(g_9212, 0x871, buf, 40);
+    LoadString(lang_module, 0x871, buf, 40);
     SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
-    LoadString(g_9212, 0x872, buf, 40);
+    LoadString(lang_module, 0x872, buf, 40);
     SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
-    LoadString(g_9212, 0x873, buf, 40);
+    LoadString(lang_module, 0x873, buf, 40);
     SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
-    LoadString(g_9212, 0x874, buf, 40);
+    LoadString(lang_module, 0x874, buf, 40);
     SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
-    LoadString(g_9212, 0x875, buf, 40);
+    LoadString(lang_module, 0x875, buf, 40);
     SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
-    SendMessage(hwnd, CB_SETCURSEL, sel = GetPrivateProfileInt(g_9690, "RaceOpp", 2, g_96a9), 0L);
+    SendMessage(hwnd, CB_SETCURSEL, sel = GetPrivateProfileInt(app_name, "RaceOpp", 2, ini_name), 0L);
 
     hwnd = CreateWindow("combobox", "", 0x50210003L, rc.right - 60, 180, 60,
                         (g_94b8 + 5) * 6, g_0d1e, (HMENU)0x94, g_8e66, NULL);
     SendMessage(hwnd, WM_SETFONT, g_90fe, 0L);
     fn_02_1a7a(hwnd);
-    LoadString(g_9212, 0x876, buf, 40);
+    LoadString(lang_module, 0x876, buf, 40);
     SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
-    LoadString(g_9212, 0x877, buf, 40);
+    LoadString(lang_module, 0x877, buf, 40);
     SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
-    LoadString(g_9212, 0x872, buf, 40);
+    LoadString(lang_module, 0x872, buf, 40);
     SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
-    LoadString(g_9212, 0x873, buf, 40);
+    LoadString(lang_module, 0x873, buf, 40);
     SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
-    LoadString(g_9212, 0x878, buf, 40);
+    LoadString(lang_module, 0x878, buf, 40);
     SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
-    LoadString(g_9212, 0x879, buf, 40);
+    LoadString(lang_module, 0x879, buf, 40);
     SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)(LPSTR)buf);
-    SendMessage(hwnd, CB_SETCURSEL, sel = GetPrivateProfileInt(g_9690, "DuelOpp", 2, g_96a9), 0L);
+    SendMessage(hwnd, CB_SETCURSEL, sel = GetPrivateProfileInt(app_name, "DuelOpp", 2, ini_name), 0L);
 
     fn_06_37ca();
     fn_06_5318();
@@ -1573,7 +1573,7 @@ void fn_06_37ca(void)
     int16_t unused;
 
     g_0950 = g_094e = 0;
-    g_94bc = GetPrivateProfileInt(g_9690, "Tree", 0, g_96a9);
+    g_94bc = GetPrivateProfileInt(app_name, "Tree", 0, ini_name);
     if (g_920c != -1 && g_920c != 2)
         g_94b2 = 0;
     else
@@ -1619,7 +1619,7 @@ void fn_06_37ca(void)
             }
         }
     } while (!_dos_findnext(&g_69f8));
-    LoadString(g_9212, 0x2f8, buf, 40);
+    LoadString(lang_module, 0x2f8, buf, 40);
     b = a = 0;
     if (g_920c != -1 && g_920c != 2)
         b = 3;
@@ -1631,9 +1631,9 @@ void fn_06_37ca(void)
     else
         lim = 3;
     for (i = 0; i < lim; i++) {
-        LoadString(g_9212, 0x2e4 + i, s, 40);
+        LoadString(lang_module, 0x2e4 + i, s, 40);
         lstrcpy(buf, s);
-        LoadString(g_9212, 0x2e3, s, 40);
+        LoadString(lang_module, 0x2e3, s, 40);
         lstrcat(buf, s);
         b = a = 0;
         if (!g_920c && i > 0 && flow_interactive)
@@ -1643,9 +1643,9 @@ void fn_06_37ca(void)
         g_94b6++;
     }
     for (i = 0; i < 1; i++) {
-        LoadString(g_9212, 0x2ee + i, s, 40);
+        LoadString(lang_module, 0x2ee + i, s, 40);
         lstrcpy(buf, s);
-        LoadString(g_9212, 0x2e0, s, 40);
+        LoadString(lang_module, 0x2e0, s, 40);
         lstrcat(buf, s);
         b = a = 0;
         if (!g_920c && flow_interactive)
@@ -1676,11 +1676,11 @@ void fn_06_37ca(void)
                 break;
             }
             if (g_94be) {
-                GetPrivateProfileString(g_9690, "Track", "", g_6990, 0x6d, g_96a9);
+                GetPrivateProfileString(app_name, "Track", "", g_6990, 0x6d, ini_name);
                 switch (g_95ba) {
                 case 0x209:
                     for (i = 0; i < 3; i++) {
-                        LoadString(g_9212, 0x2e4 + i, s, 40);
+                        LoadString(lang_module, 0x2e4 + i, s, 40);
                         if (!lstrcmp(s, g_6990))
                             g_094e = (i << 2) + 1;
                     }
@@ -1688,7 +1688,7 @@ void fn_06_37ca(void)
                 case 0x20a:
                     lstrcpy(g_6990, "Dodge City");
                     for (i = 0; i < 1; i++) {
-                        LoadString(g_9212, 0x2ee + i, s, 40);
+                        LoadString(lang_module, 0x2ee + i, s, 40);
                         if (!lstrcmp(s, g_6990))
                             g_0950 = (i << 2) + 1;
                     }
@@ -1696,10 +1696,10 @@ void fn_06_37ca(void)
                 }
                 switch (g_95ba) {
                 case 0x209:
-                    LoadString(g_9212, 0x2e3, s, 40);
+                    LoadString(lang_module, 0x2e3, s, 40);
                     break;
                 case 0x20a:
-                    LoadString(g_9212, 0x2e0, s, 40);
+                    LoadString(lang_module, 0x2e0, s, 40);
                     break;
                 }
                 lstrcat(g_6990, s);

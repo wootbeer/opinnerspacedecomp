@@ -676,7 +676,7 @@ static HBITMAP build_strip(int16_t pal, HDC dc, int16_t gap)
     return bm;
 }
 
-int16_t ispace_build_surface(int16_t pal, int16_t a, int32_t name, int16_t dc, int16_t e, int16_t f,
+int16_t ispace_build_surface(int16_t pal, int16_t a, char *name, int16_t dc, int16_t e, int16_t f,
                              int16_t g, int16_t h, int16_t i, int16_t j, char k, char l, char m,
                              int16_t n)
 {

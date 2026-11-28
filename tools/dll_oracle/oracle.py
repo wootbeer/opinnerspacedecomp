@@ -182,14 +182,14 @@ def ini_state(ini):
 def run_port(script, exe, data_dir):
     """port_calls on a game folder of its own: links to data_dir's files
     plus the emulator's INSPACE.INI (the port keeps its INI in the game
-    folder), and a sound device (SDL's dummy one)."""
+    folder) with the 1994 behaviours the emulator models, and a sound device (SDL's dummy one)."""
     with tempfile.TemporaryDirectory() as game:
         for name in os.listdir(data_dir):
             if name.upper() != 'INSPACE.INI':
                 os.symlink(os.path.join(os.path.abspath(data_dir), name), os.path.join(game, name))
         with open(os.path.join(game, 'INSPACE.INI'), 'w') as f:
             f.write('[Inner Space]\n' + ''.join('%s=%s\n' % kv for kv in INI.items()))
-            f.write('[Port]\nCopyCheck=1\n')
+            f.write('[Port]\nCopyCheck=1\nHelpMissing=1\n')
         env = dict(os.environ, SDL_VIDEODRIVER='dummy', SDL_AUDIO_DRIVER='dummy', INSPACE_DATA=game)
         text = subprocess.run([exe, script], env=env, capture_output=True, text=True, check=True).stdout
     out = []

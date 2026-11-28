@@ -243,7 +243,7 @@ int16_t fn_09_094c(void)
 
     for (i = 0; i < g_9406[0]; i++) {
         found = 1;
-        if (g_1df8[0][i].f_18 == 0)
+        if (object_records[0][i].f_18 == 0)
             found = 0;
         if (found)
             return i;
@@ -266,13 +266,13 @@ void fn_09_09b0(int16_t slot)
         g_57a8[slot].f_19 = 0;
         if (g_69f4[g_94a2].f_1d2[slot] < 0)
             g_69f4[g_94a2].f_1d2[slot] = 0;
-        g_1df8[0][slot].f_1e = g_69f4[g_94a2].f_1d2[slot];
+        object_records[0][slot].f_1e = g_69f4[g_94a2].f_1d2[slot];
         g_57a8[slot].f_06 = g_9200 - 1;
         lstrcpy(g_57a8[slot].f_0c, g_3948.name);
-        g_1df8[0][slot].f_18 = 0;
+        object_records[0][slot].f_18 = 0;
         fn_10_0736(slot);
-        g_1df8[0][slot].f_0c = rand() % 60 - 30;
-        g_1df8[0][slot].f_0e = rand() % 60 - 30;
+        object_records[0][slot].f_0c = rand() % 60 - 30;
+        object_records[0][slot].f_0e = rand() % 60 - 30;
         g_9202++;
     } else
         g_69f4[g_94a2].f_1d0 = 1;

@@ -62,11 +62,11 @@ void fn_11_6b64(int16_t msg, WPARAM wparam, int32_t lparam)
                 g_7090[i].f_148 = 0xfe;
                 VIEW(int32_t, g_7090[i].f_032.a, 0) = 12;
                 g_7090[i].f_03a = g_7090[i].f_036 = 2;
-                g_1df8[14][i].f_51 = 1;
+                object_records[14][i].f_51 = 1;
             }
         } else if (flow_interactive && wparam == VK_ESCAPE) {
             if (g_934e > 2)
-                PostMessage(g_0016, 0x991, 0, 0L);
+                PostMessage(main_window, 0x991, 0, 0L);
         } else {
             g_13de = 1;
             g_968e = 0;
@@ -79,7 +79,7 @@ void fn_11_6b64(int16_t msg, WPARAM wparam, int32_t lparam)
         pause = 1;
     else
         pause = 0;
-    if ((g_7090[main_ship].f_084 > g_1e50 || g_1df8[g_9324][main_ship].f_18) && !pause)
+    if ((g_7090[main_ship].f_084 > now_ms || object_records[g_9324][main_ship].f_18) && !pause)
         return;
     if (msg == 0x99e || GetKeyState(VK_CONTROL) & 0x8000)
         ctrl = 1;
@@ -111,7 +111,7 @@ void fn_11_6b64(int16_t msg, WPARAM wparam, int32_t lparam)
             }
             g_1038 = 1;
             g_9378 = g_9134;
-            PostMessage(g_0016, 0x9a5, 0, 0L);
+            PostMessage(main_window, 0x9a5, 0, 0L);
             break;
         case 'P':
             if (g_920c != 3)
@@ -241,7 +241,7 @@ void fn_11_6b64(int16_t msg, WPARAM wparam, int32_t lparam)
             break;
         case 'I':
             if (alt)
-                PostMessage(g_0016, 0x9aa, 0, 0L);
+                PostMessage(main_window, 0x9aa, 0, 0L);
             else
                 fn_11_772e(ctrl, 2);
             break;
@@ -256,7 +256,7 @@ void fn_11_6b64(int16_t msg, WPARAM wparam, int32_t lparam)
             break;
         case 'R':
             if (alt)
-                PostMessage(g_0016, 0x9b4, 0, 0L);
+                PostMessage(main_window, 0x9b4, 0, 0L);
             else
                 fn_11_772e(ctrl, 1);
             break;

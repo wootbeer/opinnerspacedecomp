@@ -47,3 +47,16 @@
 1090:6db8 ambulance_line
 1090:6e08 demon_host_rect
 1060:adbe summon_with_music [inferred]  # HANDOFF: summons call `adbe` (summon with music), not `ae68`; no selector given there
+# Port naming pass (port/NOTES-port.md "Names"): each set or read only as described.
+1048:a332 format_string  # LoadString(lang_module, id) into a format, its % codes filled from the arguments into out (n 0 appends)
+1090:0016 main_window  # set only by the main window procedure's WM_CREATE (2:0224, class app_name)
+1090:13dc main_dc  # GetDC(main_window), 0 when released
+1090:9212 lang_module  # LoadLibrary of <Language>_LANG.DLL (10:6656), 0 when freed
+1090:920e game_palette  # ordinal 4 mode 0's palette; the pal argument of every ISPACE.DLL call
+1090:1e50 now_ms  # only ever set from GetCurrentTime(); the timers add to it
+1090:059c frame_rate  # INI FrameRateSet (default 36), Alt +/- (10:7e1c); NOTES "Game speed"
+1090:05c4 frame_ms  # 1000 / frame_rate: a frame is forced after this many ms
+1090:05c8 frame_min_ms  # frame_ms - 1: a frame is held back before this many ms
+1090:9690 app_name  # "Inner Space": window class, message box caption, INI section
+1090:96a9 ini_name  # "INSPACE.INI", the file of every profile call
+1090:1df8 object_records  # REC_70 blocks by object type (0x15 types), counts at DS:92ec

@@ -196,7 +196,7 @@ static int16_t run(int ordinal, Args *a)
 
     switch (ordinal) {
     case 1: return ispace_load_image(w[0], w[1], a->s[2], w[3], w[4], w[5]);
-    case 2: return ispace_build_surface(w[0], w[1], 0, w[3], w[4], w[5], w[6], w[7], w[8], w[9],
+    case 2: return ispace_build_surface(w[0], w[1], NULL, w[3], w[4], w[5], w[6], w[7], w[8], w[9],
                                         (char)w[10], (char)w[11], (char)w[12], w[13]);
     case 3: return ispace_load_bitmap(a->s[0]);
     case 4: return ispace_palette(w[0], w[1], w[2], w[3], w[4], w[5], w[6]);
@@ -207,13 +207,13 @@ static int16_t run(int ordinal, Args *a)
     case 9:
         return ispace_sound_play(w[0], (POINT){w[1], a->y[1]}, w[2], a->l[3], a->l[4], (DWORD)a->l[5],
                                  a->s[6]);
-    case 12: return ispace_smooth_image(w[0], w[1], 0, w[3], w[4], w[5], w[6], w[7], w[8],
+    case 12: return ispace_smooth_image(w[0], w[1], NULL, w[3], w[4], w[5], w[6], w[7], w[8],
                                         (char)w[9], (char)w[10]);
     case 14:
         ispace_pal_scale(w[0], w[1], w[2], w[3], w[4]);
         return 0;
     case 15: return ispace_cut(w[0], w[1], w[2], w[3], w[4], w[5], w[6], w[7], w[8]);
-    case 17: return ispace_quick_draw(w[0], w[1], 0, w[3], w[4], w[5], w[6], (char)w[7], (char)w[8], w[9], w[10],
+    case 17: return ispace_quick_draw(w[0], w[1], NULL, w[3], w[4], w[5], w[6], (char)w[7], (char)w[8], w[9], w[10],
                                       (char)w[11], (char)w[12]);
     case 18: return ispace_sprite_sheet(w[0], w[1], w[2], w[3], w[4], w[5]);
     case 29:

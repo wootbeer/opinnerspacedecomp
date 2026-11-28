@@ -65,7 +65,7 @@ int16_t fn_14_3db6(void)
 
     if (g_95ac)
         return 1;
-    GetPrivateProfileString(g_9690, "ShipPath", "", path, 0x6d, g_96a9);
+    GetPrivateProfileString(app_name, "ShipPath", "", path, 0x6d, ini_name);
     if (path[lstrlen(path) - 1] != '\\')
         lstrcat(path, "\\");
     lstrcat(path, "MASTER.BOD");
@@ -102,7 +102,7 @@ int16_t fn_14_3eda(void)
     if (g_95a6)
         return 1;
     fn_14_3db6();
-    GetPrivateProfileString(g_9690, "ShipPath", "", path, 0x6d, g_96a9);
+    GetPrivateProfileString(app_name, "ShipPath", "", path, 0x6d, ini_name);
     if (path[lstrlen(path) - 1] != '\\')
         lstrcat(path, "\\");
     lstrcat(path, "MASTER.SHP");
@@ -238,8 +238,8 @@ void fn_14_11a8(int16_t n)
         g_6e24[g_7090[n].f_0d6].f_7a = (char)r;
         g_6e24[g_7090[n].f_0d6].f_7b = (char)v;
     } else if (!f1) {
-        g_1df8[g_9324][n].f_22 = r;
-        g_1df8[g_9324][n].f_24 = v;
+        object_records[g_9324][n].f_22 = r;
+        object_records[g_9324][n].f_24 = v;
     }
     u = g_7090[n].f_0d6;
     if (u != -1)
@@ -465,8 +465,8 @@ void fn_14_1430(int16_t n)
     g_7090[n].f_148 = g_7090[n].f_149 = -1;
     g_7090[n].f_094 = 0;
     g_7090[n].f_0ea = 0;
-    g_1df8[g_9324][n].f_28 = 0;
-    g_1df8[g_9324][n].f_51 = 0;
+    object_records[g_9324][n].f_28 = 0;
+    object_records[g_9324][n].f_51 = 0;
     g_7090[n].f_010 = 0;
     g_7090[n].f_002 = 0;
     g_7090[n].f_0e8 = 0;
@@ -679,18 +679,18 @@ void fn_14_1b84(int16_t n, int16_t c, int16_t t, int16_t g)
     g_96d2[c].f_3c = SC(g_6e1c[g_6e20[g].f_21].f_1a) / 2;
     lstrcpy(g_96d2[c].f_70, g_6e20[g].f_0a);
     g_96d2[c].f_4e = 1;
-    g_1df8[g_9324][n].f_44 = g_96d2[c].f_32;
-    g_1df8[g_9324][n].f_42 = g_96d2[c].f_2e;
-    g_1df8[g_9324][n].f_46 = g_96d2[c].f_2c;
-    g_1df8[g_9324][n].f_2c = 200;
-    g_1df8[g_9324][n].f_48 = g_96d2[c].f_30;
-    g_1df8[g_9324][n].f_1e = 0;
-    g_1df8[g_9324][n].f_66 = (FNPTR)self_destruct_ship;
-    g_1df8[g_9324][n].f_62 = fn_11_37a0;
-    g_1df8[g_9324][n].f_5e = fn_08_45e0;
-    g_1df8[g_9324][n].f_2e = 0;
-    g_1df8[g_9324][n].f_3c = 0;
-    g_1df8[g_9324][n].f_54 = 0;
+    object_records[g_9324][n].f_44 = g_96d2[c].f_32;
+    object_records[g_9324][n].f_42 = g_96d2[c].f_2e;
+    object_records[g_9324][n].f_46 = g_96d2[c].f_2c;
+    object_records[g_9324][n].f_2c = 200;
+    object_records[g_9324][n].f_48 = g_96d2[c].f_30;
+    object_records[g_9324][n].f_1e = 0;
+    object_records[g_9324][n].f_66 = (FNPTR)self_destruct_ship;
+    object_records[g_9324][n].f_62 = fn_11_37a0;
+    object_records[g_9324][n].f_5e = fn_08_45e0;
+    object_records[g_9324][n].f_2e = 0;
+    object_records[g_9324][n].f_3c = 0;
+    object_records[g_9324][n].f_54 = 0;
     g_7090[n].flag = 1;
     g_7090[n].f_00c = g_96d2[c].f_3e;
     g_7090[n].f_00e = g_96d2[c].f_40;
@@ -1020,8 +1020,8 @@ done:
     g_92ec[g_9324] = g_9406[g_9324] = n;
     GlobalUnlock(g_9100[g_9324]);
     g_9100[g_9324] = GlobalReAlloc(g_9100[g_9324],
-        (int32_t)(g_92ec[g_9324] < 1 ? 1 : g_92ec[g_9324]) * (int32_t)sizeof *g_1df8[0], GHND);
-    g_1df8[g_9324] = (REC_70 *)GlobalLock(g_9100[g_9324]);
+        (int32_t)(g_92ec[g_9324] < 1 ? 1 : g_92ec[g_9324]) * (int32_t)sizeof *object_records[0], GHND);
+    object_records[g_9324] = (REC_70 *)GlobalLock(g_9100[g_9324]);
     if (arg == -1) {
         for (i = 0; i < n; i++) {
             if (a54[i] != 0) {
@@ -1065,18 +1065,18 @@ done:
             g_96d2[g_7090[i].f_04e].f_2a = w = g_6e24[g_7090[i].f_0d6].f_7a;
             h = g_6e24[g_7090[i].f_0d6].f_7b;
         } else {
-            g_96d2[g_7090[i].f_04e].f_2a = w = g_1df8[g_9324][i].f_22;
-            h = g_1df8[g_9324][i].f_24;
+            g_96d2[g_7090[i].f_04e].f_2a = w = object_records[g_9324][i].f_22;
+            h = object_records[g_9324][i].f_24;
         }
         if (g_9156 == 0 && (w & 1)) {
             w++;
             h = 4;
         }
-        g_1df8[g_9324][i].f_22 = SC(w);
-        g_1df8[g_9324][i].f_24 = SC(h);
-        d26 = (int16_t)(bm.bmHeight - g_1df8[g_9324][i].f_24)
-            / (int16_t)(g_1df8[g_9324][i].f_22 + g_1df8[g_9324][i].f_24);
-        g_1df8[g_9324][i].f_20 = w << 3;
+        object_records[g_9324][i].f_22 = SC(w);
+        object_records[g_9324][i].f_24 = SC(h);
+        d26 = (int16_t)(bm.bmHeight - object_records[g_9324][i].f_24)
+            / (int16_t)(object_records[g_9324][i].f_22 + object_records[g_9324][i].f_24);
+        object_records[g_9324][i].f_20 = w << 3;
         g_7090[i].f_05b = d26 - 1;
         g_96d2[g_7090[i].f_04e].f_02 = g_96d2[g_7090[i].f_04e].f_00 = w / 2;
         if (g_96d2[g_7090[i].f_04e].f_04 < 0)
@@ -1115,17 +1115,17 @@ int16_t fn_14_2300(int16_t t, int16_t n)
     if (g_931c > g_931a)
         g_931c = 0;
     if ((g_9320 == 6 || g_9320 == 7) && g_90f8 && g_8e5e) {
-        GetPrivateProfileString(g_9690, "Ship1", "", ship1, 20, g_96a9);
+        GetPrivateProfileString(app_name, "Ship1", "", ship1, 20, ini_name);
         if (ship1[0] == 0)
             fn_14_31d0(0, ship1);
-        GetPrivateProfileString(g_9690, "Ship2", "", ship2, 20, g_96a9);
+        GetPrivateProfileString(app_name, "Ship2", "", ship2, 20, ini_name);
     }
     if (g_9516 == 0) {
-        GetPrivateProfileString(g_9690, "MainShip", "EAGLE", main, 20, g_96a9);
+        GetPrivateProfileString(app_name, "MainShip", "EAGLE", main, 20, ini_name);
         for (i = 0; i < g_95aa; i++)
             if (lstrcmp(g_6e20[i].f_0a, main) == 0 && !fn_14_455c(i)) {
                 lstrcpy(main, "TRANSFORMER");
-                WritePrivateProfileString(g_9690, "MainShip", main, g_96a9);
+                WritePrivateProfileString(app_name, "MainShip", main, ini_name);
             }
     } else
         fn_14_31d0(0, main);

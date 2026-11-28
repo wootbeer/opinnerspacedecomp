@@ -15,15 +15,15 @@ void fn_11_1bcc(void)
 
     if (g_5018 != g_1e58)
         fn_11_04a0(0);
-    if (g_1854 < g_1e50) {
-        g_1854 = g_1e50 + 300;
+    if (g_1854 < now_ms) {
+        g_1854 = now_ms + 300;
         g_93fe = g_93fe == 0;
         fn_11_04a0(1);
     }
     if ((int16_t)(g_1e68 / 36) != g_934e)
         fn_11_04a0(7);
-    if (g_5074 < g_1e50) {
-        g_5074 = g_1e50 + 1000;
+    if (g_5074 < now_ms) {
+        g_5074 = now_ms + 1000;
         for (i = 0; i <= g_9316; i++) {
             if (g_7090[i].f_002) {
                 v = g_7090[i].f_00c / -40 - g_7090[i].f_0e8 * 5 + g_7090[i].f_01e;
@@ -41,11 +41,11 @@ void fn_11_1bcc(void)
             }
             if (g_7090[i].f_0b8[g_7090[i].f_018] == 3) {
                 if (i == main_ship)
-                    g_1df8[g_9324][i].f_50 += (0x6d - g_1df8[g_9324][i].f_50) / 2;
+                    object_records[g_9324][i].f_50 += (0x6d - object_records[g_9324][i].f_50) / 2;
                 else
-                    g_1df8[g_9324][i].f_50 += (0x6d - g_1df8[g_9324][i].f_50) / 5;
+                    object_records[g_9324][i].f_50 += (0x6d - object_records[g_9324][i].f_50) / 5;
             }
-            g_1df8[g_9324][i].f_44 = g_7090[i].f_01e / 20 + g_96d2[g_7090[i].f_04e].f_32;
+            object_records[g_9324][i].f_44 = g_7090[i].f_01e / 20 + g_96d2[g_7090[i].f_04e].f_32;
         }
         fn_11_04a0(6);
         fn_13_2dcc();
@@ -67,7 +67,7 @@ int16_t fn_11_aece(void)
         return 0;
     ok = g_1032 = 0;
     start = main_ship;
-    if (g_1df8[g_9324][start].f_18 != 0)
+    if (object_records[g_9324][start].f_18 != 0)
         return 0;
     if (g_92e8 != 0)
         return 0;
@@ -77,7 +77,7 @@ int16_t fn_11_aece(void)
         else
             main_ship = 0;
         ok = 1;
-        if (g_1df8[g_9324][main_ship].f_18 != 0 || g_7090[main_ship].flag == 0)
+        if (object_records[g_9324][main_ship].f_18 != 0 || g_7090[main_ship].flag == 0)
             ok = 0;
         if (start == main_ship)
             ok = 1;
@@ -104,7 +104,7 @@ int16_t fn_11_aece(void)
     g_1e80 = g_1e84 = 0;
     g_9134 = 1;
     if (g_951a == 0)
-        VIEW(int32_t, g_6b50, 0) = VIEW(int32_t, g_1df8[g_9324][start].f_04, 0);
+        VIEW(int32_t, g_6b50, 0) = VIEW(int32_t, object_records[g_9324][start].f_04, 0);
     g_951a = 1;
     fn_11_3cc2(main_ship);
     fn_11_ae94();

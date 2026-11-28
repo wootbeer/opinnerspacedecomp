@@ -54,17 +54,17 @@ void fn_16_7210(void)
         if (g_1c68 == 0) {
             g_1c68 = GetCurrentTime() + 7000;
         } else if (GetCurrentTime() > g_1c68) {
-            PatBlt(g_13dc, 0, 0, LO16(g_90ea), g_0010, BLACKNESS);
+            PatBlt(main_dc, 0, 0, LO16(g_90ea), g_0010, BLACKNESS);
             g_92be++;
         }
         break;
     case 9:
-        PatBlt(g_13dc, 0, 0, LO16(g_90ea), g_0010, BLACKNESS);
+        PatBlt(main_dc, 0, 0, LO16(g_90ea), g_0010, BLACKNESS);
         fn_15_1328(1);
         fn_15_14be();
         fn_10_6e76(8L);
         fn_10_6dd4(0);
-        g_1e84 = g_1e50;
+        g_1e84 = now_ms;
         break;
     }
 }
@@ -96,7 +96,7 @@ void fn_16_7396(void)
     g_93a8 = GlobalAlloc(GHND, 2000L);
     g_4fcc = GlobalLock(g_93a8);
     lstrcpy(g_4fcc, "");
-    LoadString(g_9212, 0x84e, buf184, 40);
+    LoadString(lang_module, 0x84e, buf184, 40);
     lstrcat(g_4fcc, buf184);
     lstrcat(g_4fcc, g_09f2);
     lstrcat(g_4fcc, g_380c);
@@ -129,34 +129,34 @@ void fn_16_7396(void)
         m = 0;
     if (m > 9) {
         fn_06_1010(m, 10, 1, buf184);
-        LoadString(g_9212, 0x850, buf2a6, 200);
+        LoadString(lang_module, 0x850, buf2a6, 200);
         lstrcat(buf184, buf2a6);
         if (m != 10)
             lstrcat(buf184, "S");
     } else {
         fn_06_0f1a(days, bufbc);
         lstrcpy(buf184, bufbc);
-        LoadString(g_9212, 0x851, buf2a6, 200);
+        LoadString(lang_module, 0x851, buf2a6, 200);
         lstrcat(buf184, buf2a6);
         if (days != 1)
             lstrcat(buf184, "S");
     }
     fn_15_6558(g_94ac, buf288);
-    fn_10_a332(g_4fcc, (char *)0x84f, 0, (LPSTR)buf184, p->f_024, 0x9d6, (LPSTR)buf288);
+    format_string(g_4fcc, 0x84f, 0, (LPSTR)buf184, p->f_024, 0x9d6, (LPSTR)buf288);
     if (p->f_15a || p->f_15c)
-        fn_10_a332(g_4fcc, (char *)0xbcd, 0, p->f_15a, p->f_15a, 0x9d3, p->f_15c, p->f_15c, 0x9d3);
+        format_string(g_4fcc, 0xbcd, 0, p->f_15a, p->f_15a, 0x9d3, p->f_15c, p->f_15c, 0x9d3);
     fn_15_6558(g_94ac, buf184);
-    fn_10_a332(g_4fcc, (char *)0xbce, 0, p->f_032, 0x13e, p->f_01e);
+    format_string(g_4fcc, 0xbce, 0, p->f_032, 0x13e, p->f_01e);
     t = p->f_18b / 36;
     mins = t / 60;
     hours = mins / 60;
     c = mins - hours * 60;
     s = t - mins * 60;
     if (hours >= 1)
-        fn_10_a332(g_4fcc, (char *)0xbe4, 0, (int16_t)hours, (int16_t)hours, g_09f2, (int16_t)c, 0x9ce,
+        format_string(g_4fcc, 0xbe4, 0, (int16_t)hours, (int16_t)hours, g_09f2, (int16_t)c, 0x9ce,
                    (LPSTR)buf184, 4, 0x2b0, (LPSTR)g_380c);
     else
-        fn_10_a332(g_4fcc, (char *)0xbe4, 0, (int16_t)mins, (int16_t)mins, 0x9ce, (int16_t)s, 0x9cf,
+        format_string(g_4fcc, 0xbe4, 0, (int16_t)mins, (int16_t)mins, 0x9ce, (int16_t)s, 0x9cf,
                    (LPSTR)buf184, 4, 0x2b0, (LPSTR)g_380c);
     GlobalUnlock(h);
     GlobalFree(h);

@@ -616,7 +616,7 @@ static int16_t smooth(int16_t pal, int16_t id, int16_t w, int16_t h, int16_t g, 
     return (int16_t)bm;
 }
 
-int16_t ispace_smooth_image(int16_t pal, int16_t id, int32_t name, int16_t dc, int16_t w,
+int16_t ispace_smooth_image(int16_t pal, int16_t id, char *name, int16_t dc, int16_t w,
                             int16_t h, int16_t g, int16_t c, int16_t i, char a, char b)
 {
     (void)name;

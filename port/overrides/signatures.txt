@@ -37,9 +37,21 @@ extern g_1e4c: extern char far *g_1e4c;
 fix seg06c.c fn_06_1b62: (g_1e4c = (long)GlobalLock(g_912a)) => (g_1e4c = GlobalLock(g_912a))
 
 fn fn_10_7370: HBITMAP far fn_10_7370(int a, int b, int c, int d, int e, int f, int g) | return
-fn fn_10_73a6: int far fn_10_73a6(int a, long b, int c, int d, int e, int f, int g, char h, char i) | return
-fn fn_10_6fec: HBITMAP far fn_10_6fec(int a, long b, int c, int d, int e, int f, int g, int h,
+
+# Surfaces (ordinal 2), smoothed images (ordinal 12) and quick angles
+# (ordinal 17) take an image file name as a far pointer, which the
+# definitions passed on as a long; natively it is a pointer.
+fn fn_10_73a6: int far fn_10_73a6(int a, char far *b, int c, int d, int e, int f, int g, char h, char i) | return
+fn fn_10_6fec: HBITMAP far fn_10_6fec(int a, char far *b, int c, int d, int e, int f, int g, int h,
         char i, char j, char k, int l) | return
+fn fn_10_7328: void far fn_10_7328(int a, char far *b, int c, int d, char e, char f, int g, int h,
+        char i, char m)
+extern g_fp_3c30: extern int (far pascal *g_fp_3c30)(int, int, char far *, int, int, int, int, int,
+        int, int, char, char, char, int);
+extern g_fp_3c34: extern int (far pascal *g_fp_3c34)(int, int, char far *, int, int, int, int, int,
+        int, char, char);
+extern g_fp_3c38: extern void (far pascal *g_fp_3c38)(int, int, char far *, int, int, int, int, char,
+        char, int, int, char, char);
 
 # Collision test: eight far int pointers, four ints and two far int
 # pointers (the definition passed them on as twelve longs).
@@ -184,3 +196,18 @@ fix seg10.c fn_10_7480: ((void (far pascal *)(POINT, int))g_fp_3c54)(pt, 11); =>
 # 10:7944 passed ordinal 9's long q as its two words, high word first.
 fix seg10.c fn_10_7944: ((FP3C5C)g_fp_3c5c)(0x69, p, 1, q.p.f0, q.p.f2, g_90ea, g_1e50, ""); => g_fp_3c5c(0x69, p, 1, MAKELONG(q.p.f2, q.p.f0), g_90ea, g_1e50, "");
 fix seg10.c fn_10_7944: ((FP3C5C)g_fp_3c5c)(a, p, r, q.p.f0, q.p.f2, g_90ea, g_1e50, e) => g_fp_3c5c(a, p, r, MAKELONG(q.p.f2, q.p.f0), g_90ea, g_1e50, e)
+
+# --- String ids that the decomp writes as string literals: the 1994 code
+# pushed the id itself (an immediate that matched a literal's DGROUP
+# offset in the decomp's build).  Natively a literal's address is no id,
+# so the ids are the 1994 immediates.
+fix seg17.c ship_status_lines: fn_10_a332(buf, "\x80\x1a\x06", 1, => fn_10_a332(buf, 0x9e0, 1,
+fix seg17.c ship_status_lines: fn_10_a332(buf, "\xc0" "E\x04", 1, => fn_10_a332(buf, 0x9dc, 1,
+fix seg17.c pilot_panel_header: fn_10_a332(buf, "\r\x03", 1, => fn_10_a332(buf, 0x9d9, 1,
+fix seg17.c pilot_panel_header: fn_10_a332(buf, "\x03", 1, => fn_10_a332(buf, 0x9da, 1,
+fix seg17.c fn_17_4068: fn_10_a332(buf, "n", 1, => fn_10_a332(buf, 0xbcf, 1,
+fix seg17.c fn_17_4204: fn_10_a332(g_6078, "", 1, => fn_10_a332(g_6078, 0xbd0, 1,
+fix seg17.c fn_17_7614: fn_10_a332(g_6078, "button", 1, => fn_10_a332(g_6078, 0xbd1, 1,
+fix seg17.c fn_17_76e4: fn_10_a332(g_6078, "button", 0, => fn_10_a332(g_6078, 0xbd2, 0,
+# The id written as a near-pointer cast of a number.
+fix seg17.c fn_17_8a92: fn_10_a332(s1, (char *)(g_4d92[g_4ed4[t]].f10 + 10000), 1); => fn_10_a332(s1, g_4d92[g_4ed4[t]].f10 + 10000, 1);

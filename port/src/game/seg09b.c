@@ -17,13 +17,13 @@ void fn_09_0b2a(void)
     for (i = 0; i < g_9406[0]; i++) {
         g_57a8[i].f_06 = -1;
         if (g_94b0) {
-            g_1df8[0][i].f_1e = -1;
-            g_69f4[g_94a2].f_1d2[i] = g_1df8[0][i].f_1e;
+            object_records[0][i].f_1e = -1;
+            g_69f4[g_94a2].f_1d2[i] = object_records[0][i].f_1e;
         }
-        g_1df8[0][i].f_18 = 1;
+        object_records[0][i].f_18 = 1;
     }
     for (i = 0; i < g_9406[1]; i++)
-        g_1df8[1][i].f_18 = 1;
+        object_records[1][i].f_18 = 1;
     if (g_94b0) {
         g_69f4[g_94a2].f_1d1 = 0;
         g_69f4[g_94a2].f_150 = 0;
@@ -89,14 +89,14 @@ void fn_09_0d6c(void)
     fn_13_65f2(1);
     fn_11_02f0();
     if (g_13de == 0) {
-        g_1e78 = g_1e50 + 25000;
+        g_1e78 = now_ms + 25000;
         g_90f4 = 4;
     }
     g_1e88 = 0;
     fn_10_022e(0);
     for (i = 0; i < 10; i++)
         g_96d2[i].f_38 = g_96d2[i].f_4e = 0;
-    PatBlt(g_13dc, 0, 0, LO16(g_90ea), g_0010, BLACKNESS);
+    PatBlt(main_dc, 0, 0, LO16(g_90ea), g_0010, BLACKNESS);
     if (g_13de == 0)
         fn_09_6a12();
 }
@@ -125,14 +125,14 @@ PAIR fn_09_225a(int16_t a)
     v.a = g_9f40[g_9322][a].a;
     v.b = g_9f40[g_9322][a].b;
     t = g_9ec2[g_9322][a];
-    g_1df8[8][g_9318 * 2 + a].f_51 = t + g_9318 * 2;
+    object_records[8][g_9318 * 2 + a].f_51 = t + g_9318 * 2;
     return v;
 }
 /* 9:27da */
 void fn_09_27da(int16_t a)
 {
     if (g_92e6 == 0)
-        fn_10_6d52(g_13dc, LO16(g_90ea) / 4, g_0010 * 3 / 4 - 10, LO16(g_90ea) / 2, 20, a);
+        fn_10_6d52(main_dc, LO16(g_90ea) / 4, g_0010 * 3 / 4 - 10, LO16(g_90ea) / 2, 20, a);
 }
 
 /* 9:484c */
@@ -187,26 +187,26 @@ void fn_09_2012(void)
     int32_t r;
 
     for (i = 0; i < g_9ea2; i++) {
-        g_240c = g_1df8[8][g_9318 * 2 + i].f_04.x - (LO16(g_90ea) << (g_9150 - 1));
-        g_2410 = g_1df8[8][g_9318 * 2 + i].f_04.y - (HI16(g_90ea) << (g_9150 - 1));
-        pa = fn_08_29ea(g_1df8[8][g_9318 * 2 + i].f_04);
+        g_240c = object_records[8][g_9318 * 2 + i].f_04.x - (LO16(g_90ea) << (g_9150 - 1));
+        g_2410 = object_records[8][g_9318 * 2 + i].f_04.y - (HI16(g_90ea) << (g_9150 - 1));
+        pa = fn_08_29ea(object_records[8][g_9318 * 2 + i].f_04);
         if (i < g_9ea2 - 1)
-            pb = fn_08_29ea(g_1df8[8][g_9318 * 2 + i + 1].f_04);
+            pb = fn_08_29ea(object_records[8][g_9318 * 2 + i + 1].f_04);
         else
-            pb = fn_08_29ea(g_1df8[8][g_9318 * 2].f_04);
+            pb = fn_08_29ea(object_records[8][g_9318 * 2].f_04);
         if (i > 0)
-            pc = fn_08_29ea(g_1df8[8][g_9318 * 2 + i - 1].f_04);
+            pc = fn_08_29ea(object_records[8][g_9318 * 2 + i - 1].f_04);
         else
-            pc = fn_08_29ea(g_1df8[8][g_9318 * 2 + g_9ea2 - 1].f_04);
+            pc = fn_08_29ea(object_records[8][g_9318 * 2 + g_9ea2 - 1].f_04);
         d1.x = pa.x - pc.x;
         d1.y = pa.y - pc.y;
         l2 = (int16_t)fn_08_35d0(d2.x = pb.x - pa.x, d2.y = pb.y - pa.y);
         l1 = (int16_t)fn_08_35d0(d1.x, d1.y);
         r = (((int32_t)d2.y * d1.x - (int32_t)d2.x * d1.y) << 7) / (l2 * l1);
         if (r > 0)
-            g_1df8[8][g_9318 * 2 + i].f_52 = 0;
+            object_records[8][g_9318 * 2 + i].f_52 = 0;
         else
-            g_1df8[8][g_9318 * 2 + i].f_52 = 1;
+            object_records[8][g_9318 * 2 + i].f_52 = 1;
     }
     for (i = 0; i < g_9eb9[g_9322]; i++) {
         g_67f8[i].left = min(g_9f40[g_9322][g_9ec2[g_9322][i]].a, g_9f40[g_9322][i].a);
@@ -227,39 +227,39 @@ void fn_09_0df6(int16_t n)
 
     again = 1;
     while (again) {
-        g_1df8[4][n].f_04.x = (rand() % (int16_t)((LO16(g_05a0)) - 150) + 150) * 8;
-        g_1df8[4][n].f_04.y = (rand() % (int16_t)((HI16(g_05a0)) - 150) + 150) * 8;
-        g_1df8[4][n].f_00.x = g_1df8[4][n].f_08.x = -1000;
-        g_1df8[4][n].f_00.y = g_1df8[4][n].f_08.y = -1000;
-        g_1df8[4][n].f_0c = -(rand() % 50 - 25);
-        g_1df8[4][n].f_0e = -(rand() % 50 - 25);
-        g_1df8[4][n].f_26 = 0;
+        object_records[4][n].f_04.x = (rand() % (int16_t)((LO16(g_05a0)) - 150) + 150) * 8;
+        object_records[4][n].f_04.y = (rand() % (int16_t)((HI16(g_05a0)) - 150) + 150) * 8;
+        object_records[4][n].f_00.x = object_records[4][n].f_08.x = -1000;
+        object_records[4][n].f_00.y = object_records[4][n].f_08.y = -1000;
+        object_records[4][n].f_0c = -(rand() % 50 - 25);
+        object_records[4][n].f_0e = -(rand() % 50 - 25);
+        object_records[4][n].f_26 = 0;
         if ((g_9214 == 3 || g_9214 == 4) && n % 2 == 1)
-            g_1df8[4][n].f_26 = 5;
+            object_records[4][n].f_26 = 5;
         if (g_9214 == 1 || g_9214 == 2)
-            g_1df8[4][n].f_66 = fn_07_2e02;
+            object_records[4][n].f_66 = fn_07_2e02;
         else if (g_9214 == 4 && n % 2 == 0)
-            g_1df8[4][n].f_66 = fn_07_2e02;
+            object_records[4][n].f_66 = fn_07_2e02;
         else
-            g_1df8[4][n].f_66 = fn_12_274a;
-        g_1df8[4][n].f_2f = 0;
-        g_1df8[4][n].f_1e = 0;
-        g_1df8[4][n].f_50 = 0;
-        g_1df8[4][n].f_51 = 0;
-        g_1df8[4][n].f_18 = 0;
+            object_records[4][n].f_66 = fn_12_274a;
+        object_records[4][n].f_2f = 0;
+        object_records[4][n].f_1e = 0;
+        object_records[4][n].f_50 = 0;
+        object_records[4][n].f_51 = 0;
+        object_records[4][n].f_18 = 0;
         if (g_9320 == 6)
-            g_1df8[4][n].f_18 = 1;
+            object_records[4][n].f_18 = 1;
         SetRect(&rc, ((LO16(g_05a0)) / 2 - LO16(g_90ea) / 2) << g_9150, ((HI16(g_05a0)) / 2 - HI16(g_90ea) / 2) << g_9150,
                 (LO16(g_90ea) / 2 + (LO16(g_05a0)) / 2) << g_9150, (HI16(g_90ea) / 2 + (HI16(g_05a0)) / 2) << g_9150);
         again = 0;
-        if (PtInRect(&rc, g_1df8[4][n].f_04))
+        if (PtInRect(&rc, object_records[4][n].f_04))
             again = 1;
         if (g_9406[4] == 17 && n == g_9406[4] - 1) {
-            g_1df8[4][0].f_0c = g_1df8[4][0].f_0e = 0;
+            object_records[4][0].f_0c = object_records[4][0].f_0e = 0;
             for (i = 1; i < g_9406[4]; i++) {
-                g_1df8[4][i].f_04.y = (g_104c[i].a * 208 + g_1df8[4][0].f_04.y) % ((HI16(g_05a0)) * 8);
-                g_1df8[4][i].f_04.x = (g_104c[i].b * 208 + g_1df8[4][0].f_04.x) % ((LO16(g_05a0)) * 8);
-                g_1df8[4][i].f_0c = g_1df8[4][i].f_0e = 0;
+                object_records[4][i].f_04.y = (g_104c[i].a * 208 + object_records[4][0].f_04.y) % ((HI16(g_05a0)) * 8);
+                object_records[4][i].f_04.x = (g_104c[i].b * 208 + object_records[4][0].f_04.x) % ((LO16(g_05a0)) * 8);
+                object_records[4][i].f_0c = object_records[4][i].f_0e = 0;
             }
         }
     }
@@ -310,7 +310,7 @@ void fn_09_2828(void)
                 a = 0;
             else
                 a = 1;
-            if (g_1df8[14][n].f_51 != 0) {
+            if (object_records[14][n].f_51 != 0) {
                 if (b > 0) {
                     fn_06_8cb2(g_9322, n, (uint16_t)(g_9e60[n] > 64000 ? 64000 : g_9e60[n]), b, 1);
                     if (a == 0)
@@ -456,19 +456,19 @@ void fn_09_2828(void)
         }
         for (n = m = 0; m < 8; m++, n++) {
             k = 0;
-            if (g_1df8[0][m].f_18 != 0)
+            if (object_records[0][m].f_18 != 0)
                 for (k = m + 1; k < 8; k++)
-                    if (g_1df8[0][k].f_18 == 0) {
+                    if (object_records[0][k].f_18 == 0) {
                         m = k;
                         break;
                     }
             if (k >= 8)
                 break;
-            if (g_1df8[0][m].f_2f < 0)
+            if (object_records[0][m].f_2f < 0)
                 (g_69f4[g_94a2].f_1c0 + 8)[n] = 2;
-            if (g_1df8[0][m].f_53 == 2)
+            if (object_records[0][m].f_53 == 2)
                 (g_69f4[g_94a2].f_1c0 + 8)[n] = 1;
-            g_69f4[g_94a2].f_1d2[n] = g_1df8[0][m].f_1e;
+            g_69f4[g_94a2].f_1d2[n] = object_records[0][m].f_1e;
         }
         for (; n < 8; n++) {
             g_69f4[g_94a2].f_1d2[n] = 0;
@@ -478,16 +478,16 @@ void fn_09_2828(void)
         g_69f4[g_94a2].f_0a0[0] = 0;
         g_69f4[g_94a2].f_0a0[1] = 0;
         for (n = 0; n < g_9406[9]; n++)
-            if (g_1df8[9][n].f_18 == 0)
+            if (object_records[9][n].f_18 == 0)
                 g_69f4[g_94a2].f_0a0[3]++;
         for (n = 0; n < g_9406[3]; n++) {
-            if (g_1df8[3][n].f_44 == 350 && g_1df8[3][n].f_18 == 0)
+            if (object_records[3][n].f_44 == 350 && object_records[3][n].f_18 == 0)
                 g_69f4[g_94a2].f_0a0[0]++;
-            if (g_1df8[3][n].f_44 == 1400 && g_1df8[3][n].f_18 == 0)
+            if (object_records[3][n].f_44 == 1400 && object_records[3][n].f_18 == 0)
                 g_69f4[g_94a2].f_0a0[1]++;
         }
         for (n = 0; n < g_9406[8]; n++) {
-            g_69f4[g_94a2].f_0ae[n] = g_1df8[8][n].f_1e;
+            g_69f4[g_94a2].f_0ae[n] = object_records[8][n].f_1e;
             if (g_3d50[n].f_0a == -3)
                 g_69f4[g_94a2].f_0ae[n] = -g_69f4[g_94a2].f_0ae[n];
             g_69f4[g_94a2].f_0fe[n] = g_3d50[n].f_2e;
@@ -527,34 +527,34 @@ void fn_09_10d4(void)
     SetRect(&rcw, (LO16(g_05a0)) / 2 - 150, (HI16(g_05a0)) / 2 - 100,
             (LO16(g_05a0)) / 2 + 150, (HI16(g_05a0)) / 2 + 80);
     for (i = 0; i < g_9318 * 2; i++) {
-        g_1df8[8][i].f_08.x = -1000;
-        g_1df8[8][i].f_00.x = g_1df8[8][i].f_08.x;
-        g_1df8[8][i].f_08.y = -1000;
-        g_1df8[8][i].f_00.y = g_1df8[8][i].f_08.y;
+        object_records[8][i].f_08.x = -1000;
+        object_records[8][i].f_00.x = object_records[8][i].f_08.x;
+        object_records[8][i].f_08.y = -1000;
+        object_records[8][i].f_00.y = object_records[8][i].f_08.y;
         if (!g_94b0)
-            g_1df8[8][i].f_1e = g_69f4[g_94a2].f_0ae[i];
+            object_records[8][i].f_1e = g_69f4[g_94a2].f_0ae[i];
         else
-            g_1df8[8][i].f_1e = 0;
+            object_records[8][i].f_1e = 0;
         if (g_94b0) {
             pos.x = (rand() % (int16_t)((LO16(g_05a0)) - 60) + 30) * 8;
             pos.y = (rand() % (int16_t)((HI16(g_05a0)) - 60) + 30) * 8;
         } else
             pos = g_69f4[g_94a2].f_000[i];
         if (i >= g_9318 * 2)
-            g_1df8[8][i].f_04 = pos;
-        g_1df8[8][i].f_18 = 0;
-        g_1df8[8][i].f_24 = SC(6);
-        g_1df8[8][i].f_2f = 2;
-        g_1df8[8][i].f_54 = 1;
+            object_records[8][i].f_04 = pos;
+        object_records[8][i].f_18 = 0;
+        object_records[8][i].f_24 = SC(6);
+        object_records[8][i].f_2f = 2;
+        object_records[8][i].f_54 = 1;
         if (i < g_9318 * 2) {
             g_3d50[i].f_30 = -1;
-            g_1df8[8][i].f_44 = 3500;
-            g_1df8[8][i].f_22 = SC(0x22);
-            g_1df8[8][i].f_20 = 0x110;
-            g_1df8[8][i].f_42 = 8;
-            g_1df8[8][i].f_46 = 1;
-            g_1df8[8][i].f_62 = fn_11_39d8;
-            g_1df8[8][i].f_5e = fn_07_5090;
+            object_records[8][i].f_44 = 3500;
+            object_records[8][i].f_22 = SC(0x22);
+            object_records[8][i].f_20 = 0x110;
+            object_records[8][i].f_42 = 8;
+            object_records[8][i].f_46 = 1;
+            object_records[8][i].f_62 = fn_11_39d8;
+            object_records[8][i].f_5e = fn_07_5090;
             g_3d50[i].f_1c = 3;
             if (!(i & 1)) {
                 g_6670[i / 2].f_12 = 1200;
@@ -572,8 +572,8 @@ void fn_09_10d4(void)
                         ok = 1;
                         for (j = 0; j < g_9324; j++)
                             for (k = 0; k < (&g_9406[0])[j]; k++) {
-                                SetRect(&rc2, g_1df8[j][k].f_04.x - 160, g_1df8[j][k].f_04.y - 160,
-                                        g_1df8[j][k].f_04.x + 320, g_1df8[j][k].f_04.y + 320);
+                                SetRect(&rc2, object_records[j][k].f_04.x - 160, object_records[j][k].f_04.y - 160,
+                                        object_records[j][k].f_04.x + 320, object_records[j][k].f_04.y + 320);
                                 if (IntersectRect(&rc3, &rc1, &rc2)) {
                                     ok = 0;
                                     pos.x = rand() % (int16_t)((LO16(g_05a0)) - 300) * 8;
@@ -587,31 +587,31 @@ void fn_09_10d4(void)
                     for (t = 0; t <= 9; t++)
                         if (t == 0 || t == 4 || t == 3 || t == 9)
                             for (k = 0; k < (&g_9406[0])[t]; k++) {
-                                SetRect(&rc2, g_1df8[t][k].f_04.x - 160, g_1df8[t][k].f_04.y - 160,
-                                        g_1df8[t][k].f_04.x + 320, g_1df8[t][k].f_04.y + 320);
+                                SetRect(&rc2, object_records[t][k].f_04.x - 160, object_records[t][k].f_04.y - 160,
+                                        object_records[t][k].f_04.x + 320, object_records[t][k].f_04.y + 320);
                                 if (IntersectRect(&rc3, &rc1, &rc2))
-                                    g_1df8[t][k].f_04.y = (int16_t)(g_1df8[t][k].f_04.y + 1600)
+                                    object_records[t][k].f_04.y = (int16_t)(object_records[t][k].f_04.y + 1600)
                                                          % (int16_t)((HI16(g_05a0)) * 8);
                             }
                 }
-                g_1df8[8][i].f_04 = pos;
-                g_1df8[8][i + 1].f_04 = pos;
-                g_1df8[8][i + 1].f_04.x += g_1df8[8][i].f_20 + g_6670[i / 2].f_12;
+                object_records[8][i].f_04 = pos;
+                object_records[8][i + 1].f_04 = pos;
+                object_records[8][i + 1].f_04.x += object_records[8][i].f_20 + g_6670[i / 2].f_12;
                 g_6670[i / 2].f_18 = i;
-                g_1df8[12][i].f_04 = pos;
-                g_1df8[12][i + 1].f_04 = pos;
-                g_1df8[12][i].f_04.x += g_6670[i / 2].f_12 / 2 + 160;
-                g_1df8[12][i].f_04.y -= 150;
-                g_1df8[12][i + 1].f_04.x += g_6670[i / 2].f_12 / 2 + 160;
-                SetRect(&g_6670[i / 2].r, g_1df8[8][i].f_04.x + g_1df8[8][i].f_20,
-                        g_1df8[8][i].f_04.y + g_1df8[8][i].f_20 / 2 - 24,
-                        g_1df8[8][i].f_04.x + g_1df8[8][i].f_20 + g_6670[i / 2].f_12,
-                        g_1df8[8][i].f_04.y + g_1df8[8][i].f_20 / 2 + 24);
-                g_1df8[12][i].f_44 = 0;
-                g_1df8[12][i].f_22 = 0;
-                g_1df8[12][i].f_20 = 0;
-                g_1df8[12][i + 1].f_44 = 0;
-                g_1df8[12][i + 1].f_22 = 0;
+                object_records[12][i].f_04 = pos;
+                object_records[12][i + 1].f_04 = pos;
+                object_records[12][i].f_04.x += g_6670[i / 2].f_12 / 2 + 160;
+                object_records[12][i].f_04.y -= 150;
+                object_records[12][i + 1].f_04.x += g_6670[i / 2].f_12 / 2 + 160;
+                SetRect(&g_6670[i / 2].r, object_records[8][i].f_04.x + object_records[8][i].f_20,
+                        object_records[8][i].f_04.y + object_records[8][i].f_20 / 2 - 24,
+                        object_records[8][i].f_04.x + object_records[8][i].f_20 + g_6670[i / 2].f_12,
+                        object_records[8][i].f_04.y + object_records[8][i].f_20 / 2 + 24);
+                object_records[12][i].f_44 = 0;
+                object_records[12][i].f_22 = 0;
+                object_records[12][i].f_20 = 0;
+                object_records[12][i + 1].f_44 = 0;
+                object_records[12][i + 1].f_22 = 0;
                 if (i == 2)
                     g_6670[i / 2].f_1a = 1;
                 if (i == 4)
@@ -622,22 +622,22 @@ void fn_09_10d4(void)
     if (g_94b0 && g_9320 != 6)
         fn_09_4896();
     for (i = g_9318 * 2; i < g_9406[8]; i++) {
-        g_1df8[8][i].f_08.x = -1000;
-        g_1df8[8][i].f_00.x = g_1df8[8][i].f_08.x;
-        g_1df8[8][i].f_08.y = -1000;
-        g_1df8[8][i].f_00.y = g_1df8[8][i].f_08.y;
+        object_records[8][i].f_08.x = -1000;
+        object_records[8][i].f_00.x = object_records[8][i].f_08.x;
+        object_records[8][i].f_08.y = -1000;
+        object_records[8][i].f_00.y = object_records[8][i].f_08.y;
         if (!g_94b0) {
-            g_1df8[8][i].f_1e = g_69f4[g_94a2].f_0ae[i];
+            object_records[8][i].f_1e = g_69f4[g_94a2].f_0ae[i];
             g_3d50[i].f_2e = g_69f4[g_94a2].f_0fe[i];
         } else
-            g_1df8[8][i].f_1e = 0;
+            object_records[8][i].f_1e = 0;
         if (g_94b0 || g_9320 == 6) {
             ok = 0;
             for (j = 0; j < g_9344; j++)
                 if (g_4f2c[j].first <= i && g_4f2c[j].f_02 > i) {
                     ok = 1;
                     g_3d50[i].rest = j;
-                    g_1df8[8][i].f_54 = 1;
+                    object_records[8][i].f_54 = 1;
                     break;
                 }
             if (!ok) {
@@ -649,7 +649,7 @@ void fn_09_10d4(void)
                         pos.x = rand() % (LO16(g_05a0)) * 8;
                         pos.y = rand() % (HI16(g_05a0)) * 8;
                         for (j = 0; j < g_9318; j++)
-                            if (fn_08_285a(&a, &b, pos, g_1df8[12][j * 2].f_04) < 150)
+                            if (fn_08_285a(&a, &b, pos, object_records[12][j * 2].f_04) < 150)
                                 ok = 0;
                         for (j = 0; j < g_9344; j++) {
                             d = fn_08_285a(&a, &b, pos, g_4f2c[j].f_0a);
@@ -657,7 +657,7 @@ void fn_09_10d4(void)
                                 ok = 0;
                         }
                         for (j = 0; j < i; j++) {
-                            d = fn_08_285a(&a, &b, pos, g_1df8[8][j].f_04);
+                            d = fn_08_285a(&a, &b, pos, object_records[8][j].f_04);
                             if (d < 80)
                                 ok = 0;
                         }
@@ -665,7 +665,7 @@ void fn_09_10d4(void)
                 else
                     *(PAIR *)&pos = fn_09_225a(i - g_9318 * 2);   /* PAIR result into a POINT */
             } else
-                pos = g_1df8[8][i].f_04;
+                pos = object_records[8][i].f_04;
         } else {
             pos = g_69f4[g_94a2].f_000[i];
             g_3d50[i].rest = -1;
@@ -673,17 +673,17 @@ void fn_09_10d4(void)
                 if (g_4f2c[j].first <= i && g_4f2c[j].f_02 > i)
                     g_3d50[i].rest = j;
         }
-        g_1df8[8][i].f_04 = pos;
-        g_1df8[8][i].f_18 = 0;
-        g_1df8[8][i].f_24 = SC(5);
-        g_1df8[8][i].f_54 = 1;
+        object_records[8][i].f_04 = pos;
+        object_records[8][i].f_18 = 0;
+        object_records[8][i].f_24 = SC(5);
+        object_records[8][i].f_54 = 1;
         if (i < g_9318 * 2 + g_933e) {
-            g_1df8[8][i].f_44 = 3500;
-            g_1df8[8][i].f_42 = 8;
-            g_1df8[8][i].f_46 = 4;
-            g_1df8[8][i].f_62 = fn_11_39d8;
-            g_1df8[8][i].f_5e = fn_07_2652;
-            g_1df8[8][i].f_66 = fn_12_274a;
+            object_records[8][i].f_44 = 3500;
+            object_records[8][i].f_42 = 8;
+            object_records[8][i].f_46 = 4;
+            object_records[8][i].f_62 = fn_11_39d8;
+            object_records[8][i].f_5e = fn_07_2652;
+            object_records[8][i].f_66 = fn_12_274a;
             if (i < g_9318 * 2 + g_4ee4) {
                 g_3d50[i].f_0a = g_4d90[g_4ee8[0]].f_03;
                 g_3d50[i].f_30 = g_4ee8[0];
@@ -692,27 +692,27 @@ void fn_09_10d4(void)
                 g_3d50[i].f_30 = g_4ee8[1];
             }
             if (g_3d50[i].f_30 == 3) {
-                g_1df8[8][i].f_24 = SC(4);
-                g_1df8[8][i].f_22 = SC(14);
-                g_1df8[8][i].f_20 = 0x70;
-                g_1df8[8][i].f_2c = 12000;
-                g_1df8[8][i].f_48 = 0;
+                object_records[8][i].f_24 = SC(4);
+                object_records[8][i].f_22 = SC(14);
+                object_records[8][i].f_20 = 0x70;
+                object_records[8][i].f_2c = 12000;
+                object_records[8][i].f_48 = 0;
             } else if (g_3d50[i].f_30 == 4) {
-                g_1df8[8][i].f_24 = SC(4);
-                g_1df8[8][i].f_22 = SC(20);
-                g_1df8[8][i].f_20 = 0x98;
-                g_1df8[8][i].f_2c = 0x78;
-                g_1df8[8][i].f_48 = 8;
+                object_records[8][i].f_24 = SC(4);
+                object_records[8][i].f_22 = SC(20);
+                object_records[8][i].f_20 = 0x98;
+                object_records[8][i].f_2c = 0x78;
+                object_records[8][i].f_48 = 8;
             } else {
-                g_1df8[8][i].f_24 = SC(6);
-                g_1df8[8][i].f_22 = SC(0x22);
-                g_1df8[8][i].f_20 = 0x110;
-                g_1df8[8][i].f_2c = 0x78;
-                g_1df8[8][i].f_48 = 8;
+                object_records[8][i].f_24 = SC(6);
+                object_records[8][i].f_22 = SC(0x22);
+                object_records[8][i].f_20 = 0x110;
+                object_records[8][i].f_2c = 0x78;
+                object_records[8][i].f_48 = 8;
             }
             g_3d50[i].f_1c = 1;
             if (g_3d50[i].f_0a != 4)
-                g_1df8[8][i].f_2f = 2;
+                object_records[8][i].f_2f = 2;
         } else {
             g_3d50[i].f_1c = 2;
             if (i < g_9318 * 2 + g_933e + g_4ee0[0])
@@ -724,39 +724,39 @@ void fn_09_10d4(void)
             g_3d50[i].f_2a = g_4d90[g_4ed4[sel]].f_01;
             g_3d50[i].f_0a = g_4d90[g_4ed4[sel]].f_03;
             g_3d50[i].f_18 = g_4d90[g_4ed4[sel]].f_04;
-            g_1df8[8][i].f_44 = g_4d90[g_4ed4[sel]].f_0a;
+            object_records[8][i].f_44 = g_4d90[g_4ed4[sel]].f_0a;
             if (g_9320 == 6)
-                g_1df8[8][i].f_54 = 1;
+                object_records[8][i].f_54 = 1;
             else
-                g_1df8[8][i].f_54 = g_4d90[g_4ed4[sel]].f_02;
-            g_1df8[8][i].f_48 = 9;
-            g_1df8[8][i].f_2c = g_4d90[g_4ed4[sel]].f_0c;
-            if (g_1df8[8][i].f_2c < fn_09_88ba(g_1df8[8][i].f_1e))
-                g_1df8[8][i].f_18 = 1;
+                object_records[8][i].f_54 = g_4d90[g_4ed4[sel]].f_02;
+            object_records[8][i].f_48 = 9;
+            object_records[8][i].f_2c = g_4d90[g_4ed4[sel]].f_0c;
+            if (object_records[8][i].f_2c < fn_09_88ba(object_records[8][i].f_1e))
+                object_records[8][i].f_18 = 1;
             if (g_3d50[i].f_0a != 4)
-                g_1df8[8][i].f_2f = 5;
+                object_records[8][i].f_2f = 5;
             if (g_4d90[g_4ed4[sel]].f_03 == -1)
                 flag = 1;
             else
                 flag = 0;
             if (g_94b0 && g_3d50[i].f_0a == -1 && !(rand() & 1))
                 g_3d50[i].f_0a = -3;
-            else if (!g_94b0 && g_3d50[i].f_0a == -1 && g_1df8[8][i].f_1e < 0) {
-                g_1df8[8][i].f_1e = -g_1df8[8][i].f_1e;
+            else if (!g_94b0 && g_3d50[i].f_0a == -1 && object_records[8][i].f_1e < 0) {
+                object_records[8][i].f_1e = -object_records[8][i].f_1e;
                 g_3d50[i].f_0a = -3;
             }
             g_3d50[i].f_30 = g_4ed4[sel];
-            g_1df8[8][i].f_42 = 6;
-            g_1df8[8][i].f_46 = 4;
-            g_1df8[8][i].f_62 = fn_11_39d8;
-            g_1df8[8][i].f_5e = fn_07_2652;
-            g_1df8[8][i].f_66 = fn_07_2e02;
+            object_records[8][i].f_42 = 6;
+            object_records[8][i].f_46 = 4;
+            object_records[8][i].f_62 = fn_11_39d8;
+            object_records[8][i].f_5e = fn_07_2652;
+            object_records[8][i].f_66 = fn_07_2e02;
             res = fn_10_18b0(g_3d50[i].f_22, g_3d50[i].f_20, g_3d50[i].f_2a, flag, g_3d50[i].f_30);
             if (g_3d50[i].f_0a > 0 && g_2f4c[g_3d50[i].f_0a].f_12)
                 fn_10_533a(g_3d50[i].f_0a);
-            g_1df8[8][i].f_24 = SC(g_4d90[g_3d50[i].f_30].f_09);
-            g_1df8[8][i].f_22 = SC(g_4d90[g_3d50[i].f_30].f_08);
-            g_1df8[8][i].f_20 = g_4d90[g_3d50[i].f_30].f_08 * 8;
+            object_records[8][i].f_24 = SC(g_4d90[g_3d50[i].f_30].f_09);
+            object_records[8][i].f_22 = SC(g_4d90[g_3d50[i].f_30].f_08);
+            object_records[8][i].f_20 = g_4d90[g_3d50[i].f_30].f_08 * 8;
             g_3d50[i].f_1e = res;
         }
         if (g_3d50[i].f_0a == 1)
@@ -770,12 +770,12 @@ void fn_09_10d4(void)
             g_3d50[i].f_0c = 22;
         g_3d50[i].f_08 = rand() % 2;
         if (g_3d50[i].f_30 != 4 && g_3d50[i].f_30 != 3) {
-            g_1df8[8][i].f_04.x -= g_1df8[8][i].f_20 / 2;
-            g_1df8[8][i].f_04.y -= g_1df8[8][i].f_20 / 2;
+            object_records[8][i].f_04.x -= object_records[8][i].f_20 / 2;
+            object_records[8][i].f_04.y -= object_records[8][i].f_20 / 2;
         }
         for (j = 0; j < g_9344; j++)
             if (g_4f2c[j].first <= i && g_4f2c[j].f_02 > i) {
-                g_1df8[8][i].f_54 = 1;
+                object_records[8][i].f_54 = 1;
                 break;
             }
     }
@@ -784,11 +784,11 @@ void fn_09_10d4(void)
     for (i = 0; i < g_9344; i++)
         if (i == 0 || (g_4f2c[i - 1].f_0a.x != g_4f2c[i].f_0a.x
                        && g_4f2c[i - 1].f_0a.y != g_4f2c[i].f_0a.y)) {
-            g_1df8[0][cnt].f_54 = 1;
-            g_1df8[0][cnt].f_0e = 0;
-            g_1df8[0][cnt].f_0c = g_1df8[0][cnt].f_0e;
-            g_1df8[0][cnt].f_04.x = g_4f2c[i].f_0a.x - 128;
-            g_1df8[0][cnt].f_04.y = g_4f2c[i].f_0a.y - 128;
+            object_records[0][cnt].f_54 = 1;
+            object_records[0][cnt].f_0e = 0;
+            object_records[0][cnt].f_0c = object_records[0][cnt].f_0e;
+            object_records[0][cnt].f_04.x = g_4f2c[i].f_0a.x - 128;
+            object_records[0][cnt].f_04.y = g_4f2c[i].f_0a.y - 128;
             cnt++;
             g_0992 += (g_4f2c[i].f_02 - g_4f2c[i].first + 5) * 2;
         }
@@ -796,20 +796,20 @@ void fn_09_10d4(void)
         POINT p0;               /* shares the frame with CL's temporaries */
 
         p0.y = g_9ea8[g_9322].x - 360;
-        p0.x = g_1df8[12][0].f_04.x;
+        p0.x = object_records[12][0].f_04.x;
         for (i = 0; i < g_9406[0]; i++) {
-            g_1df8[0][i].f_54 = 1;
-            g_1df8[0][i].f_0e = 0;
-            g_1df8[0][i].f_0c = g_1df8[0][i].f_0e;
-            g_1df8[0][i].f_04.x = ((g_9406[0] - 1) * 64 / 2 - i * 64 - 16) * 8 + p0.x;
-            g_1df8[0][i].f_04.y = p0.y;
+            object_records[0][i].f_54 = 1;
+            object_records[0][i].f_0e = 0;
+            object_records[0][i].f_0c = object_records[0][i].f_0e;
+            object_records[0][i].f_04.x = ((g_9406[0] - 1) * 64 / 2 - i * 64 - 16) * 8 + p0.x;
+            object_records[0][i].f_04.y = p0.y;
         }
     }
     g_69f4[g_94a2].f_0ad = g_9318;
     if (g_9320 == 6)
         g_69f4[g_94a2].f_0ad = 0xff - g_9322;
     for (i = 0; i < g_9406[8]; i++)
-        g_69f4[g_94a2].f_000[i] = g_1df8[8][i].f_04;
+        g_69f4[g_94a2].f_000[i] = object_records[8][i].f_04;
     if (g_9320 == 6)
         fn_09_2012();
 }
@@ -930,7 +930,7 @@ void fn_09_4896(void)
                 g_2410 = ctr[g_9344].y;
                 ok = 1;
                 for (i = 0; i < g_9318; i++)
-                    if (fn_08_285a(&d1, &d2, ctr[g_9344], g_1df8[12][i].f_04) < (rad[g_9344] >> 3) + 200)
+                    if (fn_08_285a(&d1, &d2, ctr[g_9344], object_records[12][i].f_04) < (rad[g_9344] >> 3) + 200)
                         ok = 0;
                 for (i = 0; i < g_9344; i++)
                     if (fn_08_285a(&d1, &d2, ctr[g_9344], ctr[i]) < (rad[i] + rad[g_9344] >> 3) + 200)
@@ -1049,15 +1049,15 @@ void fn_09_4896(void)
         if (total > g_92ec[8]) {
             g_92ec[8] = g_9406[8] = total;
             GlobalUnlock(g_9100[8]);
-            g_9100[8] = GlobalReAlloc(g_9100[8], (int32_t)(g_92ec[8] < 1 ? 1 : g_92ec[8]) * (int32_t)sizeof *g_1df8[0], 0x42);
-            g_1df8[8] = (REC_70 *)GlobalLock(g_9100[8]);
+            g_9100[8] = GlobalReAlloc(g_9100[8], (int32_t)(g_92ec[8] < 1 ? 1 : g_92ec[8]) * (int32_t)sizeof *object_records[0], 0x42);
+            object_records[8] = (REC_70 *)GlobalLock(g_9100[8]);
         }
         k = c176 = c174 = m = cnt = 0;
         for (i = 0; i < g_9344; i++) {
             if (kind1[i] == 0) {
                 g_4f2c[k].first = g_9318 * 2 + cnt;
                 for (l = 0; l < cnt1[i]; l++) {
-                    g_1df8[8][g_9318 * 2 + cnt].f_04 = pos[m];
+                    object_records[8][g_9318 * 2 + cnt].f_04 = pos[m];
                     g_3d50[g_9318 * 2 + cnt].f_2e = dir[m] << 3;
                     m++;
                     cnt++;
@@ -1070,7 +1070,7 @@ void fn_09_4896(void)
             if (kind2[i] == 0) {
                 g_4f2c[k].first = g_9318 * 2 + cnt;
                 for (l = 0; l < cnt2[i]; l++) {
-                    g_1df8[8][g_9318 * 2 + cnt].f_04 = pos[m];
+                    object_records[8][g_9318 * 2 + cnt].f_04 = pos[m];
                     g_3d50[g_9318 * 2 + cnt].f_2e = dir[m] << 3;
                     m++;
                     cnt++;
@@ -1083,7 +1083,7 @@ void fn_09_4896(void)
             if (kind1[i] == 1) {
                 g_4f2c[k].first = g_9318 * 2 + c176 + g_933e;
                 for (l = 0; l < cnt1[i]; l++) {
-                    g_1df8[8][g_9318 * 2 + c176 + g_933e].f_04 = pos[m];
+                    object_records[8][g_9318 * 2 + c176 + g_933e].f_04 = pos[m];
                     g_3d50[g_9318 * 2 + c176 + g_933e].f_2e = dir[m] << 3;
                     m++;
                     c176++;
@@ -1101,7 +1101,7 @@ void fn_09_4896(void)
             if (kind2[i] == 1) {
                 g_4f2c[k].first = g_9318 * 2 + c176 + g_933e;
                 for (l = 0; l < cnt2[i]; l++) {
-                    g_1df8[8][g_9318 * 2 + c176 + g_933e].f_04 = pos[m];
+                    object_records[8][g_9318 * 2 + c176 + g_933e].f_04 = pos[m];
                     g_3d50[g_9318 * 2 + c176 + g_933e].f_2e = dir[m] << 3;
                     m++;
                     c176++;
@@ -1118,7 +1118,7 @@ void fn_09_4896(void)
             if (kind1[i] == 2) {
                 g_4f2c[k].first = g_9318 * 2 + c174 + g_933e + g_4ee0[0];
                 for (l = 0; l < cnt1[i]; l++) {
-                    g_1df8[8][g_9318 * 2 + c174 + g_933e + g_4ee0[0]].f_04 = pos[m];
+                    object_records[8][g_9318 * 2 + c174 + g_933e + g_4ee0[0]].f_04 = pos[m];
                     g_3d50[g_9318 * 2 + c174 + g_933e + g_4ee0[0]].f_2e = dir[m] << 3;
                     m++;
                     c176++;
@@ -1136,7 +1136,7 @@ void fn_09_4896(void)
             if (kind2[i] == 2) {
                 g_4f2c[k].first = g_9318 * 2 + c174 + g_933e + g_4ee0[0];
                 for (l = 0; l < cnt2[i]; l++) {
-                    g_1df8[8][g_9318 * 2 + c174 + g_933e + g_4ee0[0]].f_04 = pos[m];
+                    object_records[8][g_9318 * 2 + c174 + g_933e + g_4ee0[0]].f_04 = pos[m];
                     g_3d50[g_9318 * 2 + c174 + g_933e + g_4ee0[0]].f_2e = dir[m] << 3;
                     m++;
                     c176++;
@@ -1512,7 +1512,7 @@ void fn_09_3202(void)
 out:
     nfree = 0;
     for (i = 0; i < 8; i++)
-        if (g_1df8[0][i].f_18 == 0)
+        if (object_records[0][i].f_18 == 0)
             nfree++;
     if (g_9432 > 600 && g_9334 != 0 && g_9338 < 3) {
         g_9338++;
@@ -1925,12 +1925,12 @@ void fn_09_22b4(int16_t a)
     g_6e38[1].f_1a.b = -1;
     fn_09_27da(1);
     if (g_92e6 == 0) {
-        LoadString(g_9212, 0x383, buf, 40);
+        LoadString(lang_module, 0x383, buf, 40);
         lstrcat(buf, "...");
         fn_10_94c4(2, 6, 0x200ff00L, LO16(g_90ea) / 2, g_0010 * 3 / 4 + 20, buf);
         if (g_90f8 && g_8e5e) {
             cur = g_9156;
-            v = GetPrivateProfileInt(g_9690, "DScale", 0, g_96a9);
+            v = GetPrivateProfileInt(app_name, "DScale", 0, ini_name);
             if (v == 0) {
                 if ((rand() & 1) || g_9156 == 2) {
                     cur = rand() % 3;
@@ -1943,11 +1943,11 @@ void fn_09_22b4(int16_t a)
                 g_92e2 = 1;
                 g_9156 = cur;
                 fn_06_0f1a(cur, buf2);
-                WritePrivateProfileString(g_9690, "Size", buf2, g_96a9);
+                WritePrivateProfileString(app_name, "Size", buf2, ini_name);
             }
         }
         if (g_92e2) {
-            g_9156 = GetPrivateProfileInt(g_9690, "Size", 1, g_96a9);
+            g_9156 = GetPrivateProfileInt(app_name, "Size", 1, ini_name);
             g_9150 = 4 - g_9156;
             fn_10_0522(1);
             fn_10_5c42();
@@ -2010,8 +2010,8 @@ void fn_09_22b4(int16_t a)
     }
     for (i = 0; i <= g_9324; i++) {
         GlobalUnlock(g_9100[i]);
-        g_9100[i] = GlobalReAlloc(g_9100[i], (int32_t)(g_92ec[i] < 1 ? 1 : g_92ec[i]) * (int32_t)sizeof *g_1df8[0], 0x42);
-        g_1df8[i] = (REC_70 *)GlobalLock(g_9100[i]);
+        g_9100[i] = GlobalReAlloc(g_9100[i], (int32_t)(g_92ec[i] < 1 ? 1 : g_92ec[i]) * (int32_t)sizeof *object_records[0], 0x42);
+        object_records[i] = (REC_70 *)GlobalLock(g_9100[i]);
     }
     fn_10_740c();
     fn_10_0b94();
@@ -2067,7 +2067,7 @@ void fn_09_22b4(int16_t a)
     g_964a = 0;
     fn_10_744c(0x6e);
     if (g_92e6 == 0)
-        PatBlt(g_13dc, LO16(g_90ea) / 4 - 2, g_0010 * 3 / 4 - 12, LO16(g_90ea) / 2 + 4, 0x46, BLACKNESS);
+        PatBlt(main_dc, LO16(g_90ea) / 4 - 2, g_0010 * 3 / 4 - 12, LO16(g_90ea) / 2 + 4, 0x46, BLACKNESS);
     g_92e6 = 1;
     g_94e2 = (g_9340 + g_9342) * 2 + g_933c + g_933e + g_933a[0];
 }

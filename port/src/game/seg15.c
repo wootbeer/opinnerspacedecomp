@@ -49,7 +49,7 @@ void fn_15_5786(void)
 {
     HPALETTE oldpal;
 
-    PatBlt(g_13dc, 0, 0, LO16(g_90ea), g_0010, BLACKNESS);
+    PatBlt(main_dc, 0, 0, LO16(g_90ea), g_0010, BLACKNESS);
     fn_10_4b2e();
     fn_10_7480(-1, 1);
     if (g_90f8 && g_8e5e) {
@@ -63,18 +63,18 @@ void fn_15_5786(void)
     g_9516 = g_001a = 0;
     fn_10_885e(0);
     g_95b8 = 0;
-    g_1e50 = GetCurrentTime();
-    g_6e28 = g_1e50 + 65000L;
+    now_ms = GetCurrentTime();
+    g_6e28 = now_ms + 65000L;
     g_95cc = 0;
     g_95d0 = 0x122;
     g_95d2 = 5000;
-    ShowWindow(g_0016, SW_SHOW);
+    ShowWindow(main_window, SW_SHOW);
     fn_15_5914();
     g_5ea8[0] = CreatePatternBrush(g_3820[0] = CreateBitmap(8, 8, 1, 1, g_06c6));
     g_5ea8[1] = CreatePatternBrush(g_3820[1] = CreateBitmap(8, 8, 1, 1, g_06b6));
-    if (g_920e) {
-        oldpal = SelectPalette(g_13dc, g_920e, 0);
-        RealizePalette(g_13dc);
+    if (game_palette) {
+        oldpal = SelectPalette(main_dc, game_palette, 0);
+        RealizePalette(main_dc);
     }
     if (g_9156 != 1) {
         fn_10_0552(5, 1);
@@ -82,7 +82,7 @@ void fn_15_5786(void)
     }
     fn_15_5962(1);
     if (oldpal)
-        SelectPalette(g_13dc, oldpal, 0);
+        SelectPalette(main_dc, oldpal, 0);
     fn_10_73e2();
     fn_10_744c(0x6e);
     fn_10_7480(-5, 1);
@@ -144,7 +144,7 @@ void fn_15_6558(int16_t drive, LPSTR out)
 
     lstrcpy(out, "C");
     out[0] += g_94ac;
-    LoadString(g_9212, 0x3a9, buf, 30);
+    LoadString(lang_module, 0x3a9, buf, 30);
     lstrcat(out, buf);
     lstrcpy(buf, "C:\\*.*");
     buf[0] += drive;
@@ -173,22 +173,22 @@ void fn_15_6640(void)
     k = fn_10_9764(0);
     lstrcpy(buf1, "");
     if (k == 3) {
-        LoadString(g_9212, 0x24e, buf2, 30);
+        LoadString(lang_module, 0x24e, buf2, 30);
         lstrcpy(buf1, buf2);
     } else {
-        LoadString(g_9212, 0x137, buf2, 30);
+        LoadString(lang_module, 0x137, buf2, 30);
         lstrcat(buf2, " ");
         lstrcat(buf1, buf2);
     }
-    LoadString(g_9212, k + 0x27f, buf2, 30);
+    LoadString(lang_module, k + 0x27f, buf2, 30);
     lstrcat(buf1, buf2);
     lstrcat(buf1, ", ");
     lstrcat(buf1, g_380c);
     lstrcat(buf1, "!");
     fn_10_94c4(0, 6, RGB(0x80, 0xff, 0), LO16(g_90ea) / 2, g_0010 / 2 - 90, buf1);
-    LoadString(g_9212, 0x285, buf1, 30);
+    LoadString(lang_module, 0x285, buf1, 30);
     fn_10_94c4(0, 6, RGB(0x80, 0xff, 0), LO16(g_90ea) / 2, g_0010 / 2 - 55, buf1);
-    LoadString(g_9212, 0x3a8, buf2, 30);
+    LoadString(lang_module, 0x3a8, buf2, 30);
     lstrcpy(buf1, buf2);
     fn_15_6558(g_94ac, buf2);
     lstrcat(buf1, buf2);
@@ -232,41 +232,41 @@ void fn_15_6890(void)
 
     fn_15_681c(g_8e66, ver);
     if (!g_920c)
-        LoadString(g_9212, 0x922, buf, 45);
+        LoadString(lang_module, 0x922, buf, 45);
     else
-        LoadString(g_9212, 0x921, buf, 45);
+        LoadString(lang_module, 0x921, buf, 45);
     lstrcat(buf, " ");
     lstrcat(buf, ver);
     fn_10_94c4(0, 6, RGB(0x8c, 0, 0xff), LO16(g_90ea) / 2, g_0010 / 2 - 175, buf);
     font = CreateFont(18, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, "Arial");
-    oldfont = SelectObject(g_13dc, font);
-    oldbk = SetBkColor(g_13dc, 0L);
-    SetBkMode(g_13dc, TRANSPARENT);
-    SetTextAlign(g_13dc, TA_CENTER);
+    oldfont = SelectObject(main_dc, font);
+    oldbk = SetBkColor(main_dc, 0L);
+    SetBkMode(main_dc, TRANSPARENT);
+    SetTextAlign(main_dc, TA_CENTER);
     if (g_90ee < 8)
-        oldtext = SetTextColor(g_13dc, RGB(0, 0xff, 0xc8));
+        oldtext = SetTextColor(main_dc, RGB(0, 0xff, 0xc8));
     else
-        oldtext = SetTextColor(g_13dc, PALETTERGB(0x80, 0x80, 0xff));
+        oldtext = SetTextColor(main_dc, PALETTERGB(0x80, 0x80, 0xff));
     if (g_920c == 0 || g_920c == 1)
         id = 0x88;
     else
         id = 0xc8;
-    hres = LoadResource(g_9212, FindResource(g_9212, MAKEINTRESOURCE(id),
+    hres = LoadResource(lang_module, FindResource(lang_module, MAKEINTRESOURCE(id),
                                              MAKEINTRESOURCE(5000)));
     ptr = LockResource(hres);
     for (k = 0; ptr[k]; k++)
         if (ptr[k] == '\r')
             ptr[k] = 0;
-    PatBlt(g_13dc, 0, g_0010 / 2 - 115, LO16(g_90ea), g_0010 / 2 + 149, BLACKNESS);
+    PatBlt(main_dc, 0, g_0010 / 2 - 115, LO16(g_90ea), g_0010 / 2 + 149, BLACKNESS);
     for (i = off = 0; i < g_95d6 * 11; i++)
         off += lstrlen(ptr + off) + 2;
     for (i = 0; i < 11; i++) {
-        TextOut(g_13dc, LO16(g_90ea) / 2, g_0010 / 2 + i * 24 - 115, ptr + off, lstrlen(ptr + off));
+        TextOut(main_dc, LO16(g_90ea) / 2, g_0010 / 2 + i * 24 - 115, ptr + off, lstrlen(ptr + off));
         off += lstrlen(ptr + off) + 2;
     }
-    SetBkColor(g_13dc, oldbk);
-    SetTextColor(g_13dc, oldtext);
-    SelectObject(g_13dc, oldfont);
+    SetBkColor(main_dc, oldbk);
+    SetTextColor(main_dc, oldtext);
+    SelectObject(main_dc, oldfont);
     if (font) {
         DeleteObject(font);
         font = 0;
@@ -275,7 +275,7 @@ void fn_15_6890(void)
         GlobalUnlock(hres);
     if (hres)
         FreeResource(hres);
-    LoadString(g_9212, 0x847, buf, 60);
+    LoadString(lang_module, 0x847, buf, 60);
     fn_10_94c4(0, 6, RGB(255, 255, 255), LO16(g_90ea) / 2, g_0010 / 2 + ++i * 24 - 115, buf);
 }
 
@@ -288,7 +288,7 @@ void fn_15_6b52(void)
     int16_t id1;
     int16_t id2;
 
-    LoadString(g_9212, 0x848, buf1, 80);
+    LoadString(lang_module, 0x848, buf1, 80);
     fn_10_94c4(0, 6, RGB(255, 0, 0), LO16(g_90ea) / 2, g_0010 / 2 - 200, buf1);
     for (i = 0; i < 11; i++) {
         switch (i) {
@@ -309,11 +309,11 @@ void fn_15_6b52(void)
             id2 = i + 0x52b;
             break;
         }
-        LoadString(g_9212, id1, buf1, 60);
+        LoadString(lang_module, id1, buf1, 60);
         fn_10_94c4(0, 0, RGB(255 - i * 13, 0, i * 12 + 11), LO16(g_90ea) / 2 - 295,
                    g_0010 / 2 + (i - 5) * 30, buf1);
         lstrcpy(buf1, "- ");
-        LoadString(g_9212, id2, buf2, 60);
+        LoadString(lang_module, id2, buf2, 60);
         lstrcat(buf1, buf2);
         fn_10_94c4(0, 0, RGB(255 - i * 13, 0, i * 12 + 11), LO16(g_90ea) / 2 - 5,
                    g_0010 / 2 + (i - 5) * 30, buf1);
@@ -332,33 +332,33 @@ void fn_15_7970(int16_t x, int16_t y, LPCSTR s)
         switch (i) {
         case 0:
             off = -1;
-            SetTextColor(g_13dc, RGB(255, 255, 255));
+            SetTextColor(main_dc, RGB(255, 255, 255));
             break;
         case 1:
             off = 1;
             if (!g_11aa)
-                SetTextColor(g_13dc, PALETTERGB(0x60, 0x00, 0xc0));
+                SetTextColor(main_dc, PALETTERGB(0x60, 0x00, 0xc0));
             else if (g_90ee < 8)
-                SetTextColor(g_13dc, RGB(0x80, 0, 0));
+                SetTextColor(main_dc, RGB(0x80, 0, 0));
             else
-                SetTextColor(g_13dc, PALETTERGB(0x74, 0x53, 0x19));
+                SetTextColor(main_dc, PALETTERGB(0x74, 0x53, 0x19));
             break;
         case 2:
             off = 0;
             if (!g_11aa) {
                 if (g_90ee < 8)
-                    SetTextColor(g_13dc, RGB(255, 0, 255));
+                    SetTextColor(main_dc, RGB(255, 0, 255));
                 else
-                    SetTextColor(g_13dc, PALETTERGB(0xa0, 0x60, 0xff));
+                    SetTextColor(main_dc, PALETTERGB(0xa0, 0x60, 0xff));
             } else {
                 if (g_90ee < 8)
-                    SetTextColor(g_13dc, RGB(255, 255, 0));
+                    SetTextColor(main_dc, RGB(255, 255, 0));
                 else
-                    SetTextColor(g_13dc, PALETTERGB(0xd8, 0xbc, 0x56));
+                    SetTextColor(main_dc, PALETTERGB(0xd8, 0xbc, 0x56));
             }
             break;
         }
-        TextOut(g_13dc, off + x, off + y, s, len);
+        TextOut(main_dc, off + x, off + y, s, len);
     }
 }
 
@@ -377,37 +377,37 @@ void fn_15_7a62(LPCSTR s)
     int16_t u2;
     int16_t u3;
 
-    pos = GetCurrentPosition(g_13dc);
+    pos = GetCurrentPosition(main_dc);
     x = LOWORD(pos);
     y = HIWORD(pos);
     for (i = 0; i < 3; i++) {
         switch (i) {
         case 0:
             off = -1;
-            SetTextColor(g_13dc, RGB(255, 255, 255));
+            SetTextColor(main_dc, RGB(255, 255, 255));
             break;
         case 1:
             off = 1;
-            SetTextColor(g_13dc, PALETTERGB(0x60, 0x00, 0xc0));
+            SetTextColor(main_dc, PALETTERGB(0x60, 0x00, 0xc0));
             break;
         case 2:
             off = 0;
             if (g_90ee < 8)
-                SetTextColor(g_13dc, RGB(255, 0, 255));
+                SetTextColor(main_dc, RGB(255, 0, 255));
             else
-                SetTextColor(g_13dc, PALETTERGB(0xa0, 0x60, 0xff));
+                SetTextColor(main_dc, PALETTERGB(0xa0, 0x60, 0xff));
             break;
         }
-        TextOut(g_13dc, x + off, y + off, s, 1);
+        TextOut(main_dc, x + off, y + off, s, 1);
     }
-    ext = LOWORD(GetTextExtent(g_13dc, s, 1));
-    MoveTo(g_13dc, LOWORD(pos) + ext, HIWORD(pos));
+    ext = LOWORD(GetTextExtent(main_dc, s, 1));
+    MoveTo(main_dc, LOWORD(pos) + ext, HIWORD(pos));
 }
 
 /* 15:7b34 */
 void fn_15_7b34(void)
 {
-    g_6e28 = g_1e50 + 90000L;
+    g_6e28 = now_ms + 90000L;
     fn_10_6e76(MAKELONG(8, g_95dc = 0));
     fn_10_6e4c();
     fn_10_0552(0x16, 1);
@@ -427,7 +427,7 @@ void fn_15_7ba6(void)
 
     if (g_94c4)
         return;
-    if (!g_95dc && g_6e28 - 19300 < g_1e50) {
+    if (!g_95dc && g_6e28 - 19300 < now_ms) {
         g_95dc = 1;
         fn_06_84fc((rand() % 2 + 1) * 10, LO16(g_90ea) / 2, HI16(g_90ea), 0, -2500,
                    32, 32, 25, 150, -1);
@@ -435,12 +435,12 @@ void fn_15_7ba6(void)
                    32, 32, 25, 47, 3);
         fn_06_84fc((rand() % 2 + 1) * 10, LO16(g_90ea) / 2 + 30, HI16(g_90ea), -950, -2500,
                    32, 32, 25, 19, 0);
-        g_6e28 = g_1e50 + 7400;
+        g_6e28 = now_ms + 7400;
     }
     a = fn_06_73f6();
     b = fn_06_7c14();
-    if (g_1e50 - g_6e28 != -500 && a && b) {
-        g_6e28 = g_1e50 + 500;
+    if (now_ms - g_6e28 != -500 && a && b) {
+        g_6e28 = now_ms + 500;
         g_94c4 = 1;
     }
 }
@@ -475,13 +475,13 @@ void fn_15_7cda(void)
     if (g_95d0 > 300)
         g_95d0 = 300;
     sz = size * g_95d0 / 200;
-    SetStretchBltMode(g_13dc, COLORONCOLOR);
-    StretchBlt(g_13dc, LO16(g_90ea) / 2 - sz / 2, g_0010 / 2 - sz / 2 - 20, sz, sz, g_3a14,
+    SetStretchBltMode(main_dc, COLORONCOLOR);
+    StretchBlt(main_dc, LO16(g_90ea) / 2 - sz / 2, g_0010 / 2 - sz / 2 - 20, sz, sz, g_3a14,
                (gap + size) * (g_95d2 / 10) + gap, gap, size, size, SRCCOPY);
     if (g_95d0 != 300)
         return;
     if (g_130c) {
-        if (g_130c < g_1e50) {
+        if (g_130c < now_ms) {
             fn_15_811a();
             g_130c = 0;
         }
@@ -494,7 +494,7 @@ void fn_15_7cda(void)
                 fn_15_8174(g_95dc, -1);
                 g_95dc++;
             } else {
-                g_6e2c = g_1e50 + 3000;
+                g_6e2c = now_ms + 3000;
                 fn_15_80da();
                 fn_15_8174(g_95dc, -1);
             }
@@ -509,7 +509,7 @@ void fn_15_7cda(void)
             fn_10_754a(0x14, LOWORD(VIEW(int32_t, g_3b98, 0)), HIWORD(VIEW(int32_t, g_3b98, 0)), 4);
         return;
     }
-    if (g_6e2c >= g_1e50)
+    if (g_6e2c >= now_ms)
         return;
     p1.x = LO16(g_90ea) / 2;
     p1.y = g_0010 / 2 - 20;
@@ -527,8 +527,8 @@ void fn_15_7cda(void)
         while (GetCurrentTime() < t);
     }
     fn_15_80da();
-    PatBlt(g_13dc, 0, g_0010 / 2 - 150, LO16(g_90ea), 40, BLACKNESS);
-    StretchBlt(g_13dc, LO16(g_90ea) / 2 - sz / 2, g_0010 / 2 - sz / 2 - 20, sz, sz, g_3a14,
+    PatBlt(main_dc, 0, g_0010 / 2 - 150, LO16(g_90ea), 40, BLACKNESS);
+    StretchBlt(main_dc, LO16(g_90ea) / 2 - sz / 2, g_0010 / 2 - sz / 2 - 20, sz, sz, g_3a14,
                (gap + size) * (g_95d2 / 10) + gap, gap, size, size, SRCCOPY);
     t = GetCurrentTime() + 270;
     do
@@ -544,23 +544,23 @@ void fn_15_7cda(void)
         while (GetCurrentTime() < t);
     }
     fn_15_80da();
-    PatBlt(g_13dc, 0, g_0010 / 2 + 100, LO16(g_90ea), 40, BLACKNESS);
-    g_1e50 = GetCurrentTime();
+    PatBlt(main_dc, 0, g_0010 / 2 + 100, LO16(g_90ea), 40, BLACKNESS);
+    now_ms = GetCurrentTime();
     if (++g_95d8 > 5) {
-        g_6e28 = g_1e50 + 4000;
-        g_6e2c = g_1e50 + 9000;
+        g_6e28 = now_ms + 4000;
+        g_6e2c = now_ms + 9000;
     } else
-        g_130c = g_1e50 + 1000;
+        g_130c = now_ms + 1000;
 }
 
 /* 15:811a */
 void fn_15_811a(void)
 {
-    LoadString(g_9212, g_95d8 + 1000, g_87e0, 60);
-    LoadString(g_9212, g_95d8 + 980, g_881c, 60);
+    LoadString(lang_module, g_95d8 + 1000, g_87e0, 60);
+    LoadString(lang_module, g_95d8 + 980, g_881c, 60);
     g_95dc = 0;
     g_6e2c = 0;
-    g_6e28 = g_1e50 + 90000L;
+    g_6e28 = now_ms + 90000L;
 }
 
 /* Draws the first n letters of a name centred on screen, small letters
@@ -602,20 +602,20 @@ int16_t fn_15_8174(int16_t which, int16_t n)
     font2 = CreateFont(22, 13, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, "Arial");
     if (!n) {
         lstrcpy(buf2, buf);
-        MoveTo(g_13dc, -2000, 0);
-        SetTextAlign(g_13dc, TA_UPDATECP);
+        MoveTo(main_dc, -2000, 0);
+        SetTextAlign(main_dc, TA_UPDATECP);
         for (i = g_1c70 = 0; i < lstrlen(buf2); i++) {
             ch[0] = buf2[i];
             ch[1] = 0;
             if (ch[0] < '{' && ch[0] > '`') {
                 ch[0] -= 0x20;
-                old = SelectObject(g_13dc, font2);
+                old = SelectObject(main_dc, font2);
             } else
-                old = SelectObject(g_13dc, font1);
-            TextOut(g_13dc, 0, 0, ch, 1);
-            SelectObject(g_13dc, old);
+                old = SelectObject(main_dc, font1);
+            TextOut(main_dc, 0, 0, ch, 1);
+            SelectObject(main_dc, old);
         }
-        g_1c70 = LOWORD(GetCurrentPosition(g_13dc)) + 2000;
+        g_1c70 = LOWORD(GetCurrentPosition(main_dc)) + 2000;
     }
     w = g_1c70 * n / lstrlen(buf);
     if (orig != -1) {
@@ -627,26 +627,26 @@ int16_t fn_15_8174(int16_t which, int16_t n)
         p2.y = g_0010 / 2 + dy;
         fn_15_80b0(p1, p2);
     }
-    oldbk = SetBkColor(g_13dc, 0L);
-    SetBkMode(g_13dc, TRANSPARENT);
-    MoveTo(g_13dc, LO16(g_90ea) / 2 - g_1c70 / 2, g_0010 / 2 + dy);
+    oldbk = SetBkColor(main_dc, 0L);
+    SetBkMode(main_dc, TRANSPARENT);
+    MoveTo(main_dc, LO16(g_90ea) / 2 - g_1c70 / 2, g_0010 / 2 + dy);
     if (g_90ee < 8)
-        oldtext = SetTextColor(g_13dc, RGB(0, 0xff, 0xff));
+        oldtext = SetTextColor(main_dc, RGB(0, 0xff, 0xff));
     else
-        oldtext = SetTextColor(g_13dc, PALETTERGB(0, 0xa5, 0xff));
+        oldtext = SetTextColor(main_dc, PALETTERGB(0, 0xa5, 0xff));
     for (i = 0; i < n; i++) {
         ch[0] = buf[i];
         ch[1] = 0;
         if (ch[0] < '{' && ch[0] > '`') {
             ch[0] -= 0x20;
-            old = SelectObject(g_13dc, font2);
+            old = SelectObject(main_dc, font2);
         } else
-            old = SelectObject(g_13dc, font1);
+            old = SelectObject(main_dc, font1);
         fn_15_7a62(ch);
-        SelectObject(g_13dc, old);
+        SelectObject(main_dc, old);
     }
-    SetBkColor(g_13dc, oldbk);
-    SetTextColor(g_13dc, oldtext);
+    SetBkColor(main_dc, oldbk);
+    SetTextColor(main_dc, oldtext);
     if (font1) {
         DeleteObject(font1);
         font1 = 0;
@@ -666,20 +666,20 @@ void fn_15_84b0(int16_t x, int16_t y)
 
     if (g_90f4 != 0 || g_92d4 != 7)
         fn_10_754a(0x14, x, y, 4);
-    old = SelectObject(g_13dc, GetStockObject(WHITE_PEN));
+    old = SelectObject(main_dc, GetStockObject(WHITE_PEN));
     for (i = 2; i < 200; i++) {
-        MoveTo(g_13dc, x, i / -10 + y);
-        LineTo(g_13dc, x, i / 10 + y);
-        MoveTo(g_13dc, i / -10 + x, y);
-        LineTo(g_13dc, i / 10 + x, y);
+        MoveTo(main_dc, x, i / -10 + y);
+        LineTo(main_dc, x, i / 10 + y);
+        MoveTo(main_dc, i / -10 + x, y);
+        LineTo(main_dc, i / 10 + x, y);
     }
-    SelectObject(g_13dc, old);
+    SelectObject(main_dc, old);
     for (i = 200; i > 0; i--) {
-        SetPixel(g_13dc, x, i / -10 + y, 0L);
-        SetPixel(g_13dc, x, i / 10 + y, 0L);
-        SetPixel(g_13dc, i / -10 + x, y, 0L);
-        SetPixel(g_13dc, i / 10 + x, y, 0L);
-        PatBlt(g_13dc, x - 1, y - 1, 2, 2, BLACKNESS);
+        SetPixel(main_dc, x, i / -10 + y, 0L);
+        SetPixel(main_dc, x, i / 10 + y, 0L);
+        SetPixel(main_dc, i / -10 + x, y, 0L);
+        SetPixel(main_dc, i / 10 + x, y, 0L);
+        PatBlt(main_dc, x - 1, y - 1, 2, 2, BLACKNESS);
     }
 }
 
@@ -708,7 +708,7 @@ void fn_15_5962(int16_t a)
             fn_15_6890();
         break;
     case 5:
-        if (a && g_6e28 != g_1e50)
+        if (a && g_6e28 != now_ms)
             fn_15_6b52();
         break;
     case 6:
@@ -717,19 +717,19 @@ void fn_15_5962(int16_t a)
     case 7:
         return;
     }
-    if (g_6e28 >= g_1e50)
+    if (g_6e28 >= now_ms)
         return;
     if (g_95b8 == 4 && g_95d6 < 1) {
         g_95d6++;
         if (g_920c == 1 || g_920c == 0)
-            g_6e28 = g_1e50 + 27000;
+            g_6e28 = now_ms + 27000;
         else
-            g_6e28 = g_1e50 + 17000;
+            g_6e28 = now_ms + 17000;
         fn_15_6890();
         return;
     }
     fn_10_744c(0x6e);
-    PatBlt(g_13dc, 0, 0, LO16(g_90ea), g_0010, BLACKNESS);
+    PatBlt(main_dc, 0, 0, LO16(g_90ea), g_0010, BLACKNESS);
     g_95b8++;
     if ((g_95b8 == 2 && g_90f8 && g_8f70) || g_95b8 > 5) {
         flow_interactive = 0;
@@ -738,11 +738,11 @@ void fn_15_5962(int16_t a)
         g_05b4 = GetCurrentTime() + 120000L;
         g_91f8 = 0;
         if (g_90f8) {
-            g_95ba = GetPrivateProfileInt(g_9690, "DemoType", 0x207, g_96a9);
+            g_95ba = GetPrivateProfileInt(app_name, "DemoType", 0x207, ini_name);
             if (g_95ba == 0x207)
                 g_95ba = rand() % 4 + 0x208;
             if (g_90f8 && g_95ba == 0x208) {
-                GetPrivateProfileString(g_9690, "Ship1", "", buf, 20, g_96a9);
+                GetPrivateProfileString(app_name, "Ship1", "", buf, 20, ini_name);
                 if (!buf[0]) {
                     fn_14_3eda();
                     fn_14_31d0(0, buf);
@@ -756,7 +756,7 @@ void fn_15_5962(int16_t a)
                 }
                 if (lstrcmp(buf, buf2) || k == -1) {
                     fn_06_92b8();
-                    WritePrivateProfileString(g_9690, "MainShip", buf, g_96a9);
+                    WritePrivateProfileString(app_name, "MainShip", buf, ini_name);
                 }
                 g_9516 = 0;
             } else
@@ -771,19 +771,19 @@ void fn_15_5962(int16_t a)
     switch (g_95b8) {
     case 0:
         fn_10_7d58(LO16(g_90ea) / 2, HI16(g_90ea) / 2);
-        g_6e28 = g_1e50 + 65000;
+        g_6e28 = now_ms + 65000;
         g_95cc = 0;
         g_95d0 = 400;
         break;
     case 1:
         if (!g_8f70 || !g_90f8)
             fn_10_7480(0, 1);
-        g_6e28 = g_1e50 + 1000;
+        g_6e28 = now_ms + 1000;
         break;
     case 2:
         fn_10_4b2e();
         fn_06_7266();
-        g_6e28 = g_1e50 + 65000;
+        g_6e28 = now_ms + 65000;
         g_95cc = 0;
         fn_10_6e76(MAKELONG(8, g_94c4 = 1));
         if (g_0010 < 440)
@@ -801,14 +801,14 @@ void fn_15_5962(int16_t a)
     case 4:
         fn_10_7d58(LO16(g_90ea) / 2, HI16(g_90ea) / 2);
         if (g_920c == 0 || g_920c == 1)
-            g_6e28 = g_1e50 + 25000;
+            g_6e28 = now_ms + 25000;
         else
-            g_6e28 = g_1e50 + 18000;
+            g_6e28 = now_ms + 18000;
         g_95d6 = 0;
         fn_15_6890();
         break;
     case 5:
-        g_6e28 = g_1e50 + 11000;
+        g_6e28 = now_ms + 11000;
         fn_15_6b52();
         break;
     }
@@ -832,10 +832,10 @@ void fn_15_5e22(int16_t a)
 
     m = 6;
     sz = 40;
-    mdc = CreateCompatibleDC(g_13dc);
+    mdc = CreateCompatibleDC(main_dc);
     oldm = SelectObject(mdc, (HGDIOBJ)g_95f4);
     if (a && g_95cc)
-        BitBlt(g_13dc, LO16(g_90ea) / 2 - 88, g_0010 / 2 - 60, 40, 40, g_39f2, n * 46 + 6, 6, SRCCOPY);  /* sic: n unset */
+        BitBlt(main_dc, LO16(g_90ea) / 2 - 88, g_0010 / 2 - 60, 40, 40, g_39f2, n * 46 + 6, 6, SRCCOPY);  /* sic: n unset */
     switch (g_95cc) {
     case 0: {
         int16_t v;
@@ -849,7 +849,7 @@ void fn_15_5e22(int16_t a)
             fn_10_754a(0x23, 0, 0, 0);
             g_95cc++;
         }
-        BitBlt(g_13dc, LO16(g_90ea) / 2 - 88, g_0010 / 2 - 60, sz, sz, g_39f2, (sz + m) * n + m,
+        BitBlt(main_dc, LO16(g_90ea) / 2 - 88, g_0010 / 2 - 60, sz, sz, g_39f2, (sz + m) * n + m,
                m, SRCCOPY);
         g_95d2 += g_95d0;
         if (g_95d2 > 13999) {
@@ -859,7 +859,7 @@ void fn_15_5e22(int16_t a)
         }
         if (g_120e) {
             if (GetCurrentTime() > g_120e + 1000) {
-                v = GetPrivateProfileInt(g_9690, "Calibrate", 0, g_96a9);
+                v = GetPrivateProfileInt(app_name, "Calibrate", 0, ini_name);
                 if (g_8ffa && v / 2 > g_8ffa && g_1214)
                     g_1214 = g_8ffa = 0;
                 if ((g_90f8 || g_90ee < 8) && GetCurrentTime() < g_1d3c + 2000 || !g_8ffa) {
@@ -878,7 +878,7 @@ void fn_15_5e22(int16_t a)
         break;
     }
     case 1:
-        BitBlt(g_13dc, LO16(g_90ea) / 2 - 88, g_0010 / 2 - 60, sz, sz, g_39f2,
+        BitBlt(main_dc, LO16(g_90ea) / 2 - 88, g_0010 / 2 - 60, sz, sz, g_39f2,
                (n = g_95d2 / 1000 + 10) * (m + sz) + m, m, SRCCOPY);
         g_95d2 += 45;
         if (g_95d2 >= 3940) {
@@ -902,27 +902,27 @@ void fn_15_5e22(int16_t a)
             color = RGB(0, 128, 128);
             break;
         }
-        oldpen = SelectObject(g_13dc, CreatePen(PS_SOLID, 2, color));
-        MoveTo(g_13dc, LO16(g_90ea) / 2 - 48, g_0010 / 2 - 40);
-        LineTo(g_13dc, LO16(g_90ea) / 2 + g_95d2 / 5 - 38, rand() % 30 + g_0010 / 2 - 55);
-        DeleteObject(SelectObject(g_13dc, CreatePen(PS_SOLID, 2, RGB(0, 0, 0))));
-        MoveTo(g_13dc, LO16(g_90ea) / 2 - 48, g_0010 / 2 - 40);
-        LineTo(g_13dc, LO16(g_90ea) / 2 + g_95d2 / 5 - 38, rand() % 30 + g_0010 / 2 - 55);
-        DeleteObject(SelectObject(g_13dc, oldpen));
+        oldpen = SelectObject(main_dc, CreatePen(PS_SOLID, 2, color));
+        MoveTo(main_dc, LO16(g_90ea) / 2 - 48, g_0010 / 2 - 40);
+        LineTo(main_dc, LO16(g_90ea) / 2 + g_95d2 / 5 - 38, rand() % 30 + g_0010 / 2 - 55);
+        DeleteObject(SelectObject(main_dc, CreatePen(PS_SOLID, 2, RGB(0, 0, 0))));
+        MoveTo(main_dc, LO16(g_90ea) / 2 - 48, g_0010 / 2 - 40);
+        LineTo(main_dc, LO16(g_90ea) / 2 + g_95d2 / 5 - 38, rand() % 30 + g_0010 / 2 - 55);
+        DeleteObject(SelectObject(main_dc, oldpen));
         fn_10_7d58(LO16(g_90ea) / 2 + g_95d2 / 2 - 38, HI16(g_90ea) / 2);
-        oldbr = SelectObject(g_13dc, GetStockObject(DKGRAY_BRUSH));
-        BitBlt(g_13dc, g_95d2 / 5 + LO16(g_90ea) / 2 - 38, g_0010 / 2 - 56, 2, 32, mdc, g_95d2 / 5, 0,
+        oldbr = SelectObject(main_dc, GetStockObject(DKGRAY_BRUSH));
+        BitBlt(main_dc, g_95d2 / 5 + LO16(g_90ea) / 2 - 38, g_0010 / 2 - 56, 2, 32, mdc, g_95d2 / 5, 0,
                MERGECOPY);
-        SelectObject(g_13dc, oldbr);
+        SelectObject(main_dc, oldbr);
         if ((g_95d2 -= 4) < 0) {
-            PatBlt(g_13dc, LO16(g_90ea) / 2 - 48, g_0010 / 2 - 56, 10, 32, BLACKNESS);
+            PatBlt(main_dc, LO16(g_90ea) / 2 - 48, g_0010 / 2 - 56, 10, 32, BLACKNESS);
             for (i = 0; i < 630; i += 2) {
                 if (i == 100)
                     fn_10_744c(0x6e);
-                oldbr = SelectObject(g_13dc, CreateSolidBrush(RGB(i / 5 + 128, i / 5 - 128,
+                oldbr = SelectObject(main_dc, CreateSolidBrush(RGB(i / 5 + 128, i / 5 - 128,
                                                                   i / -5 + 127)));
-                BitBlt(g_13dc, LO16(g_90ea) / 2 - 38, g_0010 / 2 - 56, 130, 32, mdc, 0, 0, MERGECOPY);
-                DeleteObject(SelectObject(g_13dc, oldbr));
+                BitBlt(main_dc, LO16(g_90ea) / 2 - 38, g_0010 / 2 - 56, 130, 32, mdc, 0, 0, MERGECOPY);
+                DeleteObject(SelectObject(main_dc, oldbr));
             }
             g_95cc++;
             g_95d2 = 3940;
@@ -930,14 +930,14 @@ void fn_15_5e22(int16_t a)
         }
         break;
     case 3:
-        BitBlt(g_13dc, LO16(g_90ea) / 2 - 88, g_0010 / 2 - 60, sz, sz, g_39f2,
+        BitBlt(main_dc, LO16(g_90ea) / 2 - 88, g_0010 / 2 - 60, sz, sz, g_39f2,
                (n = g_95d2 / 1000 + 10) * (m + sz) + m, m, SRCCOPY);
         g_95d2 -= 45;
         if (g_95d2 <= 60) {
-            BitBlt(g_13dc, LO16(g_90ea) / 2 - 88, g_0010 / 2 - 60, sz, sz, g_39f2, m * 6 + sz * 5,
+            BitBlt(main_dc, LO16(g_90ea) / 2 - 88, g_0010 / 2 - 60, sz, sz, g_39f2, m * 6 + sz * 5,
                    m, SRCCOPY);
             g_95cc++;
-            g_6e28 = g_1e50 + 3000;
+            g_6e28 = now_ms + 3000;
         }
         break;
     case 4: {
@@ -949,16 +949,16 @@ void fn_15_5e22(int16_t a)
 
         fn_10_744c(0x6e);
         font = CreateFont(38, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2, 0x22, "Times New Roman");
-        oldfont = SelectObject(g_13dc, font);
-        oldbk = SetBkColor(g_13dc, RGB(0, 0, 0));
-        SetBkMode(g_13dc, TRANSPARENT);
-        SetTextAlign(g_13dc, TA_CENTER);
-        oldtc = SetTextColor(g_13dc, RGB(255, 255, 0));
-        LoadString(g_9212, 0x846, buf, 40);
-        TextOut(g_13dc, LO16(g_90ea) / 2, g_0010 / 2 + 17, buf, lstrlen(buf));
-        SetBkColor(g_13dc, oldbk);
-        SetTextColor(g_13dc, oldtc);
-        SelectObject(g_13dc, oldfont);
+        oldfont = SelectObject(main_dc, font);
+        oldbk = SetBkColor(main_dc, RGB(0, 0, 0));
+        SetBkMode(main_dc, TRANSPARENT);
+        SetTextAlign(main_dc, TA_CENTER);
+        oldtc = SetTextColor(main_dc, RGB(255, 255, 0));
+        LoadString(lang_module, 0x846, buf, 40);
+        TextOut(main_dc, LO16(g_90ea) / 2, g_0010 / 2 + 17, buf, lstrlen(buf));
+        SetBkColor(main_dc, oldbk);
+        SetTextColor(main_dc, oldtc);
+        SelectObject(main_dc, oldfont);
         if (font) {
             DeleteObject(font);
             font = 0;
@@ -1001,37 +1001,37 @@ void fn_15_6cdc(void)
         if (g_95d4 == 0) {
             fn_10_6ea0(5);
             font = CreateFont(24, 11, 0, 0, 600, 0, 0, 0, 0, 0, 0, 2, 0x22, "Arial");
-            oldfont = SelectObject(g_13dc, font);
-            bkcol = SetBkColor(g_13dc, 0L);
-            SetBkMode(g_13dc, TRANSPARENT);
-            SetTextAlign(g_13dc, TA_CENTER);
+            oldfont = SelectObject(main_dc, font);
+            bkcol = SetBkColor(main_dc, 0L);
+            SetBkMode(main_dc, TRANSPARENT);
+            SetTextAlign(main_dc, TA_CENTER);
             if (g_90ee < 8)
-                textcol = SetTextColor(g_13dc, RGB(0, 0xff, 0xff));
+                textcol = SetTextColor(main_dc, RGB(0, 0xff, 0xff));
             else
-                textcol = SetTextColor(g_13dc, PALETTERGB(0, 0xa5, 0xff));
-            LoadString(g_9212, 0x849, buf, 90);
+                textcol = SetTextColor(main_dc, PALETTERGB(0, 0xa5, 0xff));
+            LoadString(lang_module, 0x849, buf, 90);
             fn_15_7970(LO16(g_90ea) / 2 - 90, g_0010 / 2 + g_95de - 245, buf);
-            SelectObject(g_13dc, oldfont);
+            SelectObject(main_dc, oldfont);
             if (font) {
                 DeleteObject(font);
                 font = 0;
             }
             font = CreateFont(35, 19, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, "Arial");
-            oldfont = SelectObject(g_13dc, font);
+            oldfont = SelectObject(main_dc, font);
             if (g_920c == 0)
-                LoadString(g_9212, 0x922, buf, 45);
+                LoadString(lang_module, 0x922, buf, 45);
             else
-                LoadString(g_9212, 0x921, buf, 45);
+                LoadString(lang_module, 0x921, buf, 45);
             fn_11_3fd4(buf, 0);
             lstrcat(buf, "\x99");
             fn_15_7970(LO16(g_90ea) / 2, g_0010 / 2 + g_95de - 220, buf);
-            SelectObject(g_13dc, oldfont);
+            SelectObject(main_dc, oldfont);
             if (font) {
                 DeleteObject(font);
                 font = 0;
             }
             font = CreateFont(22, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0x22, "Arial");
-            oldfont = SelectObject(g_13dc, font);
+            oldfont = SelectObject(main_dc, font);
             if (g_11aa == 0) {
                 if (g_920c == 3)
                     lstrcpy(buf, "");
@@ -1045,14 +1045,14 @@ void fn_15_6cdc(void)
             lstrcat(buf, " ");
             LoadString(g_8e66, 0x25f, buf2, 20);
             lstrcat(buf, buf2);
-            SetTextColor(g_13dc, PALETTERGB(0xc0, 0xc0, 0xc0));
+            SetTextColor(main_dc, PALETTERGB(0xc0, 0xc0, 0xc0));
             fn_15_7970(LO16(g_90ea) / 2, g_0010 / 2 + g_95de - 186, buf);
             fn_10_885e(0);
             flag = 0;
-            SetTextColor(g_13dc, PALETTERGB(0xc0, 0xc0, 0xc0));
+            SetTextColor(main_dc, PALETTERGB(0xc0, 0xc0, 0xc0));
             if (g_920c != 3) {
                 if (g_920c == -1) {
-                    GetProfileString(g_9690, "CDDrive", "", buf, 40);
+                    GetProfileString(app_name, "CDDrive", "", buf, 40);
                     if (buf[0] == 0) {
                         fn_09_955c(0x84c, buf2);
                         fn_10_946a(buf);
@@ -1088,62 +1088,62 @@ void fn_15_6cdc(void)
                 fn_15_7970(LO16(g_90ea) / 2, g_0010 / 2 + g_95ce + 125, buf2);
             }
             if (flag) {
-                SetTextColor(g_13dc, 0L);
-                SetBkColor(g_13dc, PALETTERGB(0xb4, 0x80, 0xe0));
-                SetBkMode(g_13dc, OPAQUE);
+                SetTextColor(main_dc, 0L);
+                SetBkColor(main_dc, PALETTERGB(0xb4, 0x80, 0xe0));
+                SetBkMode(main_dc, OPAQUE);
                 if (g_922a)
                     fn_09_955c(0x928, buf2);
                 else
                     fn_09_955c(0x906, buf2);
-                TextOut(g_13dc, LO16(g_90ea) / 2, g_0010 / 2 + g_95ce + 150, buf2, lstrlen(buf2));
-                SetBkColor(g_13dc, 0L);
-                SetBkMode(g_13dc, TRANSPARENT);
+                TextOut(main_dc, LO16(g_90ea) / 2, g_0010 / 2 + g_95ce + 150, buf2, lstrlen(buf2));
+                SetBkColor(main_dc, 0L);
+                SetBkMode(main_dc, TRANSPARENT);
             }
-            SelectObject(g_13dc, oldfont);
+            SelectObject(main_dc, oldfont);
             if (font) {
                 DeleteObject(font);
                 font = 0;
             }
             font = CreateFont(16, 0, 0, 0, 500, 0, 0, 0, 0, 0, 0, 2, 0x22, "Arial");
-            oldfont = SelectObject(g_13dc, font);
+            oldfont = SelectObject(main_dc, font);
             if (g_90ee != 8) {
-                SetTextColor(g_13dc, 0L);
-                SetBkColor(g_13dc, PALETTERGB(0xc0, 0xc0, 0xc0));
-                SetBkMode(g_13dc, OPAQUE);
+                SetTextColor(main_dc, 0L);
+                SetBkColor(main_dc, PALETTERGB(0xc0, 0xc0, 0xc0));
+                SetBkMode(main_dc, OPAQUE);
                 lstrcpy(buf2, " For best results, change Windows to 256 color mode ");
-                TextOut(g_13dc, LO16(g_90ea) / 2, g_0010 / 2 + g_95ce + 86, buf2, lstrlen(buf2));
-                SetBkColor(g_13dc, 0L);
-                SetBkMode(g_13dc, TRANSPARENT);
+                TextOut(main_dc, LO16(g_90ea) / 2, g_0010 / 2 + g_95ce + 86, buf2, lstrlen(buf2));
+                SetBkColor(main_dc, 0L);
+                SetBkMode(main_dc, TRANSPARENT);
             }
-            SetTextColor(g_13dc, PALETTERGB(0xb4, 0x80, 0xe0));
+            SetTextColor(main_dc, PALETTERGB(0xb4, 0x80, 0xe0));
             lstrcpy(buf, "\xa9 1994-2000 Software Dynamics, inc. All rights reserved.");
-            TextOut(g_13dc, LO16(g_90ea) / 2, g_0010 / 2 + g_95ce + 103, buf, lstrlen(buf));
-            SelectObject(g_13dc, oldfont);
+            TextOut(main_dc, LO16(g_90ea) / 2, g_0010 / 2 + g_95ce + 103, buf, lstrlen(buf));
+            SelectObject(main_dc, oldfont);
             if (font) {
                 DeleteObject(font);
                 font = 0;
             }
             font = CreateFont(30, 0, 0, 0, 800, 1, 0, 0, 0, 0, 0, 2, 0x22, "Arial");
-            oldfont = SelectObject(g_13dc, font);
-            SetTextColor(g_13dc, PALETTERGB(0xb4, 0x80, 0xe0));
+            oldfont = SelectObject(main_dc, font);
+            SetTextColor(main_dc, PALETTERGB(0xb4, 0x80, 0xe0));
             fn_09_955c(0x9ee, buf2);
             fn_15_7970(LO16(g_90ea) / 2, g_0010 / 2 + g_95ce + 185, buf2);
-            SetBkColor(g_13dc, bkcol);
-            SetTextColor(g_13dc, textcol);
-            SelectObject(g_13dc, oldfont);
+            SetBkColor(main_dc, bkcol);
+            SetTextColor(main_dc, textcol);
+            SelectObject(main_dc, oldfont);
             if (font) {
                 DeleteObject(font);
                 font = 0;
             }
             g_95be = fn_10_6c02(300, 0, -1);
-            g_95c2 = CreateCompatibleDC(g_13dc);
+            g_95c2 = CreateCompatibleDC(main_dc);
             g_95c0 = SelectObject(g_95c2, g_95be);
-            if (g_920e)
-                g_95c4 = SelectPalette(g_95c2, g_920e, 0);
-            SetStretchBltMode(g_13dc, 3);
-            fn_10_9962(1, g_13dc, LO16(g_90ea) / 2 - 138, g_0010 / 2 + g_95de - 155, 276, 210,
+            if (game_palette)
+                g_95c4 = SelectPalette(g_95c2, game_palette, 0);
+            SetStretchBltMode(main_dc, 3);
+            fn_10_9962(1, main_dc, LO16(g_90ea) / 2 - 138, g_0010 / 2 + g_95de - 155, 276, 210,
                        g_95c2, 0, 0, 138, 105, SRCCOPY);
-            if (g_920e)
+            if (game_palette)
                 SelectPalette(g_95c2, g_95c4, 0);
             SelectObject(g_95c2, g_95c0);
             DeleteObject(g_95be);
@@ -1156,17 +1156,17 @@ void fn_15_6cdc(void)
                 HPALETTE oldpal;
 
                 bmp = fn_10_6c02(300, 3, -1);
-                mdc = CreateCompatibleDC(g_13dc);
+                mdc = CreateCompatibleDC(main_dc);
                 oldbmp = SelectObject(mdc, bmp);
-                if (g_920e)
-                    oldpal = SelectPalette(mdc, g_920e, 0);
-                g_95be = CreateCompatibleBitmap(g_13dc, 276, 276);
+                if (game_palette)
+                    oldpal = SelectPalette(mdc, game_palette, 0);
+                g_95be = CreateCompatibleBitmap(main_dc, 276, 276);
                 g_95c0 = SelectObject(g_95c2, g_95be);
-                if (g_920e)
-                    g_95c4 = SelectPalette(g_95c2, g_920e, 0);
+                if (game_palette)
+                    g_95c4 = SelectPalette(g_95c2, game_palette, 0);
                 SetStretchBltMode(g_95c2, 3);
                 fn_10_9962(1, g_95c2, 0, 0, 276, 276, mdc, 0, 0, 138, 138, SRCCOPY);
-                if (g_920e)
+                if (game_palette)
                     SelectPalette(mdc, oldpal, 0);
                 SelectObject(mdc, oldbmp);
                 DeleteObject(bmp);
@@ -1174,8 +1174,8 @@ void fn_15_6cdc(void)
             } else {
                 g_95be = fn_10_73a6(300, "", -2, -2, 2, 0, 1, 1, 12);
                 g_95c0 = SelectObject(g_95c2, g_95be);
-                if (g_920e)
-                    g_95c4 = SelectPalette(g_95c2, g_920e, 0);
+                if (game_palette)
+                    g_95c4 = SelectPalette(g_95c2, game_palette, 0);
             }
         }
         g_6e2c = 0;
@@ -1190,7 +1190,7 @@ void fn_15_6cdc(void)
         }
         g_95e0[idx] |= mask;
         g_95d4++;
-        BitBlt(g_13dc, LO16(g_90ea) / 2 - 138, g_0010 / 2 + pix * 2 + g_95de - 155, 276, 2,
+        BitBlt(main_dc, LO16(g_90ea) / 2 - 138, g_0010 / 2 + pix * 2 + g_95de - 155, 276, 2,
                g_95c2, 0, pix * 2, SRCCOPY);
         if (g_95d4 >= 105) {
             if (g_95c4)
@@ -1232,14 +1232,14 @@ void fn_15_6cdc(void)
         g_95c8 += 4;
         g_95ce += 2;
         if (g_95ce >= 40) {
-            g_6e2c = g_1e50 + 45000;
+            g_6e2c = now_ms + 45000;
             g_6e28 = g_6e2c + 6500;
             g_95cc = 5;
             g_95ca = g_95c8 = 0;
         }
         break;
     }
-    if (g_6e2c && g_6e2c < g_1e50) {
+    if (g_6e2c && g_6e2c < now_ms) {
         g_94c4 = 0;
         fn_06_7266();
         fn_06_72d8(2, 3);
@@ -1258,16 +1258,16 @@ void fn_15_6cdc(void)
         b = fn_06_7c14();
         if (b && !g_95dc) {
             g_95dc = 1;
-            PatBlt(g_13dc, 0, 0, LO16(g_90ea), g_0010, BLACKNESS);
-            g_1c6c = g_1e50 + 100;
-            g_6e28 = g_1e50 + 2500;
+            PatBlt(main_dc, 0, 0, LO16(g_90ea), g_0010, BLACKNESS);
+            g_1c6c = now_ms + 100;
+            g_6e28 = now_ms + 2500;
         }
-        if (g_6e28 - 800 > g_1e50 && g_1c6c + 100 < g_1e50 && g_95dc && rand() % 10 < 3) {
+        if (g_6e28 - 800 > now_ms && g_1c6c + 100 < now_ms && g_95dc && rand() % 10 < 3) {
             fn_06_78ea(rand() % 2 * 10, rand() % 300 + LO16(g_90ea) / 2 - 150,
                        rand() % 440 + HI16(g_90ea) / 2 - 220, 0, 0, 800, 4, 50 - rand() % 10);
-            g_1c6c = g_1e50;
+            g_1c6c = now_ms;
         }
-        if (g_6e28 - 200 < g_1e50)
+        if (g_6e28 - 200 < now_ms)
             g_94c4 = 1;
     }
 }
@@ -1313,9 +1313,9 @@ void fn_15_8604(void)
     LineTo(g_929a, g_3ca8.right - 1, g_3ca8.top + g_92d2 - 5);
     SelectObject(g_929a, old);
     bmp = fn_10_6c02(0x122, 0, -1);
-    dc = CreateCompatibleDC(g_13dc);
-    if (g_920e)
-        pal = SelectPalette(dc, g_920e, 0);
+    dc = CreateCompatibleDC(main_dc);
+    if (game_palette)
+        pal = SelectPalette(dc, game_palette, 0);
     oldbmp = SelectObject(dc, bmp);
     BitBlt(g_929a, g_3ca8.left + 20, g_3ca8.top + g_92d2 - 17, 44, 10, dc, 0, 0, SRCCOPY);
     SelectObject(dc, oldbmp);
@@ -1336,7 +1336,7 @@ void fn_15_8604(void)
     LineTo(g_929a, g_3ca8.right - 20, g_3ca8.bottom - 16);
     DeleteObject(SelectObject(g_929a, old));
     bmp = fn_10_6d38("CORNER");
-    dc = CreateCompatibleDC(g_13dc);
+    dc = CreateCompatibleDC(main_dc);
     oldbmp = SelectObject(dc, bmp);
     BitBlt(g_929a, g_3ca8.left + 20, g_3ca8.top + g_92d2 - 25, 5, 5, dc, 0, 0, SRCCOPY);
     BitBlt(g_929a, g_3ca8.right - 26, g_3ca8.top + 20, 5, 5, dc, 0, 0, SRCCOPY);
@@ -1367,9 +1367,9 @@ void fn_15_8ae6(void)
                (int16_t)(h * 3) / 8 - w / 8, 1);
     fn_10_949c(g_929a, w / 8 + g_3cb8.left, h / 2 + g_3cb8.top, (int16_t)(w * 3) / 4, h / 8, 1);
     bmp = fn_10_6c02(0x122, 0, -1);
-    dc = CreateCompatibleDC(g_13dc);
-    if (g_920e)
-        pal = SelectPalette(dc, g_920e, 0);
+    dc = CreateCompatibleDC(main_dc);
+    if (game_palette)
+        pal = SelectPalette(dc, game_palette, 0);
     oldbmp = SelectObject(dc, bmp);
     BitBlt(g_929a, w / 8 + g_3cb8.left + 2, (int16_t)(h * 5) / 8 + g_3cb8.top + 3, min((int16_t)(w * 3) / 4, 44), 10,
            dc, 0, 0, SRCCOPY);
